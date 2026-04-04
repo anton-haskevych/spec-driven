@@ -43,6 +43,8 @@ Evaluate the spec against these 4 principles. Not all will apply to every spec �
 
 4. **Check for lifecycle state leaks.** This is one of the most common bug classes in any application. A typical pattern: a query returns entities in all lifecycle states when only active ones are expected, causing downstream logic to operate on cancelled or archived records. For every query the spec proposes, ask: "Does this query filter by lifecycle state? Should it?"
 
+   **Caution on shared methods.** Distinguish between (a) queries/endpoints serving a specific use case — these SHOULD filter by lifecycle state, and (b) general-purpose domain methods (`find*`, `has*`, `get*`) used by multiple callers — adding a state filter here fixes one caller but may break others. For shared methods, lifecycle state filtering belongs in each caller's business logic, not in the shared lookup. Before validating a spec's proposal to add filtering to a shared method, grep for all callers and assess whether they all want the same filter.
+
 5. **Assess testability.** Can the proposed design be meaningfully tested? Are the proposed test boundaries correct? Is the spec relying on integration tests where unit tests would be more appropriate (or vice versa)?
 
 6. **Produce findings.** Each finding should describe a specific failure scenario with a concrete example.

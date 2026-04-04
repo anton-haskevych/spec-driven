@@ -43,15 +43,18 @@ Evaluate the spec against these 6 principles. Not all will apply to every spec �
 
 4. **Check blast radius.** What existing features could break? If the spec modifies a shared repository method, what else calls that method? Use `Grep` to find all callers.
 
-5. **Verify integration accuracy.** Does the spec correctly name existing endpoints, handlers, events, and tables? Specs often reference things by slightly wrong names or assume APIs that don't exist. Use `Grep`/`Glob` to verify.
+5. **Verify method contract preservation.** When the spec proposes modifying an existing method's *behavior* (not just adding new methods), analyze whether the change preserves the method's implicit contract with ALL callers. Don't just count callers — understand what each caller expects. A method named `findX()` has a contract: "find X." If the spec proposes adding state filters or narrowing its return set, check every caller: do they all want that narrower behavior? If even one caller needs the original behavior, the fix belongs in the calling code, not the shared method.
 
-6. **Produce findings.** Each finding should reference the specific integration mismatch or boundary violation.
+6. **Verify integration accuracy.** Does the spec correctly name existing endpoints, handlers, events, and tables? Specs often reference things by slightly wrong names or assume APIs that don't exist. Use `Grep`/`Glob` to verify.
+
+7. **Produce findings.** Each finding should reference the specific integration mismatch or boundary violation.
 
 # What You Are Looking For
 
 - **Boundary violations.** Domain logic importing infrastructure. Frontend code reaching into backend types. Adapter code containing business rules.
 - **Data flow breaks.** An endpoint that returns data the frontend can't consume. An event handler that assumes a field exists when it's optional. A mapper that silently drops information.
 - **Blast radius.** Modifying a shared table column that 5 other features depend on. Adding a new state to an enum without updating all consumers. Changing event payload shapes without versioning.
+- **Contract-breaking modifications.** The spec proposes changing an existing method's behavior — adding filters, narrowing return types, changing semantics. The more callers a method has, the higher the risk of silent breakage. Grep for all callers and verify each one is compatible with the proposed behavioral change.
 - **Integration inaccuracies.** Spec says "extend ExistingHandler" but ExistingHandler doesn't exist. Spec says "add field to ExistingDTO" but the field name collides with an existing one.
 - **Multitenancy gaps.** If the system is multi-tenant: missing tenant context in new background jobs. Queries that could leak data across tenants. New tables that need per-tenant isolation but are proposed in the shared schema.
 - **Event chain effects.** Domain events that trigger listeners that trigger more events — does the spec account for the full cascade?

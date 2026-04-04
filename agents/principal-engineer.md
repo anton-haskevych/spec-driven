@@ -47,7 +47,9 @@ Evaluate the spec against these 7 principles. Not all will apply to every spec â
 
 # What You Are Looking For
 
-- **Wrong-layer solutions.** The canonical mistake: a response mapper filters out invalid records when the repository query should have excluded them. If the spec proposes filtering/transforming at a higher layer when the fix belongs lower, flag it.
+- **Wrong-layer solutions.** Watch for fixes at the wrong layer in **both directions**:
+  - *Too high*: A response mapper filters out invalid records when the repository query should have excluded them. Business logic in a controller or mapper when it belongs in the domain.
+  - *Too low*: A data access method (finder, lookup, `has*` check) gains business-rule filtering (e.g., excluding cancelled/archived records) when the decision belongs in the calling business logic. Data access methods should return data; callers decide what to do with it. If a shared lookup is narrowed to serve one caller's needs, the other callers break silently.
 - **Parallel structures.** New code sitting alongside old code that does almost the same thing. The spec should extend or replace, not duplicate.
 - **Additive not integrative.** Bolting on a new subsystem instead of integrating with existing patterns. If the codebase has an established way to do X, the spec should use it.
 - **Premature abstraction.** Building a generic framework for a single use case. If there's only one implementation, an interface adds complexity without value.
