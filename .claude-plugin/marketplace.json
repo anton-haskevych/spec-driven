@@ -1,14 +1,14 @@
 {
-  "name": "collegium-marketplace",
+  "name": "spec-driven-marketplace",
   "owner": {
     "name": "Anton Haskevych"
   },
   "plugins": [
     {
-      "name": "collegium",
+      "name": "spec-driven",
       "source": "./",
-      "description": "Expert review panel: 7 specialized agents for spec review, code review, research, and debugging.",
-      "version": "1.0.0"
+      "description": "Spec-driven development toolkit: create, review, and iterate on feature specifications with an expert review panel.",
+      "version": "2.0.0"
     }
   ]
 }

@@ -1,78 +1,87 @@
-# collegium
+# spec-driven
 
-A panel of 7 expert AI agents for [Claude Code](https://claude.ai/code). Install once, use in every project.
+A spec-driven development toolkit for [Claude Code](https://claude.ai/code). Write specifications first, review them with an expert panel, then implement with confidence.
 
-## Agents
+## The workflow
 
-### Review Panel (Collegium)
+```
+Requirements → Create Spec → Review Spec → Update Spec → Implement → Resume → ...
+```
 
-Four agents that review specs before implementation, then synthesize findings:
+This plugin gives you the complete lifecycle:
+
+| Step | What you do | What the plugin provides |
+|------|------------|------------------------|
+| **Create** | `/spec my-feature` | Interactive spec creation — decisions, wireframes, API contracts, phases |
+| **Review** | `/spec my-feature` + "review" | 4 expert agents evaluate the spec in parallel, then synthesize findings |
+| **Update** | `/spec my-feature` + "update" | Captures progress, session logs, approach changes for handoff |
+| **Resume** | `/spec my-feature` | Loads the spec, orients a new session, shows what's next |
+
+No arguments required — the `/spec` skill infers the feature from conversation context.
+
+## The review panel
+
+When you trigger a review, 4 agents launch in parallel:
+
+| Agent | Central question | What it catches |
+|-------|-----------------|----------------|
+| **principal-engineer** | Is this fundamentally right? | Wrong-layer fixes, premature abstractions, tech debt traps |
+| **integration-architect** | How does this fit? | Boundary violations, data flow breaks, blast radius |
+| **adversarial-tester** | What will break? | Edge cases, lifecycle state leaks, concurrency, null guards |
+| **code-quality-reviewer** | How does this affect code quality? | God objects, duplicated logic, testability gaps |
+
+After all 4 return, the **review-synthesizer** combines findings: deduplicates, classifies signal (consensus / unique-insight / contradiction), and assigns enforcement mechanisms.
+
+## Standalone agents
 
 | Agent | Role | When to use |
 |-------|------|-------------|
-| **principal-engineer** | Is this the right solution? | Before implementation — catches wrong-layer fixes, premature abstractions, tech debt traps |
-| **integration-architect** | How does this fit? | Before implementation — catches boundary violations, data flow breaks, blast radius |
-| **adversarial-tester** | What will break? | Before implementation — finds failure scenarios, edge cases, lifecycle state leaks |
-| **review-synthesizer** | Unified verdict | After the 3 reviewers run — deduplicates, classifies, adds enforcement annotations |
+| **deep-research-analyst** | Comprehensive research | Before creating a spec — gathers info from multiple sources |
+| **debugger** | Root-cause diagnosis | During implementation — traces to the originating defect, never modifies code |
 
-### Standalone Agents
+## Included skills
 
-| Agent | Role | When to use |
-|-------|------|-------------|
-| **code-quality-reviewer** | Structural code quality | After writing code — finds god objects, boundary violations, duplicated logic |
-| **deep-research-analyst** | Comprehensive research | Before making decisions — gathers info from multiple sources |
-| **debugger** | Root-cause diagnosis | When something is broken — traces to the originating defect, never modifies code |
-
-## Included Skills
-
-- **code-quality-review** — Deep code quality review framework (cohesion, understandability, editability, testability, debuggability)
-- **structural-principles** — Mechanism vs business logic classification, independence/reusability tests, hard size gates
-
-Both skills are used by the `code-quality-reviewer` agent.
+| Skill | Used by | Purpose |
+|-------|---------|---------|
+| **spec** | You (via `/spec`) | The core spec lifecycle — create, review, update, resume |
+| **code-quality-review** | code-quality-reviewer agent | Deep quality review framework |
+| **structural-principles** | code-quality-reviewer agent | Mechanism vs business logic classification, size gates |
 
 ## Install
 
 ```bash
-/plugin marketplace add anton-haskevych/collegium
-/plugin install collegium
+/plugin marketplace add anton-haskevych/spec-driven
+/plugin install spec-driven
 ```
 
-Or install directly:
+## Spec file structure
 
-```bash
-claude plugin install collegium@collegium-marketplace
-```
+Each spec lives in `docs/specs/<feature-name>/` with 4 files:
+
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | Frontmatter (status, area, domain, scope) + relationship to code |
+| `design.md` | Product & UX spec — wireframes, copy, decisions |
+| `technical.md` | API contracts, architecture, data models |
+| `progress.md` | Implementation phases, checklists, session logs |
 
 ## Customization
 
 ### Project-specific overrides
 
-Create `.claude/agents/<agent-name>.md` in your project to override any agent with a project-specific version. Project-level agents (priority 3) automatically override plugin agents (priority 5).
+Create `.claude/agents/<agent-name>.md` or `.claude/skills/spec/` in your project to override any agent or skill with a project-specific version. Project-level definitions (priority 3) automatically override plugin definitions (priority 5).
 
-Example: your project's `.claude/agents/adversarial-tester.md` can include domain-specific entity states and common bug patterns — the plugin's generic version is silently replaced.
+Example: your project's `.claude/agents/adversarial-tester.md` can include domain-specific entity states, lifecycle patterns, and common bug references.
 
-### Personal overrides
+### Taxonomy
 
-Create `~/.claude/agents/<agent-name>.md` to override any agent with your personal version. User-level agents (priority 4) override plugin agents (priority 5).
+The plugin ships with a generic taxonomy (status, scope, area, domain). To customize for your project, create `.claude/taxonomy.md` with your own controlled vocabulary — the spec skill will pick it up automatically.
 
 ### Priority order
 
 ```
-Project .claude/agents/ (3) > User ~/.claude/agents/ (4) > Plugin (5)
+Project (3) > User (4) > Plugin (5)
 ```
-
-## How the Collegium Review Works
-
-1. Spawn all 3 reviewers in parallel on a spec (design.md + technical.md)
-2. Each reviewer evaluates from their perspective independently
-3. Feed all 3 outputs to the review-synthesizer
-4. The synthesizer deduplicates, classifies (consensus / unique-insight / contradiction), and assigns enforcement mechanisms
-
-The review panel is designed so each reviewer stays in their lane — no overlap, no redundant findings.
-
-## Constraints
-
-Plugin agents cannot use `hooks`, `mcpServers`, or `permissionMode` frontmatter fields (Claude Code security restriction). These agents are designed to work without them. If you need those features, copy the agent `.md` file into your `.claude/agents/` directory.
 
 ## License
 

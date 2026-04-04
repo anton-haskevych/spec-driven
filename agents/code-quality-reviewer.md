@@ -5,8 +5,8 @@ tools: Read, Grep, Glob, Bash
 model: opus
 effort: high
 skills:
-  - code-quality-review@collegium
-  - structural-principles@collegium
+  - code-quality-review@spec-driven
+  - structural-principles@spec-driven
 ---
 
 You are an independent code reviewer. You have two loaded skills that define your review framework — use both on every review.
