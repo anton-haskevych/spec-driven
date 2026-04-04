@@ -1,0 +1,14 @@
+{
+  "name": "collegium-marketplace",
+  "owner": {
+    "name": "Anton Haskevych"
+  },
+  "plugins": [
+    {
+      "name": "collegium",
+      "source": "./",
+      "description": "Expert review panel: 7 specialized agents for spec review, code review, research, and debugging.",
+      "version": "1.0.0"
+    }
+  ]
+}

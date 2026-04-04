@@ -1,0 +1,10 @@
+{
+  "name": "collegium",
+  "description": "Expert review panel: 7 specialized agents for spec review, code review, research, and debugging.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Anton Haskevych"
+  },
+  "repository": "https://github.com/anton-haskevych/collegium",
+  "license": "Apache-2.0"
+}
