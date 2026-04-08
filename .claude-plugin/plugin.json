@@ -1,7 +1,7 @@
 {
   "name": "spec-driven",
   "description": "Spec-driven development toolkit: create, review, and iterate on feature specifications with an expert review panel.",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "author": {
     "name": "Anton Haskevych"
   },

@@ -20,6 +20,7 @@ Check if a spec folder exists at `docs/specs/$ARGUMENTS/`.
 **Spec does not exist** → read [create.md](create.md) and follow its instructions
 
 **Spec exists** → determine intent from conversation context:
+- User mentions "handoff", "hand off", "wrap up", "pass to next agent", or "closing session" → read [handoff.md](handoff.md)
 - User mentions "review", "critique", "evaluate", "collegium", or asks for agents to review the spec → read [review.md](review.md)
 - User just finished implementation, mentions updating/checking off items, or says "update" → read [update.md](update.md)
 - Otherwise (session start, wants to work on it, mentions it by name) → read [resume.md](resume.md)

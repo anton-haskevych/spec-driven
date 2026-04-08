@@ -85,9 +85,6 @@ Updated: [path to progress.md]
 Remaining work:
 - [ ] Next unchecked item 1
 - [ ] Next unchecked item 2
-
-[If current phase is complete:]
-Phase X complete. Ready to start Phase Y?
 ```
 
 If there are uncommitted changes, add:
@@ -95,3 +92,12 @@ If there are uncommitted changes, add:
 ```
 You have uncommitted changes — consider committing the implementation + spec update together.
 ```
+
+### Auto-handoff on phase completion
+
+If the current phase is complete (all items checked off), **do not just report it** — automatically continue with the handoff flow:
+
+1. Read [handoff.md](handoff.md) and execute sections 2–4 (the update flow in sections 1–4 above already covers handoff section 1)
+2. In the handoff signal, include: `Phase [N] is complete. Phase [N+1] is ready to begin.`
+
+This ensures the spec is always in a resumable state when a phase boundary is crossed.
