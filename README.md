@@ -5,17 +5,18 @@ A spec-driven development toolkit for [Claude Code](https://claude.ai/code). Wri
 ## The workflow
 
 ```
-Requirements → Create Spec → Review Spec → Update Spec → Implement → Resume → ...
+Create → Review → Implement → Update → Handoff → Resume → ...
 ```
 
 This plugin gives you the complete lifecycle:
 
 | Step | What you do | What the plugin provides |
 |------|------------|------------------------|
-| **Create** | `/spec my-feature` | Interactive spec creation — decisions, wireframes, API contracts, phases |
-| **Review** | `/spec my-feature` + "review" | 4 expert agents evaluate the spec in parallel, then synthesize findings |
-| **Update** | `/spec my-feature` + "update" | Captures progress, session logs, approach changes for handoff |
-| **Resume** | `/spec my-feature` | Loads the spec, orients a new session, shows what's next |
+| **Create** | `/spec my-feature` | Interactive spec creation — decisions, wireframes, API contracts, per-phase plans |
+| **Review** | `/spec my-feature` + "review" | 4 expert agents evaluate the spec in parallel, synthesize findings, write immutable `reviews/<date>.md`, and extract actionable items into the ledger |
+| **Update** | `/spec my-feature` + "update" | Checks off sub-items inside phase entries, captures durable learnings as ledger entries, updates the code map |
+| **Handoff** | `/spec my-feature` + "handoff" | Reflects on the session and redirects findings: durable learnings → ledger, pending state → `in-flight.md`. Commits and signals. |
+| **Resume** | `/spec my-feature` | Loads the spec, infers the active phase, pulls only the ledger entries relevant to that phase, and presents a bounded briefing |
 
 No arguments required — the `/spec` skill infers the feature from conversation context.
 
@@ -56,14 +57,43 @@ After all 4 return, the **review-synthesizer** combines findings: deduplicates, 
 
 ## Spec file structure
 
-Each spec lives in `docs/specs/<feature-name>/` with 4 files:
+Each spec lives in `docs/specs/<feature-name>/`. The layout separates **stable reference** (design, technical), **thin index** (progress), **per-phase detail** (phases folder), **forward-propagating learnings** (ledger), and **ephemeral state** (in-flight):
 
-| File | Purpose |
-|------|---------|
-| `CLAUDE.md` | Frontmatter (status, area, domain, scope) + relationship to code |
-| `design.md` | Product & UX spec — wireframes, copy, decisions |
-| `technical.md` | API contracts, architecture, data models |
-| `progress.md` | Implementation phases, checklists, session logs |
+```
+docs/specs/<feature-name>/
+├── CLAUDE.md               # metadata + relationship to code
+├── design.md               # stable reference — problem, decisions, UX
+├── technical.md            # stable reference — contracts, architecture
+├── progress.md             # thin index: phase list + checkboxes + pointers
+├── code-map.md             # load-bearing files inventory
+├── in-flight.md            # ephemeral pending work (on-demand)
+├── phases/                 # per-phase detail (see below)
+│   ├── phase-1-<slug>.md   #   flat file — small phase
+│   └── phase-8-<slug>/     #   folder — complex phase with supplementary files
+│       ├── plan.md
+│       └── ...
+├── reviews/                # on-demand — dated YYYY-MM-DD-<slug>.md, immutable
+├── research/               # on-demand — dated YYYY-MM-DD-<slug>.md, immutable
+└── ledger/                 # forward-propagating learnings
+    ├── INDEX.md            # warm cache — one row per entry with [applies-to] tag
+    └── <kind>-<slug>.md    # kinds: gotcha, principle, domain, decision, workaround, …
+```
+
+### The ledger model
+
+The ledger holds small files, each one a durable learning that forward-propagates across phases. Entries are tagged with `applies-to:` scopes (`[general]`, `[phase 5+]`, `[phase 6, 7]`, `[general, load-bearing]`) and indexed in `ledger/INDEX.md` as the warm cache. When resuming work, the skill filters the index by the active phase's scope and opens only the relevant entries — so a new session never has to scan the whole ledger or read a bloated progress file.
+
+### Per-phase shape
+
+Every phase lives in its own entry inside `phases/`. Small phases are flat `.md` files. Complex phases are folders containing `plan.md` plus supplementary files (tier breakdowns, sub-plans, wireframes, fixture notes). A phase can start as a flat file and be promoted to a folder later, when it outgrows single-file scale. `progress.md` points at each phase with a direct path, so resume always knows where to go.
+
+### Handoff redirects the brain dump
+
+The handoff "brain dump" that reflects on a session — business decisions, problems encountered, reasoning behind approach changes — is not appended to `progress.md`. Instead it's **redirected**: durable learnings become ledger entries (`decision-*`, `gotcha-*`, `principle-*`, `domain-*`), and ephemeral "pick up from here" state goes to `in-flight.md`. Nothing gets lost; nothing bloats.
+
+### Legacy specs
+
+Specs created before this layout are auto-detected (by the absence of `ledger/INDEX.md`) and read via a legacy fallback path. Update mode never appends new session logs to a legacy `progress.md`, and can opportunistically create a `ledger/` folder on request so old specs can incrementally adopt the new model.
 
 ## Customization
 

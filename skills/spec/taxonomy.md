@@ -24,3 +24,7 @@ Otherwise, use free-form descriptive values that name the business domain or sub
 - `created` — ISO 8601 datetime with timezone (e.g., 2026-03-13T18:30:00+02:00)
 - `updated` — ISO 8601 datetime with timezone
 - `specs` — string array of spec slugs (journals only)
+
+---
+
+For spec file layout rules (file tree, phase entry rules, ledger format, in-flight semantics), see the layout sections in `SKILL.md`.

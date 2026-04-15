@@ -1,6 +1,6 @@
 # Create Mode
 
-You are guiding a full product spec session for `$ARGUMENTS`. The output is a structured spec folder at `docs/specs/$ARGUMENTS/` with 4 files.
+You are guiding a full product spec session for `$ARGUMENTS`. The output is a structured spec folder at `docs/specs/$ARGUMENTS/` following the layout defined in `SKILL.md`.
 
 ## Process
 
@@ -75,30 +75,41 @@ Mirror the project's patterns — don't impose new ones.
 
 ### 5. Plan
 
-Create implementation phases with concrete checkboxes:
-- Group by deployable increments (each phase should be independently shippable)
-- Include dependencies between phases
-- Add success metrics where measurable
-- List files to touch
+Draft the implementation phases. **Each phase becomes its own entry inside `phases/`** — not a section in `progress.md`. This is the critical shape change from older specs.
 
-No "Phase 1: TBD" — every checkbox should describe a specific deliverable.
+For each planned phase, prepare:
+- **Phase goal** — what ships at the end of this phase
+- **Dependencies** — which earlier phases must be complete
+- **Files to touch** — paths that will be edited or created
+- **Implementation guidance** — prose explaining how to approach the work, how the files relate, any nuances specific to this phase
+- **Sub-checkboxes** — specific, concrete deliverables
+- **Phase-local notes** — gotchas or context that only matter for this phase (anything forward-propagating goes to the ledger later)
+
+**Choose phase shape now** (per phase):
+
+- **Default shape: flat file.** `phases/phase-<N>-<slug>.md`. Use this for phases where a single file will comfortably hold everything.
+- **Folder shape at birth.** `phases/phase-<N>-<slug>/plan.md` plus supplementary files. Use this only when complexity is obvious at planning time — multi-tier phases, phases with known sub-plans or wireframes that don't fit inline, phases that will need fixture notes or scratch research files alongside the main plan.
+
+Propose the shape explicitly per phase and ask the user to confirm. Default to flat file unless the phase clearly warrants a folder.
+
+**Slug rules:** each phase needs a short, unique, descriptive kebab-case slug (e.g., `canonical-schema`, `migration-runner`, `csv-import`). Check for slug collisions across phases and ask the user to disambiguate if two are similar.
+
+No "Phase 1: TBD" — every phase should describe a specific deliverable before you write it.
 
 ### 6. Write
 
-Create the spec folder with 4 files:
+Create the spec folder with the full file set below. Use the taxonomy values from `SKILL.md` — ask the user when you're unsure between two valid values.
 
 #### `docs/specs/$ARGUMENTS/CLAUDE.md`
 
-Include YAML frontmatter with metadata. Propose values from the taxonomy (already injected in SKILL.md) based on conversation context. If unsure between two values, ask the user.
-
 ```markdown
 ---
-created: <ISO 8601 with timezone, e.g. 2026-03-13T18:30:00+02:00>
+created: <ISO 8601 with timezone, e.g. 2026-04-14T10:30:00+02:00>
 updated: <ISO 8601 with timezone>
 status: draft
-area: [<from taxonomy, can be multiple>]
-domain: [<from taxonomy, can be multiple>]
-scope: [<from taxonomy, can be multiple>]
+area: [<from taxonomy>]
+domain: [<from taxonomy>]
+scope: [<from taxonomy>]
 ---
 
 # [Feature Name] Spec
@@ -109,7 +120,13 @@ scope: [<from taxonomy, can be multiple>]
 |------|---------|
 | `design.md` | Product & UX spec — wireframes, copy, decisions |
 | `technical.md` | API contracts, architecture, data models |
-| `progress.md` | Implementation phases, checklists, notes, TODOs |
+| `progress.md` | Thin index of phases (checkboxes + pointers) |
+| `code-map.md` | Load-bearing files inventory |
+| `phases/` | Per-phase detail — one entry per phase, flat file or folder |
+| `ledger/INDEX.md` | Forward-propagating learnings — scan here first |
+| `in-flight.md` | Ephemeral pending state (on-demand) |
+| `reviews/` | Collegium review snapshots (on-demand) |
+| `research/` | Deep research output snapshots (on-demand) |
 
 ## Relationship to code
 
@@ -136,18 +153,131 @@ Technical spec containing:
 - Data models / schema changes
 - Architecture (file tree, routing, state management — whatever applies)
 - Constants (copy, config values, enums)
-- Files to touch
 - Integration points with existing systems
 
 #### `docs/specs/$ARGUMENTS/progress.md`
 
-Implementation tracking containing:
-- Success metrics (what we'll measure)
-- Implementation phases with checkbox lists
-- MVP task list (ordered by dependency/difficulty)
-- Implementation notes (decisions made during build)
-- TODO Later (post-MVP items)
-- Decisions locked for MVP
+**Thin index only.** Short, scannable, pointer-driven.
+
+```markdown
+# [Feature Name] — Progress
+
+> This file is a thin index. Phase details live in `phases/phase-<N>-<slug>.md` (flat)
+> or `phases/phase-<N>-<slug>/plan.md` (folder). Forward-propagating learnings live
+> in `ledger/`. Ephemeral state lives in `in-flight.md`. Never write session logs
+> or handoff blocks here.
+
+## Success metrics
+
+- [what we'll measure]
+
+## Phases
+
+- [ ] Phase 1 — <Name> → `phases/phase-1-<slug>.md`
+- [ ] Phase 2 — <Name> → `phases/phase-2-<slug>.md`
+- [ ] Phase 3 — <Name> → `phases/phase-3-<slug>/plan.md`
+- ...
+```
+
+**Do NOT add** Implementation Notes sections, TODO Later sections, Decisions tables, sub-checkboxes, or session logs to this file. Those live elsewhere per the layout in `SKILL.md`.
+
+#### `docs/specs/$ARGUMENTS/code-map.md`
+
+Scaffold empty with this content:
+
+```markdown
+# Code Map — [Feature Name]
+
+Load-bearing files this spec depends on or introduces. Only list files a new agent
+needs to know exist to navigate the code — not every file that's touched.
+
+## Introduced by this spec
+
+| File | Role | Phase |
+|------|------|-------|
+
+## Existing files touched
+
+| File | Why we care | Ledger |
+|------|-------------|--------|
+
+## External references
+
+-
+```
+
+Tables are empty at spec birth. `update.md` fills them in as load-bearing files are introduced during execution.
+
+#### `docs/specs/$ARGUMENTS/phases/phase-<N>-<slug>.md` (flat file shape)
+
+One file per phase that chose flat-file shape in stage 5. Content template:
+
+```markdown
+# Phase <N> — <Name>
+
+**Goal:** <one-sentence phase goal>
+
+**Depends on:** <earlier phases that must be done, or "none">
+
+**Files to touch:**
+- <path/to/file>
+- <path/to/file>
+
+## Implementation guidance
+
+<prose: how to approach this phase, how the files relate, any phase-specific nuances,
+reasoning behind the planned approach>
+
+## Deliverables
+
+- [ ] <specific deliverable 1>
+- [ ] <specific deliverable 2>
+- [ ] <specific deliverable 3>
+
+## Phase-local notes
+
+<gotchas or context that only matter for this phase — anything forward-propagating
+will move to the ledger during execution>
+```
+
+#### `docs/specs/$ARGUMENTS/phases/phase-<N>-<slug>/plan.md` (folder shape)
+
+For phases that chose folder shape in stage 5, create the folder and put the equivalent content in `plan.md`. Supplementary files (tier breakdowns, wireframes, fixture notes) can be scaffolded alongside `plan.md` if you already know at planning time what they'll contain — otherwise leave the folder with only `plan.md` and add supplementary files during execution.
+
+#### `docs/specs/$ARGUMENTS/ledger/INDEX.md`
+
+Scaffold with header only:
+
+```markdown
+# Ledger Index (layout v1)
+
+Warm cache for forward-propagating learnings. One row per ledger entry with its
+`[applies-to]` scope tag. See `SKILL.md` for entry format and filtering rules.
+
+## Gotchas
+
+## Principles
+
+## Domain
+
+## Decisions
+
+## Workarounds
+```
+
+Section headings are free-form — add new ones (e.g., `## Research findings`) as new kinds of entries emerge during execution.
+
+## Files NOT scaffolded at birth
+
+These appear on-demand later:
+
+- `in-flight.md` — created by `handoff.md` when pending state needs to be captured
+- `reviews/` — created on first collegium review via `review.md`
+- `research/` — created on first deep-research output
+- Supplementary files inside folder-shape phase folders — added during execution as needed
+- Individual `ledger/<kind>-<slug>.md` entries — created during `update.md` or `handoff.md` when learnings emerge
+
+Do not pre-create empty instances of these.
 
 ## After writing
 
@@ -162,5 +292,6 @@ Once the spec files are created:
 - Copy should be final-draft quality, not placeholder
 - Decisions table entries should capture the *why* — the reasoning matters more than the choice
 - Technical sections should be precise — endpoint shapes, field names, types
-- Progress checkboxes should be specific enough that checking one off is unambiguous
+- Phase deliverables should be specific enough that checking one off is unambiguous
+- Phase implementation guidance should explain *how files relate* and *the reasoning behind the approach*, not just restate the checklist
 - Adapt tone and depth to the project — a startup MVP spec reads differently from an enterprise feature spec
