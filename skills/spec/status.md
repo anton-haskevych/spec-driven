@@ -25,8 +25,8 @@ For each phase, read the file at `pointer` (flat file or folder's `plan.md`). Re
 
 From each phase file, extract:
 
-- **Goal** — the line starting with `**Goal:**`. Used for the Delivers column. If missing, fall back to the phase title; if that's also blank, leave the cell empty.
-- **Implementation summary** — the prose under `## Implementation guidance`. Take the first sentence (split on `. ` followed by a capital), strip trailing punctuation, and truncate to ~100 chars with `…`. Used for the Work column. If the section is missing or empty, emit `N/A`.
+- **Goal** — the line starting with `**Goal:**`. Used for the Delivers column. If missing, fall back to the phase title text after `Phase N — `; if that's also blank, leave the cell empty.
+- **Implementation summary** — the prose under `## Implementation guidance`. Take the first sentence (split on `. ` followed by a capital), strip trailing punctuation, and truncate to ~100 chars with `…`. Used for the Work column. If the section is missing or empty, **fall back to the first 3 sub-checkbox titles under `## Deliverables` joined with `; ` and truncated to ~100 chars** (sub-checkbox titles are real spec content, not fabrication). If there are no sub-checkboxes either, emit `N/A`.
 - **Sub-checkbox counts** — under `## Deliverables`, count `- [x]` (`done_subs`) and `- [ ]` (`open_subs`). `total_subs = done_subs + open_subs`. If no `## Deliverables` section exists, count all `- [x]`/`- [ ]` lines in the file.
 
 ## 3b. Read phases — legacy layout
@@ -35,8 +35,8 @@ Read `progress.md`. Parse phase blocks inline (legacy specs keep all phase conte
 
 For each phase block:
 
-- **Goal** — first descriptive prose line under the phase heading, or the text following `**Goal:**` if present.
-- **Implementation summary** — text following `**Implementation:**` / `**Approach:**` / under an `## Implementation guidance` heading inside the block, if present. Otherwise emit `N/A` (legacy specs frequently lack a structured implementation section — don't fabricate from the goal).
+- **Goal** — text following `**Goal:**` if present. Else first descriptive prose line under the phase heading. **Else the phase title text after `Phase N — `** (e.g. for `## Phase 4 — Mechanism implementation`, Goal = `Mechanism implementation`). Empty only if all three are absent.
+- **Implementation summary** — text following `**Implementation:**` / `**Approach:**` / under an `## Implementation guidance` heading inside the block, if present. **Else the first 3 sub-checkbox titles inside the block joined with `; ` and truncated to ~100 chars** (titles are real spec content, not fabrication — surfacing them gives the user a useful preview of what each phase will do). Else `N/A`.
 - **Sub-checkbox counts** — count `- [x]` and `- [ ]` lines directly inside the block.
 
 Print the legacy notice once: `(legacy layout detected — reading progress.md as the phase source)`.
