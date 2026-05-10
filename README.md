@@ -15,10 +15,11 @@ This plugin gives you the complete lifecycle:
 | **Create** | `/spec my-feature` | Interactive spec creation — decisions, wireframes, API contracts, per-phase plans |
 | **Review** | `/spec my-feature` + "review" | 4 expert agents evaluate the spec in parallel, synthesize findings, write immutable `reviews/<date>.md`, and extract actionable items into the ledger |
 | **Update** | `/spec my-feature` + "update" | Checks off sub-items inside phase entries, captures durable learnings as ledger entries, updates the code map |
+| **Status** | `/spec my-feature status` | Print a 4-column phase snapshot — Phase, Status (active / WIP / done ✅), Delivers, Work — without the resume briefing. `Work` falls back to `N/A` if the phase has no implementation guidance. |
 | **Handoff** | `/spec my-feature` + "handoff" | Reflects on the session and redirects findings: durable learnings → ledger, pending state → `in-flight.md`. Commits and signals. |
 | **Resume** | `/spec my-feature` | Loads the spec, infers the active phase, pulls only the ledger entries relevant to that phase, and presents a bounded briefing |
 
-No arguments required — the `/spec` skill infers the feature from conversation context.
+No arguments required for the feature name — the `/spec` skill infers it from conversation context. Sub-commands like `status` are appended after the feature name (or used alone: `/spec status`).
 
 ## The review panel
 

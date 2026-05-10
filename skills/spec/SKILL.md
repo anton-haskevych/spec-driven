@@ -13,6 +13,17 @@ allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
 
 **If `$ARGUMENTS` is empty:** Infer the feature name from the current conversation context. Propose a kebab-case slug and ask the user to confirm before proceeding.
 
+## Sub-command parse
+
+Before treating `$ARGUMENTS` as a feature name, check for sub-command tokens:
+
+- If `$ARGUMENTS` is exactly `status`, or its first or last whitespace-separated token (case-insensitive) is `status`, this is a **status request**:
+  - Extract the feature name from the remaining tokens. If none remain, infer from conversation context (same rule as the empty-args branch).
+  - Read [status.md](status.md) and follow its instructions.
+  - Stop. Do not run the routing below.
+
+Other sub-modes (handoff, review, update, resume) continue to route via conversation keywords as described below — only `status` has a sub-command path because users will type `/spec status` literally.
+
 ## Routing
 
 Check if a spec folder exists at `docs/specs/$ARGUMENTS/`.
