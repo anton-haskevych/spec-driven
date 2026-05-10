@@ -25,9 +25,30 @@ Follow `status.md` sections 3a (or 3b for legacy), 4, and 5 to produce the same 
 
 Read **only** what `status.md` requires: `progress.md` plus per-phase Goal / Implementation guidance lines from each phase entry. Do **not** read `CLAUDE.md`, `design.md`, `technical.md`, `code-map.md`, or any ledger entry files in this stage.
 
-### A.4. Read in-flight (only if it exists)
+### A.4. Read in-flight (only if it has substantive content)
 
-If `docs/specs/<name>/in-flight.md` exists and is non-empty, read it. The file is small; cost is negligible. Quote it under a `**Previous session left:**` heading after the table.
+If `docs/specs/<name>/in-flight.md` exists, read it. Then:
+
+- **Skip the block entirely** if the file is empty, missing, or contains only filler ("No pending work", "Clean boundary reached", a date stamp, a reassurance that the previous session ended cleanly). Absence is itself the signal — never state it.
+- **Otherwise**, summarize the substantive contents as bulletpoints under a `**Last session:**` heading.
+
+Bulletpoint rules:
+
+- One bullet per discrete fact or pending item. **Maximum 5 bullets.**
+- **Each bullet ≤ 15 words.** If a thought needs more, split it.
+- **No editorial framing.** Banned phrases: "The handoff also flagged…", "Next agent should…", "It's worth noting…", "Note that…". State the fact directly.
+- Reference ledger entries by filename only: `decision-foo.md`, not the full path.
+- Drop session metadata (dates, agent identifiers) unless directly relevant to picking the work back up.
+
+Concrete shape (compare against the verbose paragraph form this replaces):
+
+```
+**Last session:**
+
+- Phase 2 closed (revised) — Java bounded context replaced TS profile data. See `decision-java-service-bounded-context.md`.
+- 6 ledger entries superseded; 3 new principle/gotcha entries seeded.
+- Studio identity locked: Northshore Dance Academy, Sea Breeze FL, EST, USD, ballroom.
+```
 
 ### A.5. Suggest the next chunk
 
@@ -36,32 +57,29 @@ Deterministic rule, no extra context required:
 1. **Active phase** = the first phase whose top-level checkbox in `progress.md` is `[ ]`.
 2. **Next chunk** = the first cluster of unchecked sub-checkboxes inside that phase's entry.
 
-A "cluster" is a contiguous run of `- [ ]` lines under the same heading (e.g. all unchecked items under `## Deliverables`). If the unchecked items span multiple sub-headings or are split by checked items, take the first contiguous run, capped at 5 items.
+A "cluster" is a contiguous run of `- [ ]` lines under the same heading. If the unchecked items span multiple sub-headings or are split by checked items, take the first contiguous run, capped at 5 items.
 
-Output, immediately after the status table (and the in-flight quote if present):
-
-```
-**Suggested next chunk:** Phase <N> — <name>
-
-- [ ] <sub-item 1>
-- [ ] <sub-item 2>
-- [ ] <sub-item 3>
-
-Reply "load" to deep-read the relevant context for this chunk, or tell me what
-you'd rather work on (different phase, different sub-items, design discussion,
-review, etc.).
-```
-
-If `in-flight.md` is non-empty, replace the suggested-chunk block with:
+Output, immediately after the status table (and the `**Last session:**` block if rendered):
 
 ```
-**Previous session left state in-flight.** Pick up there?
+**Suggested next:** Phase <N> — <name>
 
-> <quote in-flight.md contents>
-
-Reply "load" to deep-read the relevant context, or tell me to start somewhere
-else.
+- <sub-item 1>
+- <sub-item 2>
+- <sub-item 3>
 ```
+
+Then **stop**. No CTA, no "Reply with X" prompt — the suggestion stands as a question by its placement, and the user replies in whatever feels natural.
+
+Bullet rules:
+
+- ≤ 5 sub-items, from the first contiguous run of unchecked items in the active phase entry.
+- **Each bullet ≤ 20 words.** Strip explanatory prose; keep the action.
+  - Good: `3a. Author NorthshoreDanceAcademy profile component`
+  - Bad: `3a. Author NorthshoreDanceAcademy profile component under backend/src/main/java/dance/crm/platform/demofixture/domain/profile/ (highest priority — blocks SPEC #1 Phase 5)` — that path detail and priority annotation belong in Stage B, not here.
+- **No trailing paragraph** elaborating on parallelizable tasks, blockers, or rationale. If a parallel task matters at Stage A scale, mention it as one extra bullet: `- (parallelizable: 4-pre, 4a)`.
+
+If `in-flight.md` was non-empty (rendered in A.4), the suggested chunk still appears — but its bullets must not duplicate items in the `**Last session:**` block.
 
 ### A.6. Stop
 
@@ -71,9 +89,14 @@ Wait for the user. Do not load Stage B yet — not even speculatively.
 
 ## Stage B — Deep context load
 
-Triggered when the user confirms a chunk. Confirmation signals: `load`, `yes`, `let's do this`, `proceed`, `go`, naming a different but specific chunk, or otherwise indicating intent to start work.
+Triggered when the user confirms a chunk. **Read intent, not magic words.** Any of the following counts as confirmation:
 
-If the user instead asks a design question or wants to discuss something (e.g. "why did we choose X?"), stay in conversation — load only the specific files needed to answer, not the full Stage B set.
+- **Affirmatives:** `yes`, `yep`, `yeah`, `sure`, `ok`, `okay`, `go ahead`, `do it`, `proceed`, `sounds good`, `let's go`, `let's do this`.
+- **Action verbs:** `execute`, `start`, `run`, `implement`, `build`, `load`, `do this phase`.
+- **Bare phase reference:** `phase 3a`, `3a`, `the next one`, `that one`.
+- **A different phase pick:** "actually let's do phase 4 first" → load Stage B context for phase 4 instead of the suggested one.
+
+If the user asks a design question, raises a concern, or wants to discuss decisions / past choices / the spec itself, **stay in conversation** — load only the specific files needed to answer, not the full Stage B set.
 
 ### B.1. Read stable references + active phase
 
