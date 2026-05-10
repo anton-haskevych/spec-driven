@@ -26,7 +26,7 @@ No arguments required for the feature name — the `/spec` skill infers it from 
 
 A non-trivial spec carries hundreds of KB across `design.md`, `technical.md`, ledger entries, and per-phase plans. Loading all of it on every `/spec resume` burns 100K+ tokens before any work starts.
 
-Stage A reads only `progress.md` and per-phase Goal/Implementation lines — same materials as `/spec status`. The user sees the full picture (table + suggested next chunk) and decides what to work on. Stage B then loads the focused subset relevant to that decision and hands off to **execute** mode, which runs the per-unit TDD loop and watches the context budget so the session ends cleanly via `/spec handoff` before the window fills up.
+Stage A reads only `progress.md` and per-phase Goal/Implementation lines — same materials as `/spec status`. The user sees the full picture (table + suggested next chunk) and decides what to work on. Stage A renders bullets, not paragraphs — every line earns its place, and there's no magic-word CTA: any natural confirmation ("yep", "go ahead", "do this phase") triggers Stage B. Stage B then loads the focused subset relevant to that decision and hands off to **execute** mode, which runs the per-unit TDD loop and watches the context budget so the session ends cleanly via `/spec handoff` before the window fills up.
 
 ## The review panel
 
