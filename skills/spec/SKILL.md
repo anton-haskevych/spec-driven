@@ -15,16 +15,37 @@ allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
 
 ## Sub-command parse
 
-Before treating `$ARGUMENTS` as a feature name, check for sub-command tokens:
+Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-command token.
 
-- If `$ARGUMENTS` is exactly `status`, or its first or last whitespace-separated token (case-insensitive) is `status`, this is a **status request**:
-  - Extract the feature name from the remaining tokens. If none remain, infer from conversation context (same rule as the empty-args branch).
-  - Read [status.md](status.md) and follow its instructions.
-  - Stop. Do not run the routing below.
+**Sub-command set:** `create`, `resume`, `review`, `update`, `handoff`, `status`.
 
-Other sub-modes (handoff, review, update, resume) continue to route via conversation keywords as described below — only `status` has a sub-command path because users will type `/spec status` literally.
+**Matching rule** (case-insensitive, whitespace-tokenized):
+
+1. Split `$ARGUMENTS` on whitespace.
+2. If the **first** token is in the sub-command set: `sub_command = first`, `feature = remaining tokens joined by space`.
+3. Else if the **last** token is in the sub-command set: `sub_command = last`, `feature = all-but-last tokens joined`.
+4. Else: no sub-command — fall through to `## Routing` below.
+
+If `feature` is empty after extraction, infer it from conversation context (same rule as the empty-args branch above). Confirm with the user only if ambiguous.
+
+**Dispatch:**
+
+| Token | Action |
+|-------|--------|
+| `create` | If `docs/specs/<feature>/` already exists, refuse with: `Spec '<feature>' already exists at docs/specs/<feature>/. Use /spec <feature> to resume, or remove the folder first.` Otherwise read [create.md](create.md) and follow it. |
+| `resume` | Read [resume.md](resume.md) and follow it. |
+| `review` | Read [review.md](review.md) and follow it. |
+| `update` | Read [update.md](update.md) and follow it. |
+| `handoff` | Read [handoff.md](handoff.md) and follow it. |
+| `status` | Read [status.md](status.md) and follow it. |
+
+For every sub-command except `create`, the sub-mode file is responsible for handling the "spec does not exist" case.
+
+After dispatching, **stop**. Do not also evaluate the routing section below.
 
 ## Routing
+
+(Reached only when no sub-command token was matched above.)
 
 Check if a spec folder exists at `docs/specs/$ARGUMENTS/`.
 

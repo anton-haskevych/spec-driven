@@ -19,7 +19,7 @@ This plugin gives you the complete lifecycle:
 | **Handoff** | `/spec my-feature` + "handoff" | Reflects on the session and redirects findings: durable learnings → ledger, pending state → `in-flight.md`. Commits and signals. |
 | **Resume** | `/spec my-feature` | Loads the spec, infers the active phase, pulls only the ledger entries relevant to that phase, and presents a bounded briefing |
 
-No arguments required for the feature name — the `/spec` skill infers it from conversation context. Sub-commands like `status` are appended after the feature name (or used alone: `/spec status`).
+No arguments required for the feature name — the `/spec` skill infers it from conversation context. **Sub-commands** (`create`, `resume`, `review`, `update`, `handoff`, `status`) can lead or trail the feature name: `/spec resume my-feature`, `/spec my-feature resume`, or `/spec resume` (alone, with the feature inferred from context) all work.
 
 ## The review panel
 
