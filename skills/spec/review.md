@@ -4,6 +4,10 @@ Launch a collegium review panel to evaluate the spec from four independent lense
 
 See `SKILL.md` for layout rules and the extraction-step discipline.
 
+## 0. Existence check
+
+If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Do not run any of the sections below.
+
 ## 1. Identify the spec
 
 Determine which spec to review from conversation context. If ambiguous, ask the user to confirm. Read in parallel:

@@ -8,6 +8,10 @@ This mode can be triggered explicitly (`/spec handoff`) or automatically when a 
 
 See `SKILL.md` for the full layout and the brain-dump redirection rules.
 
+## 0. Existence check
+
+If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Do not run any of the sections below.
+
 ## 1. Run the update flow
 
 If there is any implementation work to record (commits since last session, unchecked items that are now done, uncommitted changes):

@@ -4,6 +4,10 @@ Capture implementation progress and route new knowledge into the right artifacts
 
 See `SKILL.md` for the layout rules this mode relies on.
 
+## 0. Existence check
+
+If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Do not run any of the sections below.
+
 ## 1. Detect layout
 
 Check whether `docs/specs/<name>/ledger/INDEX.md` exists.
