@@ -17,9 +17,16 @@ This plugin gives you the complete lifecycle:
 | **Update** | `/spec my-feature` + "update" | Checks off sub-items inside phase entries, captures durable learnings as ledger entries, updates the code map |
 | **Status** | `/spec my-feature status` | Print a 4-column phase snapshot — Phase, Status (active / WIP / done ✅), Delivers, Work — without the resume briefing. `Work` falls back to `N/A` if the phase has no implementation guidance. |
 | **Handoff** | `/spec my-feature` + "handoff" | Reflects on the session and redirects findings: durable learnings → ledger, pending state → `in-flight.md`. Commits and signals. |
-| **Resume** | `/spec my-feature` | Loads the spec, infers the active phase, pulls only the ledger entries relevant to that phase, and presents a bounded briefing |
+| **Resume** | `/spec my-feature` | Two-stage. Stage A: prints the status table, reads `in-flight.md` if present, suggests the next chunk, halts. Stage B (only on confirmation): loads stable references + the active phase entry + filtered ledger + scoped code-map, then hands off to **execute** mode. |
+| **Execute** | (entered automatically from Resume Stage B) | Inner work loop. Decompose the chunk into testable units, run red→green→commit per unit, update the phase entry's sub-checkboxes, add ledger entries for durable learnings, and trigger `/spec handoff` before hitting ~75% of the context budget. |
 
 No arguments required for the feature name — the `/spec` skill infers it from conversation context. **Sub-commands** (`create`, `resume`, `review`, `update`, `handoff`, `status`) can lead or trail the feature name: `/spec resume my-feature`, `/spec my-feature resume`, or `/spec resume` (alone, with the feature inferred from context) all work.
+
+### Why two-stage resume
+
+A non-trivial spec carries hundreds of KB across `design.md`, `technical.md`, ledger entries, and per-phase plans. Loading all of it on every `/spec resume` burns 100K+ tokens before any work starts.
+
+Stage A reads only `progress.md` and per-phase Goal/Implementation lines — same materials as `/spec status`. The user sees the full picture (table + suggested next chunk) and decides what to work on. Stage B then loads the focused subset relevant to that decision and hands off to **execute** mode, which runs the per-unit TDD loop and watches the context budget so the session ends cleanly via `/spec handoff` before the window fills up.
 
 ## The review panel
 
@@ -45,9 +52,11 @@ After all 4 return, the **review-synthesizer** combines findings: deduplicates, 
 
 | Skill | Used by | Purpose |
 |-------|---------|---------|
-| **spec** | You (via `/spec`) | The core spec lifecycle — create, review, update, resume |
+| **spec** | You (via `/spec`) | The core spec lifecycle — create, review, update, status, resume, execute, handoff |
 | **code-quality-review** | code-quality-reviewer agent | Deep quality review framework |
 | **structural-principles** | code-quality-reviewer agent | Mechanism vs business logic classification, size gates |
+
+The `spec` skill ships an `engineering-principles` reference (`skills/spec/principles.md`) that **execute** mode loads at the start of every chunk. 18 rules covering self-documenting code, hard size caps (function < 50 lines, file < 250 lines), extract-on-second-use with mandatory unit tests, frontend layered separation (with backend deferring to project-specific rules), and the rest of the engineering hygiene the workflow enforces.
 
 ## Install
 
