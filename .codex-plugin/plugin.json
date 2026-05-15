@@ -1,0 +1,39 @@
+{
+  "name": "spec-driven",
+  "version": "2.10.0",
+  "description": "Spec-driven development toolkit: create, review, and iterate on feature specifications with an expert review panel.",
+  "author": {
+    "name": "Anton Haskevych",
+    "url": "https://github.com/anton-haskevych"
+  },
+  "homepage": "https://github.com/anton-haskevych/spec-driven",
+  "repository": "https://github.com/anton-haskevych/spec-driven",
+  "license": "Apache-2.0",
+  "keywords": [
+    "spec-driven-development",
+    "specifications",
+    "code-review",
+    "planning"
+  ],
+  "interface": {
+    "displayName": "Spec Driven",
+    "shortDescription": "Create, review, update, hand off, and resume feature specs",
+    "longDescription": "A spec-driven development toolkit for Codex. It provides skills for creating feature specifications, reviewing them, tracking progress, recording durable learnings, and resuming implementation from structured project specs.",
+    "developerName": "Anton Haskevych",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/anton-haskevych/spec-driven",
+    "privacyPolicyURL": "https://github.com/anton-haskevych/spec-driven",
+    "termsOfServiceURL": "https://github.com/anton-haskevych/spec-driven",
+    "defaultPrompt": [
+      "Create a spec for this feature.",
+      "Review the current feature spec.",
+      "Resume work from the spec."
+    ],
+    "brandColor": "#2563EB",
+    "screenshots": []
+  }
+}
