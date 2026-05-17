@@ -17,7 +17,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
 
 Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-command token.
 
-**Sub-command set:** `create`, `resume`, `review`, `update`, `handoff`, `status`.
+**Sub-command set:** `create`, `resume`, `review`, `update`, `handoff`, `status`, `list`.
 
 **Matching rule** (case-insensitive, whitespace-tokenized):
 
@@ -26,7 +26,7 @@ Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-comman
 3. Else if the **last** token is in the sub-command set: `sub_command = last`, `feature = all-but-last tokens joined`.
 4. Else: no sub-command — fall through to `## Routing` below.
 
-If `feature` is empty after extraction, infer it from conversation context (same rule as the empty-args branch above). Confirm with the user only if ambiguous.
+If `feature` is empty after extraction, infer it from conversation context (same rule as the empty-args branch above). Confirm with the user only if ambiguous. **Exception:** for `list`, an empty `feature` means "no filter — show all"; do not infer from context.
 
 **Dispatch:**
 
@@ -38,6 +38,7 @@ If `feature` is empty after extraction, infer it from conversation context (same
 | `update` | Read [update.md](update.md) and follow it. |
 | `handoff` | Read [handoff.md](handoff.md) and follow it. |
 | `status` | Read [status.md](status.md) and follow it. |
+| `list` | Read [list.md](list.md) and follow it. The feature name is optional — when omitted, list all specs; when present, treat it as a filter. |
 
 For every sub-command except `create`, the sub-mode file is responsible for handling the "spec does not exist" case.
 
