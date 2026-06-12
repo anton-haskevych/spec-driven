@@ -1,6 +1,8 @@
 # Review Mode
 
-Launch a collegium review panel to evaluate the spec from five independent lenses, synthesize findings into a unified verdict, write the full synthesis to `reviews/`, and interactively extract actionable findings into ledger entries.
+Launch a collegium review panel to evaluate the spec from five independent lenses, synthesize findings into a unified verdict, write the full synthesis to `reviews/`, apply the findings to the spec and ledger, and record everything as a single review commit.
+
+**This sub-command is fully autonomous.** No AskUserQuestion, no "which findings should I address?", no slug confirmation, no "shall I apply this?". The user triggered the review; the deliverable is a finished commit plus a report. The only findings that wait for human judgment are contradictions and fundamental-rethink verdicts — and those are *recorded* (as open decision ledger entries) and flagged in the final report, never asked about mid-flow.
 
 See `SKILL.md` for layout rules and the extraction-step discipline.
 
@@ -142,18 +144,9 @@ Deduplicate findings, classify signal (consensus / unique-insight / contradictio
 assign enforcement mechanisms, and produce a SynthesisOutput with findings[] and summary.
 ```
 
-## 4. Present the synthesis
+## 4. Write the review to `reviews/`
 
-Display the synthesizer's output to the user. Then:
-
-- If there are **critical findings**: highlight them and ask which ones to address before implementation
-- If there are **prior-art substitutions** (the spec hand-builds what an existing mechanism provides): present the substitution and its exemplar before any mitigation-level findings on the same component — fixing a component that shouldn't exist is wasted work
-- If there are **contradictions**: present both sides and ask the user to resolve
-- If the spec is **clean**: say so and suggest moving to implementation
-
-## 5. Write the review to `reviews/`
-
-Persist the full synthesis as an immutable review file. This is the source of record.
+Persist the full synthesis as an immutable review file **before applying anything** — if application is interrupted, the review file preserves every finding.
 
 ### Create the folder if missing
 
@@ -161,22 +154,20 @@ Persist the full synthesis as an immutable review file. This is the source of re
 mkdir -p docs/specs/<spec-name>/reviews
 ```
 
-### Choose a slug
+### Derive a slug
 
-Derive the slug from the dominant theme of this review. Examples:
+Derive the slug from the dominant theme of this review — never ask the user. Examples:
 
 - `phase-5-readiness` — a pre-phase review
 - `integration-boundaries` — a focused architecture review
 - `concurrency-audit` — a specific concern-driven review
 - `post-pivot` — a review after a major approach change
 
-If the theme isn't obvious, ask the user in one line with 2–3 proposals:
-
-> "Pick a slug for this review: `integration-boundaries`, `phase-5-readiness`, or propose your own."
+If no theme dominates, fall back to `phase-<N>-collegium` for the active phase.
 
 ### Write the file
 
-Create `docs/specs/<spec-name>/reviews/YYYY-MM-DD-<slug>.md` with the full synthesizer output (not just what was shown to the user in section 4). Include frontmatter:
+Create `docs/specs/<spec-name>/reviews/YYYY-MM-DD-<slug>.md` with the full synthesizer output. Include frontmatter:
 
 ```markdown
 ---
@@ -188,7 +179,7 @@ slug: <slug>
 
 # Review — <slug>
 
-*Source of record — do not edit. Extract actionable findings into ledger entries via the extraction step.*
+*Source of record — do not edit. Actionable findings are applied to the spec and ledger by the review run itself.*
 
 ## Summary
 
@@ -202,48 +193,60 @@ with severity + recommendation per finding>
 
 **Never edit this file after writing.** If a later review contradicts it, the new review lives in its own dated file; both stay on disk.
 
-## 6. Extraction step
+## 5. Apply the findings — autonomously
 
-After the review file is written, interactively promote actionable findings into ledger entries. This is the glue between reviews (immutable snapshots) and the ledger (runtime knowledge surface).
+No questions, no confirmations, no per-finding prompts. Accept the panel's suggestions and record them. Process every synthesized finding by its shape:
 
-### Surface top findings
+### Spec corrections → edit the spec files directly
 
-Pick 3–7 of the most actionable findings from the synthesis. Skip purely informational ones. Prefer findings that are:
+Concrete changes to `design.md`, `technical.md`, a phase entry, or `code-map.md`: apply them. Wrong endpoint shapes, missing files in a phase's touch list, incorrect claims about existing code, decisions-table rows the review invalidated, deliverables that changed — edit the file.
+
+Respect supersession annotations: when a substitution finding replaces or deletes a component, apply the substitution and skip the mitigation findings marked `superseded-if-accepted` for that component (they stay preserved in the review file).
+
+### Ledger-shaped findings → create/update ledger entries
+
+Promote the actionable cross-phase findings (typically 3–7; skip purely informational ones):
 
 - Decisions the team should lock in ("we're decoupling X from Y") → `decision` kind
 - Traps future agents will hit without warning ("Z silently drops data at >10k records") → `gotcha` kind
 - Standing rules that emerged ("all new handlers must use the audit port") → `principle` kind
 - Domain facts that weren't previously documented ("the `user_id` on invoices actually refers to the studio, not the customer") → `domain` kind
 
-### Prompt the user per finding
+Follow the write discipline in SKILL.md: required frontmatter (kind, applies-to with the narrowest correct scope, created timestamp via the script), update a near-duplicate in place instead of creating a sibling, and append a row to `ledger/INDEX.md` for every new entry.
 
-For each surfaced finding, ask:
+### Contradictions → record as open decisions, do not resolve
 
-> "Promote this to a ledger entry? [y/N/skip-all]
-> Finding: <title>
-> Proposed: kind=<kind>, applies-to=<scope>"
+When personas disagree about the same design decision, do NOT pick a side and do NOT stop to ask. Create `ledger/decision-<slug>.md` summarizing both positions with `**Status: open — needs a human call.**` as the first body line, add its INDEX row, and leave the spec's current shape untouched on that point. The final report flags it.
 
-On `y`:
+### Fundamental-rethink verdicts → record, don't rewrite
 
-- Create `ledger/<kind>-<slug>.md` with required frontmatter (kind, applies-to, created timestamp) and the finding's body as the content.
-- Append a row to `ledger/INDEX.md` in the right section.
+If the synthesis concludes the *approach itself* is wrong (not a correctable detail), do not rewrite the spec wholesale on the panel's authority. Create an open `decision-*` ledger entry capturing the panel's position and the recommended direction, apply only the findings that stand regardless of the rethink, and flag it as the headline of the final report.
 
-On `N`: skip this finding only.
+### Bump the timestamp
 
-On `skip-all`: abort the extraction step. The review file is already written and remains the source of record; extraction can be resumed later by re-reading the review and running this step again.
+After all edits: `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>`.
 
-### Interruption-safe
+## 6. Commit
 
-If the user bails mid-extraction, some findings will be stranded in the review file but not yet in the ledger. That's fine — the review file is the source of record. Print a one-line note:
+One commit containing everything the review produced — review file, ledger entries, INDEX rows, spec edits:
 
-> "Extraction paused. <N> findings still in `reviews/YYYY-MM-DD-<slug>.md` — re-run `/spec <name> review` to re-extract, or extract manually later."
+```bash
+git add docs/specs/<spec-name>/
+git status  # verify ONLY the spec folder is staged
+git commit -m "[review] <spec-name>: <slug> — <N> findings (<X> spec edits, <Y> ledger entries)"
+```
 
-## 7. Offer spec updates
+Never sweep unrelated working-tree changes into the review commit — stage only the spec folder. Commit; do not push unless the project's conventions say otherwise.
 
-If the review surfaced concrete changes to `design.md`, `technical.md`, or a phase entry (not cross-phase learnings — those are ledger-shaped), offer to apply them inline. Examples:
+## 7. Report and stop
 
-- "Fix the endpoint shape in technical.md based on finding #2"
-- "Update phase 5's file-touch list in phases/phase-5-<slug>.md based on finding #4"
-- "Rewrite the decisions table in design.md based on finding #1"
+Print a compact summary — this replaces every interactive step:
 
-Only touch the stable reference files when the change is concrete and the user confirms.
+```
+Review: reviews/YYYY-MM-DD-<slug>.md (immutable)
+Committed: <hash> — [review] <spec-name>: <slug> — …
+Findings: <N> total — <X> applied to spec, <Y> ledgered, <Z> review-file only
+Needs your judgment: <open contradictions / rethink decisions with their ledger slugs, or "none">
+```
+
+Follow with 2–5 bullet highlights of the most consequential changes applied. Then stop — do not ask whether to address findings, do not propose next steps beyond the summary.

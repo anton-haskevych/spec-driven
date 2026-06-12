@@ -204,9 +204,9 @@ Pick the **narrowest correct scope** at write time. Use `[general]` only when th
 ## reviews/ and research/ semantics
 
 - **On-demand folders.** Created on first review/research write. Not scaffolded at spec birth.
-- **Filenames:** `YYYY-MM-DD-<slug>.md`. Slug derived from the dominant theme (e.g., `phase-5-readiness`, `integration-boundaries`). Agent asks the user in one line if ambiguous.
+- **Filenames:** `YYYY-MM-DD-<slug>.md`. Slug derived from the dominant theme (e.g., `phase-5-readiness`, `integration-boundaries`). Review slugs are always auto-derived (fallback: `phase-<N>-collegium`); research slugs may be confirmed with the user if ambiguous.
 - **Written once, immutable, never deleted.** The file is the source of record. Do not edit after writing.
-- **Extraction step:** after writing a review/research file, the agent interactively surfaces top actionable findings and offers to create ledger entries for them. The report itself stays untouched — extraction copies distilled findings into the ledger as separate entries.
+- **Extraction step:** after writing a review/research file, distilled actionable findings are copied into the ledger as separate entries; the report itself stays untouched. Review extraction is autonomous — findings are applied to the spec + ledger and committed without prompts (see review.md); research extraction may be offered interactively.
 
 ## Handoff brain-dump redirection
 

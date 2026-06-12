@@ -13,7 +13,7 @@ This plugin gives you the complete lifecycle:
 | Step | What you do | What the plugin provides |
 |------|------------|------------------------|
 | **Create** | `/spec my-feature` | Interactive spec creation — decisions, wireframes, API contracts, per-phase plans |
-| **Review** | `/spec my-feature` + "review" | 5 expert agents evaluate the spec in parallel, synthesize findings, write immutable `reviews/<date>.md`, and extract actionable items into the ledger |
+| **Review** | `/spec my-feature` + "review" | Fully autonomous: 5 expert agents evaluate the spec in parallel, findings are synthesized, written to immutable `reviews/<date>.md`, applied to the spec + ledger, and committed as one `[review]` commit — no prompts. Only contradictions and rethink verdicts wait for you, recorded as open decision ledger entries |
 | **Update** | `/spec my-feature` + "update" | Checks off sub-items inside phase entries, captures durable learnings as ledger entries, updates the code map |
 | **Status** | `/spec my-feature status` | Print a 4-column phase snapshot — Phase, Status (`✅ done` / `🟡 WIP (x/y)` / `🟢 active` / `⬜ pending`), Delivers, Work — without the resume briefing. `active` is reserved for the first unchecked phase; later unchecked phases are `pending`. `Work` falls back to `N/A` if the phase has no implementation guidance. Format is a markdown table — never cards or vertical lists. |
 | **Handoff** | `/spec my-feature` + "handoff" | Reflects on the session and redirects findings: durable learnings → ledger, pending state → `in-flight.md`. Commits and signals. |
@@ -41,6 +41,8 @@ When you trigger a review, 5 agents launch in parallel:
 | **prior-art-reviewer** | Does the system already do this? | Reinvented wheels, grandfathered decisions, hand-built defenses an existing mechanism makes structurally unnecessary, misplaced ownership |
 
 After all 5 return, the **review-synthesizer** combines findings: deduplicates, classifies signal (consensus / unique-insight / contradiction), marks mitigation findings superseded by accepted substitutions, and assigns enforcement mechanisms.
+
+The review then finishes itself: spec corrections are applied directly, cross-phase learnings become ledger entries, contradictions and fundamental-rethink verdicts become *open* decision entries (recorded, not resolved), and everything lands in a single `[review] <spec-name>: <slug>` commit. The run ends with a compact report — what was found, what was applied, and what (if anything) needs your judgment.
 
 ## Standalone agents
 
