@@ -30,17 +30,19 @@ Adapt your technical vocabulary to match the project's stack and patterns.
 Walk through key design decisions. For each decision:
 - Present 2-3 options with concrete tradeoffs
 - Ask the user to pick (use AskUserQuestion)
-- Record the decision, what was chosen, and why
+- Record the decision, what was chosen, why, and the strongest rejected alternative
 
 Build a decisions table:
 
 ```markdown
-| Decision | What we chose | Why |
-|----------|---------------|-----|
-| ... | ... | ... |
+| Decision | What we chose | Rejected alternative | Why |
+|----------|---------------|----------------------|-----|
+| ... | ... | ... | ... |
 ```
 
 Fill in **real** tradeoffs — not placeholder rows.
+
+**Every mechanism-level choice is a decision** — how the feature reads/writes data, schedules work, sends notifications, records metrics, serializes, retries, caches, or where new classes live. For each, the null hypothesis "reuse the existing mechanism X" must appear as a considered alternative (search the codebase for how that concern is solved today before deciding). This applies equally to choices *inherited* from code the spec extends or extracts — "the existing code already does it this way" is provenance, not a decision. A mechanism choice with no rejected alternative is an undecided decision; the review panel's prior-art-reviewer flags these.
 
 ### 3. Design
 

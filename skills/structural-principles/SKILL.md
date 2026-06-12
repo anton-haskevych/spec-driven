@@ -47,7 +47,7 @@ These are not suggestions. If any gate fails, the review FAILS.
 
 | Gate | Threshold | Why |
 |------|-----------|-----|
-| File length | ≤ 150 lines | Beyond this, the file is doing too much. Split by responsibility. |
+| File length | ≤ 250 lines | Beyond this, the file is doing too much. Split by responsibility. |
 | Function/method length | ≤ 50 lines | Beyond this, extract sub-functions. Each function does one thing. |
 | Function parameters | ≤ 4 params | Beyond this, group into a typed object/struct. |
 | Import depth | No file imports from more than 2 layers away | Deep imports = hidden coupling. |
@@ -95,7 +95,7 @@ If a file imports 10+ things and orchestrates a complex flow, it's a god file. B
 4. Check: does any mechanism file contain business-specific knowledge?
 5. Check: is the business logic thin orchestration or a monolith?
 6. Check: could each mechanism be reused independently?
-7. Estimate file sizes — will any exceed 150 lines?
+7. Estimate file sizes — will any exceed 250 lines?
 8. Report findings
 
 ### For existing code:
@@ -129,7 +129,7 @@ Mechanism files: X (Y reusable, Z contaminated)
 Business logic files: X (Y thin, Z overloaded)
 
 Hard gate violations:
-- [file] — [X] lines (limit: 150)
+- [file] — [X] lines (limit: 250)
 - [function] — [X] lines (limit: 50)
 
 Findings: X FAIL / Y WARN / Z PASS

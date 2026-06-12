@@ -13,7 +13,7 @@ This plugin gives you the complete lifecycle:
 | Step | What you do | What the plugin provides |
 |------|------------|------------------------|
 | **Create** | `/spec my-feature` | Interactive spec creation — decisions, wireframes, API contracts, per-phase plans |
-| **Review** | `/spec my-feature` + "review" | 4 expert agents evaluate the spec in parallel, synthesize findings, write immutable `reviews/<date>.md`, and extract actionable items into the ledger |
+| **Review** | `/spec my-feature` + "review" | 5 expert agents evaluate the spec in parallel, synthesize findings, write immutable `reviews/<date>.md`, and extract actionable items into the ledger |
 | **Update** | `/spec my-feature` + "update" | Checks off sub-items inside phase entries, captures durable learnings as ledger entries, updates the code map |
 | **Status** | `/spec my-feature status` | Print a 4-column phase snapshot — Phase, Status (`✅ done` / `🟡 WIP (x/y)` / `🟢 active` / `⬜ pending`), Delivers, Work — without the resume briefing. `active` is reserved for the first unchecked phase; later unchecked phases are `pending`. `Work` falls back to `N/A` if the phase has no implementation guidance. Format is a markdown table — never cards or vertical lists. |
 | **Handoff** | `/spec my-feature` + "handoff" | Reflects on the session and redirects findings: durable learnings → ledger, pending state → `in-flight.md`. Commits and signals. |
@@ -30,7 +30,7 @@ Stage A reads only `progress.md` and per-phase Goal/Implementation lines — sam
 
 ## The review panel
 
-When you trigger a review, 4 agents launch in parallel:
+When you trigger a review, 5 agents launch in parallel:
 
 | Agent | Central question | What it catches |
 |-------|-----------------|----------------|
@@ -38,8 +38,9 @@ When you trigger a review, 4 agents launch in parallel:
 | **integration-architect** | How does this fit? | Boundary violations, data flow breaks, blast radius |
 | **adversarial-tester** | What will break? | Edge cases, lifecycle state leaks, concurrency, null guards |
 | **code-quality-reviewer** | How does this affect code quality? | God objects, duplicated logic, testability gaps |
+| **prior-art-reviewer** | Does the system already do this? | Reinvented wheels, grandfathered decisions, hand-built defenses an existing mechanism makes structurally unnecessary, misplaced ownership |
 
-After all 4 return, the **review-synthesizer** combines findings: deduplicates, classifies signal (consensus / unique-insight / contradiction), and assigns enforcement mechanisms.
+After all 5 return, the **review-synthesizer** combines findings: deduplicates, classifies signal (consensus / unique-insight / contradiction), marks mitigation findings superseded by accepted substitutions, and assigns enforcement mechanisms.
 
 ## Standalone agents
 

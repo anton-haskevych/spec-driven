@@ -1,6 +1,6 @@
 # Review Mode
 
-Launch a collegium review panel to evaluate the spec from four independent lenses, synthesize findings into a unified verdict, write the full synthesis to `reviews/`, and interactively extract actionable findings into ledger entries.
+Launch a collegium review panel to evaluate the spec from five independent lenses, synthesize findings into a unified verdict, write the full synthesis to `reviews/`, and interactively extract actionable findings into ledger entries.
 
 See `SKILL.md` for layout rules and the extraction-step discipline.
 
@@ -21,9 +21,9 @@ Determine which spec to review from conversation context. If ambiguous, ask the 
 
 Note the spec path — you'll pass it to each reviewer along with the list of files they should read.
 
-## 2. Launch 4 review agents in parallel
+## 2. Launch 5 review agents in parallel
 
-Send a **single message with 4 Agent tool calls** — all must launch simultaneously, not sequentially. Each agent gets the spec path and reads the files itself.
+Send a **single message with 5 Agent tool calls** — all must launch simultaneously, not sequentially. Each agent gets the spec path and reads the files itself.
 
 The read set for each agent now includes the ledger and the active phase entry so they have full context, not just design/technical/progress.
 
@@ -105,14 +105,38 @@ structure follow existing patterns?
 Produce structured PersonaOutput with findings and an overallAssessment.
 ```
 
-## 3. Collect and synthesize
-
-Once all 4 agents return, launch the **review-synthesizer** agent:
+### Agent 5: prior-art-reviewer
 
 ```
-Synthesize the following 4 review outputs into a unified verdict.
+Review the spec at [spec-path]. Read:
+- design.md, technical.md, progress.md
+- The current phase entry
+- ledger/INDEX.md and relevant ledger entries
+- code-map.md
 
-[Include the full output from each of the 4 agents]
+Your central question: "Does this system already know how to do this?"
+
+Inventory every mechanism-level choice in the spec (data access, scheduling,
+notification, metrics, serialization, retry, caching, config, class placement) —
+including choices inherited from code the spec extends or extracts. For each,
+Grep/Glob broadly for how the codebase solves that concern elsewhere; find 2-3
+exemplars. Construct the simplest version that reuses those mechanisms and diff
+the spec against it. "Extraction" / "behavior-preserving" framing is provenance,
+not justification — inherited choices must re-justify themselves. Flag mechanism
+choices with no rejected alternative recorded in the decisions table or ledger.
+
+Produce structured PersonaOutput with findings (each citing prior-art file:line)
+and an overallAssessment.
+```
+
+## 3. Collect and synthesize
+
+Once all 5 agents return, launch the **review-synthesizer** agent:
+
+```
+Synthesize the following 5 review outputs into a unified verdict.
+
+[Include the full output from each of the 5 agents]
 
 Deduplicate findings, classify signal (consensus / unique-insight / contradiction),
 assign enforcement mechanisms, and produce a SynthesisOutput with findings[] and summary.
@@ -123,6 +147,7 @@ assign enforcement mechanisms, and produce a SynthesisOutput with findings[] and
 Display the synthesizer's output to the user. Then:
 
 - If there are **critical findings**: highlight them and ask which ones to address before implementation
+- If there are **prior-art substitutions** (the spec hand-builds what an existing mechanism provides): present the substitution and its exemplar before any mitigation-level findings on the same component — fixing a component that shouldn't exist is wasted work
 - If there are **contradictions**: present both sides and ask the user to resolve
 - If the spec is **clean**: say so and suggest moving to implementation
 
@@ -157,7 +182,7 @@ Create `docs/specs/<spec-name>/reviews/YYYY-MM-DD-<slug>.md` with the full synth
 ---
 date: <YYYY-MM-DD>
 spec-phase-at-review: <phase number and name at review time>
-agents: [principal-engineer, integration-architect, adversarial-tester, code-quality-reviewer]
+agents: [principal-engineer, integration-architect, adversarial-tester, code-quality-reviewer, prior-art-reviewer]
 slug: <slug>
 ---
 
