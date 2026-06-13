@@ -12,6 +12,8 @@ The point: don't burn 100K tokens on `design.md`, `technical.md`, and filtered l
 
 If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Do not run anything below.
 
+If the spec is still in **prep** (`docs/specs/<name>/progress.md` does not exist — only `product-brief.md`/`research/`), there is nothing to resume yet. Read [prep.md](prep.md) instead — it resumes reconnaissance from where it left off. Do not run Stage A or Stage B below.
+
 ### A.2. Detect layout
 
 Check whether `docs/specs/<name>/ledger/INDEX.md` exists.

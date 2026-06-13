@@ -17,6 +17,7 @@ If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/s
 If there is any implementation work to record (commits since last session, unchecked items that are now done, uncommitted changes):
 
 - Follow `update.md` sections 2–8 fully: load state, cross-reference git, apply sub-checkbox changes to the phase entry, capture durable learnings into the ledger, update `code-map.md`, bump the frontmatter timestamp.
+- Refresh the **Spec state** section of `pr-opening.md` (phases done / left, branch / PR link if any) — under 20 lines, PR-readiness only. Do **not** tick the pre-PR checkboxes here; those are ticked only when the PR is about to open.
 
 If there is NO implementation work (e.g., you only added spec details, did research, or had a design conversation):
 

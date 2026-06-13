@@ -34,12 +34,13 @@ If no filter: include all specs.
 Sort by status priority, then by `updated` descending:
 
 1. `active` (or legacy `in-progress`)
-2. `draft`
-3. `paused`
-4. `good-enough`
-5. `done`
-6. `abandoned`
-7. No frontmatter (legacy) — last
+2. `prep`
+3. `draft`
+4. `paused`
+5. `good-enough`
+6. `done`
+7. `abandoned`
+8. No frontmatter (legacy) — last
 
 Within each status bucket, sort by `updated` descending (specs missing `updated` go to the bottom of their bucket).
 

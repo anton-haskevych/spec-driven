@@ -7,6 +7,7 @@ Print a single-table snapshot of every phase in the spec. No briefing, no ledger
 - If `$ARGUMENTS` (after stripping the `status` token) contains a feature name, use it.
 - Else infer from conversation context (same rule as SKILL.md's empty-args branch). Propose a kebab-case slug and confirm with the user only if ambiguous.
 - If `docs/specs/<name>/` does not exist, print: `Spec '<name>' not found at docs/specs/<name>/.` and stop. Do not offer to create — that's create.md's job.
+- If the spec is still in **prep** (`docs/specs/<name>/progress.md` does not exist — only `product-brief.md`/`research/`), there are no phases to tabulate yet. Print: `Spec '<name>' is in prep — no phases yet. See product-brief.md. Run /spec prep <name> to continue recon, or /spec create <name> to write the spec.` and stop.
 
 ## 2. Detect layout
 

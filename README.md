@@ -5,14 +5,15 @@ A spec-driven development toolkit for [Claude Code](https://claude.ai/code). Wri
 ## The workflow
 
 ```
-Create → Review → Implement → Update → Handoff → Resume → ...
+Prep → Create → Review → Implement → Update → Handoff → Resume → ...
 ```
 
 This plugin gives you the complete lifecycle:
 
 | Step | What you do | What the plugin provides |
 |------|------------|------------------------|
-| **Create** | `/spec my-feature` | Interactive spec creation — decisions, wireframes, API contracts, per-phase plans |
+| **Prep** | `/spec prep my-feature` | Pre-spec reconnaissance. Align on the *real* change, scaffold the folder + a ≤30-line `product-brief.md` (business only, no code), then fan out adaptive recon waves (read-only Explore agents) across two lenses — **implementation** (seam, reuse, blast radius, tests) then **craft** (naming, fixtures, extraction-for-reuse) — locking ground truth into `research/`. One hard stop — right after the brief. |
+| **Create** | `/spec my-feature` | Interactive spec creation — decisions, wireframes, API contracts, per-phase plans. Consumes prep's brief + research when present; otherwise cold-discovers. |
 | **Review** | `/spec my-feature` + "review" | Fully autonomous: 5 expert agents evaluate the spec in parallel, findings are synthesized, written to immutable `reviews/<date>.md`, applied to the spec + ledger, and committed as one `[review]` commit — no prompts. Only contradictions and rethink verdicts wait for you, recorded as open decision ledger entries |
 | **Update** | `/spec my-feature` + "update" | Checks off sub-items inside phase entries, captures durable learnings as ledger entries, updates the code map |
 | **Status** | `/spec my-feature status` | Print a 4-column phase snapshot — Phase, Status (`✅ done` / `🟡 WIP (x/y)` / `🟢 active` / `⬜ pending`), Delivers, Work — without the resume briefing. `active` is reserved for the first unchecked phase; later unchecked phases are `pending`. `Work` falls back to `N/A` if the phase has no implementation guidance. Format is a markdown table — never cards or vertical lists. |
@@ -20,7 +21,11 @@ This plugin gives you the complete lifecycle:
 | **Resume** | `/spec my-feature` | Two-stage. Stage A: prints the status table, reads `in-flight.md` if present, suggests the next chunk, halts. Stage B (only on confirmation): loads stable references + the active phase entry + filtered ledger + scoped code-map, then hands off to **execute** mode. |
 | **Execute** | (entered automatically from Resume Stage B) | Inner work loop. Decompose the chunk into testable units, run red→green→commit per unit, update the phase entry's sub-checkboxes, add ledger entries for durable learnings, and trigger `/spec handoff` before hitting ~75% of the context budget. |
 
-No arguments required for the feature name — the `/spec` skill infers it from conversation context. **Sub-commands** (`create`, `resume`, `review`, `update`, `handoff`, `status`) can lead or trail the feature name: `/spec resume my-feature`, `/spec my-feature resume`, or `/spec resume` (alone, with the feature inferred from context) all work.
+No arguments required for the feature name — the `/spec` skill infers it from conversation context. **Sub-commands** (`prep`, `create`, `resume`, `review`, `update`, `handoff`, `status`, `list`) can lead or trail the feature name: `/spec resume my-feature`, `/spec my-feature resume`, or `/spec resume` (alone, with the feature inferred from context) all work.
+
+### Why prep first
+
+A spec is only as good as the facts under it. Writing `technical.md` and phase plans straight from a customer ask bakes in assumptions — the wrong gate, a reinvented mechanism, an unseen blast radius. Prep front-loads the grounding: a frozen ≤30-line business brief becomes the contract, then read-only Explore agents fan out in adaptive waves — each wave aimed by the last one's findings at whatever's still unknown — until the codebase ground truth is *locked* into `research/` — across two lenses: **implementation** (where the change lives, what to reuse, blast radius) and **craft** (naming, test fixtures, extraction-for-reuse), so the result reads like the codebase wrote it. Only then does `/spec create` write the spec, citing verified `file:line` facts instead of guesses. The single human checkpoint sits where it matters most: right after the brief, before any token is spent on recon.
 
 ### Why two-stage resume
 
@@ -55,7 +60,7 @@ The review then finishes itself: spec corrections are applied directly, cross-ph
 
 | Skill | Used by | Purpose |
 |-------|---------|---------|
-| **spec** | You (via `/spec`) | The core spec lifecycle — create, review, update, status, resume, execute, handoff |
+| **spec** | You (via `/spec`) | The core spec lifecycle — prep, create, review, update, status, resume, execute, handoff |
 | **code-quality-review** | code-quality-reviewer agent | Deep quality review framework |
 | **structural-principles** | code-quality-reviewer agent | Mechanism vs business logic classification, size gates |
 
@@ -70,14 +75,16 @@ The `spec` skill ships an `engineering-principles` reference (`skills/spec/princ
 
 ## Spec file structure
 
-Each spec lives in `docs/specs/<feature-name>/`. The layout separates **stable reference** (design, technical), **thin index** (progress), **per-phase detail** (phases folder), **forward-propagating learnings** (ledger), and **ephemeral state** (in-flight):
+Each spec lives in `docs/specs/<feature-name>/`. The layout separates **stable reference** (brief, design, technical), **thin index** (progress), **per-phase detail** (phases folder), **forward-propagating learnings** (ledger), and **ephemeral state** (in-flight):
 
 ```
 docs/specs/<feature-name>/
 ├── CLAUDE.md               # metadata + relationship to code
+├── product-brief.md        # business intent (≤30 lines, no code) — by prep
 ├── design.md               # stable reference — problem, decisions, UX
 ├── technical.md            # stable reference — contracts, architecture
 ├── progress.md             # thin index: phase list + checkboxes + pointers
+├── pr-opening.md           # PR-readiness gate: spec state + pre-PR checks (not a phase)
 ├── code-map.md             # load-bearing files inventory
 ├── in-flight.md            # ephemeral pending work (on-demand)
 ├── phases/                 # per-phase detail (see below)
@@ -99,6 +106,10 @@ The ledger holds small files, each one a durable learning that forward-propagate
 ### Per-phase shape
 
 Every phase lives in its own entry inside `phases/`. Small phases are flat `.md` files. Complex phases are folders containing `plan.md` plus supplementary files (tier breakdowns, sub-plans, wireframes, fixture notes). A phase can start as a flat file and be promoted to a folder later, when it outgrows single-file scale. `progress.md` points at each phase with a direct path, so resume always knows where to go.
+
+### Phases are code-only — verification lives in `pr-opening.md`
+
+A phase is a unit of code that ships and leaves the tree functional and tested. Verification, manual QA, and opening the PR are **not** phases — a "Phase 5 — Verification" is a smell. They live in **`pr-opening.md`**, a per-spec gate with two sections: a **Spec state** (<20 lines: phases done/left, branch, PR link, suggested PR split) kept current by execute/handoff, and **Pre-PR checks** — checkboxes scoped to the subprojects the spec touches (backend tests, frontend lint+compile, feature e2e, …), ticked before the *draft* PR opens, never straight to `main`. Sub-checkboxes inside a phase are each sized to one TDD commit (red → change → green → commit).
 
 ### Handoff redirects the brain dump
 

@@ -10,7 +10,18 @@ Work through these 6 stages **interactively**. Ask clarifying questions at each 
 
 Understand the problem space before designing anything.
 
-Ask about:
+**First, check for prep output.** If `docs/specs/$ARGUMENTS/product-brief.md` exists, prep already did the reconnaissance — load it instead of cold-exploring:
+
+- Read `product-brief.md` — the frozen business intent (who/what/why, the real change, out of scope).
+- Read every snapshot in `docs/specs/$ARGUMENTS/research/` — verified, file-referenced codebase ground truth from the recon waves.
+- This **is** your Discover. Do not re-run a cold codebase sweep; the waves already located the seam, the reuse, and the blast radius. Trust the brief for the *what/why* and the research for the *how*.
+- Confirm your understanding back to the user in 2–3 bullets, then move to Decide. The brief and research carry into every later stage — decisions, technical contracts, and phase plans all cite them.
+
+**No prep output?** Cold-discover. For a non-trivial change, recommend prep first:
+
+> For a change this size, `/spec prep $ARGUMENTS` grounds the spec in a reconnaissance pass before we write it — want that, or proceed cold?
+
+If proceeding cold, ask about:
 - What problem does this solve? Who feels the pain today?
 - Who are the target users?
 - What do they do today without this feature? (workarounds, manual steps)
@@ -75,32 +86,42 @@ Before writing this section, read the project's `CLAUDE.md` and any subsystem-le
 
 Mirror the project's patterns — don't impose new ones.
 
-### 5. Plan
+### 5. Plan — the phasing gate
 
-Draft the implementation phases. **Each phase becomes its own entry inside `phases/`** — not a section in `progress.md`. This is the critical shape change from older specs.
+Draft the implementation phases, **then stop and agree on them with the user before writing any spec file.** Phasing is the skeleton the whole spec hangs on — cheap to reshape now, expensive later. Present the phase list and the sequencing; if the user says "your judgment," proceed without further questions. **Each phase becomes its own entry inside `phases/`** — not a section in `progress.md`.
+
+**Phases are code work only — a hard rule:**
+
+- A phase is a unit of *code that ships* — a change set that leaves the codebase functional and tested at its end.
+- **Never create a "Verification" phase, a "Manual QA" phase, or an "Open PR" phase.** Verification, QA, and PR-opening are not phases — they live in `pr-opening.md` (scaffolded below; semantics in `SKILL.md`). If you're about to write "Phase N — Verification," stop: that content is `pr-opening.md`'s pre-PR checks.
 
 For each planned phase, prepare:
 - **Phase goal** — what ships at the end of this phase
 - **Dependencies** — which earlier phases must be complete
+- **Parallelizable with** — phases with no ordering edge to this one (this drives the PR split)
 - **Files to touch** — paths that will be edited or created
-- **Implementation guidance** — prose explaining how to approach the work, how the files relate, any nuances specific to this phase
-- **Sub-checkboxes** — specific, concrete deliverables
-- **Phase-local notes** — gotchas or context that only matter for this phase (anything forward-propagating goes to the ledger later)
+- **Implementation guidance** — prose: how to approach the work, how the files relate, phase-specific nuances
+- **Sub-checkboxes** — specific, concrete deliverables, **each sized to one TDD commit** (red test → change → green → commit; functional and tested at every step)
+- **Phase-local notes** — gotchas or context that only matter for this phase (forward-propagating notes go to the ledger later)
+
+Order phases by dependency and by any hard safety rule (e.g. close a security hole before the surface that exposes it becomes reachable). Note which phases are mutually independent — that's the natural PR split (groundwork / inert / refactor phases as one PR, the "turns it on" phases as another). Record the suggested split and branch plan in `pr-opening.md`, never in a phase.
 
 **Choose phase shape now** (per phase):
 
-- **Default shape: flat file.** `phases/phase-<N>-<slug>.md`. Use this for phases where a single file will comfortably hold everything.
-- **Folder shape at birth.** `phases/phase-<N>-<slug>/plan.md` plus supplementary files. Use this only when complexity is obvious at planning time — multi-tier phases, phases with known sub-plans or wireframes that don't fit inline, phases that will need fixture notes or scratch research files alongside the main plan.
+- **Default shape: flat file.** `phases/phase-<N>-<slug>.md`. Use this for phases where a single file holds everything comfortably.
+- **Folder shape at birth.** `phases/phase-<N>-<slug>/plan.md` plus supplementary files — only when complexity is obvious at planning time (multi-tier phases, known sub-plans/wireframes that don't fit inline, fixture/scratch files alongside the plan).
 
-Propose the shape explicitly per phase and ask the user to confirm. Default to flat file unless the phase clearly warrants a folder.
+Default to flat file unless the phase clearly warrants a folder.
 
-**Slug rules:** each phase needs a short, unique, descriptive kebab-case slug (e.g., `canonical-schema`, `migration-runner`, `csv-import`). Check for slug collisions across phases and ask the user to disambiguate if two are similar.
+**Slug rules:** each phase needs a short, unique, descriptive kebab-case slug (e.g., `canonical-schema`, `migration-runner`, `csv-import`). Pick distinct slugs; only ask the user to disambiguate if two are genuinely ambiguous.
 
-No "Phase 1: TBD" — every phase should describe a specific deliverable before you write it.
+No "Phase 1: TBD" — every phase describes a specific deliverable before you write it.
 
 ### 6. Write
 
 Create the spec folder with the full file set below. Use the taxonomy values from `SKILL.md` — ask the user when you're unsure between two valid values.
+
+**If the folder already exists from prep** (`status: prep` stub + `product-brief.md` + `research/`): do not refuse and do not discard prep's work. Keep `product-brief.md` and `research/` untouched, overwrite the stub `CLAUDE.md` with the full version below (this flips `status: prep` → `status: draft`), and scaffold the remaining files. `design.md`'s problem statement should build on `product-brief.md`; `technical.md` and the phase plans should cite the `research/` snapshots as their ground truth.
 
 #### `docs/specs/$ARGUMENTS/CLAUDE.md`
 
@@ -120,9 +141,11 @@ scope: [<from taxonomy>]
 
 | File | Purpose |
 |------|---------|
+| `product-brief.md` | Business intent from prep (present when prep ran) |
 | `design.md` | Product & UX spec — wireframes, copy, decisions |
 | `technical.md` | API contracts, architecture, data models |
 | `progress.md` | Thin index of phases (checkboxes + pointers) |
+| `pr-opening.md` | PR-readiness gate — spec state + pre-PR checks (not a phase) |
 | `code-map.md` | Load-bearing files inventory |
 | `phases/` | Per-phase detail — one entry per phase, flat file or folder |
 | `ledger/INDEX.md` | Forward-propagating learnings — scan here first |
@@ -166,8 +189,9 @@ Technical spec containing:
 
 > This file is a thin index. Phase details live in `phases/phase-<N>-<slug>.md` (flat)
 > or `phases/phase-<N>-<slug>/plan.md` (folder). Forward-propagating learnings live
-> in `ledger/`. Ephemeral state lives in `in-flight.md`. Never write session logs
-> or handoff blocks here.
+> in `ledger/`. Ephemeral state lives in `in-flight.md`. Pre-PR checks and PR-readiness
+> live in `pr-opening.md`. Never write session logs, handoff blocks, or verification
+> steps here.
 
 ## Success metrics
 
@@ -182,6 +206,33 @@ Technical spec containing:
 ```
 
 **Do NOT add** Implementation Notes sections, TODO Later sections, Decisions tables, sub-checkboxes, or session logs to this file. Those live elsewhere per the layout in `SKILL.md`.
+
+#### `docs/specs/$ARGUMENTS/pr-opening.md`
+
+The PR-readiness gate — **not a phase**. Two sections only; keep the whole file tight.
+
+```markdown
+# PR Opening — [Feature Name]
+
+## Spec state
+
+> Under 20 lines. Running summary of where the spec stands: phases done / left,
+> branch + PR link once they exist, and the suggested PR split. Kept current by
+> execute/handoff as phases land — not a phase re-list.
+
+Spec written, not yet implemented. <N> code-only phases planned. No branch/PR yet.
+
+## Pre-PR checks
+
+Scoped to the subprojects this spec touches (derive from `code-map.md`). Tick each
+before opening the **draft** PR — never straight to `main`.
+
+- [ ] <check 1>
+- [ ] <check 2>
+- [ ] <check 3>
+```
+
+Derive the checks from the build targets the spec touches: if the project defines its own canonical checks (a `.claude/` convention, a CI manifest), use those; otherwise default, per touched module, to — tests pass · lint + typecheck/compile · any feature-specific e2e. List the concrete checks; don't leave placeholders.
 
 #### `docs/specs/$ARGUMENTS/code-map.md`
 
@@ -220,6 +271,8 @@ One file per phase that chose flat-file shape in stage 5. Content template:
 **Goal:** <one-sentence phase goal>
 
 **Depends on:** <earlier phases that must be done, or "none">
+
+**Parallelizable with:** <phases with no ordering edge, or "none">
 
 **Files to touch:**
 - <path/to/file>

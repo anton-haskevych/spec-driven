@@ -29,7 +29,7 @@ For each unit:
 3. **Green.** Run the unit test → green. Run the broader test suite → still green.
 4. **Refactor (if warranted).** Improve names, split functions that grew too large, eliminate duplication that just appeared. Tests stay green throughout.
 5. **Commit.** One logical change per commit. Commit message states the *why*, not just the *what*. Body explains anything non-obvious about the approach.
-6. **Update progress.** Tick the corresponding sub-checkbox in the phase entry (`phases/phase-<N>-<slug>.md` or the folder's `plan.md`). If this completes all sub-checkboxes for the phase, flip the top-level box in `progress.md`.
+6. **Update progress.** Tick the corresponding sub-checkbox in the phase entry (`phases/phase-<N>-<slug>.md` or the folder's `plan.md`). If this completes all sub-checkboxes for the phase, flip the top-level box in `progress.md` and refresh the **Spec state** in `pr-opening.md` (phases done / left).
 
 ## 5. Capture durable learnings as you go
 
@@ -56,6 +56,17 @@ When all units in the chunk are green and committed, and you believe the chunk i
 3. Brief the user in 2–3 sentences: what shipped, what's next.
 
 If the chunk completes a phase, mention that the next phase is ready.
+
+## 8. The PR gate (not a phase)
+
+When the code phases this PR covers are all done, opening the PR is gated by `pr-opening.md` — it is **not** a phase:
+
+1. Run the **pre-PR checks** in `pr-opening.md`, scoped to the subprojects this PR touches.
+2. Tick each check only when it actually passes; paste the failing output instead if it doesn't.
+3. Refresh the **Spec state** (phases done, branch, PR link once it exists).
+4. Open the PR as a **draft, off a feature branch — never to `main`**, following the PR split recorded in `pr-opening.md`.
+
+Never invent a "verification" or "open PR" phase to hold this — that's what `pr-opening.md` is for.
 
 ## Notes
 

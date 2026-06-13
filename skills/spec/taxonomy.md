@@ -1,9 +1,16 @@
 # Taxonomy — Controlled Vocabulary
 
 ## status (single value)
-- `active` — Work in progress
-- `done` — Completed
+
+Lifecycle order: `prep` → `draft` → `active` → `done` / `good-enough`.
+
+- `prep` — Reconnaissance stage: folder + `product-brief.md` + `research/`; spec body not yet written
+- `draft` — Spec written, not yet under implementation (may be in review)
+- `active` — Implementation in progress
+- `paused` — Implementation started, intentionally on hold
 - `good-enough` — Acceptable state, not pursuing further
+- `done` — Completed
+- `abandoned` — Dropped; kept for the record
 
 ## scope (multi-value)
 - `feature` — New user-facing capability
