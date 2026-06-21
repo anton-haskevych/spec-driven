@@ -106,7 +106,7 @@ docs/specs/<name>/
 | `phases/phase-*/plan.md` (folder) | small-to-medium | Same as flat, for phases with supplementary files |
 | `phases/phase-*/<supplementary>.md` | on-demand | Tier sub-plans, wireframes, fixture notes, scratch |
 | `reviews/*.md` | on-demand, immutable | Collegium review snapshots; never edited |
-| `research/*.md` | on-demand, immutable | Deep-research and prep recon-wave snapshots; never edited |
+| `research/*.md` | on-demand, immutable | Deep-research, prep recon-wave, and per-phase execution-recon snapshots; never edited |
 | `ledger/INDEX.md` | warm cache | One row per ledger entry with `[applies-to]` tag + one-line summary |
 | `ledger/<kind>-*.md` | forward-propagating | Durable learnings tagged by phase scope |
 
@@ -259,7 +259,7 @@ Handoff **must not**:
 | `product-brief.md` | no — created by `prep` before the spec body exists |
 | `in-flight.md` | no — created by handoff when pending state exists |
 | `reviews/` | no — created on first review write |
-| `research/` | no — created on first research/recon write (deep research or `prep` waves) |
+| `research/` | no — created on first research/recon write (deep research, `prep` waves, or `execute` phase recon) |
 | Phase folder supplementary files | no — added during execution when needed |
 | Individual `ledger/*.md` entries | no — created during update/handoff when a learning emerges |
 
