@@ -1,0 +1,14 @@
+name: Plugin metadata
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  version-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify published versions agree
+        run: python3 scripts/version.py

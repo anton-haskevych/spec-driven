@@ -73,6 +73,16 @@ The `spec` skill ships an `engineering-principles` reference (`skills/spec/princ
 /plugin install spec-driven
 ```
 
+## Release
+
+Set every Claude, Codex, and marketplace version declaration with one command:
+
+```bash
+python3 scripts/version.py --set <version>
+```
+
+CI runs the same command in check mode and rejects split-version releases.
+
 ## Spec file structure
 
 Each spec lives in `docs/specs/<feature-name>/`. The layout separates **stable reference** (brief, design, technical), **thin index** (progress), **per-phase detail** (phases folder), **forward-propagating learnings** (ledger), and **ephemeral state** (in-flight):
