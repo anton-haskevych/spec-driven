@@ -29,6 +29,17 @@ Send a **single message with 5 Agent tool calls** — all must launch simultaneo
 
 The read set for each agent now includes the ledger and the active phase entry so they have full context, not just design/technical/progress.
 
+Pass `run_in_background: false`. **Each agent's tool result IS its report** — it arrives inline, in this message's results. There is nothing to retrieve, poll, or collect afterward.
+
+**These reviewers are one-shot and throwaway. Do not put them in a team.** Specifically, in this flow:
+
+- Do **not** use `TeamCreate`, `team_name`, or the `name` parameter — naming an agent makes it an addressable teammate on the mailbox channel, which is the wrong channel for a report.
+- Do **not** use `SendMessage` to nudge, ping, or ask a reviewer for its report. `SendMessage` starts a *new inference turn* on that agent; when that turn ends it emits another idle notification, which looks like another stall, which invites another nudge. That loop is self-sustaining and produces no report.
+- Do **not** treat `{"type":"idle_notification","idleReason":"available"}` as a failure. It is a mailbox event with **no payload** and it is not the completion signal. Reports arrive as tool results (foreground) or `<task-notification>` (background) — never as idle notifications.
+- Do **not** read an agent's `.output` file. For local agents it symlinks the full JSONL conversation transcript and will overflow context.
+
+If a reviewer genuinely returns nothing, proceed with the reviewers that did return and note the gap in the final report. Never block the flow polling for a missing one.
+
 ### Agent 1: principal-engineer
 
 ```

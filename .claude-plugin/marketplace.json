@@ -8,7 +8,7 @@
       "name": "spec-driven",
       "source": "./",
       "description": "Spec-driven development toolkit: create, review, and iterate on feature specifications with an expert review panel.",
-      "version": "2.15.0"
+      "version": "2.16.0"
     }
   ]
 }
