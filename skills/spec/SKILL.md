@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Run pre-spec reconnaissance (prep), load an existing spec to resume work, update progress after implementation, review with the collegium panel, or create a new one. Use when starting a session around a feature, when the user mentions a spec by name, when asked to prep, scope, or review/critique a spec, or after completing implementation work.
+description: Run pre-spec reconnaissance (prep), load an existing spec to resume work, execute the next chunk, update progress after implementation, review with the collegium panel, or create a new one. Use when starting a session around a feature, when the user mentions a spec by name, when asked to prep, scope, or review/critique a spec, or after completing implementation work.
 argument-hint: <feature-name>
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
 ---
@@ -17,7 +17,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
 
 Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-command token.
 
-**Sub-command set:** `prep`, `create`, `resume`, `review`, `update`, `handoff`, `status`, `list`.
+**Sub-command set:** `prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`.
 
 **Matching rule** (case-insensitive, whitespace-tokenized):
 
@@ -28,6 +28,8 @@ Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-comman
 
 If `feature` is empty after extraction, infer it from conversation context (same rule as the empty-args branch above). Confirm with the user only if ambiguous. **Exception:** for `list`, an empty `feature` means "no filter — show all"; do not infer from context.
 
+**Exception for `execute`:** `feature` is the **first** remaining token only; any tokens after it are a **chunk hint** passed through to execute mode (`/spec execute my-feature phase 3a` → feature `my-feature`, hint `phase 3a`). If the first remaining token is itself a chunk reference (`phase …`, a bare number, `next`), the whole remainder is the hint and `feature` is inferred from context.
+
 **Dispatch:**
 
 | Token | Action |
@@ -35,6 +37,7 @@ If `feature` is empty after extraction, infer it from conversation context (same
 | `prep` | Read [prep.md](prep.md) and follow it. Pre-spec reconnaissance: align on the real change, scaffold the folder + `product-brief.md`, then fan out recon waves into `research/`. Hands off to `create`. |
 | `create` | If `docs/specs/<feature>/` already exists **as a full spec** (has `progress.md`), refuse with: `Spec '<feature>' already exists at docs/specs/<feature>/. Use /spec <feature> to resume, or remove the folder first.` If it exists in **prep stage** (only `product-brief.md`/`research/`, no `progress.md`), proceed — read [create.md](create.md); it consumes the prep output. Otherwise (fresh) read [create.md](create.md) and follow it. |
 | `resume` | Read [resume.md](resume.md) and follow it. |
+| `execute` | Read [execute.md](execute.md) and follow it, starting at its §0 (direct entry) — it runs the existence check, picks the chunk (honouring any chunk hint), loads Stage B context itself, then runs the work loop. Skips Stage A's halt: typing `execute` **is** the confirmation. |
 | `review` | Read [review.md](review.md) and follow it. |
 | `update` | Read [update.md](update.md) and follow it. |
 | `handoff` | Read [handoff.md](handoff.md) and follow it. |

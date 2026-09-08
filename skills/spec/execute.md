@@ -1,6 +1,35 @@
 # Execute Mode
 
-The inner loop the agent runs once a chunk has been confirmed in Stage B of `resume.md`. This file owns the work cycle — recon the seam, TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out.
+The inner loop the agent runs once a chunk is locked in. This file owns the work cycle — recon the seam, TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out.
+
+## 0. Entry
+
+Two ways in. Both land at §1 with Stage B context loaded.
+
+- **From resume** — `resume.md` B.5 hands off after the user confirmed a chunk. Context is already loaded; **skip the rest of this section** and start at §1.
+- **Direct** — the user typed `/spec execute <feature> [chunk hint]`. Typing `execute` *is* the confirmation, so there is no Stage A halt. Run §0.1–§0.3 first.
+
+### 0.1. Existence check
+
+Same rule as `resume.md` A.1:
+
+- `docs/specs/<name>/` missing → print `Spec '<name>' not found at docs/specs/<name>/.` and stop.
+- Spec still in **prep** (no `progress.md`) → there is nothing to execute. Read [prep.md](prep.md) instead and stop.
+- `ledger/INDEX.md` absent → legacy layout; print `(legacy layout detected — reading progress.md as the phase source)` once and use `resume.md`'s legacy fallback for §0.3.
+
+### 0.2. Pick the chunk
+
+- **Chunk hint given** (`phase 3a`, `3a`, `next`, or a phase named in the conversation) → that is the chunk.
+- **No hint** → apply `resume.md` A.5's deterministic rule: active phase = first `[ ]` top-level checkbox in `progress.md`; chunk = first contiguous run of unchecked sub-checkboxes in that phase entry, capped at 5 items.
+- **No unchecked phase left** → print `All phases complete — see pr-opening.md for the PR gate.` and stop.
+
+Announce the pick in one line before loading anything: `Executing Phase <N> — <name>: <chunk>`. Do not print the Stage A status table, the `**Last session:**` block, or a confirmation prompt — the user already committed.
+
+Read `in-flight.md` only if it exists and has substantive content, and only to avoid redoing half-finished work. Do not summarize it back to the user.
+
+### 0.3. Load Stage B context
+
+Run `resume.md` B.1–B.4 against the picked chunk: stable references + the active phase entry, then the scoped `code-map.md` and phase-filtered `ledger/INDEX.md` entries, then any supplementary phase file its `plan.md` explicitly links. Skip anything already loaded this session.
 
 ## 1. Load the principles
 
