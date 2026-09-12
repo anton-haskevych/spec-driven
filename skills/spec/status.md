@@ -13,10 +13,10 @@ Print a single-table snapshot of every phase in the spec. No briefing, no ledger
 
 Check whether `docs/specs/<name>/ledger/INDEX.md` exists.
 
-- **Exists** → new layout. Proceed via section 3a.
-- **Does not exist** → legacy layout. Proceed via section 3b.
+- **Exists** → new layout. Proceed to §3.
+- **Does not exist** → legacy layout. Read `legacy-layout.md` → `status` for the inline parse, then continue at §4.
 
-## 3a. Read phases — new layout
+## 3. Read phases
 
 Read `progress.md`. Parse its `## Phases` section into a list of records:
 
@@ -29,18 +29,6 @@ From each phase file, extract:
 - **Goal** — the line starting with `**Goal:**`. Used for the Delivers column. If missing, fall back to the phase title text after `Phase N — `; if that's also blank, leave the cell empty.
 - **Implementation summary** — the prose under `## Implementation guidance`. Take the first sentence (split on `. ` followed by a capital), strip trailing punctuation, and truncate to ~100 chars with `…`. Used for the Work column. If the section is missing or empty, **fall back to the first 3 sub-checkbox titles under `## Deliverables` joined with `; ` and truncated to ~100 chars** (sub-checkbox titles are real spec content, not fabrication). If there are no sub-checkboxes either, emit `N/A`.
 - **Sub-checkbox counts** — under `## Deliverables`, count `- [x]` (`done_subs`) and `- [ ]` (`open_subs`). `total_subs = done_subs + open_subs`. If no `## Deliverables` section exists, count all `- [x]`/`- [ ]` lines in the file.
-
-## 3b. Read phases — legacy layout
-
-Read `progress.md`. Parse phase blocks inline (legacy specs keep all phase content in this single file).
-
-For each phase block:
-
-- **Goal** — text following `**Goal:**` if present. Else first descriptive prose line under the phase heading. **Else the phase title text after `Phase N — `** (e.g. for `## Phase 4 — Mechanism implementation`, Goal = `Mechanism implementation`). Empty only if all three are absent.
-- **Implementation summary** — text following `**Implementation:**` / `**Approach:**` / under an `## Implementation guidance` heading inside the block, if present. **Else the first 3 sub-checkbox titles inside the block joined with `; ` and truncated to ~100 chars** (titles are real spec content, not fabrication — surfacing them gives the user a useful preview of what each phase will do). Else `N/A`.
-- **Sub-checkbox counts** — count `- [x]` and `- [ ]` lines directly inside the block.
-
-Print the legacy notice once: `(legacy layout detected — reading progress.md as the phase source)`.
 
 ## 4. Compute status per phase
 
@@ -96,10 +84,8 @@ Any of these is a bug — do not produce them:
 - Status values outside the four in section 4 — no `not started`, no `queued`, no `done ✅` (with the check trailing), no `🚧`, no `📝`.
 - Renaming columns: `Description` instead of `Delivers`, `Implementation` instead of `Work`, etc.
 - Adding extra columns.
-- Dropping the table format because the legacy parser came up short — render the table even if every Delivers cell and every Work cell is blank or `N/A`.
+- Dropping the table format because a parse came up short — render the table even if every Delivers cell and every Work cell is blank or `N/A`.
 - Adding prompts, follow-up questions, or ledger context after the summary line in `status` mode. (Resume mode adds a "Suggested next chunk" block after the table — that is allowed in resume, never in status.)
-
-The legacy layout uses the same format. Sections 3a and 3b only differ in *how* they parse the data — what gets rendered is identical.
 
 ## 6. Edge cases
 

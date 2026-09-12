@@ -13,7 +13,7 @@ If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/s
 Check whether `docs/specs/<name>/ledger/INDEX.md` exists.
 
 - **Exists** → new layout. Proceed through all sections.
-- **Does not exist** → legacy layout. See section 11 for the legacy path.
+- **Does not exist** → legacy layout. Read `legacy-layout.md` → `update` and follow it instead of the sections below that target files the spec doesn't have.
 
 ## 2. Load current state
 
@@ -63,7 +63,7 @@ Compare recent commits against unchecked sub-items in the current phase entry. F
 
 - **Do NOT append a session log to `progress.md`.** Session content is routed: durable → ledger, phase-local → phase entry, ephemeral → `in-flight.md` (at handoff).
 - **Do NOT write implementation notes or prose guidance to `progress.md`.** Those belong in the phase entry's prose section.
-- **Do NOT create a "Implementation Notes" or "TODO Later" section in `progress.md`.** Legacy specs may still have these; leave them alone but don't add new ones.
+- **Do NOT create a "Implementation Notes" or "TODO Later" section in `progress.md`.** Legacy specs may still have these; leave them alone (see `legacy-layout.md`).
 
 ## 5. Capture learnings into the ledger
 
@@ -213,13 +213,3 @@ If the current phase is a **flat file** and it has outgrown its scale — multip
 5. The next resume/update session automatically uses the new folder path because `progress.md` is authoritative
 
 Reverse demotion (folder → flat file) is not automated. If it's ever needed, the user does it manually.
-
-## 11. Legacy path
-
-For legacy specs (no `ledger/INDEX.md`):
-
-- **Check off boxes** wherever they live in the legacy `progress.md` (since legacy specs have all checklists inline).
-- **Do NOT append a new session log** to legacy `progress.md`. The new rule is enforced even on legacy specs — the old "Implementation Notes" section is left untouched but never grown.
-- **Offer opportunistic `ledger/` creation:** if durable learnings emerged this session, ask the user: "This spec uses the legacy layout. Create a `ledger/` folder to capture these learnings going forward? [y/N]". If yes, scaffold `ledger/INDEX.md` and create the new ledger entries as specified in section 5. The spec is now mixed-layout — that's fine; resume's detection will pick up the ledger on future sessions.
-- **code-map.md** — similarly, offer to scaffold on demand if the session introduced load-bearing files worth recording. Don't force it.
-- **Leave legacy content untouched** — do not rewrite, archive, or migrate existing legacy progress.md content. The user does that manually when they choose.

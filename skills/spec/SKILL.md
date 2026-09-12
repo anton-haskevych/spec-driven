@@ -266,12 +266,9 @@ Handoff **must not**:
 | Phase folder supplementary files | no — added during execution when needed |
 | Individual `ledger/*.md` entries | no — created during update/handoff when a learning emerges |
 
-## Legacy spec detection
+## When the folder doesn't match this layout
 
-- **Rule:** `ledger/INDEX.md` presence = new layout. Absence = legacy.
-- **Legacy resume** falls back to reading the whole legacy `progress.md` including any session/handoff blocks. One-line "legacy layout detected" notice printed.
-- **Legacy update** may opportunistically create `ledger/` (on user confirmation) for new learnings, but never appends a new session log to the legacy `progress.md`. Legacy content stays untouched.
-- **No migration script.** Existing specs are hand-migrated by the user when they choose.
+If `docs/specs/<name>/ledger/INDEX.md` is absent, the spec predates this layout. Do not improvise — read [legacy-layout.md](legacy-layout.md) for the detection rule, the no-migration policy, and the per-mode fallbacks. Nothing in that file applies to specs that have a ledger.
 
 ## Shared conventions
 

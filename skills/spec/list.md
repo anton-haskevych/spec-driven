@@ -79,5 +79,5 @@ Only include statuses with at least 1 spec. If no legacy (no-frontmatter) specs 
 
 - **No specs found at all** — print `No specs found.` and stop. Do not render an empty table.
 - **Spec folder has no `CLAUDE.md`** — skip silently (not a real spec).
-- **Frontmatter parse error** — treat the spec as legacy (no metadata), still include in the table with `—` cells.
+- **Frontmatter parse error or missing frontmatter** — legacy spec; see `legacy-layout.md` → `list`.
 - **`progress.md` exists but contains zero checkboxes** — render `0/0`.

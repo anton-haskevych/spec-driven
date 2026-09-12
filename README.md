@@ -128,7 +128,7 @@ The handoff "brain dump" that reflects on a session — business decisions, prob
 
 ### Legacy specs
 
-Specs created before this layout are auto-detected (by the absence of `ledger/INDEX.md`) and read via a legacy fallback path. Update mode never appends new session logs to a legacy `progress.md`, and can opportunistically create a `ledger/` folder on request so old specs can incrementally adopt the new model.
+Specs created before this layout are detected by the absence of `ledger/INDEX.md` and handled by `skills/spec/legacy-layout.md` — a reference the agent loads only on detection. No migration; legacy content is never rewritten, and `update` can create a `ledger/` on request so old specs adopt the new model incrementally.
 
 ## Customization
 

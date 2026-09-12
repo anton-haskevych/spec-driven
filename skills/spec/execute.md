@@ -15,7 +15,7 @@ Same rule as `resume.md` A.1:
 
 - `docs/specs/<name>/` missing → print `Spec '<name>' not found at docs/specs/<name>/.` and stop.
 - Spec still in **prep** (no `progress.md`) → there is nothing to execute. Read [prep.md](prep.md) instead and stop.
-- `ledger/INDEX.md` absent → legacy layout; print `(legacy layout detected — reading progress.md as the phase source)` once and use `resume.md`'s legacy fallback for §0.3.
+- `ledger/INDEX.md` absent → legacy layout; follow `legacy-layout.md` → `execute` for §0.3.
 
 ### 0.2. Pick the chunk
 

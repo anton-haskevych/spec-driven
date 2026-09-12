@@ -19,11 +19,11 @@ If the spec is still in **prep** (`docs/specs/<name>/progress.md` does not exist
 Check whether `docs/specs/<name>/ledger/INDEX.md` exists.
 
 - **Exists** → new layout.
-- **Absent** → legacy layout. Print once: `(legacy layout detected — reading progress.md as the phase source)`.
+- **Absent** → legacy layout. Read `legacy-layout.md` → `resume` and apply its Stage A/B substitutions; it owns the notice text.
 
 ### A.3. Render the status table
 
-Follow `status.md` sections 3a (or 3b for legacy), 4, and 5 to produce the same 4-column table the user would see from `/spec <name> status`.
+Follow `status.md` sections 3, 4, and 5 to produce the same 4-column table the user would see from `/spec <name> status`.
 
 Read **only** what `status.md` requires: `progress.md` plus per-phase Goal / Implementation guidance lines from each phase entry. Do **not** read `CLAUDE.md`, `design.md`, `technical.md`, `code-map.md`, or any ledger entry files in this stage.
 
@@ -137,16 +137,6 @@ Supplementary files inside a folder-shape phase folder (`phases/phase-<N>-<slug>
 ### B.5. Hand off to execute mode
 
 Once Stage B context is loaded, read [execute.md](execute.md) and follow it from §1 (its §0 entry section is for direct `/spec execute` invocations — context is already loaded here). The execution loop owns the chunk from this point: it loads `principles.md`, opens with wave-based phase-seam recon (`/explore-waves`, `phase-exec` lens) to lock the seam and estimate testing issues, gates on `spec-driven:phase-preflight` (plan reviewed against house idioms and canon, findings applied before decomposition), then TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out.
-
----
-
-## Legacy fallback
-
-For legacy specs (no `ledger/INDEX.md`):
-
-- **Stage A** still works — `status.md` section 3b parses inline phase blocks from the legacy `progress.md`. The notice from A.2 is the only legacy-specific output.
-- **Stage B** replaces section B.2 (ledger filter) with reading the legacy `progress.md` in full, including any `## Implementation Notes` section, session blocks, and handoff blocks. Surface the most recent session/handoff content briefly so the user sees where things were left.
-- No auto-migration — that's `update.md`'s job, only on explicit user confirmation.
 
 ---
 
