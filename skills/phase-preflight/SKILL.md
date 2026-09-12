@@ -23,6 +23,18 @@ If there is no plan in scope, ask what is about to be built. One question, then 
 
 ---
 
+## When invoked from `/spec execute`
+
+Execute mode (`execute.md` §3) calls this after phase-seam recon and before decomposition, and hands you three inputs: the phase entry, the recon note under `docs/specs/<name>/research/`, and `principles.md`. Use them; do not rediscover them.
+
+- **Stage 0.2** reads the files the *recon seam* names, not only the ones the phase file names. Where the two disagree, that disagreement is your first finding.
+- **Stage 0.3** skips directories the recon already outlined — read its note instead of re-running `ast-grep outline`.
+- **Stage 1** treats `principles.md` as the house rules, ranked above the canon.
+- **Stage 4** starts from the recon's testing-issue estimate and reports only deltas: obstacles recon missed, or estimates it got wrong. Do not restate its list.
+- **Stage 5** output goes back to execute mode, which applies the amendments before decomposing. Persist the note and ledger entries yourself as usual.
+
+Self-scale honestly. A one-file chunk whose seam recon already read in full yields a short Stage 0 and mostly `Inert` rows — produce that quickly rather than inventing findings to justify the pass.
+
 ## Stage 0 — Ground
 
 Read, in this order. Do not skip to the canon.

@@ -1,10 +1,10 @@
 # Execute Mode
 
-The inner loop the agent runs once a chunk is locked in. This file owns the work cycle — recon the seam, TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out.
+The inner loop the agent runs once a chunk is locked in. This file owns the work cycle — load the principles, recon the seam, preflight the plan, decompose, TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out. Nothing in §5 onward starts until §3 has run.
 
 ## 0. Entry
 
-Two ways in. Both land at §1 with Stage B context loaded.
+Two ways in. Both land at §1 with Stage B context loaded and run §1 → §3 in order before any code.
 
 - **From resume** — `resume.md` B.5 hands off after the user confirmed a chunk. Context is already loaded; **skip the rest of this section** and start at §1.
 - **Direct** — the user typed `/spec execute <feature> [chunk hint]`. Typing `execute` *is* the confirmation, so there is no Stage A halt. Run §0.1–§0.3 first.
@@ -46,24 +46,32 @@ The recon must produce three things:
 3. **Testing-issue estimate** — the obstacles to a clean TDD loop, found *now* rather than discovered mid-flight:
    - Missing fixtures, mocks, or test harness for the code paths in scope.
    - Files already near the 250-line cap (principles.md §5) that this change would push over.
-   - Non-pure functions tangled with I/O that resist isolated unit testing — flag each for an extract-first refactor (per §4 below and principles.md §3).
+   - Non-pure functions tangled with I/O that resist isolated unit testing — flag each for an extract-first refactor (per §5 below and principles.md §3).
    - Domain smells on the path: duplication, leaked abstractions, god-objects.
 
 **Self-scaling.** A small or already-well-understood chunk yields a short exploration — do not pad it. If Stage B context already made the seam obvious, a single wave suffices. But the testing-issue estimate is *always* produced; that is the part that makes the plan honest.
 
 **Persist it.** Write the recon synthesis as a dated, phase-scoped, immutable note under `docs/specs/<name>/research/` (the same home as prep recon-wave snapshots). It survives compaction and feeds both the decomposition below and any downstream plan review.
 
-## 2b. Preflight the plan — the gate before decomposition
+## 3. Preflight the plan — the gate before decomposition
 
-With Stage B context and the recon note in hand, run the `phase-preflight` skill (invoke it via the Skill tool as `spec-driven:phase-preflight`, scoped to **this chunk**). It reads the phase file and every file it names, checks the plan against house idioms first and named canon second, and returns findings anchored to `file:line` — the things that change the plan. Fold each finding into the chunk goal and decomposition below before writing code; where a finding contradicts the phase file, the code wins and the phase file gets corrected via `update`.
+Recon told you *where* the chunk lands. Preflight tells you whether the plan for it is right. Run the `phase-preflight` skill now, via the Skill tool as `spec-driven:phase-preflight`, scoped to **this chunk**. Not optional, not deferred to "after the first unit" — it runs here, every chunk, and self-scales: a trivial chunk produces a near-empty findings list in a minute, which is the correct output.
 
-**Self-scaling, like recon.** A trivial chunk yields a near-empty preflight — do not pad it. Skip it entirely only when the chunk touches a single file already fully read during recon.
+**Hand it:**
 
-## 3. State the chunk goal
+- the phase entry (the plan under review),
+- the recon note from §2 — its seam replaces the phase file's `file:line`s as the source of truth for what to read, and its testing-issue estimate is consumed by preflight's seam/testability stage rather than redone,
+- `principles.md` as the house rules (preflight ranks house idioms above named canon).
+
+**Take back:** its `Findings that change the plan` and `Amendments`. Apply them *before* §4–§5: a finding that the phase file asserts something false means the code wins and the phase entry is corrected via `update`; an amendment to the design changes the decomposition you are about to write. Persisting the preflight note under `research/` and writing ledger entries for durable learnings is the skill's own job — confirm it did so.
+
+Do not start §5 with an unapplied amendment outstanding. Do not "note it for later".
+
+## 4. State the chunk goal
 
 In one sentence: what does this chunk deliver? Anchor everything below to this goal. If you cannot state the goal in one sentence, the chunk is too large — narrow it before starting.
 
-## 4. Decompose into the smallest testable units
+## 5. Decompose into the smallest testable units
 
 Break the chunk into units small enough that:
 
@@ -73,7 +81,7 @@ Break the chunk into units small enough that:
 
 The recon's testing-issue estimate (§2) already named the units that are not testable in isolation — they depend on a database, a network call, a UI tree, or hidden global state. Extract or refactor those first. The refactor is its own commit, lands green, and only then do you proceed to the new logic.
 
-## 5. The per-unit cycle
+## 6. The per-unit cycle
 
 For each unit:
 
@@ -84,13 +92,13 @@ For each unit:
 5. **Commit.** One logical change per commit. Commit message states the *why*, not just the *what*. Body explains anything non-obvious about the approach.
 6. **Update progress.** Tick the corresponding sub-checkbox in the phase entry (`phases/phase-<N>-<slug>.md` or the folder's `plan.md`). If this completes all sub-checkboxes for the phase, flip the top-level box in `progress.md` and refresh the **Spec state** in `pr-opening.md` (phases done / left).
 
-## 6. Capture durable learnings as you go
+## 7. Capture durable learnings as you go
 
 If, during a unit, you discover something durable — a non-obvious gotcha, a domain fact, a decision you had to make, a workaround for a constraint — write a ledger entry immediately. Use the narrowest correct `applies-to:` scope. Don't batch this; the learning is freshest now.
 
 Skip if the finding is just "this was tedious" or "I found the file." Ledger is for forward-propagating knowledge, not session log.
 
-## 7. Watch the context budget
+## 8. Watch the context budget
 
 The agent's effective context window is ~300–400K tokens. Track it.
 
@@ -100,7 +108,7 @@ The agent's effective context window is ~300–400K tokens. Track it.
 
 A clean boundary means: tests are green, the working tree is committed, no half-wired code, no stale files.
 
-## 8. End-of-chunk
+## 9. End-of-chunk
 
 When all units in the chunk are green and committed, and you believe the chunk is done:
 
@@ -110,7 +118,7 @@ When all units in the chunk are green and committed, and you believe the chunk i
 
 If the chunk completes a phase, mention that the next phase is ready.
 
-## 9. The PR gate (not a phase)
+## 10. The PR gate (not a phase)
 
 When the code phases this PR covers are all done, opening the PR is gated by `pr-opening.md` — it is **not** a phase:
 

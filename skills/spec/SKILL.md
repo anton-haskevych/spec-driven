@@ -37,7 +37,7 @@ If `feature` is empty after extraction, infer it from conversation context (same
 | `prep` | Read [prep.md](prep.md) and follow it. Pre-spec reconnaissance: align on the real change, scaffold the folder + `product-brief.md`, then fan out recon waves into `research/`. Hands off to `create`. |
 | `create` | If `docs/specs/<feature>/` already exists **as a full spec** (has `progress.md`), refuse with: `Spec '<feature>' already exists at docs/specs/<feature>/. Use /spec <feature> to resume, or remove the folder first.` If it exists in **prep stage** (only `product-brief.md`/`research/`, no `progress.md`), proceed — read [create.md](create.md); it consumes the prep output. Otherwise (fresh) read [create.md](create.md) and follow it. |
 | `resume` | Read [resume.md](resume.md) and follow it. |
-| `execute` | Read [execute.md](execute.md) and follow it, starting at its §0 (direct entry) — it runs the existence check, picks the chunk (honouring any chunk hint), loads Stage B context itself, then runs the work loop. Skips Stage A's halt: typing `execute` **is** the confirmation. |
+| `execute` | Read [execute.md](execute.md) and follow it, starting at its §0 (direct entry) — it runs the existence check, picks the chunk (honouring any chunk hint), loads Stage B context itself, then runs the work loop (principles → recon → preflight → decompose → TDD). Skips Stage A's halt: typing `execute` **is** the confirmation. |
 | `review` | Read [review.md](review.md) and follow it. |
 | `update` | Read [update.md](update.md) and follow it. |
 | `handoff` | Read [handoff.md](handoff.md) and follow it. |
