@@ -53,6 +53,12 @@ The recon must produce three things:
 
 **Persist it.** Write the recon synthesis as a dated, phase-scoped, immutable note under `docs/specs/<name>/research/` (the same home as prep recon-wave snapshots). It survives compaction and feeds both the decomposition below and any downstream plan review.
 
+## 2b. Preflight the plan — the gate before decomposition
+
+With Stage B context and the recon note in hand, run the `phase-preflight` skill (invoke it via the Skill tool as `spec-driven:phase-preflight`, scoped to **this chunk**). It reads the phase file and every file it names, checks the plan against house idioms first and named canon second, and returns findings anchored to `file:line` — the things that change the plan. Fold each finding into the chunk goal and decomposition below before writing code; where a finding contradicts the phase file, the code wins and the phase file gets corrected via `update`.
+
+**Self-scaling, like recon.** A trivial chunk yields a near-empty preflight — do not pad it. Skip it entirely only when the chunk touches a single file already fully read during recon.
+
 ## 3. State the chunk goal
 
 In one sentence: what does this chunk deliver? Anchor everything below to this goal. If you cannot state the goal in one sentence, the chunk is too large — narrow it before starting.

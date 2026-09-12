@@ -62,6 +62,7 @@ The review then finishes itself: spec corrections are applied directly, cross-ph
 |-------|---------|---------|
 | **spec** | You (via `/spec`) | The core spec lifecycle — prep, create, review, update, status, resume, execute, handoff |
 | **code-quality-review** | code-quality-reviewer agent | Deep quality review framework |
+| **phase-preflight** | You (via `/spec-driven:phase-preflight`) and `execute` mode (§2b) | Pre-implementation review of a planned chunk against house idioms + named canon, every finding anchored to `file:line` |
 | **structural-principles** | code-quality-reviewer agent | Mechanism vs business logic classification, size gates |
 
 The `spec` skill ships an `engineering-principles` reference (`skills/spec/principles.md`) that **execute** mode loads at the start of every chunk. 18 rules covering self-documenting code, hard size caps (function < 50 lines, file < 250 lines), extract-on-second-use with mandatory unit tests, frontend layered separation (with backend deferring to project-specific rules), and the rest of the engineering hygiene the workflow enforces.
