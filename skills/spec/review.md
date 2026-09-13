@@ -1,8 +1,10 @@
 # Review Mode
 
-Launch a collegium review panel to evaluate the spec from five independent lenses, synthesize findings into a unified verdict, write the full synthesis to `reviews/`, apply the findings to the spec and ledger, and record everything as a single review commit.
+Launch a collegium review panel to evaluate the spec from five independent lenses, **synthesize the findings yourself in this thread**, write the full synthesis to `reviews/`, apply the findings to the spec and ledger, and record everything as a single review commit.
 
-**This sub-command is fully autonomous.** No AskUserQuestion, no "which findings should I address?", no slug confirmation, no "shall I apply this?". The user triggered the review; the deliverable is a finished commit plus a report. The only findings that wait for human judgment are contradictions and fundamental-rethink verdicts — and those are *recorded* (as open decision ledger entries) and flagged in the final report, never asked about mid-flow.
+**Synthesis is your job, not an agent's.** There is no synthesizer agent. You read every report, verify the load-bearing claims against real code, deduplicate, weigh, and write the verdict as your own reading — not a merge of theirs. A hand-off loses findings to output-budget compression and loses the reasoning to a context you can't see.
+
+**The flow is autonomous except at forks.** No "which findings should I address?", no slug confirmation, no "shall I apply this?". Mechanism-level choices you resolve yourself and state. But when reviewers genuinely contradict each other on a design decision, or a finding would reorder scope across specs, or the panel says the approach itself is wrong — **pause and put the fork to the user with your recommendation before applying.** Those are their calls, and they'd rather answer three questions than unwind a spec rewritten on a reviewer's authority.
 
 See `SKILL.md` for layout rules and the extraction-step discipline.
 
@@ -142,18 +144,52 @@ Produce structured PersonaOutput with findings (each citing prior-art file:line)
 and an overallAssessment.
 ```
 
-## 3. Collect and synthesize
+## 3. Synthesize — in this thread, yourself
 
-Once all 5 agents return, launch the **review-synthesizer** agent:
+Do **not** spawn a synthesizer agent. You do the synthesis.
 
-```
-Synthesize the following 5 review outputs into a unified verdict.
+### Don't go silent
 
-[Include the full output from each of the 5 agents]
+Synthesis over five reports plus code verification takes a while. Post a short note before you start verifying ("all five in — verifying the three claims that assert live bugs before I write anything up") and again when the verdict is ready. If the reports arrive one at a time, note each landing: what came in, what's still out, anything severe or new, and any seam between reviewers the moment you see it forming ("both reject X but propose different replacements — that's a mechanism choice, not a conflict, I'll decide it"). Hold the consolidated write-up until the last reviewer lands.
 
-Deduplicate findings, classify signal (consensus / unique-insight / contradiction),
-assign enforcement mechanisms, and produce a SynthesisOutput with findings[] and summary.
-```
+### Verify before you believe
+
+Reviewers assert; you check. Before a finding enters the verdict:
+
+- **Claims about existing code** ("`Foo.java:36` issues tokens without a `scope` claim", "`get-slugs.mts:15` reads the view counts the phase deletes") — open the file and confirm. Mark each finding `verified` or `unverified` in the review file.
+- **Claims of live bugs in shipped code** — always verify end to end before reporting; a false "prod bug" headline costs more than a missed one.
+- **Prior-art claims** ("the codebase already does this at `X`") — confirm the exemplar actually covers the same concern.
+- **A reviewer's fixture-dependent test claim** ("the tenant-token → 403 test passes") — check whether it passes for the right reason.
+
+Findings you cannot verify stay in the review file marked as such; they don't drive spec edits.
+
+### Deduplicate, classify, weigh
+
+Merge findings that describe the same defect from different lenses; keep the sharpest framing and credit every persona that raised it. Classify each by signal:
+
+- **consensus** — ≥2 personas independently
+- **unique-insight** — one persona, verified, load-bearing
+- **contradiction** — personas disagree on the same design decision
+- **superseded** — a mitigation for a component another accepted finding replaces or deletes
+
+Assign severity on *your* judgment of consequence, not on the reviewer's label. A `medium` from one reviewer is a `critical` if you verified it takes down a nightly job for every tenant.
+
+Where a reviewer's recommendation conflicts with the project's own rules (CLAUDE.md, ledger principles), the project's rules win — note the reviewer's position in the review file and apply the rule-compliant fix.
+
+### Sort forks: yours vs. the user's
+
+**Resolve yourself, and say so:** mechanism-level choices where either option satisfies every reviewer's actual concern (SSM parameter vs. context value; ship the shared-file change ahead of the phase vs. inside it). Pick, state the reason in one sentence, move on. The final report lists these as "resolved by me".
+
+**Put to the user — pause here, before §4:**
+
+- Reviewers genuinely contradict on a design decision and each is right about something
+- A finding moves scope between specs or reorders another spec's phases
+- A finding cuts or adds a deliverable that changes what the feature *is* (not how it's built)
+- The panel's verdict is that the approach itself is wrong
+
+For each fork: the question in one line, both positions in plain language, your recommendation, and what it changes downstream. Two to four forks is normal; ten means you're not deciding enough yourself. Ask them all in one message, then wait. Fold the answers into the synthesis before writing the review file. If the user says "your call", decide and record it as a decision ledger entry with your reasoning.
+
+Only after the forks are answered do you proceed to §4.
 
 ## 4. Write the review to `reviews/`
 
@@ -178,7 +214,7 @@ If no theme dominates, fall back to `phase-<N>-collegium` for the active phase.
 
 ### Write the file
 
-Create `docs/specs/<spec-name>/reviews/YYYY-MM-DD-<slug>.md` with the full synthesizer output. Include frontmatter:
+Create `docs/specs/<spec-name>/reviews/YYYY-MM-DD-<slug>.md` with your full synthesis — every finding, including the ones you rejected or couldn't verify, with the reason. Include frontmatter:
 
 ```markdown
 ---
@@ -194,19 +230,32 @@ slug: <slug>
 
 ## Summary
 
-<synthesizer's summary>
+<your verdict in your own words — the spine of the spec, what's wrong, where it clusters>
+
+## Forks put to the user
+
+<each fork, both positions, the user's answer (or "your call" → your decision)>
+
+## Resolved by the synthesizer
+
+<mechanism choices you made yourself, one line of reasoning each>
 
 ## Findings
 
-<full list of synthesizer findings, deduplicated, classified by signal,
-with severity + recommendation per finding>
+<full list, deduplicated, classified by signal (consensus / unique-insight /
+contradiction / superseded), with severity, verified/unverified, personas that
+raised it, and recommendation per finding>
+
+## Rejected or unverified
+
+<findings that did not enter the verdict and why>
 ```
 
 **Never edit this file after writing.** If a later review contradicts it, the new review lives in its own dated file; both stay on disk.
 
 ## 5. Apply the findings — autonomously
 
-No questions, no confirmations, no per-finding prompts. Accept the panel's suggestions and record them. Process every synthesized finding by its shape:
+The forks were answered in §3; nothing else waits for confirmation. No per-finding prompts. Process every finding that entered the verdict by its shape:
 
 ### Spec corrections → edit the spec files directly
 
@@ -225,13 +274,15 @@ Promote the actionable cross-phase findings (typically 3–7; skip purely inform
 
 Follow the write discipline in SKILL.md: required frontmatter (kind, applies-to with the narrowest correct scope, created timestamp via the script), update a near-duplicate in place instead of creating a sibling, and append a row to `ledger/INDEX.md` for every new entry.
 
-### Contradictions → record as open decisions, do not resolve
+### Answered forks → apply the user's answer, ledger the decision
 
-When personas disagree about the same design decision, do NOT pick a side and do NOT stop to ask. Create `ledger/decision-<slug>.md` summarizing both positions with `**Status: open — needs a human call.**` as the first body line, add its INDEX row, and leave the spec's current shape untouched on that point. The final report flags it.
+Every fork from §3 has an answer by now. Apply it to the spec and write a `decision` ledger entry recording both positions, the answer, and the reasoning — so the next session doesn't re-open it.
 
-### Fundamental-rethink verdicts → record, don't rewrite
+If the user explicitly deferred a fork ("leave it open for now"), create `ledger/decision-<slug>.md` with `**Status: open — needs a human call.**` as the first body line, add its INDEX row, and leave the spec's current shape untouched on that point.
 
-If the synthesis concludes the *approach itself* is wrong (not a correctable detail), do not rewrite the spec wholesale on the panel's authority. Create an open `decision-*` ledger entry capturing the panel's position and the recommended direction, apply only the findings that stand regardless of the rethink, and flag it as the headline of the final report.
+### Fundamental-rethink verdicts → the user already answered
+
+A "the approach is wrong" verdict is a fork and was put to the user in §3. If they accepted the rethink, apply it — including rewriting the spec — and record the decision. If they rejected it, apply only the findings that stand regardless, and record the rejection with their reasoning so future reviewers don't re-raise it.
 
 ### Bump the timestamp
 
@@ -256,8 +307,8 @@ Print a compact summary — this replaces every interactive step:
 ```
 Review: reviews/YYYY-MM-DD-<slug>.md (immutable)
 Committed: <hash> — [review] <spec-name>: <slug> — …
-Findings: <N> total — <X> applied to spec, <Y> ledgered, <Z> review-file only
-Needs your judgment: <open contradictions / rethink decisions with their ledger slugs, or "none">
+Findings: <N> total — <X> applied to spec, <Y> ledgered, <Z> review-file only, <W> unverified
+Forks: <K> answered by you (ledger slugs), <J> resolved by me, <L> left open
 ```
 
 Follow with 2–5 bullet highlights of the most consequential changes applied. Then stop — do not ask whether to address findings, do not propose next steps beyond the summary.

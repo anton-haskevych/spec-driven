@@ -14,7 +14,7 @@ This plugin gives you the complete lifecycle:
 |------|------------|------------------------|
 | **Prep** | `/spec prep my-feature` | Pre-spec reconnaissance. Align on the *real* change, scaffold the folder + a ≤30-line `product-brief.md` (business only, no code), then fan out adaptive recon waves (read-only Explore agents) across two lenses — **implementation** (seam, reuse, blast radius, tests) then **craft** (naming, fixtures, extraction-for-reuse) — locking ground truth into `research/`. One hard stop — right after the brief. |
 | **Create** | `/spec my-feature` | Interactive spec creation — decisions, wireframes, API contracts, per-phase plans. Consumes prep's brief + research when present; otherwise cold-discovers. |
-| **Review** | `/spec my-feature` + "review" | Fully autonomous: 5 expert agents evaluate the spec in parallel, findings are synthesized, written to immutable `reviews/<date>.md`, applied to the spec + ledger, and committed as one `[review]` commit — no prompts. Only contradictions and rethink verdicts wait for you, recorded as open decision ledger entries |
+| **Review** | `/spec my-feature` + "review" | 5 expert agents evaluate the spec in parallel; the main thread verifies their claims against code, synthesizes the verdict itself, and pauses once to put genuine forks (contradictions, cross-spec scope moves, rethink verdicts) to you with a recommendation. Then it writes immutable `reviews/<date>.md`, applies findings to the spec + ledger, and commits as one `[review]` commit |
 | **Update** | `/spec my-feature` + "update" | Checks off sub-items inside phase entries, captures durable learnings as ledger entries, updates the code map |
 | **Status** | `/spec my-feature status` | Print a 4-column phase snapshot — Phase, Status (`✅ done` / `🟡 WIP (x/y)` / `🟢 active` / `⬜ pending`), Delivers, Work — without the resume briefing. `active` is reserved for the first unchecked phase; later unchecked phases are `pending`. `Work` falls back to `N/A` if the phase has no implementation guidance. Format is a markdown table — never cards or vertical lists. |
 | **Handoff** | `/spec my-feature` + "handoff" | Reflects on the session and redirects findings: durable learnings → ledger, pending state → `in-flight.md`. Commits and signals. |
@@ -45,9 +45,11 @@ When you trigger a review, 5 agents launch in parallel:
 | **code-quality-reviewer** | How does this affect code quality? | God objects, duplicated logic, testability gaps |
 | **prior-art-reviewer** | Does the system already do this? | Reinvented wheels, grandfathered decisions, hand-built defenses an existing mechanism makes structurally unnecessary, misplaced ownership |
 
-After all 5 return, the **review-synthesizer** combines findings: deduplicates, classifies signal (consensus / unique-insight / contradiction), marks mitigation findings superseded by accepted substitutions, and assigns enforcement mechanisms.
+After all 5 return, **the main thread synthesizes — no synthesizer agent.** It verifies load-bearing claims against the real code, deduplicates, classifies signal (consensus / unique-insight / contradiction / superseded), and weighs severity on consequence. Mechanism-level forks it resolves itself and states; genuine forks — reviewers contradicting on a design decision, scope moving between specs, a "the approach is wrong" verdict — it puts to you in one message with a recommendation, and waits.
 
-The review then finishes itself: spec corrections are applied directly, cross-phase learnings become ledger entries, contradictions and fundamental-rethink verdicts become *open* decision entries (recorded, not resolved), and everything lands in a single `[review] <spec-name>: <slug>` commit. The run ends with a compact report — what was found, what was applied, and what (if anything) needs your judgment.
+With the forks answered, the review finishes itself: spec corrections are applied directly, cross-phase learnings become ledger entries, every answered fork becomes a `decision` entry, and everything lands in a single `[review] <spec-name>: <slug>` commit. The run ends with a compact report — what was found, what was applied, what you decided, what it decided for you.
+
+Why no synthesizer agent: a hand-off compresses forty findings into an output budget and hides the reasoning in a context you can't inspect. The thread that will apply the edits should be the one that did the weighing.
 
 ## Standalone agents
 
