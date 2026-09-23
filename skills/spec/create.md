@@ -163,10 +163,10 @@ This spec is a *design document*, not a live mirror. For ground-truth architectu
 
 Product & UX spec containing:
 - Purpose and problem statement
-- Key decisions table (from Stage 2)
+- Key decisions table (from *Decide*)
 - Target audience
 - Core flow / interaction model
-- Screen states with ASCII wireframes or system diagrams (from Stage 3)
+- Screen states with ASCII wireframes or system diagrams (from *Design*)
 - Copy for each state (if user-facing)
 - Edge cases
 - UX rationale where relevant
@@ -263,7 +263,7 @@ Tables are empty at spec birth. `update.md` fills them in as load-bearing files 
 
 #### `docs/specs/$ARGUMENTS/phases/phase-<N>-<slug>.md` (flat file shape)
 
-One file per phase that chose flat-file shape in stage 5. Content template:
+One file per phase that chose flat-file shape in *Plan — the phasing gate*. Content template:
 
 ```markdown
 # Phase <N> — <Name>
@@ -297,7 +297,7 @@ will move to the ledger during execution>
 
 #### `docs/specs/$ARGUMENTS/phases/phase-<N>-<slug>/plan.md` (folder shape)
 
-For phases that chose folder shape in stage 5, create the folder and put the equivalent content in `plan.md`. Supplementary files (tier breakdowns, wireframes, fixture notes) can be scaffolded alongside `plan.md` if you already know at planning time what they'll contain — otherwise leave the folder with only `plan.md` and add supplementary files during execution.
+For phases that chose folder shape in *Plan — the phasing gate*, create the folder and put the equivalent content in `plan.md`. Supplementary files (tier breakdowns, wireframes, fixture notes) can be scaffolded alongside `plan.md` if you already know at planning time what they'll contain — otherwise leave the folder with only `plan.md` and add supplementary files during execution.
 
 #### `docs/specs/$ARGUMENTS/ledger/INDEX.md`
 

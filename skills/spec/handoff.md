@@ -2,21 +2,21 @@
 
 The session is ending. A fresh agent will start from zero context — the spec is the only bridge. Whatever isn't written down is lost.
 
-This mode can be triggered explicitly (`/spec handoff`) or automatically when a phase completes during update.
+This mode runs when the session is actually ending: explicitly (`/spec handoff`) or from execute mode's stopping rule. A phase completing does **not** trigger it — that is `update.md` → *Close the phase*, which reuses this file's *Reflect and redirect* and *Commit* but keeps the session going.
 
 **Key rule:** the handoff brain dump is not removed — it is **redirected**. The same reflection that used to produce a `### Handoff — YYYY-MM-DD` block in `progress.md` now routes its output into focused artifacts: durable learnings become ledger entries, ephemeral state becomes `in-flight.md`. Progress.md is never touched by handoff.
 
 See `SKILL.md` for the full layout and the brain-dump redirection rules.
 
-## 0. Existence check
+## 0. Preconditions
 
-If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Do not run any of the sections below.
+Run SKILL.md → *Preconditions*. A legacy spec without `ledger/` follows `legacy-layout.md` → `create`, `prep`, `review`, `handoff` (offer to create the ledger before writing entries).
 
 ## 1. Run the update flow
 
 If there is any implementation work to record (commits since last session, unchecked items that are now done, uncommitted changes):
 
-- Follow `update.md` sections 2–8 fully: load state, cross-reference git, apply sub-checkbox changes to the phase entry, capture durable learnings into the ledger, update `code-map.md`, bump the frontmatter timestamp.
+- Follow `update.md` from *Load current state* through *Report and nudge* fully: load state, cross-reference git, apply sub-checkbox changes to the phase entry, capture durable learnings into the ledger, update `code-map.md`, bump the frontmatter timestamp.
 - Refresh the **Spec state** section of `pr-opening.md` (phases done / left, branch / PR link if any) — under 20 lines, PR-readiness only. Do **not** tick the pre-PR checkboxes here; those are ticked only when the PR is about to open.
 
 If there is NO implementation work (e.g., you only added spec details, did research, or had a design conversation):
@@ -49,29 +49,7 @@ For each item that came out of the reflection, write it to the right place. **No
 
 If the item is cross-phase, a standing rule, a domain fact, or a decision that future sessions need to know:
 
-- Create a new file `docs/specs/<name>/ledger/<kind>-<slug>.md` with required frontmatter:
-
-  ```markdown
-  ---
-  kind: gotcha | principle | domain | decision | workaround
-  applies-to: [<scope tokens>]
-  created: <ISO 8601 with timezone>
-  ---
-
-  # <Title>
-
-  <body — capture the reasoning, not just the conclusion>
-  ```
-
-- Append a row to `docs/specs/<name>/ledger/INDEX.md` under the appropriate kind section:
-
-  ```
-  - `<kind>-<slug>.md` — [<applies-to>] — <one-line summary>
-  ```
-
-- Pick the narrowest correct `applies-to` scope. See `SKILL.md` for the full grammar. Use `load-bearing` as a composable modifier (`[general, load-bearing]`) only for mission-critical knowledge that must always surface.
-
-- **Prefer update-in-place over near-duplicates.** Before creating a new entry, scan INDEX for overlapping scope + kind and edit the existing entry when one fits.
+- Write `docs/specs/<name>/ledger/<kind>-<slug>.md` per SKILL.md → *Ledger entry format* and *Write discipline*: narrowest correct `applies-to`, `load-bearing` only for must-always-surface knowledge, update a near-duplicate in place, add the INDEX row. In the body, capture the reasoning, not just the conclusion.
 
 #### Ephemeral pending state → `in-flight.md`
 
@@ -170,12 +148,6 @@ In-flight state: <"has pending work" | "clean boundary">
 
 Next agent should run: /spec resume <spec-name>
 ---
-```
-
-If the handoff was triggered by phase completion, also print:
-
-```
-Phase <N> is complete. Phase <N+1> is ready to begin.
 ```
 
 Do not ask follow-up questions. Do not suggest further work. The session is ending.

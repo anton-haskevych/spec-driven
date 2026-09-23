@@ -8,9 +8,9 @@ Launch a collegium review panel to evaluate the spec from five independent lense
 
 See `SKILL.md` for layout rules and the extraction-step discipline.
 
-## 0. Existence check
+## 0. Preconditions
 
-If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Do not run any of the sections below.
+Run SKILL.md → *Preconditions*. A legacy spec without `ledger/` follows `legacy-layout.md` → `create`, `prep`, `review`, `handoff` (offer to create the ledger before writing entries).
 
 ## 1. Identify the spec
 
@@ -298,7 +298,7 @@ Promote the actionable cross-phase findings (typically 3–7; skip purely inform
 - Standing rules that emerged ("all new handlers must use the audit port") → `principle` kind
 - Domain facts that weren't previously documented ("the `user_id` on invoices actually refers to the studio, not the customer") → `domain` kind
 
-Follow the write discipline in SKILL.md: required frontmatter (kind, applies-to with the narrowest correct scope, created timestamp via the script), update a near-duplicate in place instead of creating a sibling, and append a row to `ledger/INDEX.md` for every new entry.
+Write each per SKILL.md → *Ledger entry format* and *Write discipline* (narrowest correct `applies-to`, `created:` from `spec-bump.sh --now`, update a near-duplicate in place, add the INDEX row).
 
 ### Answered forks → apply the user's answer, ledger the decision
 

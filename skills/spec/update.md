@@ -4,16 +4,9 @@ Capture implementation progress and route new knowledge into the right artifacts
 
 See `SKILL.md` for the layout rules this mode relies on.
 
-## 0. Existence check
+## 1. Preconditions
 
-If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Do not run any of the sections below.
-
-## 1. Detect layout
-
-Check whether `docs/specs/<name>/ledger/INDEX.md` exists.
-
-- **Exists** → new layout. Proceed through all sections.
-- **Does not exist** → legacy layout. Read `legacy-layout.md` → `update` and follow it instead of the sections below that target files the spec doesn't have.
+Run SKILL.md → *Preconditions*. A legacy spec follows `legacy-layout.md` → `update` instead of the sections below that target files the spec doesn't have.
 
 ## 2. Load current state
 
@@ -26,7 +19,7 @@ Read in parallel:
 - `ledger/INDEX.md`
 - The current phase's entry — follow the pointer from `progress.md`, read either the flat file or the folder's `plan.md`
 
-The "current phase" is inferred the same way `resume.md` does it: first phase with its top-level box unchecked. If multiple phases are in progress, ask the user which phase this update is for.
+The "current phase" is the active phase from SKILL.md → *Next-chunk rule*. If multiple phases are in progress, ask the user which phase this update is for.
 
 ## 3. Cross-reference with git
 
@@ -80,37 +73,7 @@ Learnings that will matter after this phase is done, or apply across multiple ph
 - **Workarounds** — temporary fixes that will need revisiting. Kind: `workaround`.
 - **Dead ends** — approaches that were tried and failed, with the reason (prevents future agents from re-trying them). Kind: `gotcha` (typically) or free-form.
 
-For each, create `ledger/<kind>-<slug>.md` with required frontmatter:
-
-```markdown
----
-kind: <kind>
-applies-to: [<scope tokens>]
-created: <ISO 8601 with timezone — run the date command to get it accurate>
----
-
-# <Title>
-
-<body — 5-30 lines; the rule/fact + why it matters>
-```
-
-**Pick the narrowest correct `applies-to` scope:**
-
-- `[general]` — applies to every phase. Use sparingly.
-- `[phase N+]` — phase N and later. Use for decisions or principles that only become relevant once you reach that phase.
-- `[phase N, M]` — specific enumeration.
-- `[phase N]` — only this phase. Rare — usually this is phase-local and belongs in the phase entry, not the ledger.
-- Add `load-bearing` as a composable modifier when the learning is mission-critical and must always surface: `[general, load-bearing]`.
-
-**Prefer update-in-place over creating near-duplicates.** Before creating a new ledger entry, grep `ledger/INDEX.md` for overlapping scope + kind. If an existing entry covers the same topic, edit it instead of creating a second one.
-
-**Append a row to `ledger/INDEX.md`** for each new entry, in the right section heading (Gotchas / Principles / Domain / Decisions / Workarounds). Row format:
-
-```
-- `<filename>` — [<applies-to>] — <one-line summary>
-```
-
-Keep the one-line summary under 80 characters.
+For each, write `ledger/<kind>-<slug>.md` per SKILL.md → *Ledger entry format* (frontmatter, `applies-to` grammar — pick the narrowest correct scope; a `[phase N]`-only learning usually belongs in the phase entry instead) and *Write discipline* (update a near-duplicate in place; add the INDEX row). Body: 5–30 lines, the rule/fact + why it matters.
 
 ### Phase-local → write into the phase entry
 
@@ -192,14 +155,15 @@ If there are uncommitted changes, add:
 You have uncommitted changes — consider committing the implementation + spec update together.
 ```
 
-## 9. Auto-handoff on phase completion
+## 9. Close the phase
 
-If the top-level phase checkbox in `progress.md` just flipped to `[x]` (all sub-items in the phase entry are done), **do not just report it** — automatically continue with the handoff flow:
+If the top-level phase checkbox in `progress.md` just flipped to `[x]` (all sub-items in the phase entry are done), **do not just report it** — close the phase so the spec is resumable at the boundary and phase N's durable learnings reach the ledger:
 
-1. Read [handoff.md](handoff.md) and execute sections 2–4 (the reflection and redirect step, then commit, then signal).
-2. In the handoff signal, include: `Phase [N] is complete. Phase [N+1] is ready to begin.`
+1. Read [handoff.md](handoff.md) and run its *Reflect and redirect* and *Commit* sections. Skip *Signal completion* — the session is **not** ending.
+2. Refresh the **Spec state** in `pr-opening.md` (phases done / left).
+3. Print one line: `Phase <N> complete — Phase <N+1> ready.` (or `All phases complete — see pr-opening.md for the PR gate.`), then continue with whatever the session was doing.
 
-This ensures the spec is always in a resumable state when a phase boundary is crossed, and that any durable learnings from phase N get captured into the ledger before the session ends.
+Ending the session is a separate decision — `/spec handoff`, or execute mode's stopping rule.
 
 ## 10. Flat-to-folder promotion (opt-in)
 

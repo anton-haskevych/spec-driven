@@ -8,26 +8,17 @@ The point: don't burn 100K tokens on `design.md`, `technical.md`, and filtered l
 
 ## Stage A — Orientation
 
-### A.1. Existence check
+### A.1. Preconditions
 
-If `docs/specs/<name>/` does not exist, print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Do not run anything below.
+Run SKILL.md → *Preconditions*. A prep-stage spec routes to [prep.md](prep.md) — do not run Stage A or Stage B. A legacy spec applies `legacy-layout.md` → `resume` for the substitutions below; it owns the notice text.
 
-If the spec is still in **prep** (`docs/specs/<name>/progress.md` does not exist — only `product-brief.md`/`research/`), there is nothing to resume yet. Read [prep.md](prep.md) instead — it resumes reconnaissance from where it left off. Do not run Stage A or Stage B below.
+### A.2. Render the status table
 
-### A.2. Detect layout
-
-Check whether `docs/specs/<name>/ledger/INDEX.md` exists.
-
-- **Exists** → new layout.
-- **Absent** → legacy layout. Read `legacy-layout.md` → `resume` and apply its Stage A/B substitutions; it owns the notice text.
-
-### A.3. Render the status table
-
-Follow `status.md` sections 3, 4, and 5 to produce the same 4-column table the user would see from `/spec <name> status`.
+Follow `status.md` → *Read phases*, *Compute status per phase*, and *Render* to produce the same 4-column table the user would see from `/spec <name> status`.
 
 Read **only** what `status.md` requires: `progress.md` plus per-phase Goal / Implementation guidance lines from each phase entry. Do **not** read `CLAUDE.md`, `design.md`, `technical.md`, `code-map.md`, or any ledger entry files in this stage.
 
-### A.4. Read in-flight (only if it has substantive content)
+### A.3. Read in-flight (only if it has substantive content)
 
 If `docs/specs/<name>/in-flight.md` exists, read it. Then:
 
@@ -52,14 +43,9 @@ Concrete shape (compare against the verbose paragraph form this replaces):
 - Studio identity locked: Northshore Dance Academy, Sea Breeze FL, EST, USD, ballroom.
 ```
 
-### A.5. Suggest the next chunk
+### A.4. Suggest the next chunk
 
-Deterministic rule, no extra context required:
-
-1. **Active phase** = the first phase whose top-level checkbox in `progress.md` is `[ ]`.
-2. **Next chunk** = the first cluster of unchecked sub-checkboxes inside that phase's entry.
-
-A "cluster" is a contiguous run of `- [ ]` lines under the same heading. If the unchecked items span multiple sub-headings or are split by checked items, take the first contiguous run, capped at 5 items.
+Apply SKILL.md → *Next-chunk rule*. No extra context required.
 
 Output, immediately after the status table (and the `**Last session:**` block if rendered):
 
@@ -81,9 +67,9 @@ Bullet rules:
   - Bad: `3a. Author NorthshoreDanceAcademy profile component under backend/src/main/java/dance/crm/platform/demofixture/domain/profile/ (highest priority — blocks SPEC #1 Phase 5)` — that path detail and priority annotation belong in Stage B, not here.
 - **No trailing paragraph** elaborating on parallelizable tasks, blockers, or rationale. If a parallel task matters at Stage A scale, mention it as one extra bullet: `- (parallelizable: 4-pre, 4a)`.
 
-If `in-flight.md` was non-empty (rendered in A.4), the suggested chunk still appears — but its bullets must not duplicate items in the `**Last session:**` block.
+If `in-flight.md` was non-empty (rendered in A.3), the suggested chunk still appears — but its bullets must not duplicate items in the `**Last session:**` block.
 
-### A.6. Stop
+### A.5. Stop
 
 Wait for the user. Do not load Stage B yet — not even speculatively.
 
@@ -136,7 +122,7 @@ Supplementary files inside a folder-shape phase folder (`phases/phase-<N>-<slug>
 
 ### B.5. Hand off to execute mode
 
-Once Stage B context is loaded, read [execute.md](execute.md) and follow it from §1 (its §0 entry section is for direct `/spec execute` invocations — context is already loaded here). The execution loop owns the chunk from this point: it loads `principles.md`, opens with wave-based phase-seam recon (`explore-waves` `phase-exec` lens if installed, else inline Explore waves) to lock the seam and estimate testing issues, gates on `spec-driven:phase-preflight` (plan reviewed against house idioms and canon, findings applied before decomposition), then TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out.
+Once Stage B context is loaded, read [execute.md](execute.md) and follow it from *Load the principles* (its *Entry* section is for direct `/spec execute` invocations — context is already loaded here). The execution loop owns the chunk from this point: it loads `principles.md`, opens with wave-based phase-seam recon (`explore-waves` `phase-exec` lens if installed, else inline Explore waves) to lock the seam and estimate testing issues, gates on `spec-driven:phase-preflight` (plan reviewed against house idioms and canon, findings applied before decomposition), then TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out.
 
 ---
 

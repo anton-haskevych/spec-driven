@@ -64,7 +64,7 @@ Why no synthesizer agent: a hand-off compresses forty findings into an output bu
 |-------|---------|---------|
 | **spec** | You (via `/spec`) | The core spec lifecycle — prep, create, review, update, status, resume, execute, handoff |
 | **code-quality-review** | code-quality-reviewer agent | Deep quality review framework |
-| **phase-preflight** | You (via `/spec-driven:phase-preflight`) and `execute` mode (§3, mandatory gate before decomposition) | Pre-implementation review of a planned chunk against house idioms + named canon, every finding anchored to `file:line` |
+| **phase-preflight** | You (via `/spec-driven:phase-preflight`) and `execute` mode (*Preflight the plan*, a mandatory gate before decomposition) | Pre-implementation review of a planned chunk against house idioms + named canon, every finding anchored to `file:line` |
 | **structural-principles** | code-quality-reviewer agent | Mechanism vs business logic classification, size gates |
 
 **Optional companion:** execute mode's phase-seam recon uses the `explore-waves` skill when it is installed, and falls back to running the same read-only Explore-agent waves inline when it isn't.

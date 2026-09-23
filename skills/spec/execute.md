@@ -6,21 +6,17 @@ The inner loop the agent runs once a chunk is locked in. This file owns the work
 
 Two ways in. Both land at §1 with Stage B context loaded and run §1 → §3 in order before any code.
 
-- **From resume** — `resume.md` B.5 hands off after the user confirmed a chunk. Context is already loaded; **skip the rest of this section** and start at §1.
+- **From resume** — `resume.md` → *Hand off to execute mode* hands off after the user confirmed a chunk. Context is already loaded; **skip the rest of this section** and start at §1.
 - **Direct** — the user typed `/spec execute <feature> [chunk hint]`. Typing `execute` *is* the confirmation, so there is no Stage A halt. Run §0.1–§0.3 first.
 
-### 0.1. Existence check
+### 0.1. Preconditions
 
-Same rule as `resume.md` A.1:
-
-- `docs/specs/<name>/` missing → print `Spec '<name>' not found at docs/specs/<name>/.` and stop.
-- Spec still in **prep** (no `progress.md`) → there is nothing to execute. Read [prep.md](prep.md) instead and stop.
-- `ledger/INDEX.md` absent → legacy layout; follow `legacy-layout.md` → `execute` for §0.3.
+Run SKILL.md → *Preconditions*. A prep-stage spec has nothing to execute — it routes to [prep.md](prep.md). A legacy spec loads context via `legacy-layout.md` → `execute` in §0.3.
 
 ### 0.2. Pick the chunk
 
 - **Chunk hint given** (`phase 3a`, `3a`, `next`, or a phase named in the conversation) → that is the chunk.
-- **No hint** → apply `resume.md` A.5's deterministic rule: active phase = first `[ ]` top-level checkbox in `progress.md`; chunk = first contiguous run of unchecked sub-checkboxes in that phase entry, capped at 5 items.
+- **No hint** → apply SKILL.md → *Next-chunk rule*.
 - **No unchecked phase left** → print `All phases complete — see pr-opening.md for the PR gate.` and stop.
 
 Announce the pick in one line before loading anything: `Executing Phase <N> — <name>: <chunk>`. Do not print the Stage A status table, the `**Last session:**` block, or a confirmation prompt — the user already committed.
@@ -29,7 +25,7 @@ Read `in-flight.md` only if it exists and has substantive content, and only to a
 
 ### 0.3. Load Stage B context
 
-Run `resume.md` B.1–B.4 against the picked chunk: stable references + the active phase entry, then the scoped `code-map.md` and phase-filtered `ledger/INDEX.md` entries, then any supplementary phase file its `plan.md` explicitly links. Skip anything already loaded this session.
+Run `resume.md` Stage B's reads — *Read stable references + active phase* through *Read supplementary phase files only when linked* — against the picked chunk: stable references + the active phase entry, then the scoped `code-map.md` and phase-filtered `ledger/INDEX.md` entries, then any supplementary phase file its `plan.md` explicitly links. Skip anything already loaded this session.
 
 ## 1. Load the principles
 
@@ -45,11 +41,11 @@ You do not yet know enough to decompose. Lock the seam first: run wave-based pha
 Either way, the recon must produce three things:
 
 1. **The seam** — the exact files, functions, and call sites this chunk will touch, and the existing patterns to mirror (`file:line` throughout).
-2. **Reuse opportunities** — existing mechanisms to extend instead of reinventing. Every new mechanism the chunk would introduce gets checked against "is this concern already solved here?" (principles.md §9; the prior-art discipline).
+2. **Reuse opportunities** — existing mechanisms to extend instead of reinventing. Every new mechanism the chunk would introduce gets checked against "is this concern already solved here?" (principles.md → *Extract on the second use — with a test*; the prior-art discipline).
 3. **Testing-issue estimate** — the obstacles to a clean TDD loop, found *now* rather than discovered mid-flight:
    - Missing fixtures, mocks, or test harness for the code paths in scope.
-   - Files already near the 250-line cap (principles.md §5) that this change would push over.
-   - Non-pure functions tangled with I/O that resist isolated unit testing — flag each for an extract-first refactor (per §5 below and principles.md §3).
+   - Files already near the 250-line cap (principles.md → *Hard size caps*) that this change would push over.
+   - Non-pure functions tangled with I/O that resist isolated unit testing — flag each for an extract-first refactor (per §5 below and principles.md → *Pure functions wherever pure logic exists*).
    - Domain smells on the path: duplication, leaked abstractions, god-objects.
 
 **Self-scaling.** A small or already-well-understood chunk yields a short exploration — do not pad it. If Stage B context already made the seam obvious, a single wave suffices. But the testing-issue estimate is *always* produced; that is the part that makes the plan honest.
@@ -107,7 +103,7 @@ The agent's effective context window is ~300–400K tokens. Track it.
 
 - At ~75% of the budget, **stop the chunk at the next clean boundary** (between units, after a green commit). Do not push through.
 - Run `/spec handoff` to redirect any session reflection: durable items → ledger, ephemeral pending state → `in-flight.md`. The full handoff flow is in `handoff.md`.
-- Hand the work off cleanly. The next agent picks up from `resume.md` Stage A and sees exactly what was left.
+- Hand the work off cleanly. The next agent picks up from `resume.md` → *Stage A — Orientation* and sees exactly what was left.
 
 A clean boundary means: tests are green, the working tree is committed, no half-wired code, no stale files.
 
@@ -119,7 +115,7 @@ When all units in the chunk are green and committed, and you believe the chunk i
 2. If durable learnings emerged, confirm they're in the ledger.
 3. Brief the user in 2–3 sentences: what shipped, what's next.
 
-If the chunk completes a phase, mention that the next phase is ready.
+If the chunk completes a phase, run `update.md` → *Close the phase* — it captures the phase's learnings and commits without ending the session.
 
 ## 10. The PR gate (not a phase)
 

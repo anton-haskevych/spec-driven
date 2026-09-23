@@ -37,14 +37,14 @@ If `feature` is empty after extraction, infer it from conversation context (same
 | `prep` | Read [prep.md](prep.md) and follow it. Pre-spec reconnaissance: align on the real change, scaffold the folder + `product-brief.md`, then fan out recon waves into `research/`. Hands off to `create`. |
 | `create` | If `docs/specs/<feature>/` already exists **as a full spec** (has `progress.md`), refuse with: `Spec '<feature>' already exists at docs/specs/<feature>/. Use /spec <feature> to resume, or remove the folder first.` If it exists in **prep stage** (only `product-brief.md`/`research/`, no `progress.md`), proceed — read [create.md](create.md); it consumes the prep output. Otherwise (fresh) read [create.md](create.md) and follow it. |
 | `resume` | Read [resume.md](resume.md) and follow it. |
-| `execute` | Read [execute.md](execute.md) and follow it, starting at its §0 (direct entry) — it runs the existence check, picks the chunk (honouring any chunk hint), loads Stage B context itself, then runs the work loop (principles → recon → preflight → decompose → TDD). Skips Stage A's halt: typing `execute` **is** the confirmation. |
+| `execute` | Read [execute.md](execute.md) and follow it, starting at its *Entry* section (direct entry) — it runs *Preconditions*, picks the chunk (honouring any chunk hint), loads Stage B context itself, then runs the work loop (principles → recon → preflight → decompose → TDD). Skips Stage A's halt: typing `execute` **is** the confirmation. |
 | `review` | Read [review.md](review.md) and follow it. |
 | `update` | Read [update.md](update.md) and follow it. |
 | `handoff` | Read [handoff.md](handoff.md) and follow it. |
 | `status` | Read [status.md](status.md) and follow it. |
 | `list` | Read [list.md](list.md) and follow it. The feature name is optional — when omitted, list all specs; when present, treat it as a filter. |
 
-For every sub-command except `create`, the sub-mode file is responsible for handling the "spec does not exist" case.
+`resume`, `execute`, `review`, `update`, `handoff`, and `status` each start by running *Preconditions* (below). `prep`, `create`, and `list` carry their own checks.
 
 After dispatching, **stop**. Do not also evaluate the routing section below.
 
@@ -63,6 +63,31 @@ Check if a spec folder exists at `docs/specs/$ARGUMENTS/`.
 - User mentions "review", "critique", "evaluate", "collegium", or asks for agents to review the spec → read [review.md](review.md)
 - User just finished implementation, mentions updating/checking off items, or says "update" → read [update.md](update.md)
 - Otherwise (session start, wants to work on it, mentions it by name) → read [resume.md](resume.md)
+
+## Preconditions
+
+Every mode that works on an existing spec (`resume`, `execute`, `review`, `update`, `handoff`, `status`) runs this check first — one definition, referenced by name from each mode file. Resolve `docs/specs/<name>/`, then:
+
+1. **Missing folder** → print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Never offer to create — that is `create`'s job.
+2. **Prep stage** (folder exists, no `progress.md` — only `product-brief.md` / `research/`) → the spec body isn't written yet. Take the mode's prep-stage action from the table and stop.
+3. **Legacy layout** (has `progress.md`, no `ledger/INDEX.md`) → read [legacy-layout.md](legacy-layout.md) and apply the section for this mode wherever the mode file targets files the spec doesn't have.
+4. Otherwise → current layout; continue with the mode.
+
+Check prep stage **before** legacy: a prep-stage folder also lacks `ledger/INDEX.md` and must not be misread as legacy.
+
+| Mode | Prep-stage action |
+|---|---|
+| `resume`, `execute` | Read [prep.md](prep.md) instead — it resumes reconnaissance where it left off. |
+| `status` | Print `Spec '<name>' is in prep — no phases yet. See product-brief.md. Run /spec prep <name> to continue recon, or /spec create <name> to write the spec.` |
+| `update`, `handoff`, `review` | Print `Spec '<name>' is in prep — nothing to <update \| hand off \| review> yet. Run /spec prep <name> to continue recon, or /spec create <name> to write the spec.` |
+
+## Next-chunk rule
+
+Deterministic, no context beyond `progress.md` and the active phase entry. Used by `resume` (to suggest) and `execute` (to pick when no chunk hint is given).
+
+1. **Active phase** = the first phase whose top-level checkbox in `progress.md` is `[ ]`.
+2. **Next chunk** = the first contiguous run of `- [ ]` lines under the same heading in that phase's entry, capped at 5 items. If the unchecked items span sub-headings or are split by checked items, take the first contiguous run.
+3. **No unchecked phase left** → there is no chunk; the next step is the PR gate in `pr-opening.md`.
 
 # Spec layout reference (layout v1)
 
@@ -198,11 +223,17 @@ Pick the **narrowest correct scope** at write time. Use `[general]` only when th
 
 ## Decisions
 - `decision-csv-pivot.md` — [phase 8+] — API path abandoned; CSV authoritative
+
+## Workarounds
+- `workaround-momence-rate-limit.md` — [phase 6, 7] — sleep 1s between pages until v2 API lands
 ```
+
+Keep each one-line summary under 80 characters.
 
 ### Write discipline
 
 - **Update in place when a near-duplicate exists.** Before creating a new entry, scan INDEX for overlapping scope + kind and edit the existing entry if one fits.
+- **Timestamp** `created:` with `spec-bump.sh --now` — never by hand.
 - **Never delete entries.** Stale entries get a `superseded-by:` field pointing to the replacement; resume's filter excludes superseded ones.
 - **Append to INDEX whenever a new ledger file is created.** Keep the row format consistent.
 

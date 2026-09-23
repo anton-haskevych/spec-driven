@@ -19,7 +19,7 @@ Do not load this file for new-layout specs. Nothing here applies to them.
 
 ## Per-mode fallbacks
 
-### `status` (replaces status.md §3)
+### `status` (replaces status.md → *Read phases*)
 
 Parse phase blocks inline from `progress.md`. For each block:
 
@@ -27,23 +27,23 @@ Parse phase blocks inline from `progress.md`. For each block:
 - **Implementation summary** — text after `**Implementation:**` / `**Approach:**`, or under an `## Implementation guidance` heading inside the block; else the first 3 sub-checkbox titles joined with `; ` truncated to ~100 chars (real spec content, not fabrication); else `N/A`.
 - **Sub-checkbox counts** — `- [x]` / `- [ ]` lines directly inside the block.
 
-Then continue at status.md §4. The rendered table is identical to the new layout's — only the parse differs. Render it even if every Delivers/Work cell is blank.
+Then continue at status.md → *Compute status per phase*. The rendered table is identical to the new layout's — only the parse differs. Render it even if every Delivers/Work cell is blank.
 
 ### `resume`
 
-- **Stage A** works unchanged; A.3 uses the `status` fallback above.
-- **Stage B** replaces B.2 (ledger filter) with reading `progress.md` in full — including `## Implementation Notes`, session blocks, and handoff blocks. Surface the most recent session/handoff content briefly so the user sees where things were left.
-- Hand off to `execute.md` §1 as normal.
+- **Stage A** works unchanged; *Render the status table* uses the `status` fallback above.
+- **Stage B** replaces *Read scoped ledger and code-map* (the ledger filter) with reading `progress.md` in full — including `## Implementation Notes`, session blocks, and handoff blocks. Surface the most recent session/handoff content briefly so the user sees where things were left.
+- Hand off to `execute.md` → *Load the principles* as normal.
 
-### `execute` §0.3
+### `execute`
 
-Load Stage B context via the `resume` fallback above.
+*Load Stage B context* uses the `resume` fallback above.
 
 ### `update`
 
 - **Check off boxes** wherever they live in `progress.md` (all checklists are inline).
 - **Never append a session log.** The old "Implementation Notes" section is left alone and never grown.
-- **Offer `ledger/` creation** when durable learnings emerged: `This spec uses the legacy layout. Create a ledger/ folder to capture these learnings going forward? [y/N]`. On yes, scaffold `ledger/INDEX.md` and write the entries per update.md §5. The spec is now mixed-layout; future sessions detect the ledger and use the new path.
+- **Offer `ledger/` creation** when durable learnings emerged: `This spec uses the legacy layout. Create a ledger/ folder to capture these learnings going forward? [y/N]`. On yes, scaffold `ledger/INDEX.md` and write the entries per update.md → *Capture learnings into the ledger*. The spec is now mixed-layout; future sessions detect the ledger and use the new path.
 - **`code-map.md`** — likewise offer to scaffold if the session introduced load-bearing files. Don't force it.
 - Everything else in update.md that targets `phases/`, `code-map.md`, or `pr-opening.md` is skipped when the file doesn't exist.
 
