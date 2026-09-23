@@ -78,7 +78,7 @@ Write a minimal stub `docs/specs/<name>/CLAUDE.md` so `/spec list` can see the s
 ---
 created: <timestamp from the command above>
 updated: <same timestamp>
-status: prep
+status: <prep, or the closest value the project allows (SKILL.md → Stage vs. status)>
 area: [<best guess from taxonomy>]
 domain: [<best guess from taxonomy>]
 scope: [<best guess from taxonomy>]

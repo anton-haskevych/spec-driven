@@ -114,6 +114,14 @@ Handoff **must not**:
 
 ## 3. Commit
 
+First run the doctor on this spec (SKILL.md → *Tools*):
+
+```bash
+bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <spec-name>
+```
+
+Fix every `error` line and any `warning` this session caused. For example, a phase you ticked while a sub-item is still open, or a ledger entry with no INDEX row. Leave older warnings alone and name them in the completion signal. Skip this step if `bun` isn't available.
+
 Stage and commit all changes — both spec files and any implementation code:
 
 ```bash

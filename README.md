@@ -78,6 +78,17 @@ The `spec` skill ships an `engineering-principles` reference (`skills/spec/princ
 /plugin install spec-driven
 ```
 
+## Session lifecycle and tools
+
+One fresh session per chunk: `/spec resume <name>` (or `execute`) → work → `/spec handoff` → end the session. The `/spec` invocation ties the session to the spec; nothing is inferred from branches or worktrees.
+
+The skill ships small Bun scripts in `skills/spec/tools/` that Claude and hooks call. You never run them. They need [Bun](https://bun.com) on `PATH`; without it every step falls back to reading files.
+
+- **Spec-file check:** a PostToolUse hook declared in the skill's frontmatter. It registers only once `/spec` is invoked, so other sessions get no hooks and no extra context. After a write to a spec's `CLAUDE.md` or a ledger entry, it sends broken frontmatter back to Claude, for example a `status` the project's `.claude/taxonomy.md` doesn't allow.
+- **Doctor:** a drift check that runs at handoff. It compares frontmatter against the taxonomy, the ledger against its INDEX, `progress.md` boxes against phase entries, and checks for stale `in-flight.md`.
+
+Development: `bun install`, `bun test`, `bun run typecheck`. See [ROADMAP.md](ROADMAP.md) for the planned releases.
+
 ## Release
 
 Set every Claude, Codex, and marketplace version declaration with one command:

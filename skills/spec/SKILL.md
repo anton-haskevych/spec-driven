@@ -3,6 +3,13 @@ name: spec
 description: Run pre-spec reconnaissance (prep), load an existing spec to resume work, execute the next chunk, update progress after implementation, review with the collegium panel, or create a new one. Use when starting a session around a feature, when the user mentions a spec by name, when asked to prep, scope, or review/critique a spec, or after completing implementation work.
 argument-hint: <feature-name>
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit|MultiEdit"
+      hooks:
+        - type: command
+          command: 'command -v bun >/dev/null 2>&1 && bun "${CLAUDE_SKILL_DIR}/tools/hooks/spec-file-check.ts" || true'
+          timeout: 10
 ---
 
 # /spec — Feature Spec (Resume, Update, Review, Handoff, or Create)
@@ -47,6 +54,25 @@ If `feature` is empty after extraction, infer it from conversation context (same
 `resume`, `execute`, `review`, `update`, `handoff`, and `status` each start by running *Preconditions* (below). `prep`, `create`, and `list` carry their own checks.
 
 After dispatching, **stop**. Do not also evaluate the routing section below.
+
+## Session lifecycle
+
+One session works one spec, and usually one chunk:
+
+1. A fresh session starts with `/spec resume <name>` or `/spec execute <name>`. That invocation is what ties the session to the spec. Nothing else guesses it: not the branch, not the worktree.
+2. Work runs until the stopping rule in `execute.md` fires.
+3. `/spec handoff` closes the session. The next chunk starts in a new session.
+
+Compaction is not part of the flow. If the conversation does get compacted, treat it as a stop signal and hand off at the next clean boundary.
+
+Worktrees change nothing here. One worktree per spec is common, several per spec is fine, and every path in this skill is relative to the session's working directory.
+
+## Tools
+
+`${CLAUDE_SKILL_DIR}/tools/` holds Bun scripts that the modes and hooks call. The user never runs them. They need Bun; when `bun` is missing, or in environments that don't run skill hooks, skip the tool step and do the same check by reading the files.
+
+- **Spec-file check (hook).** Registered by this skill's frontmatter, so it exists only in sessions where `/spec` was invoked. After every Write or Edit to a spec's `CLAUDE.md` or a ledger entry, it validates the frontmatter. If the check fails, the result comes back as blocking feedback: fix the file before continuing.
+- **Doctor.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <name>` checks one spec for drift: frontmatter against the taxonomy, ledger entries against `ledger/INDEX.md`, phase boxes in `progress.md` against their phase entries, and stale `in-flight.md`. Handoff runs it before committing. Fix every `error` line; fix `warning` lines that this session caused.
 
 ## Routing
 
@@ -311,6 +337,7 @@ If `docs/specs/<name>/ledger/INDEX.md` is absent, the spec predates this layout.
 ## Shared conventions
 
 - **Lifecycle:** `prep` (folder + brief + recon) → `draft` (spec written) → `active` (implementing) → `done`/`good-enough`. Prep is optional but recommended for non-trivial specs; `create` can run cold.
+- **Stage vs. status:** the stage is read from the files (no `progress.md` = prep; no ticked box yet = draft). The `status:` field only ever holds a value the project allows. When a project taxonomy (`.claude/taxonomy.md`) lists `status` values, use only those: write the stage name when it is listed, otherwise `active` until the spec is `done` or `good-enough`.
 - **Timestamps:** never write by hand. `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>` bumps `updated:` in the spec's `CLAUDE.md`; `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh --now` prints the canonical timestamp for any other field (ledger `created:`, stub frontmatter).
 - **Taxonomy values:** use the controlled vocabulary injected at the top of this file.
 - **Spec location:** `docs/specs/<name>/`

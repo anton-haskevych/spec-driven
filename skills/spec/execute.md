@@ -102,7 +102,7 @@ Skip if the finding is just "this was tedious" or "I found the file." Ledger is 
 You cannot measure your own token usage, so don't try. Stop on signals you can actually see. At the **next clean boundary** (between units, after a green commit), end the session when any of these holds:
 
 - **Three chunks** have completed in this session.
-- **The conversation has been compacted** — a summary of earlier turns is present, or details you worked with earlier are no longer in view. Compaction means the window is full; working on from a summary is how drift starts.
+- **The conversation has been compacted** — a summary of earlier turns is present, or details you worked with earlier are no longer in view. This should not happen in the normal flow (SKILL.md → *Session lifecycle*: one fresh session per chunk). If it does, the window is full and working on from a summary is how drift starts.
 - **The next chunk belongs to a different phase** than the Stage B context you loaded. A new phase deserves a fresh session with its own filtered ledger, not a stale one.
 
 Defaults — a project's `CLAUDE.md` may set a different chunk count. When a stop fires:

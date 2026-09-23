@@ -125,6 +125,7 @@ bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>
 
 Transition status if applicable:
 
+- Only ever write a value the project allows (SKILL.md → *Stage vs. status*). The spec-file hook blocks any other value.
 - `draft` → `active`: first items checked off across any phase
 - `active` → `done`: all top-level phase checkboxes in `progress.md` are `[x]`
 - A legacy `in-progress` status counts as `active` — rewrite it to `active` on the next transition

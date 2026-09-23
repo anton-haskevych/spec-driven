@@ -121,7 +121,7 @@ No "Phase 1: TBD" — every phase describes a specific deliverable before you wr
 
 Create the spec folder with the full file set below. Use the taxonomy values from `SKILL.md` — ask the user when you're unsure between two valid values.
 
-**If the folder already exists from prep** (`status: prep` stub + `product-brief.md` + `research/`): do not refuse and do not discard prep's work. Keep `product-brief.md` and `research/` untouched, overwrite the stub `CLAUDE.md` with the full version below (this flips `status: prep` → `status: draft`), and scaffold the remaining files. `design.md`'s problem statement should build on `product-brief.md`; `technical.md` and the phase plans should cite the `research/` snapshots as their ground truth.
+**If the folder already exists from prep** (`status: prep` stub + `product-brief.md` + `research/`): do not refuse and do not discard prep's work. Keep `product-brief.md` and `research/` untouched, overwrite the stub `CLAUDE.md` with the full version below (this moves the stage from prep to draft; the `status:` value follows SKILL.md → *Stage vs. status*), and scaffold the remaining files. `design.md`'s problem statement should build on `product-brief.md`; `technical.md` and the phase plans should cite the `research/` snapshots as their ground truth.
 
 #### `docs/specs/$ARGUMENTS/CLAUDE.md`
 
@@ -129,7 +129,7 @@ Create the spec folder with the full file set below. Use the taxonomy values fro
 ---
 created: <ISO 8601 with timezone, e.g. 2026-04-14T10:30:00+02:00>
 updated: <ISO 8601 with timezone>
-status: draft
+status: <draft, or the closest value the project allows (SKILL.md → Stage vs. status)>
 area: [<from taxonomy>]
 domain: [<from taxonomy>]
 scope: [<from taxonomy>]
