@@ -85,6 +85,7 @@ One fresh session per chunk: `/spec resume <name>` (or `execute`) → work → `
 The skill ships small Bun scripts in `skills/spec/tools/` that Claude and hooks call. You never run them. They need [Bun](https://bun.com) on `PATH`; without it every step falls back to reading files.
 
 - **Spec-file check:** a PostToolUse hook declared in the skill's frontmatter. It registers only once `/spec` is invoked, so other sessions get no hooks and no extra context. After a write to a spec's `CLAUDE.md` or a ledger entry, it sends broken frontmatter back to Claude, for example a `status` the project's `.claude/taxonomy.md` doesn't allow.
+- **Context pack:** when `/spec resume|status|execute <name>` loads, the skill injects a `<spec-pack>`. It holds the rendered status table, the next chunk, and for execute the picked phase entry, the phase-scoped ledger rows and matching code-map rows. Sessions start working instead of reading 10+ files.
 - **Doctor:** a drift check that runs at handoff. It compares frontmatter against the taxonomy, the ledger against its INDEX, `progress.md` boxes against phase entries, and checks for stale `in-flight.md`.
 
 Development: `bun install`, `bun test`, `bun run typecheck`. See [ROADMAP.md](ROADMAP.md) for the planned releases.

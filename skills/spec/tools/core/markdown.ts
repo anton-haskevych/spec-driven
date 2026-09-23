@@ -10,16 +10,21 @@ export interface CodeSpan {
   code: string;
 }
 
+export interface Paragraph {
+  section: string;
+  text: string;
+}
+
 export interface MarkdownOutline {
   tasks: TaskItem[];
   codeSpans: CodeSpan[];
+  paragraphs: Paragraph[];
 }
 
 const SECTION_LEVEL = 2;
 
 export function outlineMarkdown(body: string): MarkdownOutline {
-  const tasks: TaskItem[] = [];
-  const codeSpans: CodeSpan[] = [];
+  const outline: MarkdownOutline = { tasks: [], codeSpans: [], paragraphs: [] };
   let section = "";
 
   Bun.markdown.render(body, {
@@ -29,15 +34,19 @@ export function outlineMarkdown(body: string): MarkdownOutline {
     },
     listItem: (children, meta) => {
       if (meta.checked !== undefined) {
-        tasks.push({ section, checked: meta.checked, depth: meta.depth, text: children.trim() });
+        outline.tasks.push({ section, checked: meta.checked, depth: meta.depth, text: children.trim() });
       }
       return children;
     },
     codespan: (children) => {
-      codeSpans.push({ section, code: children });
+      outline.codeSpans.push({ section, code: children });
+      return children;
+    },
+    paragraph: (children) => {
+      outline.paragraphs.push({ section, text: children.trim() });
       return children;
     },
   });
 
-  return { tasks, codeSpans };
+  return outline;
 }

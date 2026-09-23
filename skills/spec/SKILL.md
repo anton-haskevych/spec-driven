@@ -18,6 +18,8 @@ hooks:
 
 !`cat .claude/taxonomy.md 2>/dev/null || echo "No project taxonomy found — use free-form area/domain values."`
 
+!`command -v bun >/dev/null 2>&1 && bun "${CLAUDE_SKILL_DIR}/tools/spec.ts" context $ARGUMENTS 2>/dev/null || true`
+
 **If `$ARGUMENTS` is empty:** Infer the feature name from the current conversation context. Propose a kebab-case slug and ask the user to confirm before proceeding.
 
 ## Sub-command parse
@@ -72,6 +74,7 @@ Worktrees change nothing here. One worktree per spec is common, several per spec
 `${CLAUDE_SKILL_DIR}/tools/` holds Bun scripts that the modes and hooks call. The user never runs them. They need Bun; when `bun` is missing, or in environments that don't run skill hooks, skip the tool step and do the same check by reading the files.
 
 - **Spec-file check (hook).** Registered by this skill's frontmatter, so it exists only in sessions where `/spec` was invoked. After every Write or Edit to a spec's `CLAUDE.md` or a ledger entry, it validates the frontmatter. If the check fails, the result comes back as blocking feedback: fix the file before continuing.
+- **Context pack (at load).** For `resume`, `status`, `execute`, or a bare spec name, the skill runs `spec.ts context` as it loads. A `<spec-pack spec="…" mode="…">` block then appears near the top of this file, holding what that mode would otherwise read and filter by hand: the status table rendered to `status.md`'s rules, the next chunk, raw in-flight notes, and for execute the picked phase entry, the phase-scoped ledger rows, the code-map rows, `CLAUDE.md` and a doctor summary. When the block is present, use it and skip the reads it says it covers. When it is absent (no Bun, a cloud or Codex session, a prep or legacy spec), read the files as the mode describes. The same pack is available mid-session: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <name> [phase]`.
 - **Doctor.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <name>` checks one spec for drift: frontmatter against the taxonomy, ledger entries against `ledger/INDEX.md`, phase boxes in `progress.md` against their phase entries, and stale `in-flight.md`. Handoff runs it before committing. Fix every `error` line; fix `warning` lines that this session caused.
 
 ## Routing

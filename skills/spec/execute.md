@@ -15,6 +15,8 @@ Run SKILL.md → *Preconditions*. A prep-stage spec has nothing to execute — i
 
 ### 0.2. Pick the chunk
 
+**If a `<spec-pack mode="execute">` for this spec is present** (SKILL.md → *Tools*), it already picked the phase (its `Picked:` line) and holds §0.3's context except `design.md` and `technical.md`. Announce the pick, read those two files plus the ledger entries the chunk needs, and continue at §1. Otherwise:
+
 - **Chunk hint given** (`phase 3a`, `3a`, `next`, or a phase named in the conversation) → that is the chunk.
 - **No hint** → apply SKILL.md → *Next-chunk rule*.
 - **No unchecked phase left** → print `All phases complete — see pr-opening.md for the PR gate.` and stop.

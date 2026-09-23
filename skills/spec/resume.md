@@ -14,6 +14,8 @@ Run SKILL.md → *Preconditions*. A prep-stage spec routes to [prep.md](prep.md)
 
 ### A.2. Render the status table
 
+**If a `<spec-pack mode="resume">` for this spec is present** (SKILL.md → *Tools*), print its status table exactly as given, then take A.3's in-flight text and A.4's next-chunk items from the pack. Do not read `progress.md`, the phase entries or `in-flight.md`. Otherwise:
+
 Follow `status.md` → *Read phases*, *Compute status per phase*, and *Render* to produce the same 4-column table the user would see from `/spec <name> status`.
 
 Read **only** what `status.md` requires: `progress.md` plus per-phase Goal / Implementation guidance lines from each phase entry. Do **not** read `CLAUDE.md`, `design.md`, `technical.md`, `code-map.md`, or any ledger entry files in this stage.
@@ -85,6 +87,16 @@ Triggered when the user confirms a chunk. **Read intent, not magic words.** Any 
 - **A different phase pick:** "actually let's do phase 4 first" → load Stage B context for phase 4 instead of the suggested one.
 
 If the user asks a design question, raises a concern, or wants to discuss decisions / past choices / the spec itself, **stay in conversation** — load only the specific files needed to answer, not the full Stage B set.
+
+### B.0. One call instead of B.1–B.4
+
+When Bun is available, run this once with the confirmed phase:
+
+```bash
+bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <name> <phase-id>
+```
+
+It prints the Stage B pack: the phase entry, phase-scoped ledger rows (load-bearing first), matching code-map rows, `CLAUDE.md`, in-flight and a doctor summary. Then read `design.md`, `technical.md`, only the ledger entries this chunk needs, and any supplementary phase file the entry links, and go to B.5. Fall back to B.1–B.4 when the command prints nothing.
 
 ### B.1. Read stable references + active phase
 

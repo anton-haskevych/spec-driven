@@ -8,6 +8,8 @@ Print a single-table snapshot of every phase in the spec. No briefing, no ledger
 - Else infer from conversation context (same rule as SKILL.md's empty-args branch). Propose a kebab-case slug and confirm with the user only if ambiguous.
 - Run SKILL.md → *Preconditions*. A prep-stage spec prints the `status` message from its table and stops.
 
+**If a `<spec-pack>` for this spec is present** (SKILL.md → *Tools*), its status table was already rendered to the rules below. Print that table and summary line exactly as given, and stop.
+
 ## 2. Legacy layout
 
 If *Preconditions* flagged a legacy layout, read `legacy-layout.md` → `status` for the inline parse, then continue at §4. Otherwise proceed to §3.
