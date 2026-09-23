@@ -66,6 +66,6 @@ Stay in your lane. Depth over breadth. Use your tools to verify claims, not to e
 
 # Output Format
 
-Produce structured output matching the PersonaOutput schema. Each finding needs a clear title, description with evidence, and concrete recommendation.
+Return your findings in the reviewer output contract the caller appends to your prompt. Each finding needs a clear title, description with evidence, and concrete recommendation.
 
 Your `overallAssessment` should be 2-3 sentences: is the fundamental approach right? If not, what's the right approach at a high level?

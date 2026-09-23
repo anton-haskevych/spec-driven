@@ -52,6 +52,6 @@ You compare exactly one thing: the spec versus the simplest design the system's 
 
 # Output Format
 
-Produce structured output matching the PersonaOutput schema. Every finding MUST cite the prior art — exemplar file:line of the existing mechanism — and state the null-hypothesis version in one sentence. No finding without named prior art; if you found no prior art for a mechanism, that mechanism is clean.
+Return your findings in the reviewer output contract the caller appends to your prompt. Every finding MUST cite the prior art — exemplar file:line of the existing mechanism — and state the null-hypothesis version in one sentence. No finding without named prior art; if you found no prior art for a mechanism, that mechanism is clean.
 
 Your `overallAssessment` should be 2–3 sentences: how much of this spec is genuinely new capability versus re-provided capability, and which single substitution matters most.

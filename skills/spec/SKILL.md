@@ -159,7 +159,7 @@ Every ledger entry lives at `ledger/<kind>-<slug>.md` with required frontmatter:
 ---
 kind: gotcha | principle | domain | decision | workaround | <free>
 applies-to: [general] | [phase 5+] | [phase 6, 7] | [general, load-bearing]
-created: <ISO 8601 with timezone>
+created: <spec-bump.sh --now>
 superseded-by: <filename>   # optional — marks this entry as deprecated
 ---
 
@@ -273,7 +273,7 @@ If `docs/specs/<name>/ledger/INDEX.md` is absent, the spec predates this layout.
 ## Shared conventions
 
 - **Lifecycle:** `prep` (folder + brief + recon) → `draft` (spec written) → `active` (implementing) → `done`/`good-enough`. Prep is optional but recommended for non-trivial specs; `create` can run cold.
-- **Timestamps:** never write by hand — run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>`
+- **Timestamps:** never write by hand. `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>` bumps `updated:` in the spec's `CLAUDE.md`; `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh --now` prints the canonical timestamp for any other field (ledger `created:`, stub frontmatter).
 - **Taxonomy values:** use the controlled vocabulary injected at the top of this file.
 - **Spec location:** `docs/specs/<name>/`
 - **Style:** direct, opinionated, no filler. Use "we" for decisions, "they" for users.

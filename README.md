@@ -67,6 +67,8 @@ Why no synthesizer agent: a hand-off compresses forty findings into an output bu
 | **phase-preflight** | You (via `/spec-driven:phase-preflight`) and `execute` mode (§3, mandatory gate before decomposition) | Pre-implementation review of a planned chunk against house idioms + named canon, every finding anchored to `file:line` |
 | **structural-principles** | code-quality-reviewer agent | Mechanism vs business logic classification, size gates |
 
+**Optional companion:** execute mode's phase-seam recon uses the `explore-waves` skill when it is installed, and falls back to running the same read-only Explore-agent waves inline when it isn't.
+
 The `spec` skill ships an `engineering-principles` reference (`skills/spec/principles.md`) that **execute** mode loads at the start of every chunk. 18 rules covering self-documenting code, hard size caps (function < 50 lines, file < 250 lines), extract-on-second-use with mandatory unit tests, frontend layered separation (with backend deferring to project-specific rules), and the rest of the engineering hygiene the workflow enforces.
 
 ## Install

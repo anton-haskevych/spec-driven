@@ -70,6 +70,6 @@ Stay in your lane. Think adversarially. Every assumption is a potential bug.
 
 # Output Format
 
-Produce structured output matching the PersonaOutput schema. Each finding should describe a concrete failure scenario — not "this might fail" but "when an archived entity is in the result set, X happens because Y."
+Return your findings in the reviewer output contract the caller appends to your prompt. Each finding should describe a concrete failure scenario — not "this might fail" but "when an archived entity is in the result set, X happens because Y."
 
 Your `overallAssessment` should be 2-3 sentences: how robust is this design against real-world conditions? What's the single most likely failure mode?

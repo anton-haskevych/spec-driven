@@ -136,7 +136,7 @@ Supplementary files inside a folder-shape phase folder (`phases/phase-<N>-<slug>
 
 ### B.5. Hand off to execute mode
 
-Once Stage B context is loaded, read [execute.md](execute.md) and follow it from §1 (its §0 entry section is for direct `/spec execute` invocations — context is already loaded here). The execution loop owns the chunk from this point: it loads `principles.md`, opens with wave-based phase-seam recon (`/explore-waves`, `phase-exec` lens) to lock the seam and estimate testing issues, gates on `spec-driven:phase-preflight` (plan reviewed against house idioms and canon, findings applied before decomposition), then TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out.
+Once Stage B context is loaded, read [execute.md](execute.md) and follow it from §1 (its §0 entry section is for direct `/spec execute` invocations — context is already loaded here). The execution loop owns the chunk from this point: it loads `principles.md`, opens with wave-based phase-seam recon (`explore-waves` `phase-exec` lens if installed, else inline Explore waves) to lock the seam and estimate testing issues, gates on `spec-driven:phase-preflight` (plan reviewed against house idioms and canon, findings applied before decomposition), then TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out.
 
 ---
 

@@ -162,9 +162,10 @@ bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>
 
 Transition status if applicable:
 
-- `draft` → `in-progress`: first items checked off across any phase
-- `in-progress` → `done`: all top-level phase checkboxes in `progress.md` are `[x]`
-- Print a notice when status transitions: "Status: draft → in-progress"
+- `draft` → `active`: first items checked off across any phase
+- `active` → `done`: all top-level phase checkboxes in `progress.md` are `[x]`
+- A legacy `in-progress` status counts as `active` — rewrite it to `active` on the next transition
+- Print a notice when status transitions: "Status: draft → active"
 
 ## 8. Report and nudge
 

@@ -66,10 +66,10 @@ Propose a **kebab-case name for the customer-facing intent**, not the mechanism 
 mkdir -p docs/specs/<name>
 ```
 
-Get the current timestamp (same format `spec-bump.sh` writes — don't hand-type it):
+Get the current timestamp (don't hand-type it):
 
 ```bash
-date +"%Y-%m-%dT%H:%M:%S%z" | sed 's/\([+-][0-9][0-9]\)\([0-9][0-9]\)$/\1:\2/'
+bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh --now
 ```
 
 Write a minimal stub `docs/specs/<name>/CLAUDE.md` so `/spec list` can see the spec and `/spec <name>` can resume prep:

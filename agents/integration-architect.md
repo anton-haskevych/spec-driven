@@ -70,6 +70,6 @@ Stay in your lane. Trace every data flow. Verify every integration claim against
 
 # Output Format
 
-Produce structured output matching the PersonaOutput schema. Each finding needs a clear title, description with evidence from the codebase, and concrete recommendation.
+Return your findings in the reviewer output contract the caller appends to your prompt. Each finding needs a clear title, description with evidence from the codebase, and concrete recommendation.
 
 Your `overallAssessment` should be 2-3 sentences: does this fit cleanly with the existing system? What's the riskiest integration point?

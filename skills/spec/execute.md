@@ -37,9 +37,12 @@ Read [principles.md](principles.md) once at the start of execution. These rules 
 
 ## 2. Recon the phase seam — before any decomposition
 
-You do not yet know enough to decompose. Lock the seam first: run wave-based phase reconnaissance via the `/explore-waves` skill, scoped to **this chunk**, before writing a line of plan or code. The spec-driven execute flow is a named, sanctioned caller in that skill's contract — this is an explicit invocation, not speculative exploration. Use its `phase-exec` lens.
+You do not yet know enough to decompose. Lock the seam first: run wave-based phase reconnaissance scoped to **this chunk**, before writing a line of plan or code.
 
-The recon must produce three things:
+- **`explore-waves` installed** (it appears in the available skills list) → invoke it with its `phase-exec` lens. The spec-driven execute flow is a named, sanctioned caller in that skill's contract — this is an explicit invocation, not speculative exploration.
+- **Not installed** → run the same protocol inline. A wave is 2 `Agent` calls with `subagent_type: "Explore"`, fired concurrently in one message, each owning one distinct focus (e.g. the change seam vs. reuse + tests), each told: read-only, `file:line`-referenced findings only, no design, under 6000 tokens. You synthesize between waves; aim wave 2 only at what wave 1 left open. Two waves at most.
+
+Either way, the recon must produce three things:
 
 1. **The seam** — the exact files, functions, and call sites this chunk will touch, and the existing patterns to mirror (`file:line` throughout).
 2. **Reuse opportunities** — existing mechanisms to extend instead of reinventing. Every new mechanism the chunk would introduce gets checked against "is this concern already solved here?" (principles.md §9; the prior-art discipline).

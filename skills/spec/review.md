@@ -42,6 +42,34 @@ Pass `run_in_background: false`. **Each agent's tool result IS its report** — 
 
 If a reviewer genuinely returns nothing, proceed with the reviewers that did return and note the gap in the final report. Never block the flow polling for a missing one.
 
+### Reviewer output contract
+
+Append this block **verbatim** to every one of the five prompts below. It is the single definition of what a reviewer returns — the persona files add their own per-finding requirements on top, never a different shape.
+
+```
+## Output contract
+
+Return markdown only, under 6000 tokens, front-loading the most severe findings.
+
+For each finding:
+
+### F<n> — <title>
+- severity: critical | high | medium | low
+- claim: <what is wrong, one or two sentences>
+- evidence: <file:line in the codebase or spec that proves it>
+- failure scenario: <concrete inputs/state → what goes wrong>
+- recommendation: <the change to make to the spec>
+- confidence: read-in-code | inferred
+
+Then, once:
+
+## Overall assessment
+- verdict: sound | fix-then-proceed | rethink
+- <at most 3 sentences>
+
+No findings? Say so and give the overall assessment. Never pad.
+```
+
 ### Agent 1: principal-engineer
 
 ```
@@ -59,8 +87,7 @@ Evaluate: dependency inversion, swappability, layer boundaries, single responsib
 open/closed principle, reversibility, YAGNI. Use Read/Grep/Glob to verify claims
 against the actual codebase.
 
-Produce structured PersonaOutput with findings (title, description, recommendation, severity)
-and an overallAssessment.
+Return findings in the reviewer output contract appended below.
 ```
 
 ### Agent 2: integration-architect
@@ -79,7 +106,7 @@ Check blast radius — Grep for all callers of methods the spec modifies.
 Verify integration accuracy — do the endpoints, handlers, and tables referenced
 in the spec actually exist?
 
-Produce structured PersonaOutput with findings and an overallAssessment.
+Return findings in the reviewer output contract appended below.
 ```
 
 ### Agent 3: adversarial-tester
@@ -97,7 +124,7 @@ Enumerate entity lifecycle states from the codebase. For every query the spec pr
 ask: does it filter by lifecycle state? Check for null guards, concurrency issues,
 untested assumptions, incomplete error handling, and test gaps.
 
-Produce structured PersonaOutput with findings and an overallAssessment.
+Return findings in the reviewer output contract appended below.
 ```
 
 ### Agent 4: code-quality-reviewer
@@ -117,7 +144,7 @@ Evaluate: will the proposed changes improve or degrade cohesion, understandabili
 editability, testability? Are new files/modules properly sized? Does the proposed
 structure follow existing patterns?
 
-Produce structured PersonaOutput with findings and an overallAssessment.
+Return findings in the reviewer output contract appended below.
 ```
 
 ### Agent 5: prior-art-reviewer
@@ -140,8 +167,7 @@ the spec against it. "Extraction" / "behavior-preserving" framing is provenance,
 not justification — inherited choices must re-justify themselves. Flag mechanism
 choices with no rejected alternative recorded in the decisions table or ledger.
 
-Produce structured PersonaOutput with findings (each citing prior-art file:line)
-and an overallAssessment.
+Return findings in the reviewer output contract appended below (each citing prior-art file:line).
 ```
 
 ## 3. Synthesize — in this thread, yourself
