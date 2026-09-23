@@ -25,7 +25,7 @@ If there is no plan in scope, ask what is about to be built. One question, then 
 
 ## When invoked from `/spec execute`
 
-Execute mode (`execute.md` → *Preflight the plan — the gate before decomposition*) calls this after phase-seam recon and before decomposition, and hands you three inputs: the phase entry, the recon note under `docs/specs/<name>/research/`, and `principles.md`. Use them; do not rediscover them.
+Execute mode (`execute.md` → *Preflight the plan — the gate before decomposition*) calls this after phase-seam recon and before decomposition, and hands you three inputs: the phase entry, the recon note under `docs/specs/<name>/research/phase-<N>/`, and `principles.md`. Use them; do not rediscover them.
 
 - **Stage 0, item 2** reads the files the *recon seam* names, not only the ones the phase file names. Where the two disagree, that disagreement is your first finding.
 - **Stage 0, item 3** skips directories the recon already outlined — read its note instead of re-running `ast-grep outline`.
@@ -140,7 +140,7 @@ Only genuine forks where the answer changes the work. Give a recommendation
 for each. If there are none, say so and stop.
 ```
 
-Then, when the work belongs to a spec, persist the review as an immutable dated note under `docs/specs/<name>/research/YYYY-MM-DD-<phase>-preflight.md`, and write any durable learning (a guard blindness, a house idiom, an aggregate ambiguity) as a ledger entry with the narrowest correct scope. Do not batch the ledger writes for later.
+Then, when the work belongs to a spec, persist the review as an immutable dated note at `docs/specs/<name>/research/phase-<N>/YYYY-MM-DD-<chunk>-preflight.md` (next to the chunk's recon note; no chunk → use a short slug for the plan), and write any durable learning (a guard blindness, a house idiom, an aggregate ambiguity) as a ledger entry with the narrowest correct scope. Do not batch the ledger writes for later.
 
 ## What not to do
 

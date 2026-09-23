@@ -1,6 +1,6 @@
 # Execute Mode
 
-The inner loop the agent runs once a chunk is locked in. This file owns the work cycle — load the principles, recon the seam, preflight the plan, decompose, TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` before the context budget runs out. Nothing in §5 onward starts until §3 has run.
+The inner loop the agent runs once a chunk is locked in. This file owns the work cycle — load the principles, recon the seam, preflight the plan, decompose, TDD per unit, commit per logical change, mini-progress-update per chunk, full `/spec handoff` when the stopping rule fires. Nothing in §5 onward starts until §3 has run.
 
 ## 0. Entry
 
@@ -50,7 +50,7 @@ Either way, the recon must produce three things:
 
 **Self-scaling.** A small or already-well-understood chunk yields a short exploration — do not pad it. If Stage B context already made the seam obvious, a single wave suffices. But the testing-issue estimate is *always* produced; that is the part that makes the plan honest.
 
-**Persist it.** Write the recon synthesis as a dated, phase-scoped, immutable note under `docs/specs/<name>/research/` (the same home as prep recon-wave snapshots). It survives compaction and feeds both the decomposition below and any downstream plan review.
+**Persist it.** Write the recon synthesis as an immutable note at `docs/specs/<name>/research/phase-<N>/YYYY-MM-DD-<chunk>-recon.md` (layout: SKILL.md → *reviews/ and research/ semantics*). It survives compaction and feeds both the decomposition below and any downstream plan review.
 
 ## 3. Preflight the plan — the gate before decomposition
 
@@ -62,7 +62,7 @@ Recon told you *where* the chunk lands. Preflight tells you whether the plan for
 - the recon note from §2 — its seam replaces the phase file's `file:line`s as the source of truth for what to read, and its testing-issue estimate is consumed by preflight's seam/testability stage rather than redone,
 - `principles.md` as the house rules (preflight ranks house idioms above named canon).
 
-**Take back:** its `Findings that change the plan` and `Amendments`. Apply them *before* §4–§5: a finding that the phase file asserts something false means the code wins and the phase entry is corrected via `update`; an amendment to the design changes the decomposition you are about to write. Persisting the preflight note under `research/` and writing ledger entries for durable learnings is the skill's own job — confirm it did so.
+**Take back:** its `Findings that change the plan` and `Amendments`. Apply them *before* §4–§5: a finding that the phase file asserts something false means the code wins and the phase entry is corrected via `update`; an amendment to the design changes the decomposition you are about to write. Persisting the preflight note under `research/phase-<N>/` and writing ledger entries for durable learnings is the skill's own job — confirm it did so.
 
 Do not start §5 with an unapplied amendment outstanding. Do not "note it for later".
 
@@ -97,11 +97,16 @@ If, during a unit, you discover something durable — a non-obvious gotcha, a do
 
 Skip if the finding is just "this was tedious" or "I found the file." Ledger is for forward-propagating knowledge, not session log.
 
-## 8. Watch the context budget
+## 8. Know when to stop — the stopping rule
 
-The agent's effective context window is ~300–400K tokens. Track it.
+You cannot measure your own token usage, so don't try. Stop on signals you can actually see. At the **next clean boundary** (between units, after a green commit), end the session when any of these holds:
 
-- At ~75% of the budget, **stop the chunk at the next clean boundary** (between units, after a green commit). Do not push through.
+- **Three chunks** have completed in this session.
+- **The conversation has been compacted** — a summary of earlier turns is present, or details you worked with earlier are no longer in view. Compaction means the window is full; working on from a summary is how drift starts.
+- **The next chunk belongs to a different phase** than the Stage B context you loaded. A new phase deserves a fresh session with its own filtered ledger, not a stale one.
+
+Defaults — a project's `CLAUDE.md` may set a different chunk count. When a stop fires:
+
 - Run `/spec handoff` to redirect any session reflection: durable items → ledger, ephemeral pending state → `in-flight.md`. The full handoff flow is in `handoff.md`.
 - Hand the work off cleanly. The next agent picks up from `resume.md` → *Stage A — Orientation* and sees exactly what was left.
 

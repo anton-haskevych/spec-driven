@@ -112,7 +112,11 @@ docs/specs/<name>/
 │       ├── plan.md                             #     main phase plan (mirrors the flat-file role)
 │       └── <descriptive-name>.md               #     supplementary files added as needed
 ├── reviews/                                    # on-demand; dated YYYY-MM-DD-<slug>.md; immutable
-├── research/                                   # on-demand; dated YYYY-MM-DD-<slug>.md; immutable
+├── research/                                   # on-demand; immutable
+│   ├── YYYY-MM-DD-<slug>.md                    #   prep recon waves + deep research (root)
+│   └── phase-<N>/                              #   per-chunk execute notes for phase N
+│       ├── YYYY-MM-DD-<chunk>-recon.md
+│       └── YYYY-MM-DD-<chunk>-preflight.md
 └── ledger/                                     # forward-propagating learnings
     ├── INDEX.md                                # warm cache: one row per entry with [applies-to] tag
     └── <kind>-<slug>.md                        # free-form kinds: gotcha, principle, domain, decision, workaround, …
@@ -134,7 +138,8 @@ docs/specs/<name>/
 | `phases/phase-*/plan.md` (folder) | small-to-medium | Same as flat, for phases with supplementary files |
 | `phases/phase-*/<supplementary>.md` | on-demand | Tier sub-plans, wireframes, fixture notes, scratch |
 | `reviews/*.md` | on-demand, immutable | Collegium review snapshots; never edited |
-| `research/*.md` | on-demand, immutable | Deep-research, prep recon-wave, and per-phase execution-recon snapshots; never edited |
+| `research/*.md` | on-demand, immutable | Deep-research and prep recon-wave snapshots; never edited |
+| `research/phase-<N>/*.md` | on-demand, immutable | Per-chunk execute recon + preflight notes for phase N; never edited |
 | `ledger/INDEX.md` | warm cache | One row per ledger entry with `[applies-to]` tag + one-line summary |
 | `ledger/<kind>-*.md` | forward-propagating | Durable learnings tagged by phase scope |
 
@@ -256,6 +261,7 @@ Keep each one-line summary under 80 characters.
 ## reviews/ and research/ semantics
 
 - **On-demand folders.** Created on first review/research write. Not scaffolded at spec birth.
+- **Grouped by phase.** Execute-mode notes live in `research/phase-<N>/` — `YYYY-MM-DD-<chunk>-recon.md` and `YYYY-MM-DD-<chunk>-preflight.md`, where `<chunk>` is the chunk's first sub-item id or a short slug. The folder is the index: no INDEX file to keep in sync. Prep and deep-research snapshots stay at the `research/` root. Specs with older flat execute notes keep them where they are — new writes only.
 - **Filenames:** `YYYY-MM-DD-<slug>.md`. Slug derived from the dominant theme (e.g., `phase-5-readiness`, `integration-boundaries`). Review slugs are always auto-derived (fallback: `phase-<N>-collegium`); research slugs may be confirmed with the user if ambiguous.
 - **Written once, immutable, never deleted.** The file is the source of record. Do not edit after writing.
 - **Extraction step:** after writing a review/research file, distilled actionable findings are copied into the ledger as separate entries; the report itself stays untouched. Review extraction is autonomous — findings are applied to the spec + ledger and committed without prompts (see review.md); research extraction may be offered interactively.
@@ -294,6 +300,7 @@ Handoff **must not**:
 | `in-flight.md` | no — created by handoff when pending state exists |
 | `reviews/` | no — created on first review write |
 | `research/` | no — created on first research/recon write (deep research, `prep` waves, or `execute` phase recon) |
+| `research/phase-<N>/` | no — created by the first `execute` recon or preflight note for phase N |
 | Phase folder supplementary files | no — added during execution when needed |
 | Individual `ledger/*.md` entries | no — created during update/handoff when a learning emerges |
 

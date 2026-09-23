@@ -19,7 +19,7 @@ This plugin gives you the complete lifecycle:
 | **Status** | `/spec my-feature status` | Print a 4-column phase snapshot — Phase, Status (`✅ done` / `🟡 WIP (x/y)` / `🟢 active` / `⬜ pending`), Delivers, Work — without the resume briefing. `active` is reserved for the first unchecked phase; later unchecked phases are `pending`. `Work` falls back to `N/A` if the phase has no implementation guidance. Format is a markdown table — never cards or vertical lists. |
 | **Handoff** | `/spec my-feature` + "handoff" | Reflects on the session and redirects findings: durable learnings → ledger, pending state → `in-flight.md`. Commits and signals. |
 | **Resume** | `/spec my-feature` | Two-stage. Stage A: prints the status table, reads `in-flight.md` if present, suggests the next chunk, halts. Stage B (only on confirmation): loads stable references + the active phase entry + filtered ledger + scoped code-map, then hands off to **execute** mode. |
-| **Execute** | `/spec execute my-feature` (or entered automatically from Resume Stage B) | Inner work loop. Invoked directly it skips Stage A's halt — picks the next unchecked chunk (or the one you name: `/spec execute my-feature phase 3a`), loads Stage B context itself, then starts working. Decompose the chunk into testable units, run red→green→commit per unit, update the phase entry's sub-checkboxes, add ledger entries for durable learnings, and trigger `/spec handoff` before hitting ~75% of the context budget. |
+| **Execute** | `/spec execute my-feature` (or entered automatically from Resume Stage B) | Inner work loop. Invoked directly it skips Stage A's halt — picks the next unchecked chunk (or the one you name: `/spec execute my-feature phase 3a`), loads Stage B context itself, then starts working. Decompose the chunk into testable units, run red→green→commit per unit, update the phase entry's sub-checkboxes, add ledger entries for durable learnings, and trigger `/spec handoff` at a clean boundary once the stopping rule fires — three chunks done, the conversation compacted, or the next chunk belongs to another phase. |
 
 No arguments required for the feature name — the `/spec` skill infers it from conversation context. **Sub-commands** (`prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`) can lead or trail the feature name: `/spec resume my-feature`, `/spec my-feature resume`, or `/spec resume` (alone, with the feature inferred from context) all work.
 
@@ -31,7 +31,7 @@ A spec is only as good as the facts under it. Writing `technical.md` and phase p
 
 A non-trivial spec carries hundreds of KB across `design.md`, `technical.md`, ledger entries, and per-phase plans. Loading all of it on every `/spec resume` burns 100K+ tokens before any work starts.
 
-Stage A reads only `progress.md` and per-phase Goal/Implementation lines — same materials as `/spec status`. The user sees the full picture (table + suggested next chunk) and decides what to work on. Stage A renders bullets, not paragraphs — every line earns its place, and there's no magic-word CTA: any natural confirmation ("yep", "go ahead", "do this phase") triggers Stage B. Stage B then loads the focused subset relevant to that decision and hands off to **execute** mode, which runs the per-unit TDD loop and watches the context budget so the session ends cleanly via `/spec handoff` before the window fills up.
+Stage A reads only `progress.md` and per-phase Goal/Implementation lines — same materials as `/spec status`. The user sees the full picture (table + suggested next chunk) and decides what to work on. Stage A renders bullets, not paragraphs — every line earns its place, and there's no magic-word CTA: any natural confirmation ("yep", "go ahead", "do this phase") triggers Stage B. Stage B then loads the focused subset relevant to that decision and hands off to **execute** mode, which runs the per-unit TDD loop and ends the session cleanly via `/spec handoff` on signals it can observe — chunks completed, compaction, a phase change — rather than a token count it can't measure.
 
 ## The review panel
 
@@ -108,7 +108,8 @@ docs/specs/<feature-name>/
 │       ├── plan.md
 │       └── ...
 ├── reviews/                # on-demand — dated YYYY-MM-DD-<slug>.md, immutable
-├── research/               # on-demand — dated YYYY-MM-DD-<slug>.md, immutable
+├── research/               # on-demand, immutable — prep snapshots at the root,
+│   └── phase-<N>/          #   per-chunk execute recon + preflight notes
 └── ledger/                 # forward-propagating learnings
     ├── INDEX.md            # warm cache — one row per entry with [applies-to] tag
     └── <kind>-<slug>.md    # kinds: gotcha, principle, domain, decision, workaround, …
