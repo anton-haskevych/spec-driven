@@ -13,6 +13,8 @@ import { linkIssues } from "../graph/checks";
 import { loadNodes } from "../graph/nodes";
 import { loadSpecState } from "../core/spec-state";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
+import { phaseScheduleIssues } from "../doctor/schedule";
+import { isoDay } from "../core/schedule";
 
 const WATCHED_TOOLS = new Set(["Write", "Edit", "MultiEdit"]);
 
@@ -38,7 +40,9 @@ export function issuesForWrittenFile(filePath: string, projectDir: string): Issu
     return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links];
   }
   if (location.pathInSpec.startsWith("phases/")) {
-    return phaseEdgeIssues(loadSpecState(location.spec), loadNodes(projectDir), location.pathInSpec);
+    const state = loadSpecState(location.spec);
+    const today = isoDay(new Date());
+    return [...phaseEdgeIssues(state, loadNodes(projectDir), location.pathInSpec), ...phaseScheduleIssues(state, today, location.pathInSpec)];
   }
   if (isLedgerEntry(location.pathInSpec)) {
     const ledgerDir = dirname(filePath);

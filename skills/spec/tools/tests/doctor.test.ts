@@ -20,6 +20,14 @@ describe("checkSpecMeta", () => {
     expect(checkSpecMeta("CLAUDE.md", "# legacy spec", STATUSES)).toEqual([]);
   });
 
+  test("rejects a priority or due it cannot read", () => {
+    const text = "---\nstatus: active\ncreated: a\nupdated: b\npriority: high\ndue: 2026-13-01\n---\n";
+    expect(checkSpecMeta("CLAUDE.md", text, STATUSES).map((i) => i.problem)).toEqual([
+      'priority "high" is not one of p1, p2, p3',
+      'due "2026-13-01" is not a date; use YYYY-MM-DD',
+    ]);
+  });
+
   test("reports unparseable YAML as an error", () => {
     const [issue] = checkSpecMeta("CLAUDE.md", "---\nstatus: [active\n---\n", STATUSES);
     expect(issue?.severity).toBe("error");

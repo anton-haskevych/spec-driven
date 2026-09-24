@@ -6,7 +6,7 @@ import { contextPack, parseContextRequest } from "../commands/context";
 import { summarizePhaseEntry } from "../core/phase-entry";
 import { parsePhaseTitle } from "../core/phase-title";
 import { parseLedgerIndex, rowsForPhase } from "../context/ledger-scope";
-import { phaseStatuses } from "../context/status-table";
+import { phaseStatuses, renderStatusTable } from "../context/status-table";
 import { phaseState } from "./factories";
 
 const phase = (done: boolean, checked: number, unchecked: number) =>
@@ -16,6 +16,15 @@ describe("phaseStatuses", () => {
   test("follows status.md: done, WIP, one active, then pending", () => {
     const statuses = phaseStatuses([phase(true, 3, 0), phase(false, 0, 2), phase(false, 1, 2), phase(false, 0, 4)]);
     expect(statuses).toEqual(["✅ done", "🟢 active", "🟡 WIP (1/3)", "⬜ pending"]);
+  });
+
+  test("an open phase with a due day shows it in its status cell", () => {
+    const table = renderStatusTable({
+      spec: { name: "checkout", dir: "/specs/checkout" },
+      hasProgress: true,
+      phases: [phaseState({ schedule: { due: "2026-10-01", problems: [] } })],
+    });
+    expect(table).toContain("| 🟢 active · due 2026-10-01 |");
   });
 
   test("a WIP phase claims the focus, so a later untouched phase is pending", () => {

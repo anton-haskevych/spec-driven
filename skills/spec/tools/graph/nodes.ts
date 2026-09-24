@@ -4,6 +4,7 @@ import { parseFrontmatter, stringField } from "../core/frontmatter";
 import { parsePhaseTitle } from "../core/phase-title";
 import { parsePhaseLines } from "../core/progress";
 import { listSpecs, type SpecFolder } from "../core/spec-folders";
+import { readSpecMeta, type SpecMeta } from "../core/spec-meta";
 import { parseRelations, type Relation } from "./relations";
 
 export interface PhaseMark {
@@ -18,6 +19,7 @@ export interface SpecNode {
   phases: PhaseMark[];
   codeMapPaths: string[];
   relations: Relation[];
+  meta: SpecMeta;
 }
 
 const CODE_MAP_PATH = /^\s*\|\s*`([^`]+)`/;
@@ -44,6 +46,7 @@ function loadNode(spec: SpecFolder): SpecNode {
     phases,
     codeMapPaths: codeMapPaths(readTextIfExists(join(spec.dir, "code-map.md")) ?? ""),
     relations: parseRelations(data),
+    meta: readSpecMeta(data),
   };
 }
 

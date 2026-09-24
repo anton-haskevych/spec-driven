@@ -5,7 +5,7 @@ import type { SpecState } from "../core/spec-state";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
 import type { SpecNode } from "../graph/nodes";
 import { readySet } from "../ready/ready-set";
-import { phaseState } from "./factories";
+import { phaseState, specNode } from "./factories";
 
 const edges = (data: Record<string, unknown>) => parsePhaseEdges(data);
 const noNodes = new Map<string, SpecNode>();
@@ -14,15 +14,13 @@ function state(phases: SpecState["phases"]): SpecState {
   return { spec: { name: "checkout", dir: "/specs/checkout" }, hasProgress: true, phases };
 }
 
-const safety: SpecNode = {
+const safety = specNode({
   spec: { name: "safety", dir: "/specs/safety" },
   phases: [
     { id: "1", done: true, deployed: false },
     { id: "2", done: false, deployed: false },
   ],
-  codeMapPaths: [],
-  relations: [],
-};
+});
 
 describe("parsePhaseEdges", () => {
   test("reads numbers, 'phase N' wording and 'none'", () => {

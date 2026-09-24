@@ -30,8 +30,9 @@ export function renderStatusTable(state: SpecState): string {
   return `${title}\n\n${HEADER}\n${rows.join("\n")}\n\n${summaryLine(state.phases, statuses)}`;
 }
 
-function renderRow(phase: PhaseState, status: string): string {
+function renderRow(phase: PhaseState, phaseStatus: string): string {
   const label = `${phase.id} — ${phase.name}`;
+  const status = !phase.done && phase.schedule.due ? `${phaseStatus} · due ${phase.schedule.due}` : phaseStatus;
   if (!phase.summary) return row([label, status, `${phase.pointer} not found.`, "N/A"]);
   const delivers = truncate(phase.summary.goal ?? phase.name, DELIVERS_LIMIT);
   const work = phase.summary.work ? truncate(phase.summary.work, WORK_LIMIT) : "N/A";

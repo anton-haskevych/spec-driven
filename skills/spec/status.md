@@ -65,7 +65,7 @@ Output:
 
 - The header row is exactly: `| Phase | Status | Delivers | Work |`. Do not rename, reorder, add, or drop columns.
 - One table row per phase. Order by phase number.
-- Status cell uses one of the four exact values from section 4: `✅ done`, `🟡 WIP (x/y)`, `🟢 active`, `⬜ pending`. No other emojis, no other words.
+- Status cell uses one of the four exact values from section 4: `✅ done`, `🟡 WIP (x/y)`, `🟢 active`, `⬜ pending`. No other emojis, no other words — except one suffix: an open phase whose frontmatter has `due:` appends ` · due YYYY-MM-DD` (`🟢 active · due 2026-10-01`).
 - Truncate the Delivers cell to ~80 characters with `…` if longer.
 - Truncate the Work cell to ~100 characters with `…` if longer.
 - If Work cannot be derived, render literally `N/A` (not blank, not `—`).
@@ -79,7 +79,7 @@ Any of these is a bug — do not produce them:
 - Card-style or vertical "Phase: …, Status: …, Pointer: …" rendering of phase data.
 - Separator lines (`────────`, `===`, `---` outside the markdown header) between phases.
 - Internal diagnostic fields exposed in the user output: `Top-level checkbox:`, `Pointer:`, `Sub-checkbox count:`, `Layout:`, `Inline: yes`, etc. Those are reasoning artifacts; they never reach the user.
-- Status values outside the four in section 4 — no `not started`, no `queued`, no `done ✅` (with the check trailing), no `🚧`, no `📝`.
+- Status values outside the four in section 4 (plus the due suffix) — no `not started`, no `queued`, no `done ✅` (with the check trailing), no `🚧`, no `📝`.
 - Renaming columns: `Description` instead of `Delivers`, `Implementation` instead of `Work`, etc.
 - Adding extra columns.
 - Dropping the table format because a parse came up short — render the table even if every Delivers cell and every Work cell is blank or `N/A`.

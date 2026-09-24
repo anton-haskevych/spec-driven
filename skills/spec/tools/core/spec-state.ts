@@ -4,6 +4,7 @@ import { parseFrontmatter } from "./frontmatter";
 import { parsePhaseEdges, type PhaseEdges } from "./phase-edges";
 import { summarizePhaseEntry, type PhaseEntrySummary } from "./phase-entry";
 import { parsePhaseTitle } from "./phase-title";
+import { readSchedule, type Schedule } from "./schedule";
 import { parsePhaseLines, type PhaseLine } from "./progress";
 import type { SpecFolder } from "./spec-folders";
 
@@ -16,6 +17,7 @@ export interface PhaseState {
   edges: PhaseEdges;
   entry?: string;
   summary?: PhaseEntrySummary;
+  schedule: Schedule;
 }
 
 export interface SpecState {
@@ -34,15 +36,17 @@ export function loadSpecState(spec: SpecFolder): SpecState {
 function loadPhase(spec: SpecFolder, line: PhaseLine, index: number): PhaseState {
   const entry = readTextIfExists(join(spec.dir, line.pointer));
   const parsed = entry === undefined ? undefined : parseFrontmatter(entry);
+  const data = parsed?.kind === "ok" ? parsed.data : undefined;
   const body = parsed?.kind === "ok" ? parsed.body : entry;
   return {
     ...parsePhaseTitle(line.title, String(index + 1)),
     done: line.done,
     deployed: line.deployed,
     pointer: line.pointer,
-    edges: parsePhaseEdges(parsed?.kind === "ok" ? parsed.data : undefined),
+    edges: parsePhaseEdges(data),
     entry,
     summary: body === undefined ? undefined : summarizePhaseEntry(body),
+    schedule: data ? readSchedule(data) : { problems: [] },
   };
 }
 
