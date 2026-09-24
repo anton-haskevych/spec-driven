@@ -40,7 +40,8 @@ All shipped 2026-09-24. 2.27.1 fixed the skill hooks' script path (`${CLAUDE_SKI
 | 2.26.0 | **Guards.** `enforced-by:` on lessons; lessons seen in 3+ specs become graduation candidates surfaced in review | 2.23 |
 | 2.27.0 | **Playbook.** Named gate blocks for `pr-opening.md`, phase archetypes, fixed research names | 2.24 |
 
-## After the plugin releases (CRM repo, on a branch, reviewed by a human)
+## Adoption
 
-- Backfill the project ledger: cluster the `[general]` entries; a human confirms merges.
-- Backfill the spec graph: propose links from prose references; a human confirms each.
+No bulk backfill. The project ledger and spec relations fill in as specs go through
+prep, execute and handoff: new codebase lessons get promoted, and new or resumed specs
+declare their neighbors. Improve the plugin from what real use shows.
