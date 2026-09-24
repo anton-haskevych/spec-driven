@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { parseFrontmatter, stringList } from "../core/frontmatter";
 import { countCheckboxes, parsePhaseLines } from "../core/progress";
 import { locateSpecFile } from "../core/spec-folders";
-import { statusValues } from "../core/taxonomy";
+import { fieldValues, statusValues } from "../core/taxonomy";
 import { phaseLine } from "./factories";
 
 describe("parseFrontmatter", () => {
@@ -57,6 +57,8 @@ describe("statusValues", () => {
   test("reads a table-style project taxonomy", () => {
     const md = "## status (enum)\n\n| Value | Meaning |\n|---|---|\n| `active` | WIP |\n| `done` | Done |\n\n## area\n| `backend` | x |";
     expect(statusValues(md)).toEqual(["active", "done"]);
+    expect(fieldValues(md, "area")).toEqual(["backend"]);
+    expect(fieldValues(md, "domain")).toEqual([]);
   });
 
   test("reads a bullet-style taxonomy and skips file names in descriptions", () => {
