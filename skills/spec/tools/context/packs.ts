@@ -4,6 +4,8 @@ import { outlineMarkdown } from "../core/markdown";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { ReadySet } from "../ready/ready-set";
 import { renderReadySet } from "../ready/render";
+import type { Playbook } from "../playbook/playbooks";
+import { renderPlaybooks } from "../playbook/render";
 import type { Lesson } from "../lessons/project-ledger";
 import { describeLesson, lessonsForFiles } from "../lessons/recall";
 import { codeMapForPhase } from "./code-map";
@@ -17,6 +19,7 @@ export interface PackInput {
   lessons: readonly Lesson[];
   relations: string;
   ready: ReadySet;
+  playbooks: readonly Playbook[];
 }
 
 const PHASE_ENTRY_LIMIT = 8000;
@@ -27,7 +30,7 @@ const PATH_LIKE = /^[\w@.{}-]+(\/[\w@.{}*-]+)+$/;
 const STABLE_REFERENCES = ["design.md", "technical.md"];
 const TASK_PHASE_NOTE = "Task phase (code: false): follow execute.md → Task phases. No recon, preflight or TDD; tick each item with its evidence.";
 
-export function resumePack({ state, doctor, relations, ready }: PackInput): string {
+export function resumePack({ state, doctor, relations, ready, playbooks }: PackInput): string {
   const next = ready.ready[0];
   const nextBlock = next
     ? `### Next chunk: Phase ${next.id} — ${next.name}\n${(next.summary?.nextRun ?? []).map((item) => `- ${item}`).join("\n")}`
@@ -38,6 +41,7 @@ export function resumePack({ state, doctor, relations, ready }: PackInput): stri
     `### Ready set\n${renderReadySet(ready)}`,
     inFlightBlock(state),
     nextBlock,
+    ...playbooksBlock(playbooks),
     `### Related specs\n${relations}`,
     `### Doctor\n${doctor}`,
   ].join("\n\n");
@@ -56,11 +60,16 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
     codeMapBlock(read("code-map.md"), phase.entry ?? ""),
     projectLessonsBlock(lessons, phase.entry ?? ""),
     `### CLAUDE.md\n${clip(read("CLAUDE.md") ?? "(missing)", SMALL_FILE_LIMIT, "CLAUDE.md")}`,
+    ...playbooksBlock(input.playbooks),
     stableReferencesBlock(read),
     `### Related specs\n${relations}`,
     inFlightBlock(state),
     `### Doctor\n${doctor}`,
   ].join("\n\n");
+}
+
+function playbooksBlock(playbooks: readonly Playbook[]): string[] {
+  return playbooks.length > 0 ? [renderPlaybooks(playbooks)] : [];
 }
 
 function inFlightBlock(state: SpecState): string {

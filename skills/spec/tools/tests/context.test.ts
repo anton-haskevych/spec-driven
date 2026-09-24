@@ -147,6 +147,26 @@ describe("contextPack", () => {
     write("phases/phase-2.md", "**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
   });
 
+  test("packs carry the playbooks that match the spec, and execute adds the one its phase names", () => {
+    const playbooks = join(project, "docs", "specs", "_playbook");
+    mkdirSync(playbooks, { recursive: true });
+    writeFileSync(join(playbooks, "billing.md"), "---\nmatch: { domain: [billing] }\n---\nCharge in cents.\n");
+    writeFileSync(join(playbooks, "video.md"), "---\nmatch: { tags: [video] }\n---\nRecord hooks last.\n");
+
+    expect(contextPack(project, { mode: "resume", name: "checkout" })).not.toContain("### Playbooks");
+    write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\ndomain: [billing]\n---\n# Checkout\n");
+    expect(contextPack(project, { mode: "resume", name: "checkout" })).toContain("### Playbooks (docs/specs/_playbook)\n#### billing\nCharge in cents.");
+
+    write("phases/phase-2.md", "---\nplaybook: video\n---\n**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+    const execute = contextPack(project, { mode: "execute", name: "checkout" });
+    expect(execute).toContain("#### billing\nCharge in cents.");
+    expect(execute).toContain("#### video\nRecord hooks last.");
+
+    write("phases/phase-2.md", "**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+    write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\n---\n# Checkout\n");
+    rmSync(playbooks, { recursive: true });
+  });
+
   test("prints nothing for modes without a pack or unknown specs", () => {
     expect(contextPack(project, { mode: "prep", name: "checkout" })).toBe("");
     expect(contextPack(project, { mode: "resume", name: "missing" })).toBe("");

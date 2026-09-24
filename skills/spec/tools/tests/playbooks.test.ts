@@ -2,6 +2,7 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { playbooksReport } from "../commands/playbooks";
 import { checkPlaybook, phasePlaybookIssues } from "../doctor/playbooks";
 import { loadPlaybooks, parsePlaybook, playbookMatches, selectPlaybooks } from "../playbook/playbooks";
 import { phaseState } from "./factories";
@@ -69,6 +70,15 @@ describe("loadPlaybooks", () => {
 
   test("loads only the files that declare match", () => {
     expect(loadPlaybooks(project).map((playbook) => playbook.name)).toEqual(["growth"]);
+  });
+
+  test("playbooksReport prints the playbooks a spec gets, for modes without a pack", () => {
+    mkdirSync(join(project, "docs", "specs", "ballroom"), { recursive: true });
+    writeFileSync(join(project, "docs", "specs", "ballroom", "CLAUDE.md"), "---\nstatus: active\ndomain: [growth]\n---\n");
+    expect(playbooksReport(project, "ballroom")).toBe("### Playbooks (docs/specs/_playbook)\n#### growth\n# Growth\nDone means published.");
+    expect(playbooksReport(project, "missing")).toBe("playbooks: no spec named missing");
+    writeFileSync(join(project, "docs", "specs", "ballroom", "CLAUDE.md"), "---\nstatus: active\n---\n");
+    expect(playbooksReport(project, "ballroom")).toBe("No playbook applies to ballroom.");
   });
 });
 

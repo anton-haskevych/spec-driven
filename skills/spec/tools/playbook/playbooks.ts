@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { markdownFilesIn, readTextIfExists } from "../core/files";
 import { isRecord, parseFrontmatter, stringList, type FrontmatterData } from "../core/frontmatter";
+import type { SpecFolder } from "../core/spec-folders";
 
 export const PLAYBOOK_DIR = join("docs", "specs", "_playbook");
 
@@ -38,4 +39,9 @@ export function playbookMatches(playbook: Playbook, specData: FrontmatterData): 
 
 export function selectPlaybooks(playbooks: readonly Playbook[], specData: FrontmatterData, phasePlaybook?: string): Playbook[] {
   return playbooks.filter((playbook) => playbook.name === phasePlaybook || playbookMatches(playbook, specData));
+}
+
+export function playbooksForSpec(projectDir: string, spec: SpecFolder, phasePlaybook?: string): Playbook[] {
+  const parsed = parseFrontmatter(readTextIfExists(join(spec.dir, "CLAUDE.md")) ?? "");
+  return selectPlaybooks(loadPlaybooks(projectDir), parsed.kind === "ok" ? parsed.data : {}, phasePlaybook);
 }
