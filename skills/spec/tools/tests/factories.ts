@@ -1,7 +1,9 @@
+import type { BacklogItem } from "../backlog/items";
 import type { PhaseLine } from "../core/progress";
 import type { SpecMeta } from "../core/spec-meta";
 import type { PhaseState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
+import type { SpecRow } from "../portfolio/rows";
 
 export function phaseLine(overrides: Partial<PhaseLine> = {}): PhaseLine {
   return { done: false, deployed: false, title: "Phase 1 — One", pointer: "phases/phase-1.md", ...overrides };
@@ -35,4 +37,23 @@ export function specNode(overrides: Partial<SpecNode> = {}): SpecNode {
     meta: specMeta(),
     ...overrides,
   };
+}
+
+export function specRowOf(overrides: Partial<SpecRow> = {}): SpecRow {
+  return {
+    name: "checkout",
+    root: "docs/specs",
+    status: "active",
+    finished: false,
+    area: [],
+    domain: [],
+    scope: [],
+    overdue: false,
+    progress: { done: 0, total: 0 },
+    ...overrides,
+  };
+}
+
+export function backlogItem(overrides: Partial<BacklogItem> = {}): BacklogItem {
+  return { file: "docs/specs/_backlog/idea.md", slug: "idea", title: "An idea", body: "", tags: [], ...overrides };
 }

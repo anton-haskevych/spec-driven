@@ -4,9 +4,11 @@ import { doctorReport } from "./commands/doctor";
 import { gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
 import { lessonsCommand } from "./commands/lessons";
+import { listCommand } from "./commands/list";
 import { readyReport } from "./commands/ready";
+import { isoDay } from "./core/schedule";
 
-const USAGE = "usage: bun spec.ts doctor [<spec-name>] | context <sub-command> <spec-name> [hint] | lessons … | graph … | ready <spec-name> | gates <spec-name>";
+const USAGE = "usage: bun spec.ts doctor [<spec-name>] | context <sub-command> <spec-name> [hint] | lessons … | graph … | ready <spec-name> | gates <spec-name> | list [all] [filter] [--json]";
 
 function run(argv: readonly string[], projectDir: string): string {
   const [command, ...args] = argv;
@@ -23,6 +25,8 @@ function run(argv: readonly string[], projectDir: string): string {
       return readyReport(projectDir, args[0]);
     case "gates":
       return gatesReport(projectDir, args[0]);
+    case "list":
+      return listCommand(projectDir, args, isoDay(new Date()));
     default:
       return USAGE;
   }
