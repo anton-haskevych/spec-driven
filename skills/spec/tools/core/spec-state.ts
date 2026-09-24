@@ -18,6 +18,7 @@ export interface PhaseState {
   entry?: string;
   summary?: PhaseEntrySummary;
   schedule: Schedule;
+  code: boolean;
 }
 
 export interface SpecState {
@@ -47,6 +48,7 @@ function loadPhase(spec: SpecFolder, line: PhaseLine, index: number): PhaseState
     entry,
     summary: body === undefined ? undefined : summarizePhaseEntry(body),
     schedule: data ? readSchedule(data) : { problems: [] },
+    code: data?.code !== false,
   };
 }
 

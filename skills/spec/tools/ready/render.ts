@@ -1,4 +1,4 @@
-import type { SpecState } from "../core/spec-state";
+import type { PhaseState, SpecState } from "../core/spec-state";
 import { isWip, type ReadySet } from "./ready-set";
 
 export function renderReadySet(set: ReadySet): string {
@@ -13,10 +13,13 @@ export function renderReadySet(set: ReadySet): string {
 }
 
 export function renderPrGroups(state: SpecState): string {
+  const label = (phase: PhaseState) => `${phase.id}${phase.done ? " ✓" : ""}`;
   const groups = new Map<string, string[]>();
-  for (const phase of state.phases) {
+  for (const phase of state.phases.filter((p) => p.code)) {
     const key = phase.edges.pr ?? "(no pr field)";
-    groups.set(key, [...(groups.get(key) ?? []), `${phase.id}${phase.done ? " ✓" : ""}`]);
+    groups.set(key, [...(groups.get(key) ?? []), label(phase)]);
   }
-  return [...groups.entries()].map(([pr, ids]) => `PR ${pr}: phases ${ids.join(", ")}`).join("\n");
+  const prLines = [...groups.entries()].map(([pr, ids]) => `PR ${pr}: phases ${ids.join(", ")}`);
+  const tasks = state.phases.filter((phase) => !phase.code).map(label);
+  return [...prLines, ...(tasks.length > 0 ? [`Task phases (no PR): ${tasks.join(", ")}`] : [])].join("\n");
 }

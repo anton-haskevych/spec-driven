@@ -1,4 +1,5 @@
 import type { BacklogItem } from "../backlog/items";
+import type { PhaseEdges } from "../core/phase-edges";
 import type { PhaseLine } from "../core/progress";
 import type { SpecMeta } from "../core/spec-meta";
 import type { PhaseState } from "../core/spec-state";
@@ -16,9 +17,10 @@ export function phaseState(overrides: Partial<PhaseState> = {}): PhaseState {
     done: false,
     deployed: false,
     pointer: "phases/phase-1.md",
-    edges: { declared: false, needs: [], needsDeployed: [], sameFilesAs: [] },
+    edges: phaseEdges(),
     summary: { deliverables: { checked: 0, unchecked: 1 }, nextRun: [] },
     schedule: { problems: [] },
+    code: true,
     ...overrides,
   };
 }
@@ -56,4 +58,8 @@ export function specRowOf(overrides: Partial<SpecRow> = {}): SpecRow {
 
 export function backlogItem(overrides: Partial<BacklogItem> = {}): BacklogItem {
   return { file: "docs/specs/_backlog/idea.md", slug: "idea", title: "An idea", body: "", tags: [], ...overrides };
+}
+
+export function phaseEdges(overrides: Partial<PhaseEdges> = {}): PhaseEdges {
+  return { declared: false, needs: [], needsDeployed: [], sameFilesAs: [], ...overrides };
 }
