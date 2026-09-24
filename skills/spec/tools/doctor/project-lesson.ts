@@ -19,3 +19,11 @@ export function checkProjectLesson(file: string, text: string): Issue[] {
   }
   return issues;
 }
+
+const LOCATION_SUFFIX = /[:#].*$/;
+
+export function checkEnforcedBy(file: string, enforcedBy: string | undefined, exists: (path: string) => boolean): Issue[] {
+  if (!enforcedBy) return [];
+  const path = enforcedBy.replace(LOCATION_SUFFIX, "").trim();
+  return exists(path) ? [] : [error(file, `enforced-by points at ${path}, which does not exist`)];
+}

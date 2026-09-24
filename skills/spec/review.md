@@ -215,6 +215,7 @@ Where a reviewer's recommendation conflicts with the project's own rules (CLAUDE
 - A finding moves scope between specs or reorders another spec's phases
 - A finding cuts or adds a deliverable that changes what the feature *is* (not how it's built)
 - The panel's verdict is that the approach itself is wrong
+- A **graduation candidate** touches this spec (run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons candidates <name>`): a project lesson that has hit 3+ specs and has no guard. Ask whether this spec should carry a guardrail phase that makes it impossible (CI job, hook, lint or ArchUnit rule, test helper). Recommend yes when the guard is small and this spec touches the lesson's paths. A yes adds the phase and, once it lands, sets the lesson's `enforced-by:`.
 
 For each fork: the question in one line, both positions in plain language, your recommendation, and what it changes downstream. Two to four forks is normal; ten means you're not deciding enough yourself. Ask them all in one message, then wait. Fold the answers into the synthesis before writing the review file. If the user says "your call", decide and record it as a decision ledger entry with your reasoning.
 

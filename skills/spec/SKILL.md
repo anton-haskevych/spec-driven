@@ -355,6 +355,10 @@ enforced-by: <path to a check>             # optional; once set, recall stops sh
 
 Without Bun, do steps 1–2 by reading `docs/specs/_ledger/INDEX.md`.
 
+### Graduation
+
+A lesson that recurs belongs in code, not prose. Once a project lesson's `seen-in` reaches 3 specs and it has no `enforced-by`, it becomes a graduation candidate (`spec.ts lessons candidates [<spec> | <file…>]`). Create offers a guardrail phase for candidates the new spec touches, and review raises them as a fork. When the guard lands, set `enforced-by:` to its path. The doctor checks that path exists, and recall stops showing the lesson, so the ledger shrinks as the codebase learns.
+
 ### Recall
 
 Lessons reach a session in three ways. None of them needs anyone to ask.

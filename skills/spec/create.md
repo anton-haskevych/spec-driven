@@ -105,6 +105,8 @@ For each planned phase, prepare:
 
 Order phases by dependency and by any hard safety rule (e.g. close a security hole before the surface that exposes it becomes reachable). Note which phases are mutually independent — that's the natural PR split (groundwork / inert / refactor phases as one PR, the "turns it on" phases as another). Record the suggested split and branch plan in `pr-opening.md`, never in a phase.
 
+**Recurring lessons become guards.** Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons candidates <the files this spec will touch>`. Each candidate is a codebase lesson that has hit 3+ specs with no guard. When this spec touches its paths and the guard is small, propose a guardrail phase that makes the lesson impossible. Guardrails ship in their own PR (`pr:` group). When that phase lands, set the lesson's `enforced-by:` to the check's path; recall then stops showing it.
+
 **Choose phase shape now** (per phase):
 
 - **Default shape: flat file.** `phases/phase-<N>-<slug>.md`. Use this for phases where a single file holds everything comfortably.
