@@ -28,6 +28,8 @@ next step is picked linearly.
 
 ## Releases
 
+All shipped 2026-09-24. 2.27.1 fixed the skill hooks' script path (`${CLAUDE_SKILL_DIR}` is empty inside hook commands; they use `$CLAUDE_PLUGIN_ROOT`). Both hooks and the context pack are verified in live Claude Code sessions.
+
 | Version | Change | Builds on |
 |---|---|---|
 | 2.21.0 | **Foundation.** Bun tool core, `doctor`, spec-file check hook (PostToolUse), session-lifecycle section, stage derived from files so `status` only holds values the project allows | — |
