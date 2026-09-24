@@ -3,8 +3,10 @@ import { join } from "node:path";
 import { samePhase } from "../core/phase-title";
 import { findSpecs } from "../core/spec-folders";
 import { firstOpenPhase, loadSpecState, type SpecState } from "../core/spec-state";
-import { executePack, resumePack } from "../context/packs";
-import { loadProjectLessons, type Lesson } from "../lessons/project-ledger";
+import { executePack, resumePack, type PackInput } from "../context/packs";
+import { neighborhoodReport } from "./graph";
+import { loadNodes } from "../graph/nodes";
+import { loadProjectLessons } from "../lessons/project-ledger";
 import { doctorReport } from "./doctor";
 
 export interface ContextRequest {
@@ -36,18 +38,20 @@ export function contextPack(projectDir: string, request: ContextRequest): string
 
   const doctor = doctorReport(projectDir, request.name).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
+  const relations = neighborhoodReport(loadNodes(projectDir), state.spec.name, projectDir);
   const body = mode === "execute"
-    ? executeBody(state, doctor, loadProjectLessons(projectDir), request.hint)
-    : resumePack({ state, doctor, lessons: [] });
+    ? executeBody({ state, doctor, relations, lessons: loadProjectLessons(projectDir) }, request.hint)
+    : resumePack({ state, doctor, relations, lessons: [] });
   return `<spec-pack spec="${state.spec.name}" mode="${mode}">\n${body}\n</spec-pack>`;
 }
 
-function executeBody(state: SpecState, doctor: string, lessons: readonly Lesson[], hint: string | undefined): string {
+function executeBody(input: PackInput, hint: string | undefined): string {
+  const { state } = input;
   const hinted = hint ? phaseForHint(state, hint) : undefined;
   const phase = hinted ?? firstOpenPhase(state);
   if (!phase) return "All phases complete — see pr-opening.md for the PR gate.";
   const note = hinted ? `from your hint "${hint}"` : hint ? `hint "${hint}" matched no phase; first open phase` : "first open phase";
-  return executePack({ state, doctor, lessons }, phase, note);
+  return executePack(input, phase, note);
 }
 
 function phaseForHint(state: SpecState, hint: string) {

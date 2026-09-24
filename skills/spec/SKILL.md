@@ -279,6 +279,31 @@ Keep each one-line summary under 80 characters.
 - **Never delete entries.** Stale entries get a `superseded-by:` field pointing to the replacement; resume's filter excludes superseded ones.
 - **Append to INDEX whenever a new ledger file is created.** Keep the row format consistent.
 
+## Relations between specs
+
+Specs form a graph. The spec that depends on, belongs to, or replaces another one declares the link in its `CLAUDE.md` frontmatter. The other side never writes it: needed-by, children and superseded-by are computed.
+
+```yaml
+part-of: directory-accounts                          # parent or umbrella spec (at most one)
+needs: [competitions-content-publishing-safety#1-2]  # must land first; whole spec or phases
+supersedes: [directory-front-doors#4-5]              # this spec replaces that work
+related:                                             # anything else, with a one-line why
+  - organizer-profile-redesign: owns the brand page visuals
+```
+
+- **References** are `<spec>` or `<spec>#<phase>`. `<phase>` is an exact phase id (`2b-pre`) or a numeric range (`4-5`, which includes `4a`).
+- **Four types only.** Prose may still explain a relation, but the frontmatter entry is what counts.
+- **An umbrella** is a spec whose children declare `part-of` it. Nesting needs nothing more.
+- **When the other side's work moves** (a phase dissolved, split or renamed), update the declaring spec's reference. The doctor flags references that no longer resolve.
+
+Claude reads the graph through `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts graph …`. The user never calls it.
+
+- `graph <name>`: links in both directions, which `needs` are still open ("Blocked by"), and undeclared overlaps (open specs whose `code-map.md` lists the same files).
+- `graph files <path…>`: which specs' code-maps list these files. Prep uses it to find neighbors.
+- `graph suggest <name>`: specs this spec mentions in prose without declaring a relation.
+
+The graph appears in the resume and execute packs. Review uses it to load neighbors, and the doctor and spec-file check validate it.
+
 ## Project ledger
 
 `docs/specs/_ledger/` holds lessons about the codebase that any spec can hit. It is shared by every spec in the repo, including `*/docs/specs/` roots. Names starting with `_` are never specs.

@@ -125,6 +125,8 @@ Create the spec folder with the full file set below. Use the taxonomy values fro
 
 #### `docs/specs/$ARGUMENTS/CLAUDE.md`
 
+Fill the relation fields from prep's overlap findings (see `prep.md` → *Overlap check*). Without prep, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts graph files <the files this spec will touch>` first. Declare only relations this spec owns (SKILL.md → *Relations between specs*), and drop any field that stays empty.
+
 ```markdown
 ---
 created: <ISO 8601 with timezone, e.g. 2026-04-14T10:30:00+02:00>
@@ -133,6 +135,11 @@ status: <draft, or the closest value the project allows (SKILL.md → Stage vs. 
 area: [<from taxonomy>]
 domain: [<from taxonomy>]
 scope: [<from taxonomy>]
+part-of: <parent spec, only if one exists>
+needs: [<spec or spec#phase that must land first>]
+supersedes: [<spec#phases this spec replaces>]
+related:
+  - <spec>: <one-line why>
 ---
 
 # [Feature Name] Spec

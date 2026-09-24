@@ -13,6 +13,7 @@ export interface PackInput {
   state: SpecState;
   doctor: string;
   lessons: readonly Lesson[];
+  relations: string;
 }
 
 const PHASE_ENTRY_LIMIT = 8000;
@@ -22,7 +23,7 @@ const LEDGER_LIMIT = 6000;
 const PATH_LIKE = /^[\w@.{}-]+(\/[\w@.{}*-]+)+$/;
 const STABLE_REFERENCES = ["design.md", "technical.md"];
 
-export function resumePack({ state, doctor }: PackInput): string {
+export function resumePack({ state, doctor, relations }: PackInput): string {
   const next = firstOpenPhase(state);
   const nextBlock = next
     ? `### Next chunk: Phase ${next.id} — ${next.name}\n${(next.summary?.nextRun ?? []).map((item) => `- ${item}`).join("\n")}`
@@ -32,11 +33,12 @@ export function resumePack({ state, doctor }: PackInput): string {
     `### Status table\n${renderStatusTable(state)}`,
     inFlightBlock(state),
     nextBlock,
+    `### Related specs\n${relations}`,
     `### Doctor\n${doctor}`,
   ].join("\n\n");
 }
 
-export function executePack({ state, doctor, lessons }: PackInput, phase: PhaseState, pickNote: string): string {
+export function executePack({ state, doctor, lessons, relations }: PackInput, phase: PhaseState, pickNote: string): string {
   const read = (name: string) => readTextIfExists(join(state.spec.dir, name));
   return [
     "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and in-flight.md. Do not re-read those files.",
@@ -47,6 +49,7 @@ export function executePack({ state, doctor, lessons }: PackInput, phase: PhaseS
     projectLessonsBlock(lessons, phase.entry ?? ""),
     `### CLAUDE.md\n${clip(read("CLAUDE.md") ?? "(missing)", SMALL_FILE_LIMIT, "CLAUDE.md")}`,
     stableReferencesBlock(read),
+    `### Related specs\n${relations}`,
     inFlightBlock(state),
     `### Doctor\n${doctor}`,
   ].join("\n\n");

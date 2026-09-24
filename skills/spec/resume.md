@@ -68,6 +68,7 @@ Bullet rules:
   - Good: `3a. Author NorthshoreDanceAcademy profile component`
   - Bad: `3a. Author NorthshoreDanceAcademy profile component under backend/src/main/java/dance/crm/platform/demofixture/domain/profile/ (highest priority — blocks SPEC #1 Phase 5)` — that path detail and priority annotation belong in Stage B, not here.
 - **No trailing paragraph** elaborating on parallelizable tasks, blockers, or rationale. If a parallel task matters at Stage A scale, mention it as one extra bullet: `- (parallelizable: 4-pre, 4a)`.
+- If the pack's *Related specs* shows open `needs` ("Blocked by"), add one bullet: `- (blocked by: <spec>#<phase>, not done)`.
 
 If `in-flight.md` was non-empty (rendered in A.3), the suggested chunk still appears — but its bullets must not duplicate items in the `**Last session:**` block.
 

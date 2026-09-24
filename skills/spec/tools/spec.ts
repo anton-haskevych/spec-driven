@@ -1,9 +1,10 @@
 #!/usr/bin/env bun
 import { contextPack, parseContextRequest } from "./commands/context";
 import { doctorReport } from "./commands/doctor";
+import { graphCommand } from "./commands/graph";
 import { lessonsCommand } from "./commands/lessons";
 
-const USAGE = "usage: bun spec.ts doctor [<spec-name>] | context <sub-command> <spec-name> [hint] | lessons …";
+const USAGE = "usage: bun spec.ts doctor [<spec-name>] | context <sub-command> <spec-name> [hint] | lessons … | graph …";
 
 function run(argv: readonly string[], projectDir: string): string {
   const [command, ...args] = argv;
@@ -14,6 +15,8 @@ function run(argv: readonly string[], projectDir: string): string {
       return contextPack(projectDir, parseContextRequest(args));
     case "lessons":
       return lessonsCommand(projectDir, args);
+    case "graph":
+      return graphCommand(projectDir, args);
     default:
       return USAGE;
   }

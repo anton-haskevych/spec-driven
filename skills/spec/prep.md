@@ -183,6 +183,8 @@ Do NOT propose a design. Do NOT write or edit code. Findings, not prose — keep
 
 When the wave returns, synthesize across its agents: what's now *known*, what reuse exists, what's still *unknown or risky*. Write the synthesis to an immutable research snapshot.
 
+**Overlap check** (once, after the first wave): run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts graph files <the change-surface files the wave found>`. For each open spec it lists, read that spec's `CLAUDE.md` and decide what the relation is: `needs`, `part-of`, `supersedes`, `related`, or none. Record the decisions in the snapshot under `## Neighbors`; `create` turns them into frontmatter. A neighbor that owns part of the change is a scope question for the user, not a silent split. Skip this without Bun.
+
 ```bash
 mkdir -p docs/specs/<name>/research
 date +%F   # the YYYY-MM-DD for the filename and frontmatter

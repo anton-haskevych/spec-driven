@@ -154,6 +154,7 @@ Committed: <commit hash> — <commit message first line>
 Ledger entries added: <count> — <comma-separated slugs>
 In-flight state: <"has pending work" | "clean boundary">
 
+Unblocked: <specs whose needs point at phases finished this session, from `spec.ts graph <spec-name>`; omit the line if none>
 Next agent should run: /spec resume <spec-name>
 ---
 ```

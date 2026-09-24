@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { markdownFilesIn, readTextIfExists } from "../core/files";
 import { parsePhaseLines } from "../core/progress";
 import type { SpecFolder } from "../core/spec-folders";
+import { graphIssues } from "../graph/checks";
+import type { SpecNode } from "../graph/nodes";
 import type { Issue } from "./issue";
 import { checkLedgerEntry, checkLedgerIndex } from "./ledger";
 import { checkInFlight, checkPhases } from "./phases";
@@ -10,12 +12,14 @@ import { checkSpecMeta } from "./spec-meta";
 
 export interface DoctorContext {
   statuses: readonly string[];
+  nodes: ReadonlyMap<string, SpecNode>;
 }
 
 const LEDGER_INDEX = "INDEX.md";
 
 export function runDoctor(spec: SpecFolder, context: DoctorContext): Issue[] {
-  return [...metaIssues(spec, context), ...ledgerIssues(spec), ...progressIssues(spec)];
+  const graph = graphIssues(context.nodes, spec.name, join(spec.dir, "CLAUDE.md"));
+  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec), ...progressIssues(spec)];
 }
 
 function metaIssues(spec: SpecFolder, context: DoctorContext): Issue[] {

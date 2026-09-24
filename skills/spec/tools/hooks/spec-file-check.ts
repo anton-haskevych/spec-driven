@@ -8,6 +8,8 @@ import { formatIssues, type Issue } from "../doctor/issue";
 import { checkLedgerEntry } from "../doctor/ledger";
 import { checkProjectLesson } from "../doctor/project-lesson";
 import { checkSpecMeta } from "../doctor/spec-meta";
+import { linkIssues } from "../graph/checks";
+import { loadNodes } from "../graph/nodes";
 
 const WATCHED_TOOLS = new Set(["Write", "Edit", "MultiEdit"]);
 
@@ -22,7 +24,10 @@ export function issuesForWrittenFile(filePath: string, projectDir: string): Issu
   const text = location ? readTextIfExists(filePath) : undefined;
   if (!location || text === undefined) return [];
 
-  if (location.pathInSpec === "CLAUDE.md") return checkSpecMeta(filePath, text, allowedStatuses(projectDir));
+  if (location.pathInSpec === "CLAUDE.md") {
+    const links = linkIssues(loadNodes(projectDir), location.spec.name, filePath);
+    return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links];
+  }
   if (isLedgerEntry(location.pathInSpec)) {
     const ledgerDir = dirname(filePath);
     return checkLedgerEntry(filePath, text, (name) => existsSync(join(ledgerDir, name)));
