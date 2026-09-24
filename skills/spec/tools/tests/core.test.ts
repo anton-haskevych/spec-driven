@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parseFrontmatter } from "../core/frontmatter";
+import { parseFrontmatter, stringList } from "../core/frontmatter";
 import { countCheckboxes, parsePhaseLines } from "../core/progress";
 import { locateSpecFile } from "../core/spec-folders";
 import { statusValues } from "../core/taxonomy";
@@ -14,6 +14,12 @@ describe("parseFrontmatter", () => {
   test("reports a missing closing fence and a non-map block", () => {
     expect(parseFrontmatter("---\nstatus: active\n").kind).toBe("invalid");
     expect(parseFrontmatter("---\n- a\n- b\n---\n").kind).toBe("invalid");
+  });
+
+  test("stringList reads a list or a lone string, dropping blanks and non-strings", () => {
+    expect(stringList({ tags: [" a ", "", 3, "b"] }, "tags")).toEqual(["a", "b"]);
+    expect(stringList({ tags: "solo" }, "tags")).toEqual(["solo"]);
+    expect(stringList({}, "tags")).toEqual([]);
   });
 
   test("returns none when the file has no frontmatter", () => {

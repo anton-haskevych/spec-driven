@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { markdownFilesIn, readTextIfExists } from "../core/files";
-import { parseFrontmatter, stringField, type FrontmatterData } from "../core/frontmatter";
+import { parseFrontmatter, stringField, stringList } from "../core/frontmatter";
 import { outlineMarkdown } from "../core/markdown";
 
 export const PROJECT_LEDGER_DIR = join("docs", "specs", "_ledger");
@@ -43,11 +43,4 @@ export function parseLesson(file: string, name: string, text: string): Lesson | 
     seenIn: stringList(parsed.data, "seen-in"),
     enforcedBy: stringField(parsed.data, "enforced-by"),
   };
-}
-
-export function stringList(data: FrontmatterData, key: string): string[] {
-  const value = data[key];
-  if (typeof value === "string" && value.trim() !== "") return [value.trim()];
-  if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === "string" && item.trim() !== "").map((item) => item.trim());
 }

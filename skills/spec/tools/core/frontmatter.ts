@@ -40,6 +40,13 @@ export function stringField(data: FrontmatterData, key: string): string | undefi
   return undefined;
 }
 
+export function stringList(data: FrontmatterData, key: string): string[] {
+  const value = data[key];
+  if (typeof value === "string" && value.trim() !== "") return [value.trim()];
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string" && item.trim() !== "").map((item) => item.trim());
+}
+
 function describe(cause: unknown): string {
   return cause instanceof Error ? cause.message : String(cause);
 }

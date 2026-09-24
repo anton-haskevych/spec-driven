@@ -1,5 +1,4 @@
-import { parseFrontmatter } from "../core/frontmatter";
-import { stringList } from "./project-ledger";
+import { parseFrontmatter, stringList } from "../core/frontmatter";
 
 export type SeenInResult = { kind: "updated"; text: string } | { kind: "unchanged" } | { kind: "invalid"; reason: string };
 
