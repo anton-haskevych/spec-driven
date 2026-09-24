@@ -32,6 +32,8 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 
 ## 1. Load the principles
 
+**Task phase?** If the picked phase has `code: false` (the execute pack says so under `Picked:`), skip to *Task phases* below; §1–§7 are for code.
+
 Read [principles.md](principles.md) once at the start of execution. These rules govern every code change you produce.
 
 ## 2. Recon the phase seam — before any decomposition
@@ -135,6 +137,18 @@ When the code phases this PR covers are all done, opening the PR is gated by `pr
 4. Open the PR as a **draft, off a feature branch — never to `main`**, following the PR split recorded in `pr-opening.md`.
 
 Never invent a "verification" or "open PR" phase to hold this — that's what `pr-opening.md` is for.
+
+## Task phases
+
+A task phase (`code: false`) delivers work outside the repo. No recon waves, no preflight, no TDD, no commits of production code.
+
+1. **Load what the spec points at.** The phase entry, plus any skill or playbook the spec's `CLAUDE.md` or the phase names for this kind of work. Follow its rules.
+2. **Split the open items by who can do them.**
+   - **Items you can do here** (draft the copy, write the brief, prepare the run of show, build a shareable page): do them, save the result where the project keeps it, and tick each with that file or link.
+   - **Items a person must do** (record, meet, send, publish from their account): tell the user what each needs from them, in one short list. Tick an item only when they report it done, with the evidence they give.
+3. **Tick with evidence**, always: `- [x] <item> — <link, date or file>`. The doctor warns about ticks with nothing after them.
+4. **Found code work?** It doesn't belong in a task phase. Add a code phase through `update` and link it with `needs`.
+5. The stopping rule (§8), end-of-chunk (§9) and handoff apply as for code phases.
 
 ## Notes
 

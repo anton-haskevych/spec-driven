@@ -39,6 +39,7 @@ Compare recent commits against unchecked sub-items in the current phase entry. F
 ### Check off sub-checkboxes inside the phase entry
 
 - Edit the phase's flat file or folder `plan.md` to change `- [ ]` to `- [x]` for completed sub-items.
+- **Task phase (`code: false`)?** Git can't prove these items, so append the evidence to each tick: `- [x] Record the interview — 2026-09-24, Drive/Recordings/ballroom.mp4`, or a link to the published page. No evidence from the user or the session, no tick.
 - **Do NOT check off or modify anything in `progress.md`** except in the narrow case below.
 
 ### Update the top-level phase checkbox in progress.md

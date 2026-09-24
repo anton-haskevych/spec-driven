@@ -291,6 +291,8 @@ The forks were answered in §3; nothing else waits for confirmation. No per-find
 
 Concrete changes to `design.md`, `technical.md`, a phase entry, or `code-map.md`: apply them. Wrong endpoint shapes, missing files in a phase's touch list, incorrect claims about existing code, decisions-table rows the review invalidated, deliverables that changed — edit the file.
 
+A task phase (`code: false`) that only checks our own work — QA, verification, opening a PR — is a spec correction too: move its content into `pr-opening.md` and delete the phase.
+
 Respect supersession annotations: when a substitution finding replaces or deletes a component, apply the substitution and skip the mitigation findings marked `superseded-if-accepted` for that component (they stay preserved in the review file).
 
 ### Ledger-shaped findings → create/update ledger entries

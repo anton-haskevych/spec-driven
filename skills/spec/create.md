@@ -90,9 +90,10 @@ Mirror the project's patterns — don't impose new ones.
 
 Draft the implementation phases, **then stop and agree on them with the user before writing any spec file.** Phasing is the skeleton the whole spec hangs on — cheap to reshape now, expensive later. Present the phase list and the sequencing; if the user says "your judgment," proceed without further questions. **Each phase becomes its own entry inside `phases/`** — not a section in `progress.md`.
 
-**Phases are code work only — a hard rule:**
+**Every phase ships something — a hard rule:**
 
-- A phase is a unit of *code that ships* — a change set that leaves the codebase functional and tested at its end.
+- A **code phase** (the default) is a unit of *code that ships* — a change set that leaves the codebase functional and tested at its end.
+- A **task phase** (`code: false`) is work outside the repo that produces something real: a published page or post, a recorded video, sent emails, a signed agreement. Use it when the spec's value depends on that work (record the interview → build the page → publish and distribute). Its sub-checkboxes are concrete actions with a visible result, not TDD commits. If a task needs code, that part is its own code phase, linked by `needs`.
 - **Never create a "Verification" phase, a "Manual QA" phase, or an "Open PR" phase.** Verification, QA, and PR-opening are not phases — they live in `pr-opening.md` (scaffolded below; semantics in `SKILL.md`). If you're about to write "Phase N — Verification," stop: that content is `pr-opening.md`'s pre-PR checks.
 
 For each planned phase, prepare:
@@ -101,7 +102,7 @@ For each planned phase, prepare:
 - **Shape** — read [archetypes.md](archetypes.md), plus `docs/specs/_playbook/archetypes.md` if the project has one. When a phase follows a known shape (harness-first, guardrail-alone, expand-bake-contract, …), set `shape: <name>` in its frontmatter and apply that shape's edges and traps.
 - **Files to touch** — paths that will be edited or created
 - **Implementation guidance** — prose: how to approach the work, how the files relate, phase-specific nuances
-- **Sub-checkboxes** — specific, concrete deliverables, **each sized to one TDD commit** (red test → change → green → commit; functional and tested at every step)
+- **Sub-checkboxes** — specific, concrete deliverables. In a code phase **each is sized to one TDD commit** (red test → change → green → commit; functional and tested at every step). In a task phase each is one action whose result someone can see.
 - **Phase-local notes** — gotchas or context that only matter for this phase (forward-propagating notes go to the ledger later)
 
 Order phases by dependency and by any hard safety rule (e.g. close a security hole before the surface that exposes it becomes reachable). Note which phases are mutually independent — that's the natural PR split (groundwork / inert / refactor phases as one PR, the "turns it on" phases as another). Record the suggested split and branch plan in `pr-opening.md`, never in a phase.
@@ -220,7 +221,7 @@ Technical spec containing:
 
 #### `docs/specs/$ARGUMENTS/pr-opening.md`
 
-The PR-readiness gate — **not a phase**. Two sections only; keep the whole file tight.
+The PR-readiness gate — **not a phase**. Two sections only; keep the whole file tight. Skip this file when every phase is a task phase: nothing opens a PR.
 
 ```markdown
 # PR Opening — [Feature Name]
@@ -281,8 +282,9 @@ One file per phase that chose flat-file shape in *Plan — the phasing gate*. Co
 needs: [<phase ids or spec#phase that must be ticked first; [] if none>]
 needs-deployed: [<phases that must be deployed first; omit if none>]
 same-files-as: [<phases editing the same files; omit if none>]
-pr: <PR group label>
+pr: <PR group label; omit for a task phase>
 shape: <archetype name from archetypes.md; omit if none fits>
+code: false   # only for a task phase; omit for code phases
 ---
 
 # Phase <N> — <Name>

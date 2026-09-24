@@ -221,7 +221,8 @@ docs/specs/<name>/
 - **No reverse demotion.** Folder-shape phases stay folders. A rare manual revert is possible but not automated.
 - **Supplementary files inside a phase folder are NOT read by default.** Only `plan.md` is the entry point. If a supplementary file holds critical context, `plan.md` must explicitly link to it so resume picks it up.
 - **Slugs must be unique across phases.** Agent proposes slugs and asks the user when two are similar.
-- **Phases are code work only.** A phase is a change set that ships and leaves the tree functional + tested at its end. **Never** a "Verification", "Manual QA", or "Open PR" phase — those are not phases; their content lives in `pr-opening.md`. Sub-checkboxes are each sized to one TDD commit (red → change → green → commit).
+- **Every phase ships something.** A **code phase** (the default) is a change set that leaves the tree functional + tested at its end; its sub-checkboxes are each sized to one TDD commit (red → change → green → commit). A **task phase** (`code: false` in its frontmatter) delivers something real outside the repo — a published page, a recorded video, sent emails, a signed agreement — and each sub-checkbox is ticked with its evidence (a link, date or file). One spec can mix both, joined by `needs` edges.
+- **Never** a "Verification", "Manual QA", or "Open PR" phase, code or task — checking our own work is not a phase; it lives in `pr-opening.md`. The doctor warns about task phases named like one.
 - **Record ordering edges** in the phase file's frontmatter (*Phase edges* below). Never hand-write "parallelizable with"; it is computed.
 
 ## Phase edges
@@ -233,8 +234,9 @@ Each phase file starts with frontmatter that holds only hard constraints:
 needs: [2, 3, competitions-content-publishing-safety#2]  # must be ticked first; local ids or spec#phase
 needs-deployed: [2]         # must be ticked and deployed (blue/green, bake time), not just merged
 same-files-as: [5]          # no logical dependency, but edits the same files: lands after 5, not alongside
-pr: B                       # PR group; pr-opening.md's split comes from these
+pr: B                       # PR group; pr-opening.md's split comes from these (code phases only)
 due: 2026-10-15             # optional; only for a real date
+code: false                 # optional; marks a task phase (default: code)
 ---
 ```
 
@@ -395,7 +397,7 @@ Lessons reach a session in three ways. None of them needs anyone to ask.
   - **Spec state** (< 20 lines) — running summary: phases done / left, branch + PR link once they exist, the suggested PR split (from the phases' `pr:` fields, listed by `spec.ts ready <name>`). Kept current by execute/handoff as phases land — not a re-list of the phase index.
   - **Pre-PR checks** — checkboxes scoped to the subprojects the spec touches (derive from `code-map.md`). Ticked before the **draft** PR opens. Never straight to `main`.
 - **Project-scoped checks.** The concrete checks depend on which build targets the spec touches. If the project defines canonical checks (a `.claude/` convention, a CI manifest), use those; otherwise default, per touched module, to: tests pass · lint + typecheck/compile · any feature-specific e2e.
-- **Scaffolded by create, kept current by execute/handoff.** Not immutable — it's a live gate, edited in place.
+- **Scaffolded by create, kept current by execute/handoff.** Not immutable — it's a live gate, edited in place. A spec whose phases are all task phases opens no PR and has no `pr-opening.md`.
 
 ## reviews/ and research/ semantics
 
