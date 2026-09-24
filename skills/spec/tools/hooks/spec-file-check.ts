@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { basename, dirname, isAbsolute, join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { isRecord } from "../core/frontmatter";
-import { locateSpecFile } from "../core/spec-folders";
+import { locateSpecFile, type SpecFileLocation } from "../core/spec-folders";
 import { allowedStatuses } from "../core/taxonomy";
 import { formatIssues, type Issue } from "../doctor/issue";
 import { checkBacklogItem } from "../doctor/backlog-item";
@@ -15,46 +15,57 @@ import { loadSpecState } from "../core/spec-state";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
 import { phaseScheduleIssues } from "../doctor/schedule";
 import { taskPhaseIssues } from "../doctor/task-phases";
+import { checkPlaybook, phasePlaybookIssues } from "../doctor/playbooks";
+import { loadPlaybooks } from "../playbook/playbooks";
+import { projectFieldValues } from "../core/taxonomy";
 import { isoDay } from "../core/schedule";
 
 const WATCHED_TOOLS = new Set(["Write", "Edit", "MultiEdit"]);
 
 const PROJECT_LESSON = /\/docs\/specs\/_ledger\/(?!INDEX\.md$)[^/]+\.md$/;
 const BACKLOG_ITEM = /\/docs\/specs\/_backlog\/(_closed\/)?[^/]+\.md$/;
+const PLAYBOOK = /\/docs\/specs\/_playbook\/[^/]+\.md$/;
+const PROJECT_FILES = [PROJECT_LESSON, BACKLOG_ITEM, PLAYBOOK];
 
 export function issuesForWrittenFile(filePath: string, projectDir: string): Issue[] {
-  if (PROJECT_LESSON.test(filePath)) {
-    const text = readTextIfExists(filePath);
-    return text === undefined ? [] : checkProjectLesson(filePath, text);
-  }
-  const backlog = BACKLOG_ITEM.exec(filePath);
-  if (backlog) {
-    const text = readTextIfExists(filePath);
-    return text === undefined ? [] : checkBacklogItem(filePath, text, backlog[1] !== undefined);
-  }
   const location = locateSpecFile(filePath);
-  const text = location ? readTextIfExists(filePath) : undefined;
-  if (!location || text === undefined) return [];
+  const projectFile = PROJECT_FILES.some((pattern) => pattern.test(filePath));
+  const text = location || projectFile ? readTextIfExists(filePath) : undefined;
+  if (text === undefined) return [];
+  if (projectFile) return projectFileIssues(filePath, text, projectDir);
+  return location ? specFileIssues(location, filePath, text, projectDir) : [];
+}
 
+function projectFileIssues(filePath: string, text: string, projectDir: string): Issue[] {
+  if (PROJECT_LESSON.test(filePath)) return checkProjectLesson(filePath, text);
+  if (PLAYBOOK.test(filePath)) return checkPlaybook(filePath, text, (field) => projectFieldValues(projectDir, field));
+  const backlog = BACKLOG_ITEM.exec(filePath);
+  return backlog ? checkBacklogItem(filePath, text, backlog[1] !== undefined) : [];
+}
+
+function specFileIssues(location: SpecFileLocation, filePath: string, text: string, projectDir: string): Issue[] {
   if (location.pathInSpec === "CLAUDE.md") {
     const links = linkIssues(loadNodes(projectDir), location.spec.name, filePath);
     return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links];
   }
-  if (location.pathInSpec.startsWith("phases/")) {
-    const state = loadSpecState(location.spec);
-    const today = isoDay(new Date());
-    const pointer = location.pathInSpec;
-    return [
-      ...phaseEdgeIssues(state, loadNodes(projectDir), pointer),
-      ...phaseScheduleIssues(state, today, pointer),
-      ...taskPhaseIssues(state, pointer),
-    ];
-  }
+  if (location.pathInSpec.startsWith("phases/")) return phaseFileIssues(location, projectDir);
   if (isLedgerEntry(location.pathInSpec)) {
     const ledgerDir = dirname(filePath);
     return checkLedgerEntry(filePath, text, (name) => existsSync(join(ledgerDir, name)));
   }
   return [];
+}
+
+function phaseFileIssues(location: SpecFileLocation, projectDir: string): Issue[] {
+  const state = loadSpecState(location.spec);
+  const pointer = location.pathInSpec;
+  const playbooks = new Set(loadPlaybooks(projectDir).map((playbook) => playbook.name));
+  return [
+    ...phaseEdgeIssues(state, loadNodes(projectDir), pointer),
+    ...phaseScheduleIssues(state, isoDay(new Date()), pointer),
+    ...taskPhaseIssues(state, pointer),
+    ...phasePlaybookIssues(state, playbooks, pointer),
+  ];
 }
 
 function isLedgerEntry(pathInSpec: string): boolean {

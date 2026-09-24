@@ -2,7 +2,9 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { checkPlaybook, phasePlaybookIssues } from "../doctor/playbooks";
 import { loadPlaybooks, parsePlaybook, playbookMatches, selectPlaybooks } from "../playbook/playbooks";
+import { phaseState } from "./factories";
 
 const GROWTH = "---\nmatch: { domain: [growth, seo] }\n---\n# Growth\nDone means published.\n";
 
@@ -67,5 +69,44 @@ describe("loadPlaybooks", () => {
 
   test("loads only the files that declare match", () => {
     expect(loadPlaybooks(project).map((playbook) => playbook.name)).toEqual(["growth"]);
+  });
+});
+
+describe("checkPlaybook", () => {
+  const taxonomy = (field: string) => (field === "domain" ? ["growth", "seo"] : []);
+  const problems = (text: string) => checkPlaybook("p.md", text, taxonomy).map((issue) => `${issue.severity}: ${issue.problem}`);
+
+  test("a playbook with known values and a short body is clean; non-playbooks are skipped", () => {
+    expect(problems(GROWTH)).toEqual([]);
+    expect(problems("# Gates\n## landing\n- [ ] build\n")).toEqual([]);
+  });
+
+  test("rejects a match that is not a field map, and warns on one that matches nothing", () => {
+    expect(problems("---\nmatch: growth\n---\n")).toEqual(["error: match must map taxonomy fields to values, e.g. match: { domain: [growth] }"]);
+    expect(problems("---\nmatch: {}\n---\n")).toEqual(["warning: match is empty, so this playbook applies to no spec"]);
+  });
+
+  test("warns about values the project taxonomy doesn't have, and skips fields it doesn't define", () => {
+    expect(problems("---\nmatch: { domain: [grwoth], tags: [video] }\n---\n")).toEqual([
+      'warning: match domain: "grwoth" is not a domain value in .claude/taxonomy.md',
+    ]);
+  });
+
+  test("warns when the playbook outgrows what the pack should carry", () => {
+    const long = `---\nmatch: { domain: [growth] }\n---\n${"line\n".repeat(61)}`;
+    expect(problems(long)).toEqual(["warning: playbook is 61 lines; keep it under 60 and move depth into the skill it points to"]);
+  });
+});
+
+describe("phasePlaybookIssues", () => {
+  test("flags a phase that names a playbook the project doesn't have", () => {
+    const state = {
+      spec: { name: "ballroom", dir: "/specs/ballroom" },
+      hasProgress: true,
+      phases: [phaseState({ pointer: "phases/p1.md", playbook: "growth" }), phaseState({ pointer: "phases/p2.md", playbook: "video" })],
+    };
+    expect(phasePlaybookIssues(state, new Set(["growth"])).map((issue) => `${issue.file}: ${issue.problem}`)).toEqual([
+      "/specs/ballroom/phases/p2.md: playbook: video is not in docs/specs/_playbook/ (known: growth)",
+    ]);
   });
 });

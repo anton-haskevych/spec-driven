@@ -79,6 +79,21 @@ describe("hookResponse", () => {
     write("phases/phase-1-harness.md", "- [ ] build it\n");
   });
 
+  test("blocks a playbook whose match is not a field map, and a phase naming an unknown playbook", () => {
+    const playbook = join(project, "docs", "specs", "_playbook", "growth.md");
+    mkdirSync(join(playbook, ".."), { recursive: true });
+    writeFileSync(playbook, "---\nmatch: growth\n---\n");
+    expect(JSON.parse(hookResponse(payload(playbook), project) ?? "{}").reason).toContain("match must map taxonomy fields");
+    writeFileSync(playbook, "---\nmatch: { domain: [growth] }\n---\n# Growth\n");
+    expect(hookResponse(payload(playbook), project)).toBeUndefined();
+
+    const phase = write("phases/phase-1-harness.md", "---\nplaybook: video\n---\n- [ ] build it\n");
+    expect(JSON.parse(hookResponse(payload(phase), project) ?? "{}").reason).toContain("playbook: video is not in docs/specs/_playbook/ (known: growth)");
+    expect(doctorReport(project, "checkout")).toContain("playbook: video is not in");
+    write("phases/phase-1-harness.md", "- [ ] build it\n");
+    rmSync(playbook);
+  });
+
   test("stays silent for valid spec files, code files, other tools and malformed input", () => {
     expect(hookResponse(payload(join(spec(), "ledger", "gotcha-a.md")), project)).toBeUndefined();
     expect(hookResponse(payload(join(project, "src", "app.ts")), project)).toBeUndefined();

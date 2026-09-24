@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { readTextIfExists } from "./files";
-import { parseFrontmatter } from "./frontmatter";
+import { parseFrontmatter, stringField } from "./frontmatter";
 import { parsePhaseEdges, type PhaseEdges } from "./phase-edges";
 import { summarizePhaseEntry, type PhaseEntrySummary } from "./phase-entry";
 import { parsePhaseTitle } from "./phase-title";
@@ -19,6 +19,7 @@ export interface PhaseState {
   summary?: PhaseEntrySummary;
   schedule: Schedule;
   code: boolean;
+  playbook?: string;
 }
 
 export interface SpecState {
@@ -49,6 +50,7 @@ function loadPhase(spec: SpecFolder, line: PhaseLine, index: number): PhaseState
     summary: body === undefined ? undefined : summarizePhaseEntry(body),
     schedule: data ? readSchedule(data) : { problems: [] },
     code: data?.code !== false,
+    playbook: data ? stringField(data, "playbook") : undefined,
   };
 }
 

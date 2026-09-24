@@ -12,6 +12,7 @@ import { gateIssues } from "./gates";
 import { phaseEdgeIssues } from "./phase-edges";
 import { phaseScheduleIssues, specOverdueIssues } from "./schedule";
 import { taskPhaseIssues } from "./task-phases";
+import { phasePlaybookIssues } from "./playbooks";
 import { checkInFlight, checkPhases } from "./phases";
 import { checkSpecMeta } from "./spec-meta";
 
@@ -20,6 +21,7 @@ export interface DoctorContext {
   nodes: ReadonlyMap<string, SpecNode>;
   gates?: ReadonlyMap<string, string[]>;
   today: string;
+  playbooks: ReadonlySet<string>;
 }
 
 const LEDGER_INDEX = "INDEX.md";
@@ -32,7 +34,7 @@ export function runDoctor(spec: SpecFolder, context: DoctorContext): Issue[] {
     ...specOverdueIssues(join(spec.dir, "CLAUDE.md"), context.nodes.get(spec.name), context.today),
     ...phaseScheduleIssues(state, context.today),
   ];
-  const tasks = taskPhaseIssues(state);
+  const tasks = [...taskPhaseIssues(state), ...phasePlaybookIssues(state, context.playbooks)];
   const prOpeningFile = join(spec.dir, "pr-opening.md");
   const gates = gateIssues(prOpeningFile, readTextIfExists(prOpeningFile) ?? "", context.gates);
   return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec), ...progressIssues(spec), ...edges, ...schedule, ...tasks, ...gates];
