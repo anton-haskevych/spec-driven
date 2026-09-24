@@ -138,6 +138,15 @@ describe("contextPack", () => {
     expect(pack).not.toContain("src/Other.java");
   });
 
+  test("execute pack tells the agent when the picked phase is a task phase", () => {
+    const codePack = contextPack(project, { mode: "execute", name: "checkout" });
+    expect(codePack).not.toContain("Task phase");
+    write("phases/phase-2.md", "---\ncode: false\n---\n**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+    const taskPack = contextPack(project, { mode: "execute", name: "checkout" });
+    expect(taskPack).toContain("Task phase (code: false): follow execute.md → Task phases.");
+    write("phases/phase-2.md", "**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+  });
+
   test("prints nothing for modes without a pack or unknown specs", () => {
     expect(contextPack(project, { mode: "prep", name: "checkout" })).toBe("");
     expect(contextPack(project, { mode: "resume", name: "missing" })).toBe("");

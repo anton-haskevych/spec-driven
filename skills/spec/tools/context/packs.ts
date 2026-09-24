@@ -25,6 +25,7 @@ const IN_FLIGHT_LIMIT = 2000;
 const LEDGER_LIMIT = 6000;
 const PATH_LIKE = /^[\w@.{}-]+(\/[\w@.{}*-]+)+$/;
 const STABLE_REFERENCES = ["design.md", "technical.md"];
+const TASK_PHASE_NOTE = "Task phase (code: false): follow execute.md → Task phases. No recon, preflight or TDD; tick each item with its evidence.";
 
 export function resumePack({ state, doctor, relations, ready }: PackInput): string {
   const next = ready.ready[0];
@@ -48,6 +49,7 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
   return [
     "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and in-flight.md. Do not re-read those files.",
     `Picked: Phase ${phase.id} — ${phase.name} (${pickNote})`,
+    ...(phase.code ? [] : [TASK_PHASE_NOTE]),
     `### Ready set\n${renderReadySet(input.ready)}`,
     `### Phase entry (${phase.pointer})\n${clip(phase.entry ?? "(missing)", PHASE_ENTRY_LIMIT, phase.pointer)}`,
     ledgerBlock(read("ledger/INDEX.md"), phase.id),
