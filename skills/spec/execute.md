@@ -95,7 +95,7 @@ For each unit:
 
 ## 7. Capture durable learnings as you go
 
-If, during a unit, you discover something durable — a non-obvious gotcha, a domain fact, a decision you had to make, a workaround for a constraint — write a ledger entry immediately. Use the narrowest correct `applies-to:` scope. Don't batch this; the learning is freshest now.
+If, during a unit, you discover something durable — a non-obvious gotcha, a domain fact, a decision you had to make, a workaround for a constraint — write a ledger entry immediately. Use the narrowest correct `applies-to:` scope. Don't batch this; the learning is freshest now. A lesson about the codebase rather than this feature goes to the project ledger (SKILL.md → *Project ledger → Write path*), so the next spec sees it too.
 
 Skip if the finding is just "this was tedious" or "I found the file." Ledger is for forward-propagating knowledge, not session log.
 

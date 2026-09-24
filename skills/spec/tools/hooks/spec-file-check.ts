@@ -6,11 +6,18 @@ import { locateSpecFile } from "../core/spec-folders";
 import { allowedStatuses } from "../core/taxonomy";
 import { formatIssues, type Issue } from "../doctor/issue";
 import { checkLedgerEntry } from "../doctor/ledger";
+import { checkProjectLesson } from "../doctor/project-lesson";
 import { checkSpecMeta } from "../doctor/spec-meta";
 
 const WATCHED_TOOLS = new Set(["Write", "Edit", "MultiEdit"]);
 
+const PROJECT_LESSON = /\/docs\/specs\/_ledger\/(?!INDEX\.md$)[^/]+\.md$/;
+
 export function issuesForWrittenFile(filePath: string, projectDir: string): Issue[] {
+  if (PROJECT_LESSON.test(filePath)) {
+    const text = readTextIfExists(filePath);
+    return text === undefined ? [] : checkProjectLesson(filePath, text);
+  }
   const location = locateSpecFile(filePath);
   const text = location ? readTextIfExists(filePath) : undefined;
   if (!location || text === undefined) return [];

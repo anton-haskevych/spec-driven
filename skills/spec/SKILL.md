@@ -4,6 +4,12 @@ description: Run pre-spec reconnaissance (prep), load an existing spec to resume
 argument-hint: <feature-name>
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
 hooks:
+  PreToolUse:
+    - matcher: "Write|Edit|MultiEdit"
+      hooks:
+        - type: command
+          command: 'command -v bun >/dev/null 2>&1 && bun "${CLAUDE_SKILL_DIR}/tools/hooks/lesson-recall.ts" || true'
+          timeout: 10
   PostToolUse:
     - matcher: "Write|Edit|MultiEdit"
       hooks:
@@ -75,6 +81,7 @@ Worktrees change nothing here. One worktree per spec is common, several per spec
 
 - **Spec-file check (hook).** Registered by this skill's frontmatter, so it exists only in sessions where `/spec` was invoked. After every Write or Edit to a spec's `CLAUDE.md` or a ledger entry, it validates the frontmatter. If the check fails, the result comes back as blocking feedback: fix the file before continuing.
 - **Context pack (at load).** For `resume`, `status`, `execute`, or a bare spec name, the skill runs `spec.ts context` as it loads. A `<spec-pack spec="…" mode="…">` block then appears near the top of this file, holding what that mode would otherwise read and filter by hand: the status table rendered to `status.md`'s rules, the next chunk, raw in-flight notes, and for execute the picked phase entry, the phase-scoped ledger rows, the code-map rows, `CLAUDE.md` and a doctor summary. When the block is present, use it and skip the reads it says it covers. When it is absent (no Bun, a cloud or Codex session, a prep or legacy spec), read the files as the mode describes. The same pack is available mid-session: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <name> [phase]`.
+- **Lesson recall (hook) and `lessons` commands.** See *Project ledger*. The hook adds matching codebase lessons before code edits. `lessons similar|seen|recall` back the project-ledger write path.
 - **Doctor.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <name>` checks one spec for drift: frontmatter against the taxonomy, ledger entries against `ledger/INDEX.md`, phase boxes in `progress.md` against their phase entries, and stale `in-flight.md`. Handoff runs it before committing. Fix every `error` line; fix `warning` lines that this session caused.
 
 ## Routing
@@ -267,9 +274,48 @@ Keep each one-line summary under 80 characters.
 ### Write discipline
 
 - **Update in place when a near-duplicate exists.** Before creating a new entry, scan INDEX for overlapping scope + kind and edit the existing entry if one fits.
+- **Lessons about the codebase go to the project ledger.** Before writing a `[general]` entry, decide whether it is about this feature or about the code any spec might touch: a tool, a framework trap, a CI or deploy behaviour, a test helper. The second kind follows *Project ledger → Write path* instead.
 - **Timestamp** `created:` with `spec-bump.sh --now` — never by hand.
 - **Never delete entries.** Stale entries get a `superseded-by:` field pointing to the replacement; resume's filter excludes superseded ones.
 - **Append to INDEX whenever a new ledger file is created.** Keep the row format consistent.
+
+## Project ledger
+
+`docs/specs/_ledger/` holds lessons about the codebase that any spec can hit. It is shared by every spec in the repo, including `*/docs/specs/` roots. Names starting with `_` are never specs.
+
+```markdown
+---
+kind: gotcha | principle | decision | workaround | <free>
+paths: [backend/**/db/migration/**]        # globs, relative to the repo root; what the lesson is about
+seen-in: [ach-direct-debit, lead-follow-up] # specs that hit it
+created: <spec-bump.sh --now>
+enforced-by: <path to a check>             # optional; once set, recall stops showing it
+---
+
+# <Title: the rule, stated plainly>
+
+<first paragraph: the rule and the fix in 1–3 sentences; recall shows this paragraph>
+<then why it bites, with evidence>
+```
+
+`INDEX.md` holds one row per entry: ``- `gotcha-<slug>.md` — `<paths>` — <summary under 80 chars>``.
+
+### Write path
+
+1. Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons similar <slug or title words>`.
+2. **A listed lesson says the same thing** → `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons seen <entry.md> <spec-name>` records this spec. Edit the lesson's body only if you learned something it lacks.
+3. **Nothing matches** → write the lesson to `docs/specs/_ledger/` with `seen-in: [<spec-name>]` and the narrowest `paths` you can defend, then add its INDEX row.
+4. Either way, the spec's own `ledger/INDEX.md` gets a pointer row using the path from the repo root: ``- `docs/specs/_ledger/<entry>.md` — [general] — <summary>``. Don't copy the lesson into the spec ledger.
+
+Without Bun, do steps 1–2 by reading `docs/specs/_ledger/INDEX.md`.
+
+### Recall
+
+Lessons reach a session in three ways. None of them needs anyone to ask.
+
+- **Before an edit (hook).** Registered by this skill's frontmatter. When Claude is about to Write or Edit a file outside `docs/specs/`, the hook matches the path against every lesson's `paths` and adds up to 3 matching lessons as context. Each lesson is shown once per session. The hook is silent when nothing matches and never blocks an edit.
+- **Execute pack.** Lists the lessons that match the files the picked phase names.
+- **Prep and review.** Recon agents and the prior-art reviewer get `docs/specs/_ledger/INDEX.md`.
 
 ## in-flight.md semantics
 

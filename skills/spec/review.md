@@ -155,6 +155,7 @@ Review the spec at [spec-path]. Read:
 - The current phase entry
 - ledger/INDEX.md and relevant ledger entries
 - code-map.md
+- docs/specs/_ledger/INDEX.md (project-wide lessons), if it exists: open entries whose paths touch this spec's files
 
 Your central question: "Does this system already know how to do this?"
 

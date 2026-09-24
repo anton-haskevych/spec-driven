@@ -166,6 +166,8 @@ You are read-only reconnaissance for a spec. This product brief is your contract
 
 Your focus: <the one thing this agent investigates, and why it matters>.
 Search breadth: thorough.
+Project lessons: if docs/specs/_ledger/INDEX.md exists, read the rows whose paths
+touch your focus. Report any that apply as gotchas, citing the entry name.
 
 Return file:line-referenced findings only:
 - what exists today and where (exact paths + line numbers),

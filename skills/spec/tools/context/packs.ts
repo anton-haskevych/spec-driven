@@ -1,6 +1,9 @@
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
+import { outlineMarkdown } from "../core/markdown";
 import { firstOpenPhase, type PhaseState, type SpecState } from "../core/spec-state";
+import type { Lesson } from "../lessons/project-ledger";
+import { describeLesson, lessonsForFiles } from "../lessons/recall";
 import { codeMapForPhase } from "./code-map";
 import { parseLedgerIndex, rowsForPhase } from "./ledger-scope";
 import { renderStatusTable } from "./status-table";
@@ -9,12 +12,14 @@ import { clip, kilobytes } from "./text";
 export interface PackInput {
   state: SpecState;
   doctor: string;
+  lessons: readonly Lesson[];
 }
 
 const PHASE_ENTRY_LIMIT = 8000;
 const SMALL_FILE_LIMIT = 3000;
 const IN_FLIGHT_LIMIT = 2000;
 const LEDGER_LIMIT = 6000;
+const PATH_LIKE = /^[\w@.{}-]+(\/[\w@.{}*-]+)+$/;
 const STABLE_REFERENCES = ["design.md", "technical.md"];
 
 export function resumePack({ state, doctor }: PackInput): string {
@@ -31,7 +36,7 @@ export function resumePack({ state, doctor }: PackInput): string {
   ].join("\n\n");
 }
 
-export function executePack({ state, doctor }: PackInput, phase: PhaseState, pickNote: string): string {
+export function executePack({ state, doctor, lessons }: PackInput, phase: PhaseState, pickNote: string): string {
   const read = (name: string) => readTextIfExists(join(state.spec.dir, name));
   return [
     "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and in-flight.md. Do not re-read those files.",
@@ -39,6 +44,7 @@ export function executePack({ state, doctor }: PackInput, phase: PhaseState, pic
     `### Phase entry (${phase.pointer})\n${clip(phase.entry ?? "(missing)", PHASE_ENTRY_LIMIT, phase.pointer)}`,
     ledgerBlock(read("ledger/INDEX.md"), phase.id),
     codeMapBlock(read("code-map.md"), phase.entry ?? ""),
+    projectLessonsBlock(lessons, phase.entry ?? ""),
     `### CLAUDE.md\n${clip(read("CLAUDE.md") ?? "(missing)", SMALL_FILE_LIMIT, "CLAUDE.md")}`,
     stableReferencesBlock(read),
     inFlightBlock(state),
@@ -89,4 +95,11 @@ function stableReferencesBlock(read: (name: string) => string | undefined): stri
     return text === undefined ? [] : [`- ${name} (${kilobytes(text)})`];
   });
   return `### Read now (not inlined)\n${present.length > 0 ? present.join("\n") : "(none)"}`;
+}
+
+function projectLessonsBlock(lessons: readonly Lesson[], phaseEntry: string): string {
+  const paths = outlineMarkdown(phaseEntry).codeSpans.map((span) => span.code).filter((code) => PATH_LIKE.test(code));
+  const matching = lessonsForFiles(lessons, paths);
+  const body = matching.length > 0 ? matching.map(describeLesson).join("\n") : "(none match the files this phase names)";
+  return `### Project lessons for this phase's files (docs/specs/_ledger)\n${body}`;
 }
