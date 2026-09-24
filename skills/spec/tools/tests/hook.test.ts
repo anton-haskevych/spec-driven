@@ -72,6 +72,13 @@ describe("hookResponse", () => {
     }
   });
 
+  test("blocks a phase file whose code flag is not a boolean", () => {
+    const file = write("phases/phase-1-harness.md", "---\ncode: no\n---\n- [ ] build it\n");
+    const response = JSON.parse(hookResponse(payload(file), project) ?? "{}");
+    expect(response.reason).toContain('code must be true or false, not "no"');
+    write("phases/phase-1-harness.md", "- [ ] build it\n");
+  });
+
   test("stays silent for valid spec files, code files, other tools and malformed input", () => {
     expect(hookResponse(payload(join(spec(), "ledger", "gotcha-a.md")), project)).toBeUndefined();
     expect(hookResponse(payload(join(project, "src", "app.ts")), project)).toBeUndefined();

@@ -11,6 +11,7 @@ import { checkLedgerEntry, checkLedgerIndex } from "./ledger";
 import { gateIssues } from "./gates";
 import { phaseEdgeIssues } from "./phase-edges";
 import { phaseScheduleIssues, specOverdueIssues } from "./schedule";
+import { taskPhaseIssues } from "./task-phases";
 import { checkInFlight, checkPhases } from "./phases";
 import { checkSpecMeta } from "./spec-meta";
 
@@ -31,9 +32,10 @@ export function runDoctor(spec: SpecFolder, context: DoctorContext): Issue[] {
     ...specOverdueIssues(join(spec.dir, "CLAUDE.md"), context.nodes.get(spec.name), context.today),
     ...phaseScheduleIssues(state, context.today),
   ];
+  const tasks = taskPhaseIssues(state);
   const prOpeningFile = join(spec.dir, "pr-opening.md");
   const gates = gateIssues(prOpeningFile, readTextIfExists(prOpeningFile) ?? "", context.gates);
-  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec), ...progressIssues(spec), ...edges, ...schedule, ...gates];
+  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec), ...progressIssues(spec), ...edges, ...schedule, ...tasks, ...gates];
 }
 
 function metaIssues(spec: SpecFolder, context: DoctorContext): Issue[] {
