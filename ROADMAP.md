@@ -40,6 +40,16 @@ All shipped 2026-09-24. 2.27.1 fixed the skill hooks' script path (`${CLAUDE_SKI
 | 2.26.0 | **Guards.** `enforced-by:` on lessons; lessons seen in 3+ specs become graduation candidates surfaced in review | 2.23 |
 | 2.27.0 | **Playbook.** Named gate blocks for `pr-opening.md`, phase archetypes, fixed research names | 2.24 |
 
+## Next: specs as the tracker (2.28 → 2.30)
+
+Plan: https://claude.ai/artifact/MuwvKTZM6Tnnxqvjsqijbi. The plugin stays development-first and domain-free; projects add their own kinds of work through playbooks.
+
+| Version | Change | Status |
+|---|---|---|
+| 2.28.0 | **Backlog and list view.** `_backlog/` ideas, `/spec idea`, `spec.ts list` (priority, due, JSON), optional priority/due on specs and phases, thin sub-command skills for the `/spec` menu | shipped |
+| 2.29.0 | **Task phases.** `code: false` on a phase: no TDD or PR gate, ticked with evidence; guard against QA/PR phases | next |
+| 2.30.0 | **Tag playbooks.** `_playbook/<name>.md` with `match:` on taxonomy values, injected into the context pack | planned |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through
