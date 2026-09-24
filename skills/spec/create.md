@@ -137,6 +137,8 @@ status: <draft, or the closest value the project allows (SKILL.md → Stage vs. 
 area: [<from taxonomy>]
 domain: [<from taxonomy>]
 scope: [<from taxonomy>]
+priority: <p1 | p2 | p3, only if the user set one>
+due: <YYYY-MM-DD, only if there is a real date>
 part-of: <parent spec, only if one exists>
 needs: [<spec or spec#phase that must land first>]
 supersedes: [<spec#phases this spec replaces>]

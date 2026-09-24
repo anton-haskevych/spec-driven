@@ -1,7 +1,7 @@
 ---
 name: spec
-description: Run pre-spec reconnaissance (prep), load an existing spec to resume work, execute the next chunk, update progress after implementation, review with the collegium panel, or create a new one. Use when starting a session around a feature, when the user mentions a spec by name, when asked to prep, scope, or review/critique a spec, or after completing implementation work.
-argument-hint: <feature-name>
+description: Run pre-spec reconnaissance (prep), load an existing spec to resume work, execute the next chunk, update progress after implementation, review with the collegium panel, or create a new one. Also captures ideas into the backlog and lists what's open by priority. Use when starting a session around a feature, when the user mentions a spec by name, when asked to prep, scope, or review/critique a spec, after completing implementation work, when the user says "idea:", "add to the backlog" or "jot this down for later", or asks what's open, what's next or what matters most.
+argument-hint: "prep|create|resume|execute|review|update|handoff|status|list|idea [spec-name]"
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
 hooks:
   PreToolUse:
@@ -34,7 +34,7 @@ SPEC_ARGS`
 
 Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-command token.
 
-**Sub-command set:** `prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`.
+**Sub-command set:** `prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`, `idea`.
 
 **Matching rule** (case-insensitive, whitespace-tokenized):
 
@@ -43,7 +43,7 @@ Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-comman
 3. Else if the **last** token is in the sub-command set: `sub_command = last`, `feature = all-but-last tokens joined`.
 4. Else: no sub-command — fall through to `## Routing` below.
 
-If `feature` is empty after extraction, infer it from conversation context (same rule as the empty-args branch above). Confirm with the user only if ambiguous. **Exception:** for `list`, an empty `feature` means "no filter — show all"; do not infer from context.
+If `feature` is empty after extraction, infer it from conversation context (same rule as the empty-args branch above). Confirm with the user only if ambiguous. **Exceptions:** for `list`, an empty `feature` means "no filter"; do not infer from context. For `idea`, everything after the token is the idea's text, not a feature name.
 
 **Exception for `execute`:** `feature` is the **first** remaining token only; any tokens after it are a **chunk hint** passed through to execute mode (`/spec execute my-feature phase 3a` → feature `my-feature`, hint `phase 3a`). If the first remaining token is itself a chunk reference (`phase …`, a bare number, `next`), the whole remainder is the hint and `feature` is inferred from context.
 
@@ -59,9 +59,10 @@ If `feature` is empty after extraction, infer it from conversation context (same
 | `update` | Read [update.md](update.md) and follow it. |
 | `handoff` | Read [handoff.md](handoff.md) and follow it. |
 | `status` | Read [status.md](status.md) and follow it. |
-| `list` | Read [list.md](list.md) and follow it. The feature name is optional — when omitted, list all specs; when present, treat it as a filter. |
+| `list` | Read [list.md](list.md) and follow it. The feature name is optional — when omitted, list open specs and the backlog; when present, treat it as a filter. |
+| `idea` | Read [idea.md](idea.md) and follow it. Captures an idea into `docs/specs/_backlog/`, or closes or drops one. |
 
-`resume`, `execute`, `review`, `update`, `handoff`, and `status` each start by running *Preconditions* (below). `prep`, `create`, and `list` carry their own checks.
+`resume`, `execute`, `review`, `update`, `handoff`, and `status` each start by running *Preconditions* (below). `prep`, `create`, `list`, and `idea` carry their own checks.
 
 After dispatching, **stop**. Do not also evaluate the routing section below.
 
@@ -85,6 +86,7 @@ Worktrees change nothing here. One worktree per spec is common, several per spec
 - **Context pack (at load).** For `resume`, `status`, `execute`, or a bare spec name, the skill runs `spec.ts context` as it loads. A `<spec-pack spec="…" mode="…">` block then appears near the top of this file, holding what that mode would otherwise read and filter by hand: the status table rendered to `status.md`'s rules, the next chunk, raw in-flight notes, and for execute the picked phase entry, the phase-scoped ledger rows, the code-map rows, `CLAUDE.md` and a doctor summary. When the block is present, use it and skip the reads it says it covers. When it is absent (no Bun, a cloud or Codex session, a prep or legacy spec), read the files as the mode describes. The same pack is available mid-session: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <name> [phase]`.
 - **Lesson recall (hook) and `lessons` commands.** See *Project ledger*. The hook adds matching codebase lessons before code edits. `lessons similar|seen|recall` back the project-ledger write path.
 - **Playbook.** `docs/specs/_playbook/` holds project-wide reusable pieces. `gates.md` has one `## <name>` section of `- [ ]` checks per build target, and `pr-opening.md` references them as `gate: <name>` (expanded by `spec.ts gates <name>`). An optional `archetypes.md` extends the plugin's phase shapes ([archetypes.md](archetypes.md)).
+- **List.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list [all] [filter] [--json]` prints open specs and backlog ideas by priority ([list.md](list.md)). `--json` is the same data for other agents and skills.
 - **Doctor.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <name>` checks one spec for drift: frontmatter against the taxonomy, ledger entries against `ledger/INDEX.md`, phase boxes in `progress.md` against their phase entries, and stale `in-flight.md`. Handoff runs it before committing. Fix every `error` line; fix `warning` lines that this session caused.
 
 ## Routing
@@ -232,6 +234,7 @@ needs: [2, 3, competitions-content-publishing-safety#2]  # must be ticked first;
 needs-deployed: [2]         # must be ticked and deployed (blue/green, bake time), not just merged
 same-files-as: [5]          # no logical dependency, but edits the same files: lands after 5, not alongside
 pr: B                       # PR group; pr-opening.md's split comes from these
+due: 2026-10-15             # optional; only for a real date
 ---
 ```
 
@@ -302,6 +305,14 @@ Keep each one-line summary under 80 characters.
 - **Timestamp** `created:` with `spec-bump.sh --now` — never by hand.
 - **Never delete entries.** Stale entries get a `superseded-by:` field pointing to the replacement; resume's filter excludes superseded ones.
 - **Append to INDEX whenever a new ledger file is created.** Keep the row format consistent.
+
+## Priority, due dates and owners
+
+A spec's `CLAUDE.md` may carry `priority: p1 | p2 | p3` and `due: YYYY-MM-DD`; a phase file may carry `due:`. All optional, and only set when someone actually decided them. The list view sorts by them, the status table shows an open phase's due day, and the doctor warns when a date has passed on unfinished work. There is no owner field by default: add `owner:` only when a spec, phase or idea must be done by one named person.
+
+## Backlog
+
+`docs/specs/_backlog/<slug>.md` holds ideas that don't deserve a spec yet: `title`, optional `tags`, `priority`, `due`, and under 120 words of body. [idea.md](idea.md) captures, closes and drops them; `prep` promotes one into a spec. Ended ideas move to `_backlog/_closed/` with a `resolution:` line. The spec-file check validates both folders.
 
 ## Relations between specs
 

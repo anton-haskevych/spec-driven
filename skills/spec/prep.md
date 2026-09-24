@@ -32,7 +32,7 @@ See `SKILL.md` for layout rules, `product-brief.md` / `research/` semantics, and
 
 Resolve the target folder `docs/specs/<name>/`:
 
-- **Does not exist** → fresh prep. Start at Stage 0 (Frame).
+- **Does not exist** → fresh prep. Start at Stage 0 (Frame). If `docs/specs/_backlog/<name>.md` exists, or the user names an idea from the backlog, that idea is the starting ask: read it first and frame from its title and body.
 - **Exists, prep-stage only** (has `product-brief.md` and/or `research/`, but no `progress.md`) → prep was already started. Read the brief and any `research/` snapshots, print one line (`prep in progress — brief ✓, N research snapshot(s)`), and resume at the right point: no research yet → Stage 3; implementation waves done but no craft snapshot → Stage 5; both lenses covered → Stage 6 lock check / handoff.
 - **Exists as a full spec** (has `progress.md` or `phases/`) → not a prep target. Print `Spec '<name>' already exists at docs/specs/<name>/. Use /spec <name> to resume or /spec <name> review.` and stop.
 
@@ -91,7 +91,9 @@ Reconnaissance in progress. See `product-brief.md` for the business intent and
 body once recon is locked, and finalizes this metadata.
 ```
 
-`area`/`domain`/`scope` are best-guess at this stage; `create.md` finalizes them. Run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <name>` any time you re-touch the stub to refresh `updated`.
+`area`/`domain`/`scope` are best-guess at this stage; `create.md` finalizes them. Carry an idea's `priority` and `due` into the stub when prep started from one.
+
+**Started from a backlog idea?** Close it now: add `resolution: promoted → docs/specs/<name>/` to its frontmatter and `git mv` it into `docs/specs/_backlog/_closed/` (idea.md → *Close or drop*). Run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <name>` any time you re-touch the stub to refresh `updated`.
 
 ### 2.2 Write the product brief
 

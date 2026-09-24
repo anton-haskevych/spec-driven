@@ -1,83 +1,41 @@
 # List Mode
 
-Print a single markdown table of every spec in the project, with metadata and progress counts. No briefing, no questions — just the table.
+Answers "what's open and what matters most": open specs and backlog ideas, sorted by priority. No briefing and no questions. Print the result and stop.
 
-## 1. Scan for specs
+## 1. Run the tool
 
-Find all spec `CLAUDE.md` files via two globs (run in parallel):
-
-- `docs/specs/*/CLAUDE.md` — the default convention
-- `*/docs/specs/*/CLAUDE.md` — one level deep, catches project-specific roots like `landing/docs/specs/`, `frontend/docs/specs/`, etc.
-
-Deduplicate the result set by absolute path. If both globs return zero matches, print: `No specs found.` and stop.
-
-## 2. Parse each spec
-
-For each spec folder found, read in parallel:
-
-1. `CLAUDE.md` — parse YAML frontmatter (if present) for `status`, `area`, `domain`, `scope`, `created`, `updated`. Missing frontmatter is allowed (legacy specs); record those fields as `—`.
-2. `progress.md` — count `- [ ]` (open) and `- [x]` (done) top-level checkbox items. `total = open + done`. If `progress.md` is missing, render `—`.
-
-The taxonomy injected at the top of `SKILL.md` (plugin + optional project override) defines the valid `status`, `area`, `domain`, and `scope` values.
-
-## 3. Apply filter
-
-If `$ARGUMENTS` (after stripping the `list` token) contains a value, match it against:
-
-1. Any value in the injected taxonomy (`status`, `area`, `domain`, `scope`). If matched, include only specs whose frontmatter contains that value.
-2. Otherwise, treat as free text and case-insensitively match against the spec folder name.
-
-If no filter: include all specs.
-
-## 4. Sort
-
-Sort by status priority, then by `updated` descending:
-
-1. `active` (or legacy `in-progress`)
-2. `prep`
-3. `draft`
-4. `paused`
-5. `good-enough`
-6. `done`
-7. `abandoned`
-8. No frontmatter (legacy) — last
-
-Within each status bucket, sort by `updated` descending (specs missing `updated` go to the bottom of their bucket).
-
-## 5. Render
-
-**The output is a markdown table. This is mandatory** — never render as cards, key/value blocks, or separator-divided sections.
-
-```
-| Spec | Status | Area | Domain | Scope | Updated | Progress |
-|------|--------|------|--------|-------|---------|----------|
-| sell-center-hub | active | fullstack | sell-center | feature | 2026-02-15 | 45/52 |
-| trial-onboarding-v2 | done | fullstack | onboarding | feature | 2026-02-20 | 52/52 |
+```bash
+bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list [all] [<filter>]
 ```
 
-### Required output rules
+- **No arguments**: the top 30 open specs plus every open backlog idea.
+- **`<filter>`** (whatever follows `list`): keeps specs whose status, priority, area, domain or scope equals it, or whose name contains it. Ideas are kept when a tag or the priority equals it, or the slug or title contains it. A filter shows every match, with no cap.
+- **`all`**: adds finished specs (`done`, `good-enough`, `abandoned`, or every phase ticked).
+- **`--json`**: the same data for another agent, a skill or an MCP. Use it when a flow needs to read the list, not show it.
 
-- The header row is exactly: `| Spec | Status | Area | Domain | Scope | Updated | Progress |`.
-- One row per spec.
-- `Spec` cell: the folder name (kebab-case slug).
-- Metadata cells (`Status`, `Area`, `Domain`, `Scope`): if multi-value, join with `, `. If missing, render `—`.
-- `Updated`: ISO date only (`YYYY-MM-DD`), drop any time/timezone suffix. If missing, render `—`.
-- `Progress`: `done/total` (e.g., `12/20`). If `progress.md` missing, render `—`.
-- Pipes inside any cell must be escaped (`\|`).
+Order: open before finished, then `p1` → `p3` → no priority, then the nearest due day, then the most recently updated. A due day that has passed shows `⚠ overdue`.
 
-### Summary line
+Print the tool's output exactly as given. Don't recast it as cards or bullets.
 
-After the table, one line listing non-zero counts:
+## 2. Without Bun
+
+Glob `docs/specs/*/CLAUDE.md` and `*/docs/specs/*/CLAUDE.md`, skipping folders that start with `_`. Read each file's frontmatter and its `progress.md` phase lines, then read `docs/specs/_backlog/*.md`. Render the same two tables:
 
 ```
-**N active, N draft, N done.** Legacy: N.
+## Open specs (N)
+
+| Spec | Status | Priority | Due | Area | Domain | Updated | Progress |
+|------|--------|----------|-----|------|--------|---------|----------|
+
+## Backlog (N)
+
+| Idea | Priority | Due | Tags | Title |
+|------|----------|-----|------|-------|
 ```
 
-Only include statuses with at least 1 spec. If no legacy (no-frontmatter) specs exist, omit the `Legacy:` clause.
+Missing values are `—`. `Updated` is the date only. `Progress` is ticked phases over all phases.
 
-## 6. Edge cases
+## 3. Edge cases
 
-- **No specs found at all** — print `No specs found.` and stop. Do not render an empty table.
-- **Spec folder has no `CLAUDE.md`** — skip silently (not a real spec).
-- **Frontmatter parse error or missing frontmatter** — legacy spec; see `legacy-layout.md` → `list`.
-- **`progress.md` exists but contains zero checkboxes** — render `0/0`.
+- **Nothing open and no ideas**: print `No open specs or backlog items.`
+- **A spec without frontmatter** (legacy): listed with `—` in its metadata cells.

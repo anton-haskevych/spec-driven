@@ -17,7 +17,7 @@ export interface ContextRequest {
   hint?: string;
 }
 
-const SUB_COMMANDS = new Set(["prep", "create", "resume", "execute", "review", "update", "handoff", "status", "list"]);
+export const SUB_COMMANDS = new Set(["prep", "create", "resume", "execute", "review", "update", "handoff", "status", "list", "idea"]);
 const DOCTOR_LINES = 6;
 
 export function parseContextRequest(argv: readonly string[]): ContextRequest {
