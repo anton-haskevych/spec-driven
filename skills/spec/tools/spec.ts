@@ -28,9 +28,15 @@ function run(argv: readonly string[], projectDir: string): string {
   }
 }
 
+// `context -` reads its arguments from stdin, so SKILL.md can pass raw user text without shell quoting.
+async function withStdinArgs(argv: readonly string[]): Promise<readonly string[]> {
+  if (argv[0] !== "context" || argv[1] !== "-") return argv;
+  return ["context", await Bun.stdin.text()];
+}
+
 if (import.meta.main) {
   try {
-    console.log(run(Bun.argv.slice(2), process.cwd()));
+    console.log(run(await withStdinArgs(Bun.argv.slice(2)), process.cwd()));
   } catch (cause) {
     console.log(`spec tools failed: ${cause instanceof Error ? cause.message : String(cause)}`);
   }

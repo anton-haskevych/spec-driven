@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { isRecord, parseFrontmatter } from "../core/frontmatter";
 
@@ -37,5 +38,21 @@ describe("SKILL.md hook wiring", () => {
     const skill = readFileSync(join(SKILL_DIR, "SKILL.md"), "utf8");
     const injected = /!`[^`]*"\$\{CLAUDE_SKILL_DIR\}\/([^"]+\.ts)"[^`]*`/.exec(skill)?.[1];
     expect(existsSync(join(SKILL_DIR, injected ?? "missing"))).toBe(true);
+  });
+
+  test.each(["sh", "zsh"].filter((shell) => Bun.which(shell)))("%s passes free-text arguments through verbatim", (shell) => {
+    const skill = readFileSync(join(SKILL_DIR, "SKILL.md"), "utf8");
+    const injection = /!`(command -v bun[^`]*context[^`]*)`/.exec(skill)?.[1] ?? "missing";
+    const fakeSkillDir = mkdtempSync(join(tmpdir(), "spec-skill-"));
+    mkdirSync(join(fakeSkillDir, "tools"));
+    writeFileSync(join(fakeSkillDir, "tools", "spec.ts"), "console.log(JSON.stringify([...Bun.argv.slice(2), await Bun.stdin.text()]));");
+    const args = "prep\n\nlet's go \"quoted\" $HOME $(touch pwned)";
+    const command = injection.replaceAll("${CLAUDE_SKILL_DIR}", fakeSkillDir).replace("$ARGUMENTS", args);
+
+    const result = Bun.spawnSync([shell, "-c", command], { cwd: fakeSkillDir });
+
+    expect(result.stderr.toString()).toBe("");
+    expect(JSON.parse(result.stdout.toString())).toEqual(["context", "-", `${args}\n`]);
+    expect(existsSync(join(fakeSkillDir, "pwned"))).toBe(false);
   });
 });
