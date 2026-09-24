@@ -97,8 +97,7 @@ Draft the implementation phases, **then stop and agree on them with the user bef
 
 For each planned phase, prepare:
 - **Phase goal** — what ships at the end of this phase
-- **Dependencies** — which earlier phases must be complete
-- **Parallelizable with** — phases with no ordering edge to this one (this drives the PR split)
+- **Edges** — `needs`, `needs-deployed`, `same-files-as`, and a `pr` group, in the phase file's frontmatter (SKILL.md → *Phase edges*). Parallelism is computed from these; don't list it by hand.
 - **Files to touch** — paths that will be edited or created
 - **Implementation guidance** — prose: how to approach the work, how the files relate, phase-specific nuances
 - **Sub-checkboxes** — specific, concrete deliverables, **each sized to one TDD commit** (red test → change → green → commit; functional and tested at every step)
@@ -273,13 +272,16 @@ Tables are empty at spec birth. `update.md` fills them in as load-bearing files 
 One file per phase that chose flat-file shape in *Plan — the phasing gate*. Content template:
 
 ```markdown
+---
+needs: [<phase ids or spec#phase that must be ticked first; [] if none>]
+needs-deployed: [<phases that must be deployed first; omit if none>]
+same-files-as: [<phases editing the same files; omit if none>]
+pr: <PR group label>
+---
+
 # Phase <N> — <Name>
 
 **Goal:** <one-sentence phase goal>
-
-**Depends on:** <earlier phases that must be done, or "none">
-
-**Parallelizable with:** <phases with no ordering edge, or "none">
 
 **Files to touch:**
 - <path/to/file>

@@ -3,6 +3,7 @@ import { parseFrontmatter } from "../core/frontmatter";
 import { countCheckboxes, parsePhaseLines } from "../core/progress";
 import { locateSpecFile } from "../core/spec-folders";
 import { statusValues } from "../core/taxonomy";
+import { phaseLine } from "./factories";
 
 describe("parseFrontmatter", () => {
   test("reads the block between the fences", () => {
@@ -33,8 +34,8 @@ describe("parsePhaseLines", () => {
       "```",
     ].join("\n");
     expect(parsePhaseLines(progress)).toEqual([
-      { done: true, title: "Phase 1 — Schema → phases/phase-1-schema.md", pointer: "phases/phase-1-schema.md" },
-      { done: false, title: "Phase 2 — CSV → phases/phase-2-csv/plan.md", pointer: "phases/phase-2-csv/plan.md" },
+      phaseLine({ done: true, title: "Phase 1 — Schema → phases/phase-1-schema.md", pointer: "phases/phase-1-schema.md" }),
+      phaseLine({ title: "Phase 2 — CSV → phases/phase-2-csv/plan.md", pointer: "phases/phase-2-csv/plan.md" }),
     ]);
   });
 });

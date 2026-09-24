@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { checkLedgerEntry, checkLedgerIndex } from "../doctor/ledger";
 import { checkInFlight, checkPhases } from "../doctor/phases";
 import { checkSpecMeta } from "../doctor/spec-meta";
+import { phaseLine } from "./factories";
 
 const STATUSES = ["active", "done", "good-enough"];
 const noEntries = () => false;
@@ -48,9 +49,9 @@ describe("checkLedgerIndex", () => {
 
 describe("checkPhases", () => {
   const phases = [
-    { done: true, title: "Phase 1 — Schema", pointer: "phases/phase-1.md" },
-    { done: false, title: "Phase 2 — Runner", pointer: "phases/phase-2.md" },
-    { done: false, title: "Phase 3 — Missing", pointer: "phases/phase-3.md" },
+    phaseLine({ done: true, title: "Phase 1 — Schema", pointer: "phases/phase-1.md" }),
+    phaseLine({ title: "Phase 2 — Runner", pointer: "phases/phase-2.md" }),
+    phaseLine({ title: "Phase 3 — Missing", pointer: "phases/phase-3.md" }),
   ];
   const entries: Record<string, string> = {
     "phases/phase-1.md": "- [x] a\n- [ ] b",

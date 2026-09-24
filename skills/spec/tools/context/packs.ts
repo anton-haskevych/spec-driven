@@ -1,7 +1,9 @@
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { outlineMarkdown } from "../core/markdown";
-import { firstOpenPhase, type PhaseState, type SpecState } from "../core/spec-state";
+import type { PhaseState, SpecState } from "../core/spec-state";
+import type { ReadySet } from "../ready/ready-set";
+import { renderReadySet } from "../ready/render";
 import type { Lesson } from "../lessons/project-ledger";
 import { describeLesson, lessonsForFiles } from "../lessons/recall";
 import { codeMapForPhase } from "./code-map";
@@ -14,6 +16,7 @@ export interface PackInput {
   doctor: string;
   lessons: readonly Lesson[];
   relations: string;
+  ready: ReadySet;
 }
 
 const PHASE_ENTRY_LIMIT = 8000;
@@ -23,14 +26,15 @@ const LEDGER_LIMIT = 6000;
 const PATH_LIKE = /^[\w@.{}-]+(\/[\w@.{}*-]+)+$/;
 const STABLE_REFERENCES = ["design.md", "technical.md"];
 
-export function resumePack({ state, doctor, relations }: PackInput): string {
-  const next = firstOpenPhase(state);
+export function resumePack({ state, doctor, relations, ready }: PackInput): string {
+  const next = ready.ready[0];
   const nextBlock = next
     ? `### Next chunk: Phase ${next.id} — ${next.name}\n${(next.summary?.nextRun ?? []).map((item) => `- ${item}`).join("\n")}`
-    : "### Next chunk\nAll phases complete — see pr-opening.md for the PR gate.";
+    : `### Next chunk\n${ready.waiting.length > 0 ? "No phase is ready; see the ready set." : "All phases complete — see pr-opening.md for the PR gate."}`;
   return [
     "Covers the Stage A reads (progress.md, phase entries, in-flight.md). Do not re-read those files.",
     `### Status table\n${renderStatusTable(state)}`,
+    `### Ready set\n${renderReadySet(ready)}`,
     inFlightBlock(state),
     nextBlock,
     `### Related specs\n${relations}`,
@@ -38,11 +42,13 @@ export function resumePack({ state, doctor, relations }: PackInput): string {
   ].join("\n\n");
 }
 
-export function executePack({ state, doctor, lessons, relations }: PackInput, phase: PhaseState, pickNote: string): string {
+export function executePack(input: PackInput, phase: PhaseState, pickNote: string): string {
+  const { state, doctor, lessons, relations } = input;
   const read = (name: string) => readTextIfExists(join(state.spec.dir, name));
   return [
     "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and in-flight.md. Do not re-read those files.",
     `Picked: Phase ${phase.id} — ${phase.name} (${pickNote})`,
+    `### Ready set\n${renderReadySet(input.ready)}`,
     `### Phase entry (${phase.pointer})\n${clip(phase.entry ?? "(missing)", PHASE_ENTRY_LIMIT, phase.pointer)}`,
     ledgerBlock(read("ledger/INDEX.md"), phase.id),
     codeMapBlock(read("code-map.md"), phase.entry ?? ""),

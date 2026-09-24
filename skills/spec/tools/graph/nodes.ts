@@ -9,6 +9,7 @@ import { parseRelations, type Relation } from "./relations";
 export interface PhaseMark {
   id: string;
   done: boolean;
+  deployed: boolean;
 }
 
 export interface SpecNode {
@@ -35,6 +36,7 @@ function loadNode(spec: SpecFolder): SpecNode {
   const phases = parsePhaseLines(readTextIfExists(join(spec.dir, "progress.md")) ?? "").map((line, index) => ({
     id: parsePhaseTitle(line.title, String(index + 1)).id,
     done: line.done,
+    deployed: line.deployed,
   }));
   return {
     spec,

@@ -5,17 +5,12 @@ import { join } from "node:path";
 import { contextPack, parseContextRequest } from "../commands/context";
 import { summarizePhaseEntry } from "../core/phase-entry";
 import { parsePhaseTitle } from "../core/phase-title";
-import type { PhaseState } from "../core/spec-state";
 import { parseLedgerIndex, rowsForPhase } from "../context/ledger-scope";
 import { phaseStatuses } from "../context/status-table";
+import { phaseState } from "./factories";
 
-const phase = (done: boolean, checked: number, unchecked: number): PhaseState => ({
-  id: "1",
-  name: "x",
-  done,
-  pointer: "phases/p.md",
-  summary: { deliverables: { checked, unchecked }, nextRun: [] },
-});
+const phase = (done: boolean, checked: number, unchecked: number) =>
+  phaseState({ done, summary: { deliverables: { checked, unchecked }, nextRun: [] } });
 
 describe("phaseStatuses", () => {
   test("follows status.md: done, WIP, one active, then pending", () => {
@@ -127,7 +122,7 @@ describe("contextPack", () => {
 
   test("execute pack scopes ledger rows and code-map rows to the picked phase", () => {
     const pack = contextPack(project, { mode: "execute", name: "checkout" });
-    expect(pack).toContain("Picked: Phase 2 — Aggregate (first open phase)");
+    expect(pack).toContain("Picked: Phase 2 — Aggregate (first ready phase)");
     expect(pack).toContain("`gotcha-a.md`");
     expect(pack).not.toContain("`gotcha-b.md`");
     expect(pack).toContain("| `src/Checkout.java` | aggregate |");

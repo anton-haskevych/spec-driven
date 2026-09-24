@@ -45,6 +45,7 @@ Compare recent commits against unchecked sub-items in the current phase entry. F
 
 - Only flip a top-level phase checkbox in `progress.md` to `[x]` when **all** sub-checkboxes in that phase's entry are checked.
 - Do not partially mark a phase as done at the top level.
+- When the user confirms a ticked phase has been deployed, append ` · deployed <YYYY-MM-DD>` to its line (SKILL.md → *Phase edges*). This is what releases phases that declare `needs-deployed` on it. Never infer a deploy from a merge.
 
 ### Add supplementary files to a folder-shape phase if warranted
 

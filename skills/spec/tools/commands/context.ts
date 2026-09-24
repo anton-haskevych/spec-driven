@@ -2,10 +2,12 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { samePhase } from "../core/phase-title";
 import { findSpecs } from "../core/spec-folders";
-import { firstOpenPhase, loadSpecState, type SpecState } from "../core/spec-state";
+import { loadSpecState, type SpecState } from "../core/spec-state";
 import { executePack, resumePack, type PackInput } from "../context/packs";
+import { renderReadySet } from "../ready/render";
 import { neighborhoodReport } from "./graph";
 import { loadNodes } from "../graph/nodes";
+import { readySet } from "../ready/ready-set";
 import { loadProjectLessons } from "../lessons/project-ledger";
 import { doctorReport } from "./doctor";
 
@@ -38,20 +40,28 @@ export function contextPack(projectDir: string, request: ContextRequest): string
 
   const doctor = doctorReport(projectDir, request.name).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
-  const relations = neighborhoodReport(loadNodes(projectDir), state.spec.name, projectDir);
+  const nodes = loadNodes(projectDir);
+  const relations = neighborhoodReport(nodes, state.spec.name, projectDir);
+  const ready = readySet(state, nodes);
   const body = mode === "execute"
-    ? executeBody({ state, doctor, relations, lessons: loadProjectLessons(projectDir) }, request.hint)
-    : resumePack({ state, doctor, relations, lessons: [] });
+    ? executeBody({ state, doctor, relations, ready, lessons: loadProjectLessons(projectDir) }, request.hint)
+    : resumePack({ state, doctor, relations, ready, lessons: [] });
   return `<spec-pack spec="${state.spec.name}" mode="${mode}">\n${body}\n</spec-pack>`;
 }
 
 function executeBody(input: PackInput, hint: string | undefined): string {
   const { state } = input;
   const hinted = hint ? phaseForHint(state, hint) : undefined;
-  const phase = hinted ?? firstOpenPhase(state);
-  if (!phase) return "All phases complete — see pr-opening.md for the PR gate.";
-  const note = hinted ? `from your hint "${hint}"` : hint ? `hint "${hint}" matched no phase; first open phase` : "first open phase";
+  const phase = hinted ?? input.ready.ready[0];
+  if (!phase) return noPhaseReady(input);
+  const fallback = input.ready.ready.length > 1 ? "first ready phase; others are ready too" : "first ready phase";
+  const note = hinted ? `from your hint "${hint}"` : hint ? `hint "${hint}" matched no phase; ${fallback}` : fallback;
   return executePack(input, phase, note);
+}
+
+function noPhaseReady(input: PackInput): string {
+  if (input.ready.waiting.length === 0) return "All phases complete — see pr-opening.md for the PR gate.";
+  return `No phase is ready to start.\n${renderReadySet(input.ready)}\nTell the user what blocks the spec and stop.`;
 }
 
 function phaseForHint(state: SpecState, hint: string) {

@@ -10,6 +10,8 @@ import { checkProjectLesson } from "../doctor/project-lesson";
 import { checkSpecMeta } from "../doctor/spec-meta";
 import { linkIssues } from "../graph/checks";
 import { loadNodes } from "../graph/nodes";
+import { loadSpecState } from "../core/spec-state";
+import { phaseEdgeIssues } from "../doctor/phase-edges";
 
 const WATCHED_TOOLS = new Set(["Write", "Edit", "MultiEdit"]);
 
@@ -27,6 +29,9 @@ export function issuesForWrittenFile(filePath: string, projectDir: string): Issu
   if (location.pathInSpec === "CLAUDE.md") {
     const links = linkIssues(loadNodes(projectDir), location.spec.name, filePath);
     return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links];
+  }
+  if (location.pathInSpec.startsWith("phases/")) {
+    return phaseEdgeIssues(loadSpecState(location.spec), loadNodes(projectDir), location.pathInSpec);
   }
   if (isLedgerEntry(location.pathInSpec)) {
     const ledgerDir = dirname(filePath);

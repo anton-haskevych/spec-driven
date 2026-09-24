@@ -119,11 +119,13 @@ Check prep stage **before** legacy: a prep-stage folder also lacks `ledger/INDEX
 
 ## Next-chunk rule
 
-Deterministic, no context beyond `progress.md` and the active phase entry. Used by `resume` (to suggest) and `execute` (to pick when no chunk hint is given).
+Deterministic. Used by `resume` (to suggest) and `execute` (to pick when no chunk hint is given). The packs and `spec.ts ready <name>` compute it; without Bun, apply it by hand.
 
-1. **Active phase** = the first phase whose top-level checkbox in `progress.md` is `[ ]`.
-2. **Next chunk** = the first contiguous run of `- [ ]` lines under the same heading in that phase's entry, capped at 5 items. If the unchecked items span sub-headings or are split by checked items, take the first contiguous run.
-3. **No unchecked phase left** → there is no chunk; the next step is the PR gate in `pr-opening.md`.
+1. **Ready set** = every open phase whose edges are satisfied (*Phase edges* below): each `needs` phase is ticked, each `needs-deployed` phase is ticked and marked deployed, and no `same-files-as` sibling is in progress or ahead of it in `progress.md` order. A phase already in progress (some sub-items ticked) comes first. When no phase file declares edges, the ready set is just the first unchecked phase, as before.
+2. **Active phase** = the first phase in the ready set. The rest of the set are phases that can run in parallel, for example in another worktree and session.
+3. **Next chunk** = the first contiguous run of `- [ ]` lines under the same heading in that phase's entry, capped at 5 items. If the unchecked items span sub-headings or are split by checked items, take the first contiguous run.
+4. **Nothing ready but phases still open** → the spec is blocked. Say what blocks it (the waiting reasons) and stop.
+5. **No unchecked phase left** → there is no chunk; the next step is the PR gate in `pr-opening.md`.
 
 # Spec layout reference (layout v1)
 
@@ -215,7 +217,26 @@ docs/specs/<name>/
 - **Supplementary files inside a phase folder are NOT read by default.** Only `plan.md` is the entry point. If a supplementary file holds critical context, `plan.md` must explicitly link to it so resume picks it up.
 - **Slugs must be unique across phases.** Agent proposes slugs and asks the user when two are similar.
 - **Phases are code work only.** A phase is a change set that ships and leaves the tree functional + tested at its end. **Never** a "Verification", "Manual QA", or "Open PR" phase — those are not phases; their content lives in `pr-opening.md`. Sub-checkboxes are each sized to one TDD commit (red → change → green → commit).
-- **Record ordering edges.** Each phase notes its dependencies *and* which phases it's parallelizable with — that drives the PR split recorded in `pr-opening.md`.
+- **Record ordering edges** in the phase file's frontmatter (*Phase edges* below). Never hand-write "parallelizable with"; it is computed.
+
+## Phase edges
+
+Each phase file starts with frontmatter that holds only hard constraints:
+
+```yaml
+---
+needs: [2, 3, competitions-content-publishing-safety#2]  # must be ticked first; local ids or spec#phase
+needs-deployed: [2]         # must be ticked and deployed (blue/green, bake time), not just merged
+same-files-as: [5]          # no logical dependency, but edits the same files: lands after 5, not alongside
+pr: B                       # PR group; pr-opening.md's split comes from these
+---
+```
+
+- **Keep the kinds separate.** A logic dependency is `needs`. "Wait for the deploy" is `needs-deployed`. "Both touch `UserController.java`" is `same-files-as`, which is not a dependency. Soft preferences ("nicer if 5 lands first") stay as prose in the body.
+- **Write `needs: []` for a phase with no dependencies.** A phase without frontmatter, in a spec where other phases declare edges, is treated as needing every earlier phase.
+- **Deployed** is a marker on the ticked phase line in `progress.md`: ``- [x] Phase 2 — Aggregate → `phases/…` · deployed 2026-09-20``. `update` adds it once the user confirms the deploy.
+- **Parallelism is computed.** `spec.ts ready <name>` prints the ready set, the waiting phases with reasons, and the PR groups.
+- **Checks.** The doctor and the spec-file check flag references that don't resolve and `needs` cycles.
 
 ## Ledger entry format
 
@@ -353,7 +374,7 @@ Lessons reach a session in three ways. None of them needs anyone to ask.
 
 - **The PR-readiness gate — not a phase.** Verification, QA, and PR-opening never appear as phases (see Per-phase entry rules); their content lives here.
 - **Two sections only:**
-  - **Spec state** (< 20 lines) — running summary: phases done / left, branch + PR link once they exist, the suggested PR split. Kept current by execute/handoff as phases land — not a re-list of the phase index.
+  - **Spec state** (< 20 lines) — running summary: phases done / left, branch + PR link once they exist, the suggested PR split (from the phases' `pr:` fields, listed by `spec.ts ready <name>`). Kept current by execute/handoff as phases land — not a re-list of the phase index.
   - **Pre-PR checks** — checkboxes scoped to the subprojects the spec touches (derive from `code-map.md`). Ticked before the **draft** PR opens. Never straight to `main`.
 - **Project-scoped checks.** The concrete checks depend on which build targets the spec touches. If the project defines canonical checks (a `.claude/` convention, a CI manifest), use those; otherwise default, per touched module, to: tests pass · lint + typecheck/compile · any feature-specific e2e.
 - **Scaffolded by create, kept current by execute/handoff.** Not immutable — it's a live gate, edited in place.
