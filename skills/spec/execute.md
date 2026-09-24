@@ -129,7 +129,7 @@ If the chunk completes a phase, run `update.md` → *Close the phase* — it cap
 
 When the code phases this PR covers are all done, opening the PR is gated by `pr-opening.md` — it is **not** a phase:
 
-1. Run the **pre-PR checks** in `pr-opening.md`, scoped to the subprojects this PR touches.
+1. Run the **pre-PR checks** in `pr-opening.md`, scoped to the subprojects this PR touches. Lines like `gate: landing` point at named blocks in `docs/specs/_playbook/gates.md`; `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates <name>` expands them.
 2. Tick each check only when it actually passes; paste the failing output instead if it doesn't.
 3. Refresh the **Spec state** (phases done, branch, PR link once it exists).
 4. Open the PR as a **draft, off a feature branch — never to `main`**, following the PR split recorded in `pr-opening.md`.

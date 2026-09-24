@@ -98,6 +98,7 @@ Draft the implementation phases, **then stop and agree on them with the user bef
 For each planned phase, prepare:
 - **Phase goal** — what ships at the end of this phase
 - **Edges** — `needs`, `needs-deployed`, `same-files-as`, and a `pr` group, in the phase file's frontmatter (SKILL.md → *Phase edges*). Parallelism is computed from these; don't list it by hand.
+- **Shape** — read [archetypes.md](archetypes.md), plus `docs/specs/_playbook/archetypes.md` if the project has one. When a phase follows a known shape (harness-first, guardrail-alone, expand-bake-contract, …), set `shape: <name>` in its frontmatter and apply that shape's edges and traps.
 - **Files to touch** — paths that will be edited or created
 - **Implementation guidance** — prose: how to approach the work, how the files relate, phase-specific nuances
 - **Sub-checkboxes** — specific, concrete deliverables, **each sized to one TDD commit** (red test → change → green → commit; functional and tested at every step)
@@ -240,7 +241,7 @@ before opening the **draft** PR — never straight to `main`.
 - [ ] <check 3>
 ```
 
-Derive the checks from the build targets the spec touches: if the project defines its own canonical checks (a `.claude/` convention, a CI manifest), use those; otherwise default, per touched module, to — tests pass · lint + typecheck/compile · any feature-specific e2e. List the concrete checks; don't leave placeholders.
+Derive the checks from the build targets the spec touches. **If `docs/specs/_playbook/gates.md` exists**, reference its named blocks instead of copying them: `- [ ] gate: landing` (several: `gate: landing, backend`), then add only the checks specific to this feature. `spec.ts gates <name>` expands them at PR time, and the doctor flags unknown gate names. Otherwise, if the project defines canonical checks (a `.claude/` convention, a CI manifest), use those; otherwise default, per touched module, to — tests pass · lint + typecheck/compile · any feature-specific e2e. List the concrete checks; don't leave placeholders. When you find yourself writing the same block a second spec already has, move it into `gates.md`.
 
 #### `docs/specs/$ARGUMENTS/code-map.md`
 
@@ -279,6 +280,7 @@ needs: [<phase ids or spec#phase that must be ticked first; [] if none>]
 needs-deployed: [<phases that must be deployed first; omit if none>]
 same-files-as: [<phases editing the same files; omit if none>]
 pr: <PR group label>
+shape: <archetype name from archetypes.md; omit if none fits>
 ---
 
 # Phase <N> — <Name>

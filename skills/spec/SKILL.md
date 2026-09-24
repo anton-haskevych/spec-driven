@@ -82,6 +82,7 @@ Worktrees change nothing here. One worktree per spec is common, several per spec
 - **Spec-file check (hook).** Registered by this skill's frontmatter, so it exists only in sessions where `/spec` was invoked. After every Write or Edit to a spec's `CLAUDE.md` or a ledger entry, it validates the frontmatter. If the check fails, the result comes back as blocking feedback: fix the file before continuing.
 - **Context pack (at load).** For `resume`, `status`, `execute`, or a bare spec name, the skill runs `spec.ts context` as it loads. A `<spec-pack spec="…" mode="…">` block then appears near the top of this file, holding what that mode would otherwise read and filter by hand: the status table rendered to `status.md`'s rules, the next chunk, raw in-flight notes, and for execute the picked phase entry, the phase-scoped ledger rows, the code-map rows, `CLAUDE.md` and a doctor summary. When the block is present, use it and skip the reads it says it covers. When it is absent (no Bun, a cloud or Codex session, a prep or legacy spec), read the files as the mode describes. The same pack is available mid-session: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <name> [phase]`.
 - **Lesson recall (hook) and `lessons` commands.** See *Project ledger*. The hook adds matching codebase lessons before code edits. `lessons similar|seen|recall` back the project-ledger write path.
+- **Playbook.** `docs/specs/_playbook/` holds project-wide reusable pieces. `gates.md` has one `## <name>` section of `- [ ]` checks per build target, and `pr-opening.md` references them as `gate: <name>` (expanded by `spec.ts gates <name>`). An optional `archetypes.md` extends the plugin's phase shapes ([archetypes.md](archetypes.md)).
 - **Doctor.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <name>` checks one spec for drift: frontmatter against the taxonomy, ledger entries against `ledger/INDEX.md`, phase boxes in `progress.md` against their phase entries, and stale `in-flight.md`. Handoff runs it before committing. Fix every `error` line; fix `warning` lines that this session caused.
 
 ## Routing
@@ -388,6 +389,17 @@ Lessons reach a session in three ways. None of them needs anyone to ask.
 - **On-demand folders.** Created on first review/research write. Not scaffolded at spec birth.
 - **Grouped by phase.** Execute-mode notes live in `research/phase-<N>/` — `YYYY-MM-DD-<chunk>-recon.md` and `YYYY-MM-DD-<chunk>-preflight.md`, where `<chunk>` is the chunk's first sub-item id or a short slug. The folder is the index: no INDEX file to keep in sync. Prep and deep-research snapshots stay at the `research/` root. Specs with older flat execute notes keep them where they are — new writes only.
 - **Filenames:** `YYYY-MM-DD-<slug>.md`. Slug derived from the dominant theme (e.g., `phase-5-readiness`, `integration-boundaries`). Review slugs are always auto-derived (fallback: `phase-<N>-collegium`); research slugs may be confirmed with the user if ambiguous.
+- **Fixed research names**, so every spec's research reads the same:
+
+  | What | Where and name |
+  |---|---|
+  | Prep implementation wave | `research/YYYY-MM-DD-wave-<N>-<slug>.md` |
+  | Prep craft wave (naming, fixtures, extraction) | `research/YYYY-MM-DD-craft-<slug>.md` |
+  | Addendum to an earlier wave | `research/YYYY-MM-DD-wave-<N><letter>-<slug>.md` (e.g. `wave-5b`) |
+  | Execute recon for a chunk | `research/phase-<N>/YYYY-MM-DD-<chunk>-recon.md` |
+  | Execute preflight for a chunk | `research/phase-<N>/YYYY-MM-DD-<chunk>-preflight.md` |
+
+  Prep's overlap check is a `## Neighbors` section inside the wave snapshot, not a file of its own.
 - **Written once, immutable, never deleted.** The file is the source of record. Do not edit after writing.
 - **Extraction step:** after writing a review/research file, distilled actionable findings are copied into the ledger as separate entries; the report itself stays untouched. Review extraction is autonomous — findings are applied to the spec + ledger and committed without prompts (see review.md); research extraction may be offered interactively.
 

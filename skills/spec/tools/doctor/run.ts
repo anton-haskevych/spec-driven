@@ -8,6 +8,7 @@ import { graphIssues } from "../graph/checks";
 import type { SpecNode } from "../graph/nodes";
 import type { Issue } from "./issue";
 import { checkLedgerEntry, checkLedgerIndex } from "./ledger";
+import { gateIssues } from "./gates";
 import { phaseEdgeIssues } from "./phase-edges";
 import { checkInFlight, checkPhases } from "./phases";
 import { checkSpecMeta } from "./spec-meta";
@@ -15,6 +16,7 @@ import { checkSpecMeta } from "./spec-meta";
 export interface DoctorContext {
   statuses: readonly string[];
   nodes: ReadonlyMap<string, SpecNode>;
+  gates?: ReadonlyMap<string, string[]>;
 }
 
 const LEDGER_INDEX = "INDEX.md";
@@ -22,7 +24,9 @@ const LEDGER_INDEX = "INDEX.md";
 export function runDoctor(spec: SpecFolder, context: DoctorContext): Issue[] {
   const graph = graphIssues(context.nodes, spec.name, join(spec.dir, "CLAUDE.md"));
   const edges = phaseEdgeIssues(loadSpecState(spec), context.nodes);
-  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec), ...progressIssues(spec), ...edges];
+  const prOpeningFile = join(spec.dir, "pr-opening.md");
+  const gates = gateIssues(prOpeningFile, readTextIfExists(prOpeningFile) ?? "", context.gates);
+  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec), ...progressIssues(spec), ...edges, ...gates];
 }
 
 function metaIssues(spec: SpecFolder, context: DoctorContext): Issue[] {

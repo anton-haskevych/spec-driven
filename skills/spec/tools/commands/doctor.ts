@@ -4,6 +4,7 @@ import { formatIssues } from "../doctor/issue";
 import { projectLedgerIssues } from "../doctor/project-ledger";
 import { runDoctor } from "../doctor/run";
 import { loadNodes } from "../graph/nodes";
+import { loadGates } from "../playbook/gates";
 
 export function doctorReport(projectDir: string, specName?: string): string {
   const specs = specName ? findSpecs(projectDir, specName) : listSpecs(projectDir);
@@ -13,7 +14,8 @@ export function doctorReport(projectDir: string, specName?: string): string {
 
   const statuses = allowedStatuses(projectDir);
   const nodes = loadNodes(projectDir);
-  const specIssues = specs.flatMap((spec) => runDoctor(spec, { statuses, nodes }));
+  const gates = loadGates(projectDir);
+  const specIssues = specs.flatMap((spec) => runDoctor(spec, { statuses, nodes, gates }));
   const issues = specName ? specIssues : [...projectLedgerIssues(projectDir), ...specIssues];
   if (issues.length === 0) return `doctor: clean (${specs.length} spec${specs.length === 1 ? "" : "s"})`;
 
