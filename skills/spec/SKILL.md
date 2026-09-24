@@ -8,13 +8,13 @@ hooks:
     - matcher: "Write|Edit|MultiEdit"
       hooks:
         - type: command
-          command: 'command -v bun >/dev/null 2>&1 && bun "${CLAUDE_SKILL_DIR}/tools/hooks/lesson-recall.ts" || true'
+          command: 'command -v bun >/dev/null 2>&1 && [ -n "$CLAUDE_PLUGIN_ROOT" ] && bun "$CLAUDE_PLUGIN_ROOT/skills/spec/tools/hooks/lesson-recall.ts" || true'
           timeout: 10
   PostToolUse:
     - matcher: "Write|Edit|MultiEdit"
       hooks:
         - type: command
-          command: 'command -v bun >/dev/null 2>&1 && bun "${CLAUDE_SKILL_DIR}/tools/hooks/spec-file-check.ts" || true'
+          command: 'command -v bun >/dev/null 2>&1 && [ -n "$CLAUDE_PLUGIN_ROOT" ] && bun "$CLAUDE_PLUGIN_ROOT/skills/spec/tools/hooks/spec-file-check.ts" || true'
           timeout: 10
 ---
 
@@ -79,7 +79,7 @@ Worktrees change nothing here. One worktree per spec is common, several per spec
 
 `${CLAUDE_SKILL_DIR}/tools/` holds Bun scripts that the modes and hooks call. The user never runs them. They need Bun; when `bun` is missing, or in environments that don't run skill hooks, skip the tool step and do the same check by reading the files.
 
-- **Spec-file check (hook).** Registered by this skill's frontmatter, so it exists only in sessions where `/spec` was invoked. After every Write or Edit to a spec's `CLAUDE.md` or a ledger entry, it validates the frontmatter. If the check fails, the result comes back as blocking feedback: fix the file before continuing.
+- **Spec-file check (hook).** Registered by this skill's frontmatter (hook commands address scripts through `$CLAUDE_PLUGIN_ROOT`; `${CLAUDE_SKILL_DIR}` is empty inside hooks), so it exists only in sessions where `/spec` was invoked. After every Write or Edit to a spec's `CLAUDE.md` or a ledger entry, it validates the frontmatter. If the check fails, the result comes back as blocking feedback: fix the file before continuing.
 - **Context pack (at load).** For `resume`, `status`, `execute`, or a bare spec name, the skill runs `spec.ts context` as it loads. A `<spec-pack spec="…" mode="…">` block then appears near the top of this file, holding what that mode would otherwise read and filter by hand: the status table rendered to `status.md`'s rules, the next chunk, raw in-flight notes, and for execute the picked phase entry, the phase-scoped ledger rows, the code-map rows, `CLAUDE.md` and a doctor summary. When the block is present, use it and skip the reads it says it covers. When it is absent (no Bun, a cloud or Codex session, a prep or legacy spec), read the files as the mode describes. The same pack is available mid-session: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <name> [phase]`.
 - **Lesson recall (hook) and `lessons` commands.** See *Project ledger*. The hook adds matching codebase lessons before code edits. `lessons similar|seen|recall` back the project-ledger write path.
 - **Playbook.** `docs/specs/_playbook/` holds project-wide reusable pieces. `gates.md` has one `## <name>` section of `- [ ]` checks per build target, and `pr-opening.md` references them as `gate: <name>` (expanded by `spec.ts gates <name>`). An optional `archetypes.md` extends the plugin's phase shapes ([archetypes.md](archetypes.md)).
