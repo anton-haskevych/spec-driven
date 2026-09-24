@@ -25,6 +25,8 @@ This plugin gives you the complete lifecycle:
 
 No arguments required for the feature name — the `/spec` skill infers it from conversation context. **Sub-commands** (`prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`, `idea`) can lead or trail the feature name: `/spec resume my-feature`, `/spec my-feature resume`, or `/spec resume` (alone, with the feature inferred from context) all work. Typing `/spec` also lists each sub-command as its own entry (`spec-prep`, `spec-execute`, …) with a description; those entries only route to `/spec`, and Claude never loads them on its own.
 
+**Task phases.** A phase is code by default. Mark it `code: false` when the spec's value depends on work outside the repo: recording an interview, publishing a page, sending emails. A task phase skips recon, preflight and TDD, stays out of the PR split, and ticks each item with its evidence (a link, date or file). One spec can mix both: record → build the page → publish, joined by `needs` edges. Checking our own work (QA, verification, opening the PR) is still never a phase; it lives in `pr-opening.md`, and the doctor warns about task phases named like one.
+
 **Priority and due dates** are optional on every spec (`priority: p1 | p2 | p3`, `due: YYYY-MM-DD` in `CLAUDE.md`) and every phase (`due:`). The list view sorts by them, the status table shows a phase's due day, and the doctor warns when a date passes on unfinished work. There is no owner field by default; add `owner:` only when one named person must do the work.
 
 ### Why prep first
