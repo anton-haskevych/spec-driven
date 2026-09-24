@@ -93,6 +93,8 @@ body once recon is locked, and finalizes this metadata.
 
 `area`/`domain`/`scope` are best-guess at this stage; `create.md` finalizes them. Carry an idea's `priority` and `due` into the stub when prep started from one.
 
+**Project playbooks.** With the stub written, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts playbooks <name>`. If it prints playbooks, they are the project's rules for this kind of work: follow them for the brief and aim recon at what they make load-bearing. Fix the stub's tags first if the wrong playbook (or none) comes back.
+
 **Started from a backlog idea?** Close it now: add `resolution: promoted → docs/specs/<name>/` to its frontmatter and `git mv` it into `docs/specs/_backlog/_closed/` (idea.md → *Close or drop*). Run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <name>` any time you re-touch the stub to refresh `updated`.
 
 ### 2.2 Write the product brief

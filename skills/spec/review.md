@@ -25,6 +25,8 @@ Determine which spec to review from conversation context. If ambiguous, ask the 
 
 Then run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts graph <name>` (skip without Bun). Pass its output to every reviewer, together with the `ledger/INDEX.md` paths of the `part-of` parent and every `needs` target. Decisions already made in a parent or dependency are settled context, not findings; flag a spec that contradicts one. Undeclared overlaps in the output are integration-architect material.
 
+Also run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts playbooks <name>`. If it prints playbooks, pass them to every reviewer as house rules for this kind of work: a spec that breaks its playbook is a finding.
+
 Note the spec path — you'll pass it to each reviewer along with the list of files they should read.
 
 ## 2. Launch 5 review agents in parallel

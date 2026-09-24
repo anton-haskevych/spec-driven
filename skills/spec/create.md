@@ -10,6 +10,8 @@ Work through these 6 stages **interactively**. Ask clarifying questions at each 
 
 Understand the problem space before designing anything.
 
+**Project playbooks first.** If the spec folder exists (prep ran), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts playbooks $ARGUMENTS`. Otherwise read the `docs/specs/_playbook/*.md` files whose `match:` fits the taxonomy values you expect to write. A matching playbook's rules (phase shapes, what "done" means, which skill to load) shape every stage below.
+
 **First, check for prep output.** If `docs/specs/$ARGUMENTS/product-brief.md` exists, prep already did the reconnaissance — load it instead of cold-exploring:
 
 - Read `product-brief.md` — the frozen business intent (who/what/why, the real change, out of scope).

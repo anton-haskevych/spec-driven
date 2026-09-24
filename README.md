@@ -27,6 +27,8 @@ No arguments required for the feature name — the `/spec` skill infers it from 
 
 **Task phases.** A phase is code by default. Mark it `code: false` when the spec's value depends on work outside the repo: recording an interview, publishing a page, sending emails. A task phase skips recon, preflight and TDD, stays out of the PR split, and ticks each item with its evidence (a link, date or file). One spec can mix both: record → build the page → publish, joined by `needs` edges. Checking our own work (QA, verification, opening the PR) is still never a phase; it lives in `pr-opening.md`, and the doctor warns about task phases named like one.
 
+**Project playbooks.** The plugin stays development-first and knows nothing about marketing, ops or any other domain. A project teaches it its own kinds of work: a file in `docs/specs/_playbook/` with `match: { domain: [growth] }` in its frontmatter holds the rules for specs with that domain (phase shapes, what "done" means, which skill to load). Resume and execute inject matching playbooks automatically; a phase can also name one with `playbook:`. Keep them short and point to a skill for depth.
+
 **Priority and due dates** are optional on every spec (`priority: p1 | p2 | p3`, `due: YYYY-MM-DD` in `CLAUDE.md`) and every phase (`due:`). The list view sorts by them, the status table shows a phase's due day, and the doctor warns when a date passes on unfinished work. There is no owner field by default; add `owner:` only when one named person must do the work.
 
 ### Why prep first

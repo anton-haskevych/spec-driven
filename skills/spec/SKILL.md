@@ -86,6 +86,7 @@ Worktrees change nothing here. One worktree per spec is common, several per spec
 - **Context pack (at load).** For `resume`, `status`, `execute`, or a bare spec name, the skill runs `spec.ts context` as it loads. A `<spec-pack spec="…" mode="…">` block then appears near the top of this file, holding what that mode would otherwise read and filter by hand: the status table rendered to `status.md`'s rules, the next chunk, raw in-flight notes, and for execute the picked phase entry, the phase-scoped ledger rows, the code-map rows, `CLAUDE.md` and a doctor summary. When the block is present, use it and skip the reads it says it covers. When it is absent (no Bun, a cloud or Codex session, a prep or legacy spec), read the files as the mode describes. The same pack is available mid-session: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <name> [phase]`.
 - **Lesson recall (hook) and `lessons` commands.** See *Project ledger*. The hook adds matching codebase lessons before code edits. `lessons similar|seen|recall` back the project-ledger write path.
 - **Playbook.** `docs/specs/_playbook/` holds project-wide reusable pieces. `gates.md` has one `## <name>` section of `- [ ]` checks per build target, and `pr-opening.md` references them as `gate: <name>` (expanded by `spec.ts gates <name>`). An optional `archetypes.md` extends the plugin's phase shapes ([archetypes.md](archetypes.md)).
+- **Tag playbooks.** Any other `docs/specs/_playbook/<name>.md` whose frontmatter has `match:` is the project's rules for one kind of work, e.g. `match: { domain: [growth] }`. A spec gets it when every field in `match:` hits one of the values in its `CLAUDE.md` (any taxonomy field: `domain`, `area`, `scope`, tags); a phase can also name one with `playbook: <name>`. The resume and execute packs inject matching playbooks automatically; prep, create and review run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts playbooks <name>`. Treat a playbook as house rules for that spec, ranked above the plugin's defaults. Keep each under 60 lines and point to a skill for depth; the doctor checks `match:` values against `.claude/taxonomy.md`.
 - **List.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list [all] [filter] [--json]` prints open specs and backlog ideas by priority ([list.md](list.md)). `--json` is the same data for other agents and skills.
 - **Doctor.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <name>` checks one spec for drift: frontmatter against the taxonomy, ledger entries against `ledger/INDEX.md`, phase boxes in `progress.md` against their phase entries, and stale `in-flight.md`. Handoff runs it before committing. Fix every `error` line; fix `warning` lines that this session caused.
 
@@ -237,6 +238,7 @@ same-files-as: [5]          # no logical dependency, but edits the same files: l
 pr: B                       # PR group; pr-opening.md's split comes from these (code phases only)
 due: 2026-10-15             # optional; only for a real date
 code: false                 # optional; marks a task phase (default: code)
+playbook: growth            # optional; adds a project playbook to this phase's execute pack
 ---
 ```
 
