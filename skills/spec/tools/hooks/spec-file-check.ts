@@ -5,6 +5,7 @@ import { isRecord } from "../core/frontmatter";
 import { locateSpecFile } from "../core/spec-folders";
 import { allowedStatuses } from "../core/taxonomy";
 import { formatIssues, type Issue } from "../doctor/issue";
+import { checkBacklogItem } from "../doctor/backlog-item";
 import { checkLedgerEntry } from "../doctor/ledger";
 import { checkProjectLesson } from "../doctor/project-lesson";
 import { checkSpecMeta } from "../doctor/spec-meta";
@@ -16,11 +17,17 @@ import { phaseEdgeIssues } from "../doctor/phase-edges";
 const WATCHED_TOOLS = new Set(["Write", "Edit", "MultiEdit"]);
 
 const PROJECT_LESSON = /\/docs\/specs\/_ledger\/(?!INDEX\.md$)[^/]+\.md$/;
+const BACKLOG_ITEM = /\/docs\/specs\/_backlog\/(_closed\/)?[^/]+\.md$/;
 
 export function issuesForWrittenFile(filePath: string, projectDir: string): Issue[] {
   if (PROJECT_LESSON.test(filePath)) {
     const text = readTextIfExists(filePath);
     return text === undefined ? [] : checkProjectLesson(filePath, text);
+  }
+  const backlog = BACKLOG_ITEM.exec(filePath);
+  if (backlog) {
+    const text = readTextIfExists(filePath);
+    return text === undefined ? [] : checkBacklogItem(filePath, text, backlog[1] !== undefined);
   }
   const location = locateSpecFile(filePath);
   const text = location ? readTextIfExists(filePath) : undefined;

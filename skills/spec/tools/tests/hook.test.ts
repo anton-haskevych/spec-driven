@@ -36,6 +36,14 @@ describe("doctorReport", () => {
   test("names a spec it cannot find", () => {
     expect(doctorReport(project, "nope")).toContain("no spec named nope");
   });
+
+  test("a project-wide run also checks the backlog", () => {
+    const item = join(project, "docs", "specs", "_backlog", "bad-idea.md");
+    mkdirSync(join(item, ".."), { recursive: true });
+    writeFileSync(item, "---\npriority: urgent\n---\n");
+    expect(doctorReport(project)).toContain("_backlog/bad-idea.md: frontmatter has no title");
+    rmSync(item);
+  });
 });
 
 describe("hookResponse", () => {
@@ -52,6 +60,16 @@ describe("hookResponse", () => {
   test("blocks a ledger entry without frontmatter", () => {
     const file = write("ledger/gotcha-b.md", "# no frontmatter\n");
     expect(hookResponse(payload(file, "Edit"), project)).toContain("ledger entry has no frontmatter");
+  });
+
+  test("blocks a backlog item without a title, open or closed", () => {
+    const backlog = join(project, "docs", "specs", "_backlog");
+    mkdirSync(join(backlog, "_closed"), { recursive: true });
+    for (const file of [join(backlog, "idea.md"), join(backlog, "_closed", "old.md")]) {
+      writeFileSync(file, "---\ntags: [a]\n---\nbody\n");
+      expect(hookResponse(payload(file), project)).toContain("frontmatter has no title");
+      rmSync(file);
+    }
   });
 
   test("stays silent for valid spec files, code files, other tools and malformed input", () => {

@@ -1,5 +1,6 @@
 import { findSpecs, listSpecs } from "../core/spec-folders";
 import { allowedStatuses } from "../core/taxonomy";
+import { backlogIssues } from "../doctor/backlog";
 import { formatIssues } from "../doctor/issue";
 import { projectLedgerIssues } from "../doctor/project-ledger";
 import { runDoctor } from "../doctor/run";
@@ -16,7 +17,7 @@ export function doctorReport(projectDir: string, specName?: string): string {
   const nodes = loadNodes(projectDir);
   const gates = loadGates(projectDir);
   const specIssues = specs.flatMap((spec) => runDoctor(spec, { statuses, nodes, gates }));
-  const issues = specName ? specIssues : [...projectLedgerIssues(projectDir), ...specIssues];
+  const issues = specName ? specIssues : [...projectLedgerIssues(projectDir), ...backlogIssues(projectDir), ...specIssues];
   if (issues.length === 0) return `doctor: clean (${specs.length} spec${specs.length === 1 ? "" : "s"})`;
 
   const errors = issues.filter((issue) => issue.severity === "error").length;
