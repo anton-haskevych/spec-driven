@@ -11,7 +11,7 @@ import { readySet } from "../ready/ready-set";
 import { loadProjectLessons } from "../lessons/project-ledger";
 import { doctorReport } from "./doctor";
 import { playbooksForSpec } from "../playbook/playbooks";
-import type { ContextRequest } from "../context/request";
+import { normalizePhaseHint, type ContextRequest } from "../context/request";
 
 const DOCTOR_LINES = 6;
 
@@ -53,7 +53,7 @@ function noPhaseReady(input: PackInput): string {
 }
 
 function phaseForHint(state: SpecState, hint: string) {
-  const id = hint.replace(/^phase\s+/i, "").trim();
+  const id = normalizePhaseHint(hint);
   if (id.toLowerCase() === "next") return undefined;
   return state.phases.find((phase) => samePhase(phase.id, id));
 }

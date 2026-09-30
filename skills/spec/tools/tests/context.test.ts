@@ -3,7 +3,6 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { contextPack } from "../commands/context";
-import { parseContextRequest } from "../context/request";
 import { summarizePhaseEntry } from "../core/phase-entry";
 import { parsePhaseTitle } from "../core/phase-title";
 import { parseLedgerIndex, rowsForPhase } from "../context/ledger-scope";
@@ -91,16 +90,6 @@ describe("rowsForPhase", () => {
   });
 });
 
-describe("parseContextRequest", () => {
-  test.each([
-    [["execute", "checkout", "phase", "3a"], { mode: "execute", name: "checkout", hint: "phase 3a" }],
-    [["checkout resume"], { mode: "resume", name: "checkout" }],
-    [["checkout"], { mode: "route", name: "checkout" }],
-  ])("%p", (argv, expected) => {
-    expect(parseContextRequest(argv)).toEqual({ hint: undefined, ...expected });
-  });
-});
-
 describe("contextPack", () => {
   let project = "";
   const spec = () => join(project, "docs", "specs", "checkout");
@@ -137,6 +126,11 @@ describe("contextPack", () => {
     expect(pack).not.toContain("`gotcha-b.md`");
     expect(pack).toContain("| `src/Checkout.java` | aggregate |");
     expect(pack).not.toContain("src/Other.java");
+  });
+
+  test.each(["phase 1", "phase1", "phase-1", "1"])("execute pack honours the hint %p", (hint) => {
+    const pack = contextPack(project, { mode: "execute", name: "checkout", hint });
+    expect(pack).toContain(`Picked: Phase 1 — Harness (from your hint "${hint}")`);
   });
 
   test("execute pack tells the agent when the picked phase is a task phase", () => {
