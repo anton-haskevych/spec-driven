@@ -24,9 +24,10 @@ hooks:
 
 !`cat .claude/taxonomy.md 2>/dev/null || echo "No project taxonomy found — use free-form area/domain values."`
 
-!`command -v bun >/dev/null 2>&1 && bun "${CLAUDE_SKILL_DIR}/tools/spec.ts" context - 2>/dev/null <<'SPEC_ARGS' || true
+!`bun "${CLAUDE_SKILL_DIR}/tools/spec.ts" context - 2>/dev/null <<'SPEC_ARGS'
 $ARGUMENTS
-SPEC_ARGS`
+SPEC_ARGS
+true`
 
 **If `$ARGUMENTS` is empty:** Infer the feature name from the current conversation context. Propose a kebab-case slug and ask the user to confirm before proceeding.
 
