@@ -89,6 +89,13 @@ describe("rowsForPhase", () => {
       "gotcha-a.md",
     ]);
   });
+
+  test("an open-ended letter phase does not reach back to an earlier letter", () => {
+    const parsed = parseLedgerIndex("- `gotcha-x.md` — [phase 7b+] — x\n");
+    expect(rowsForPhase(parsed.rows, "7a")).toEqual([]);
+    expect(rowsForPhase(parsed.rows, "7c").map((row) => row.file)).toEqual(["gotcha-x.md"]);
+    expect(rowsForPhase(parsed.rows, "9.10").map((row) => row.file)).toEqual(["gotcha-x.md"]);
+  });
 });
 
 describe("contextPack", () => {
