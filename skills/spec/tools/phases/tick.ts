@@ -1,11 +1,10 @@
 import { join } from "node:path";
 import type { EditPlan, FileEdit } from "../core/apply-edits";
 import { formatTickedItem, hasEvidence } from "../core/checkbox";
-import { samePhase } from "../core/phase-title";
 import { countCheckboxes } from "../core/progress";
 import type { SpecFolder } from "../core/spec-folders";
 import { diskReader, loadSpecState, type PhaseState } from "../core/spec-state";
-import { normalizePhaseHint } from "../context/request";
+import { findPhase } from "./find-phase";
 import { locateOpenItem, locatePhaseLine } from "./locate";
 import { issuesIntroducedBy } from "./validate";
 
@@ -27,9 +26,8 @@ const TICKED_BOX = "[x]";
 
 export function planTick(spec: SpecFolder, request: TickRequest): Tick {
   const state = loadSpecState(spec);
-  const id = normalizePhaseHint(request.phase);
-  const phase = state.phases.find((candidate) => samePhase(candidate.id, id));
-  if (!phase) return invalid(`no Phase ${id} in ${spec.name}; phases: ${state.phases.map((p) => p.id).join(", ")}`);
+  const phase = findPhase(state, request.phase);
+  if (typeof phase === "string") return invalid(phase);
   if (phase.entry === undefined) return invalid(`Phase ${phase.id} points at ${phase.pointer}, which does not exist`);
 
   const evidenceProblem = checkEvidence(phase, request.evidence);
