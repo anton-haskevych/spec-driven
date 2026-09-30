@@ -44,6 +44,23 @@ export function isoDay(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
+// Mirrors `spec-bump.sh --now`, which stays the no-Bun path; a test compares the two.
+export function isoTimestamp(date: Date): string {
+  const time = [date.getHours(), date.getMinutes(), date.getSeconds()].map(twoDigits).join(":");
+  return `${isoDay(date)}T${time}${utcOffset(date)}`;
+}
+
+function utcOffset(date: Date): string {
+  const minutesEast = -date.getTimezoneOffset();
+  const sign = minutesEast < 0 ? "-" : "+";
+  const absolute = Math.abs(minutesEast);
+  return `${sign}${twoDigits(Math.floor(absolute / 60))}:${twoDigits(absolute % 60)}`;
+}
+
+function twoDigits(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
 export function priorityRank(priority: Priority | undefined): number {
   return priority ? PRIORITIES.indexOf(priority) + 1 : UNPRIORITIZED_RANK;
 }
