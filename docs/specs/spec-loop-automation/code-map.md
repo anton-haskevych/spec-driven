@@ -1,0 +1,19 @@
+# Code Map — Spec Loop Automation
+
+Load-bearing files this spec depends on or introduces. Only list files a new agent
+needs to know exist to navigate the code — not every file that's touched.
+
+## Introduced by this spec
+
+| File | Role | Phase |
+|------|------|-------|
+
+## Existing files touched
+
+| File | Why we care | Ledger |
+|------|-------------|--------|
+
+## External references
+
+- `~/IdeaProjects/crm/docs/specs/_ledger/workaround-push-spec-docs-to-main-from-a-worktree.md` — origin of the publish-docs algorithm
+- `~/.claude/hooks/REFERENCE.md` — hook events and payloads
