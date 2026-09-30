@@ -71,7 +71,7 @@ Commands take `runner: Runner = systemRunner` as their last param. Tests: stub r
 ### Context parse (replaces `context.ts:24-31`)
 1. Tokenize; strip trailing `[.,;:!?]+` per token.
 2. First token a sub-command → `mode`, rest = `[name, …hint]`. Else last token a sub-command → `mode`, `name = tokens[0]`, `hint = tokens[1..-1]`. Else `route`.
-3. If `name` is a chunk reference (`next`, `/^\d+[a-z]*(\.\d+)?$/i`, `/^phase[-\s]*\d/i`, or `phase` followed by one) → `hint = [name, …hint]`, `name = undefined`.
+3. If `name` is a chunk reference — whole token only: `next`, `/^\d+[a-z]*(\.\d+)?$/i`, `/^phase[-\s]*\d+[a-z]*(\.\d+)?$/i`, or `phase` followed by another token — and no spec by that name exists (`isSpecName`, injected; `spec.ts` passes a `findSpecs` check) → `hint = [name, …hint]`, `name = undefined`. Implemented in `context/request.ts`.
 4. `phaseForHint` strips `/^phase[-\s]*/i` (today only `phase\s+`, so `phase15` misses).
 5. `name` undefined and mode ∈ {resume, status, execute} → `inferSpec(projectDir, runner)`:
    - base = `git merge-base HEAD origin/<default>`;

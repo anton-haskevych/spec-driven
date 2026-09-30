@@ -1,6 +1,6 @@
 ---
 created: 2026-09-30T14:26:45-07:00
-updated: 2026-09-30T15:21:59-07:00
+updated: 2026-09-30T15:30:31-07:00
 status: draft
 area: [tools, hooks, sub-commands]
 domain: [spec-workflow]

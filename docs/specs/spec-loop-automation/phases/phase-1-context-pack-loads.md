@@ -33,11 +33,11 @@ SKILL.md **keeps** its parse rules — they're the no-Bun fallback and the only 
 
 ## Deliverables
 
-- [ ] `core/run.ts` `Runner` + `systemRunner` + default-branch resolution; `tests/stub-runner.ts`; `tests/git-repo.ts`
-- [ ] Parse: strip trailing punctuation; last-token form keeps middle tokens as hint
-- [ ] Parse: chunk reference in the name slot becomes the hint (`phase15`, `phase-3`, `3`, `7ab`, `next`, `phase 3a`); `phaseForHint` strips `/^phase[-\s]*/i`
-- [ ] `inferSpec` from branch-commit + porcelain paths joined to the repo root; exactly-one rule; git failure → undefined (real-repo test incl. a merge of main)
-- [ ] `contextPack` uses inference for resume/status/execute when unnamed; `inferred="true"`; candidates line on 0/≥2
+- [x] `core/run.ts` `Runner` + `systemRunner` + default-branch resolution; `tests/stub-runner.ts`; `tests/git-repo.ts`
+- [x] Parse: strip trailing punctuation; last-token form keeps middle tokens as hint
+- [x] Parse: chunk reference in the name slot becomes the hint (`phase15`, `phase-3`, `3`, `7ab`, `next`, `phase 3a`); `phaseForHint` strips `/^phase[-\s]*/i`
+- [x] `inferSpec` from branch-commit + porcelain paths joined to the repo root; exactly-one rule; git failure → undefined (real-repo test incl. a merge of main)
+- [x] `contextPack` uses inference for resume/status/execute when unnamed; `inferred="true"`; candidates line on 0/≥2
 - [ ] `comparePhaseIds` (dots + letters) replaces `numericPart` in ledger-scope and relations; range and `[phase N+]` tests
 - [ ] SKILL.md parse prose aligned (kept) and `:74` reworded; wiring tests green
 
