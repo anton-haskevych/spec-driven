@@ -13,6 +13,8 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 
 ## Domain
 
+- `domain-writer-building-blocks.md` — [phase 3, 4] — findPhase, locate, issuesIntroducedBy, ACTIONS, tree.spec
+
 ## Decisions
 - `decision-publish-docs-snapshot-merge.md` — [phase 7, load-bearing] — snapshot commit + merge-tree + merge-back (probe-verified)
 - `decision-phase-ids-never-retire.md` — [phase 1, 3] — split keeps the original id; `comparePhaseIds` orders letters

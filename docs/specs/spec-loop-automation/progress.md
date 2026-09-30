@@ -17,7 +17,7 @@
 ## Phases
 
 - [x] Phase 1 — Context pack always loads → `phases/phase-1-context-pack-loads.md`
-- [ ] Phase 2 — Tick and deployed → `phases/phase-2-tick-and-deployed.md`
+- [x] Phase 2 — Tick and deployed → `phases/phase-2-tick-and-deployed.md`
 - [ ] Phase 3 — Phase add and split → `phases/phase-3-phase-add-split.md`
 - [ ] Phase 4 — Lessons add → `phases/phase-4-lessons-add.md`
 - [ ] Phase 5 — Project settings → `phases/phase-5-project-settings.md`
