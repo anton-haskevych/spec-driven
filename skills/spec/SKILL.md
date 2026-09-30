@@ -29,24 +29,26 @@ $ARGUMENTS
 SPEC_ARGS
 true`
 
-**If `$ARGUMENTS` is empty:** Infer the feature name from the current conversation context. Propose a kebab-case slug and ask the user to confirm before proceeding.
+**If `$ARGUMENTS` names no spec:** use the `<spec-pack>` above when there is one — its `spec=` is the resolved spec. `inferred="true"` means the tool picked the one spec the branch's changed files belong to: say which spec you are working on in one line and carry on. If instead a line says the changed files belong to several specs, ask which one. Otherwise infer the feature name from the conversation, propose a kebab-case slug and ask the user to confirm before proceeding.
 
 ## Sub-command parse
 
-Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-command token.
+Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-command token. With Bun, `spec.ts context` applies these same rules and a pack's `spec=` wins; apply them by hand when there is no pack.
 
 **Sub-command set:** `prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`, `idea`.
 
 **Matching rule** (case-insensitive, whitespace-tokenized):
 
-1. Split `$ARGUMENTS` on whitespace.
-2. If the **first** token is in the sub-command set: `sub_command = first`, `feature = remaining tokens joined by space`.
-3. Else if the **last** token is in the sub-command set: `sub_command = last`, `feature = all-but-last tokens joined`.
+1. Split `$ARGUMENTS` on whitespace and strip trailing `.,;:!?` from each token.
+2. If the **first** token is in the sub-command set: `sub_command = first`, `rest = the remaining tokens`.
+3. Else if the **last** token is in the sub-command set: `sub_command = last`, `rest = all-but-last tokens`.
 4. Else: no sub-command — fall through to `## Routing` below.
 
-If `feature` is empty after extraction, infer it from conversation context (same rule as the empty-args branch above). Confirm with the user only if ambiguous. **Exceptions:** for `list`, an empty `feature` means "no filter"; do not infer from context. For `idea`, everything after the token is the idea's text, not a feature name.
+`feature` is the first token of `rest`; any tokens after it are a **chunk hint** passed through to the mode (`/spec execute my-feature phase 3a` and `/spec my-feature phase 3a execute` → feature `my-feature`, hint `phase 3a`).
 
-**Exception for `execute`:** `feature` is the **first** remaining token only; any tokens after it are a **chunk hint** passed through to execute mode (`/spec execute my-feature phase 3a` → feature `my-feature`, hint `phase 3a`). If the first remaining token is itself a chunk reference (`phase …`, a bare number, `next`), the whole remainder is the hint and `feature` is inferred from context.
+**Chunk reference in the feature slot.** If that first token is a whole chunk reference — `next`, a phase id (`3`, `7ab`, `9.10`), `phase<id>` or `phase-<id>`, or `phase` followed by another token — and no spec has that name, the whole of `rest` is the hint and `feature` is empty (`/spec execute phase15` → hint `phase15`). A spec that really exists by that name (`2fa`, `next`) stays the feature; `phase2-rollout` is a name, not a reference.
+
+If `feature` is empty after extraction, resolve it as in the no-spec rule above. **Exceptions:** for `list`, `rest` is an optional filter; do not infer from context. For `idea`, everything after the token is the idea's text, not a feature name.
 
 **Dispatch:**
 
@@ -71,7 +73,7 @@ After dispatching, **stop**. Do not also evaluate the routing section below.
 
 One session works one spec, and usually one chunk:
 
-1. A fresh session starts with `/spec resume <name>` or `/spec execute <name>`. That invocation is what ties the session to the spec. Nothing else guesses it: not the branch, not the worktree.
+1. A fresh session starts with `/spec resume <name>` or `/spec execute <name>`. That invocation ties the session to the spec: by the name it gives or, when it gives none, by the one spec the branch's changed files belong to (the pack says `inferred="true"`). Never by the branch name or the worktree.
 2. Work runs until the stopping rule in `execute.md` fires.
 3. `/spec handoff` closes the session. The next chunk starts in a new session.
 
@@ -84,7 +86,7 @@ Worktrees change nothing here. One worktree per spec is common, several per spec
 `${CLAUDE_SKILL_DIR}/tools/` holds Bun scripts that the modes and hooks call. The user never runs them. They need Bun; when `bun` is missing, or in environments that don't run skill hooks, skip the tool step and do the same check by reading the files.
 
 - **Spec-file check (hook).** Registered by this skill's frontmatter (hook commands address scripts through `$CLAUDE_PLUGIN_ROOT`; `${CLAUDE_SKILL_DIR}` is empty inside hooks), so it exists only in sessions where `/spec` was invoked. After every Write or Edit to a spec's `CLAUDE.md` or a ledger entry, it validates the frontmatter. If the check fails, the result comes back as blocking feedback: fix the file before continuing.
-- **Context pack (at load).** For `resume`, `status`, `execute`, or a bare spec name, the skill runs `spec.ts context` as it loads. A `<spec-pack spec="…" mode="…">` block then appears near the top of this file, holding what that mode would otherwise read and filter by hand: the status table rendered to `status.md`'s rules, the next chunk, raw in-flight notes, and for execute the picked phase entry, the phase-scoped ledger rows, the code-map rows, `CLAUDE.md` and a doctor summary. When the block is present, use it and skip the reads it says it covers. When it is absent (no Bun, a cloud or Codex session, a prep or legacy spec), read the files as the mode describes. The same pack is available mid-session: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <name> [phase]`.
+- **Context pack (at load).** For `resume`, `status`, `execute`, or a bare spec name, the skill runs `spec.ts context` as it loads. A `<spec-pack spec="…" mode="…">` block then appears near the top of this file, holding what that mode would otherwise read and filter by hand: the status table rendered to `status.md`'s rules, the next chunk, raw in-flight notes, and for execute the picked phase entry, the phase-scoped ledger rows, the code-map rows, `CLAUDE.md` and a doctor summary. When the block is present, use it and skip the reads it says it covers. With no spec named, `resume`, `status` and `execute` get the pack of the one spec the branch's changed files belong to (`inferred="true"`), or a line naming the candidates. When it is absent (no Bun, a cloud or Codex session, a prep or legacy spec), read the files as the mode describes. The same pack is available mid-session: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <name> [phase]`.
 - **Lesson recall (hook) and `lessons` commands.** See *Project ledger*. The hook adds matching codebase lessons before code edits. `lessons similar|seen|recall` back the project-ledger write path.
 - **Playbook.** `docs/specs/_playbook/` holds project-wide reusable pieces. `gates.md` has one `## <name>` section of `- [ ]` checks per build target, and `pr-opening.md` references them as `gate: <name>` (expanded by `spec.ts gates <name>`). An optional `archetypes.md` extends the plugin's phase shapes ([archetypes.md](archetypes.md)).
 - **Tag playbooks.** Any other `docs/specs/_playbook/<name>.md` whose frontmatter has `match:` is the project's rules for one kind of work, e.g. `match: { domain: [growth] }`. A spec gets it when every field in `match:` hits one of the values in its `CLAUDE.md` (any taxonomy field: `domain`, `area`, `scope`, tags); a phase can also name one with `playbook: <name>`. The resume and execute packs inject matching playbooks automatically; prep, create and review run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts playbooks <name>`. Treat a playbook as house rules for that spec, ranked above the plugin's defaults. Keep each under 60 lines and point to a skill for depth; the doctor checks `match:` values against `.claude/taxonomy.md`.
