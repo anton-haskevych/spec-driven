@@ -29,14 +29,20 @@ export interface SpecState {
   inFlight?: string;
 }
 
+export type ReadSpecFile = (pathInSpec: string) => string | undefined;
+
 export function loadSpecState(spec: SpecFolder): SpecState {
-  const progress = readTextIfExists(join(spec.dir, "progress.md"));
-  const phases = parsePhaseLines(progress ?? "").map((line, index) => loadPhase(spec, line, index));
-  return { spec, hasProgress: progress !== undefined, phases, inFlight: readTextIfExists(join(spec.dir, "in-flight.md")) };
+  return specStateFrom(spec, (pathInSpec) => readTextIfExists(join(spec.dir, pathInSpec)));
 }
 
-function loadPhase(spec: SpecFolder, line: PhaseLine, index: number): PhaseState {
-  const entry = readTextIfExists(join(spec.dir, line.pointer));
+export function specStateFrom(spec: SpecFolder, read: ReadSpecFile): SpecState {
+  const progress = read("progress.md");
+  const phases = parsePhaseLines(progress ?? "").map((line, index) => loadPhase(read, line, index));
+  return { spec, hasProgress: progress !== undefined, phases, inFlight: read("in-flight.md") };
+}
+
+function loadPhase(read: ReadSpecFile, line: PhaseLine, index: number): PhaseState {
+  const entry = read(line.pointer);
   const parsed = entry === undefined ? undefined : parseFrontmatter(entry);
   const data = parsed?.kind === "ok" ? parsed.data : undefined;
   const body = parsed?.kind === "ok" ? parsed.body : entry;
