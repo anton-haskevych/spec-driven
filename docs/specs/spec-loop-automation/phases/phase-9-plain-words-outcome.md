@@ -26,3 +26,7 @@ Template line right under **Goal:** — `**Outcome:** <plain words: what changes
 - [ ] `phase-entry.ts` extracts Outcome; test with and without the line
 - [ ] Status/pack renders Outcome for open phases
 - [ ] execute §10: PR body starts with the shipped phases' Outcomes
+
+## Phase-local notes
+
+Phase 5 also edits `context/packs.ts` and execute §10. If both run in parallel worktrees, land one and rebase the other. `phase add` (phase 3) carries its own copy of the Outcome line in the TS template.
