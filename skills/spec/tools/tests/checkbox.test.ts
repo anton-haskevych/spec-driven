@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { formatTickedItem, hasEvidence, isOpenItem, tickedItemText } from "../core/checkbox";
+import { formatTickedItem, hasEvidence, isOpenItem, isTopLevelItem, tickedItemText } from "../core/checkbox";
 
 describe("checkbox lines", () => {
   test("isOpenItem accepts any bullet and indentation, not ticked items", () => {
@@ -7,6 +7,13 @@ describe("checkbox lines", () => {
     expect(isOpenItem("   * [ ] nested")).toBe(true);
     expect(isOpenItem("- [x] done")).toBe(false);
     expect(isOpenItem("plain text")).toBe(false);
+  });
+
+  test("isTopLevelItem accepts open or ticked items with no indentation", () => {
+    expect(isTopLevelItem("- [ ] Phase 1")).toBe(true);
+    expect(isTopLevelItem("* [x] Phase 2")).toBe(true);
+    expect(isTopLevelItem("  - [ ] nested")).toBe(false);
+    expect(isTopLevelItem("- plain")).toBe(false);
   });
 
   test("tickedItemText returns the text of a ticked item only", () => {

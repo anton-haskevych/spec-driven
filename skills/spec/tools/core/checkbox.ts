@@ -1,10 +1,15 @@
 const OPEN_ITEM = /^(\s*[-*+]\s+)\[ \](\s+.*?)\s*$/;
 const TICKED_ITEM = /^\s*[-*+]\s+\[[xX]\]\s+(.+)$/;
+const TOP_LEVEL_ITEM = /^[-*+]\s+\[[ xX]\]\s/;
 const EVIDENCE = /\d{4}-\d{2}-\d{2}|https?:\/\/|`[^`]+`|\S+\/\S+/;
 const EVIDENCE_SEPARATOR = " — ";
 
 export function isOpenItem(line: string): boolean {
   return OPEN_ITEM.test(line);
+}
+
+export function isTopLevelItem(line: string): boolean {
+  return TOP_LEVEL_ITEM.test(line);
 }
 
 export function tickedItemText(line: string): string | undefined {
