@@ -37,7 +37,7 @@ Migrate existing tests onto `tree.ts` only where touched; don't rewrite unrelate
 
 ## Deliverables
 
-- [ ] `tests/tree.ts` builder; one existing suite migrated as proof
+- [x] `tests/tree.ts` builder; one existing suite migrated as proof
 - [ ] `spec.ts` command table + derived USAGE + wiring test; `parseArgs`
 - [ ] `core/checkbox.ts` patterns moved out of `doctor/`; `EditPlan` + `applyEdits`; `isoTimestamp` + format test
 - [ ] `phases/locate.ts` locator (code fences, stripped-text prefix, `#N`, ambiguity)
