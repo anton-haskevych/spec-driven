@@ -38,10 +38,10 @@ Migrate existing tests onto `tree.ts` only where touched; don't rewrite unrelate
 ## Deliverables
 
 - [x] `tests/tree.ts` builder; one existing suite migrated as proof
-- [ ] `spec.ts` command table + derived USAGE + wiring test; `parseArgs`
+- [x] `spec.ts` command table + derived USAGE + wiring test; `parseArgs`
 - [x] `core/checkbox.ts` patterns moved out of `doctor/`; `EditPlan` + `applyEdits`; `isoTimestamp` + format test
 - [x] `phases/locate.ts` locator (code fences, stripped-text prefix, `#N`, ambiguity)
-- [ ] `phase tick` (code phase) with completion flip + close-phase message; round-trip test
+- [x] `phase tick` (code phase) with completion flip + close-phase message; round-trip test
 - [ ] `phase tick --evidence` for task phases; refuses without valid evidence
 - [ ] `phase deployed` inserts after the pointer; refuses unticked; idempotent; trailing-note fixture
 - [ ] Mode files call `phase tick`/`phase deployed` (with no-Bun fallback lines); SKILL.md *Tools* (grouped) + README
