@@ -38,15 +38,15 @@ Compare recent commits against unchecked sub-items in the current phase entry. F
 
 ### Check off sub-checkboxes inside the phase entry
 
-- Edit the phase's flat file or folder `plan.md` to change `- [ ]` to `- [x]` for completed sub-items.
-- **Task phase (`code: false`)?** Git can't prove these items, so append the evidence to each tick: `- [x] Record the interview — 2026-09-24, Drive/Recordings/ballroom.mp4`, or a link to the published page. No evidence from the user or the session, no tick.
+- Tick each completed sub-item with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"|#N`. Without Bun, change `- [ ]` to `- [x]` in the phase's flat file or folder `plan.md`.
+- **Task phase (`code: false`)?** Git can't prove these items, so each tick carries its evidence: `phase tick … --evidence "2026-09-24, Drive/Recordings/ballroom.mp4"` writes `- [x] Record the interview — 2026-09-24, Drive/Recordings/ballroom.mp4`. A link to the published page works too. No evidence from the user or the session, no tick.
 - **Do NOT check off or modify anything in `progress.md`** except in the narrow case below.
 
 ### Update the top-level phase checkbox in progress.md
 
-- Only flip a top-level phase checkbox in `progress.md` to `[x]` when **all** sub-checkboxes in that phase's entry are checked.
+- `phase tick` flips the top-level box itself when it ticks the last open sub-item. By hand: flip it to `[x]` only when **all** sub-checkboxes in that phase's entry are checked.
 - Do not partially mark a phase as done at the top level.
-- When the user confirms a ticked phase has been deployed, append ` · deployed <YYYY-MM-DD>` to its line (SKILL.md → *Phase edges*). This is what releases phases that declare `needs-deployed` on it. Never infer a deploy from a merge.
+- When the user confirms a ticked phase has been deployed, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase deployed <spec> <phase> [--date YYYY-MM-DD]` (SKILL.md → *Phase edges*). This is what releases phases that declare `needs-deployed` on it. Never infer a deploy from a merge. Without Bun, insert ` · deployed <YYYY-MM-DD>` directly after the pointer (after its closing backtick), before any trailing note; the reader doesn't see it anywhere else.
 
 ### Add supplementary files to a folder-shape phase if warranted
 
