@@ -18,17 +18,21 @@ const entry = [
 
 describe("locateOpenItem", () => {
   test("matches a prefix against markdown-stripped text, case-insensitively", () => {
-    expect(locateOpenItem(entry, "SPEC.TS command")).toEqual({ kind: "found", line: 5 });
-    expect(locateOpenItem(entry, "nested link")).toEqual({ kind: "found", line: 11 });
+    expect(locateOpenItem(entry, "SPEC.TS command")).toMatchObject({ kind: "found", line: 5 });
+    expect(locateOpenItem(entry, "nested link")).toMatchObject({ kind: "found", line: 11 });
   });
 
   test("strips markdown from the prefix too, so a backticked prefix still matches", () => {
-    expect(locateOpenItem(entry, "`spec.ts` command table + **USAGE**")).toEqual({ kind: "found", line: 5 });
+    expect(locateOpenItem(entry, "`spec.ts` command table + **USAGE**")).toMatchObject({ kind: "found", line: 5 });
+  });
+
+  test("a found item carries its markdown-stripped text", () => {
+    expect(locateOpenItem(entry, "#1")).toEqual({ kind: "found", line: 5, text: "spec.ts command table + USAGE" });
   });
 
   test("#N picks the Nth open item in file order, skipping ticked items and fenced code", () => {
-    expect(locateOpenItem(entry, "#1")).toEqual({ kind: "found", line: 5 });
-    expect(locateOpenItem(entry, "#4")).toEqual({ kind: "found", line: 11 });
+    expect(locateOpenItem(entry, "#1")).toMatchObject({ kind: "found", line: 5 });
+    expect(locateOpenItem(entry, "#4")).toMatchObject({ kind: "found", line: 11 });
   });
 
   test("never matches inside a code fence", () => {
@@ -36,7 +40,7 @@ describe("locateOpenItem", () => {
   });
 
   test("an exact match wins over longer items it prefixes", () => {
-    expect(locateOpenItem(entry, "build it")).toEqual({ kind: "found", line: 6 });
+    expect(locateOpenItem(entry, "build it")).toMatchObject({ kind: "found", line: 6 });
   });
 
   test("an ambiguous prefix is invalid and lists the candidates", () => {

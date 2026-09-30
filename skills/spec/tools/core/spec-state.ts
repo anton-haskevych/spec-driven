@@ -32,7 +32,11 @@ export interface SpecState {
 export type ReadSpecFile = (pathInSpec: string) => string | undefined;
 
 export function loadSpecState(spec: SpecFolder): SpecState {
-  return specStateFrom(spec, (pathInSpec) => readTextIfExists(join(spec.dir, pathInSpec)));
+  return specStateFrom(spec, diskReader(spec.dir));
+}
+
+export function diskReader(specDir: string): ReadSpecFile {
+  return (pathInSpec) => readTextIfExists(join(specDir, pathInSpec));
 }
 
 export function specStateFrom(spec: SpecFolder, read: ReadSpecFile): SpecState {

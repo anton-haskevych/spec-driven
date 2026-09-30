@@ -13,11 +13,12 @@ describe("createTree", () => {
     expect(existsSync(tree.root)).toBe(false);
   });
 
-  test("spec() writes files inside docs/specs/<name> and returns the folder", () => {
+  test("spec() writes files inside docs/specs/<name>, with a minimal CLAUDE.md so it is findable", () => {
     const tree = createTree();
     const spec = tree.spec("checkout", { "progress.md": "- [ ] Phase 1 — One → `phases/p1.md`\n" });
     expect(spec).toEqual({ name: "checkout", dir: join(tree.root, "docs/specs/checkout") });
     expect(readFileSync(join(spec.dir, "progress.md"), "utf8")).toContain("Phase 1");
+    expect(readFileSync(join(spec.dir, "CLAUDE.md"), "utf8")).toContain("status: active");
     tree.cleanup();
   });
 

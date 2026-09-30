@@ -6,6 +6,7 @@ import { gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
 import { lessonsCommand } from "./commands/lessons";
 import { listCommand } from "./commands/list";
+import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
 import { readyReport } from "./commands/ready";
 import { isoDay } from "./core/schedule";
@@ -28,6 +29,7 @@ export const COMMANDS: Record<string, Command> = {
   gates: { usage: "gates <spec-name>", run: (dir, args) => gatesReport(dir, args[0]) },
   list: { usage: "list [all] [filter] [--json]", run: (dir, args) => listCommand(dir, args, isoDay(new Date())) },
   playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
+  phase: { usage: PHASE_USAGE, run: phaseCommand },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)

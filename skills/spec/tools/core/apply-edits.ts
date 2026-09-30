@@ -1,7 +1,6 @@
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { readTextIfExists } from "./files";
-import type { ReadSpecFile } from "./spec-state";
+import { diskReader, type ReadSpecFile } from "./spec-state";
 
 export interface FileEdit {
   file: string;
@@ -31,8 +30,6 @@ export function applyEdits(plan: Extract<EditPlan, { kind: "ok" }>): void {
 
 export function readThroughEdits(dir: string, edits: readonly FileEdit[]): ReadSpecFile {
   const planned = new Map(edits.map((edit) => [edit.file, edit.text]));
-  return (pathInSpec) => {
-    const file = join(dir, pathInSpec);
-    return planned.get(file) ?? readTextIfExists(file);
-  };
+  const disk = diskReader(dir);
+  return (pathInSpec) => planned.get(join(dir, pathInSpec)) ?? disk(pathInSpec);
 }

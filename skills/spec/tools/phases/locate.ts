@@ -1,7 +1,7 @@
 import { isOpenItem, isTopLevelItem } from "../core/checkbox";
 import { outlineMarkdown } from "../core/markdown";
 
-export type ItemLocation = { kind: "found"; line: number } | { kind: "invalid"; reason: string };
+export type ItemLocation = { kind: "found"; line: number; text: string } | { kind: "invalid"; reason: string };
 
 interface OpenItem {
   line: number;
@@ -25,7 +25,7 @@ export function locateOpenItem(entry: string, selector: string): ItemLocation {
 
 function byPosition(items: readonly OpenItem[], position: number): ItemLocation {
   const item = items[position - 1];
-  if (position >= 1 && item) return { kind: "found", line: item.line };
+  if (position >= 1 && item) return { kind: "found", ...item };
   return { kind: "invalid", reason: `no open item #${position}. ${listItems(items)}` };
 }
 
@@ -33,7 +33,7 @@ function byPrefix(items: readonly OpenItem[], prefix: string): ItemLocation {
   const exact = items.filter((item) => normalized(item.text) === prefix);
   const matches = exact.length === 1 ? exact : items.filter((item) => normalized(item.text).startsWith(prefix));
   const [only] = matches;
-  if (matches.length === 1 && only) return { kind: "found", line: only.line };
+  if (matches.length === 1 && only) return { kind: "found", ...only };
   if (matches.length === 0) return { kind: "invalid", reason: `no open item starts with "${prefix}". ${listItems(items)}` };
   return { kind: "invalid", reason: `"${prefix}" matches ${matches.length} open items; use more words or #N. ${listItems(matches, items)}` };
 }
