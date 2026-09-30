@@ -8,7 +8,8 @@ needs to know exist to navigate the code — not every file that's touched.
 | File | Role | Phase |
 |------|------|-------|
 | `skills/spec/tools/core/run.ts` | `Runner` seam (argv spawn) + default-branch resolution | 1 |
-| `skills/spec/tools/context/infer-spec.ts` | Unnamed execute/resume → the one spec the branch's changes belong to | 1 |
+| `skills/spec/tools/context/request.ts` | Pure `/spec` argument parse: sub-command, name, hint, chunk references | 1 |
+| `skills/spec/tools/context/infer-spec.ts` | `specsInPlay`: unnamed execute/resume/status → specs the branch's changes belong to | 1 |
 | `skills/spec/tools/tests/git-repo.ts`, `tests/stub-runner.ts` | Real throwaway repos (bare origin + worktree) and canned gh output | 1 |
 | `skills/spec/tools/tests/tree.ts` | Temp project/spec builder for writer tests | 2 |
 | `skills/spec/tools/core/apply-edits.ts` | `EditPlan` + the only place writers touch disk | 2 |

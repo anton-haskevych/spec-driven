@@ -10,4 +10,6 @@ The draft's `phase split 7` → `7a`, `7b` retired id 7, which breaks exactly wh
 
 Decision: split keeps `7` (its file, ticked items, prose); new parts take the next free letters (`7a`, `7b`); `add --after 7` also uses letters and inserts after the last `7*` line. Ids compare with `comparePhaseIds` — dotted parts numerically (`9.10` > `9.9`), letters after their number (`7` < `7a` < `8`) — replacing `numericPart`, which returned a number and collapsed `7a`/`7b` to 7.
 
+Shipped in phase 1 (`core/phase-title.ts`): `comparePhaseIds` is the total order (dotted parts, then letter suffix by length then alphabet, then any tail like `-pre`; `undefined` for ids without a leading number); `[phase N+]` uses it. Relation ranges use `phaseInRange`, which keeps the documented membership rule — letter phases of the upper bound are in (`4-5` ∋ `5a`), dotted inserts after it are out (`4-5` ∌ `5.5`). Phase 3's `add --after` insertion order should sort with `comparePhaseIds`.
+
 Rejected: dotted ids for new phases (CRM uses them more, but letters already exist in the plugin, e.g. `2b-pre`, and either works once the comparator is fixed); split into `7a`/`7b` with a rewrite of every reference (touches other specs).

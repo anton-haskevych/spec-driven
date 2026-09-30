@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Spec written and reviewed (`reviews/2026-09-30-pre-execution-collegium.md`), not yet implemented. 9 code phases + 1 task phase (CRM adoption). No branch/PR yet.
+Reviewed (`reviews/2026-09-30-pre-execution-collegium.md`). Done: phase 1. Left: 2–9 (code), 10 (task). Branch `feat/context-pack-loads` (PR A; local, not pushed — also carries the spec/review commits that sit only on local `main`). No PR yet: PR A opens once phase 9 lands.
 
 Suggested PR split (from phase `pr:` fields):
 - **A** — phases 1, 9 (pack parse fix, outcome line)
