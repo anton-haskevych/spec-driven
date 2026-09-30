@@ -9,12 +9,16 @@ export interface PhaseLine {
 
 const DEPLOYED_SUFFIX = /^\s*[·•(,;:–—-]*\s*deployed\b/i;
 
+export function deployedMarker(day: string): string {
+  return ` · deployed ${day}`;
+}
+
 export interface CheckboxCount {
   checked: number;
   unchecked: number;
 }
 
-const PHASE_POINTER = /phases\/\S+?\.md/;
+export const PHASE_POINTER = /phases\/\S+?\.md/;
 const TOP_LEVEL = 0;
 
 export function parsePhaseLines(progress: string): PhaseLine[] {

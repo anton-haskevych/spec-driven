@@ -28,7 +28,7 @@ export function readSchedule(data: FrontmatterData): Schedule {
   return schedule;
 }
 
-function isCalendarDay(value: string): boolean {
+export function isCalendarDay(value: string): boolean {
   if (!CALENDAR_DAY.test(value)) return false;
   const parsed = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(value);
