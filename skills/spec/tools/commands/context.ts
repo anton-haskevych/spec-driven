@@ -12,19 +12,36 @@ import { loadProjectLessons } from "../lessons/project-ledger";
 import { doctorReport } from "./doctor";
 import { playbooksForSpec } from "../playbook/playbooks";
 import { normalizePhaseHint, type ContextRequest } from "../context/request";
+import { specsInPlay } from "../context/infer-spec";
+import { systemRunner, type Runner } from "../core/run";
 
 const DOCTOR_LINES = 6;
+const PACK_MODES = new Set(["resume", "status", "execute", "route"]);
+const INFERRING_MODES = new Set(["resume", "status", "execute"]);
+const INFERRED_NOTE = "Spec inferred from changed files: say which spec you are working on in one line, then carry on.";
 
-export function contextPack(projectDir: string, request: ContextRequest): string {
-  if (!request.name || !["resume", "status", "execute", "route"].includes(request.mode)) return "";
-  const specs = findSpecs(projectDir, request.name);
+export function contextPack(projectDir: string, request: ContextRequest, runner: Runner = systemRunner): string {
+  if (!PACK_MODES.has(request.mode)) return "";
+  if (request.name) return specPack(projectDir, request, request.name, false);
+  if (!INFERRING_MODES.has(request.mode)) return "";
+
+  const candidates = specsInPlay(projectDir, runner);
+  if (candidates === undefined) return "";
+  const [only] = candidates;
+  if (only !== undefined && candidates.length === 1) return specPack(projectDir, request, only, true);
+  if (candidates.length === 0) return "No spec named, and no changed file belongs to a spec. Infer it from the conversation.";
+  return `No spec named; the changed files belong to ${candidates.join(", ")}. Ask which one.`;
+}
+
+function specPack(projectDir: string, request: ContextRequest, name: string, inferred: boolean): string {
+  const specs = findSpecs(projectDir, name);
   if (specs.length !== 1 || !specs[0]) return "";
 
   const state = loadSpecState(specs[0]);
   const hasLedger = existsSync(join(state.spec.dir, "ledger", "INDEX.md"));
   if (!state.hasProgress || !hasLedger) return "";
 
-  const doctor = doctorReport(projectDir, request.name).split("\n").slice(0, DOCTOR_LINES).join("\n");
+  const doctor = doctorReport(projectDir, name).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
   const nodes = loadNodes(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir);
@@ -33,7 +50,8 @@ export function contextPack(projectDir: string, request: ContextRequest): string
   const body = mode === "execute"
     ? executeBody(projectDir, { state, doctor, relations, ready, playbooks, lessons: loadProjectLessons(projectDir) }, request.hint)
     : resumePack({ state, doctor, relations, ready, playbooks, lessons: [] });
-  return `<spec-pack spec="${state.spec.name}" mode="${mode}">\n${body}\n</spec-pack>`;
+  const header = `<spec-pack spec="${state.spec.name}" mode="${mode}"${inferred ? ' inferred="true"' : ""}>`;
+  return `${header}\n${inferred ? `${INFERRED_NOTE}\n\n` : ""}${body}\n</spec-pack>`;
 }
 
 function executeBody(projectDir: string, input: PackInput, hint: string | undefined): string {

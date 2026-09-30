@@ -8,6 +8,7 @@ import { parsePhaseTitle } from "../core/phase-title";
 import { parseLedgerIndex, rowsForPhase } from "../context/ledger-scope";
 import { phaseStatuses, renderStatusTable } from "../context/status-table";
 import { phaseState } from "./factories";
+import { stubRunner } from "./stub-runner";
 
 const phase = (done: boolean, checked: number, unchecked: number) =>
   phaseState({ done, summary: { deliverables: { checked, unchecked }, nextRun: [] } });
@@ -165,5 +166,42 @@ describe("contextPack", () => {
   test("prints nothing for modes without a pack or unknown specs", () => {
     expect(contextPack(project, { mode: "prep", name: "checkout" })).toBe("");
     expect(contextPack(project, { mode: "resume", name: "missing" })).toBe("");
+  });
+
+  describe("without a spec name", () => {
+    const changed = (...paths: string[]) =>
+      stubRunner([
+        [["git", "rev-parse", "--show-toplevel"], { stdout: `${project}\n` }],
+        [["git", "status"], { stdout: paths.map((path) => ` M ${path}\0`).join("") }],
+      ]);
+
+    test("loads the one spec the changed files belong to and says it was inferred", () => {
+      const pack = contextPack(project, { mode: "execute", hint: "1" }, changed("docs/specs/checkout/progress.md"));
+      expect(pack).toStartWith('<spec-pack spec="checkout" mode="execute" inferred="true">');
+      expect(pack).toContain("inferred from changed files");
+      expect(pack).toContain('Picked: Phase 1 — Harness (from your hint "1")');
+    });
+
+    test("names the candidates when changed files span several specs", () => {
+      mkdirSync(join(project, "docs/specs/billing"), { recursive: true });
+      writeFileSync(join(project, "docs/specs/billing/CLAUDE.md"), "---\nstatus: active\n---\n");
+      const runner = changed("docs/specs/checkout/progress.md", "docs/specs/billing/CLAUDE.md");
+      expect(contextPack(project, { mode: "resume" }, runner)).toBe("No spec named; the changed files belong to billing, checkout. Ask which one.");
+      rmSync(join(project, "docs/specs/billing"), { recursive: true });
+    });
+
+    test("says so when no changed file belongs to a spec", () => {
+      expect(contextPack(project, { mode: "status" }, changed("src/app.ts"))).toBe(
+        "No spec named, and no changed file belongs to a spec. Infer it from the conversation.",
+      );
+    });
+
+    test("stays silent outside git and for modes that never infer", () => {
+      const runner = stubRunner([]);
+      expect(contextPack(project, { mode: "execute" }, runner)).toBe("");
+      expect(contextPack(project, { mode: "review" }, runner)).toBe("");
+      expect(contextPack(project, { mode: "route" }, runner)).toBe("");
+      expect(runner.calls).toHaveLength(1);
+    });
   });
 });
