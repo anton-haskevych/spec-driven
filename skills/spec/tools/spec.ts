@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
-import { contextPack, parseContextRequest } from "./commands/context";
+import { contextPack } from "./commands/context";
+import { parseContextRequest } from "./context/request";
 import { doctorReport } from "./commands/doctor";
 import { gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
