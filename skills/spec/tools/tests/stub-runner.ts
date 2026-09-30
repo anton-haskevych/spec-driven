@@ -1,0 +1,17 @@
+import type { RunResult, Runner } from "../core/run";
+
+export type CannedRuns = ReadonlyArray<readonly [argvPrefix: readonly string[], result: Partial<RunResult>]>;
+
+const FAILED: RunResult = { code: 1, stdout: "", stderr: "no canned result" };
+
+export function stubRunner(canned: CannedRuns): Runner & { calls: string[][] } {
+  const calls: string[][] = [];
+  return {
+    calls,
+    run(argv) {
+      calls.push([...argv]);
+      const match = canned.find(([prefix]) => prefix.every((part, index) => argv[index] === part));
+      return match ? { code: 0, stdout: "", stderr: "", ...match[1] } : FAILED;
+    },
+  };
+}
