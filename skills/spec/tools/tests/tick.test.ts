@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { phaseCommand } from "../commands/phase";
 import { loadSpecState } from "../core/spec-state";
+import { taskPhaseIssues } from "../doctor/task-phases";
 import { planTick } from "../phases/tick";
 import { createTree, type Tree } from "./tree";
 
@@ -68,5 +69,37 @@ describe("phase tick (code phase)", () => {
     expect(phaseCommand(tree.root, ["tick", "ghost", "1", "#1"])).toBe("phase tick: no spec named ghost");
     expect(phaseCommand(tree.root, ["tick", "checkout", "1", "#1", "--bogus"])).toStartWith("usage: phase tick");
     expect(phaseCommand(tree.root, ["tick"])).toStartWith("usage: phase tick");
+  });
+});
+
+describe("phase tick (task phase)", () => {
+  function ballroom() {
+    tree = createTree("spec-tick-task-");
+    return tree.spec("ballroom", {
+      "progress.md": "- [ ] Phase 1 — Record → `phases/phase-1-record.md`\n",
+      "phases/phase-1-record.md": "---\nneeds: []\ncode: false\n---\n- [ ] record the interview\n- [ ] publish the page\n",
+    });
+  }
+
+  test("refuses without --evidence and writes nothing", () => {
+    const spec = ballroom();
+    expect(phaseCommand(tree.root, ["tick", "ballroom", "1", "#1"])).toBe(
+      "phase tick: Phase 1 is a task phase; tick it with --evidence <link, date or file>",
+    );
+    expect(read(spec.dir, "phases/phase-1-record.md")).toContain("- [ ] record the interview");
+  });
+
+  test("refuses evidence that is not a link, date or file", () => {
+    ballroom();
+    expect(phaseCommand(tree.root, ["tick", "ballroom", "1", "#1", "--evidence", "done"])).toStartWith(
+      'phase tick: "done" is not evidence',
+    );
+  });
+
+  test("appends valid evidence to the ticked item, which the doctor then accepts", () => {
+    const spec = ballroom();
+    phaseCommand(tree.root, ["tick", "ballroom", "1", "record", "--evidence", "2026-09-30, Drive/rec.mp4"]);
+    expect(read(spec.dir, "phases/phase-1-record.md")).toContain("- [x] record the interview — 2026-09-30, Drive/rec.mp4\n");
+    expect(taskPhaseIssues(loadSpecState(spec))).toEqual([]);
   });
 });
