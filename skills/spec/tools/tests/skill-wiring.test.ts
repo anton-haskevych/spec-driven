@@ -8,6 +8,12 @@ import { isRecord, parseFrontmatter, stringField } from "../core/frontmatter";
 const SKILL_DIR = join(import.meta.dir, "..", "..");
 const PLUGIN_ROOT = join(SKILL_DIR, "..", "..");
 const SCRIPT_PATH = /"(\$CLAUDE_PLUGIN_ROOT|\$\{CLAUDE_SKILL_DIR\})\/([^"]+\.ts)"/;
+const SHELLS = ["sh", "zsh"].filter((shell) => Bun.which(shell));
+
+function contextInjection(): string {
+  const skill = readFileSync(join(SKILL_DIR, "SKILL.md"), "utf8");
+  return /!`([^`]*"\$\{CLAUDE_SKILL_DIR\}\/tools\/spec\.ts" context [^`]*)`/.exec(skill)?.[1] ?? "missing";
+}
 
 function hookCommands(): string[] {
   const parsed = parseFrontmatter(readFileSync(join(SKILL_DIR, "SKILL.md"), "utf8"));
@@ -41,9 +47,25 @@ describe("SKILL.md hook wiring", () => {
     expect(existsSync(join(SKILL_DIR, injected ?? "missing"))).toBe(true);
   });
 
-  test.each(["sh", "zsh"].filter((shell) => Bun.which(shell)))("%s passes free-text arguments through verbatim", (shell) => {
-    const skill = readFileSync(join(SKILL_DIR, "SKILL.md"), "utf8");
-    const injection = /!`(command -v bun[^`]*context[^`]*)`/.exec(skill)?.[1] ?? "missing";
+  test("the context-pack injection keeps its here-document out of && and || lists, which a worktree-isolated session refuses", () => {
+    const injection = contextInjection();
+    expect(injection).not.toMatch(/&&|\|\|/);
+    expect(injection).toMatch(/<<'SPEC_ARGS'\n/);
+  });
+
+  test.each(SHELLS)("%s without bun prints nothing and exits 0, so the skill still loads", (shell) => {
+    const noBunDir = mkdtempSync(join(tmpdir(), "spec-no-bun-"));
+    const command = contextInjection().replaceAll("${CLAUDE_SKILL_DIR}", noBunDir).replace("$ARGUMENTS", "status");
+
+    const result = Bun.spawnSync([Bun.which(shell) ?? shell, "-c", command], { cwd: noBunDir, env: { PATH: noBunDir } });
+
+    expect(result.stderr.toString()).toBe("");
+    expect(result.stdout.toString()).toBe("");
+    expect(result.exitCode).toBe(0);
+  });
+
+  test.each(SHELLS)("%s passes free-text arguments through verbatim", (shell) => {
+    const injection = contextInjection();
     const fakeSkillDir = mkdtempSync(join(tmpdir(), "spec-skill-"));
     mkdirSync(join(fakeSkillDir, "tools"));
     writeFileSync(join(fakeSkillDir, "tools", "spec.ts"), "console.log(JSON.stringify([...Bun.argv.slice(2), await Bun.stdin.text()]));");
