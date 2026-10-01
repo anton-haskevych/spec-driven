@@ -109,7 +109,7 @@ describe("lessonsCommand add", () => {
     tree.write("docs/specs/_ledger/gotcha-retries-charge-twice.md", "---\nkind: gotcha\npaths: [src/**]\nseen-in: [beta]\n---\n# Card retries charge twice\n");
     const out = lessonsCommand(tree.root, ["add", "gotcha-retries-double-charge.md", "alpha"]);
     expect(out).toContain("gotcha-retries-charge-twice.md");
-    expect(out).toContain("lessons seen");
+    expect(out).toContain("lessons add <that entry> alpha");
     expect(out).toContain("gotcha-retries-double-charge.md recorded for alpha: created, seen-in, project INDEX row, alpha pointer row");
     expect(out).not.toContain("(`gotcha-retries-double-charge.md`");
     expect(read(ledgerFile("gotcha-retries-double-charge.md"))).toContain("seen-in: [alpha]");
