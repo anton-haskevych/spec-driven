@@ -2,7 +2,7 @@
 import { contextPack } from "./commands/context";
 import { parseContextRequest } from "./context/request";
 import { doctorReport } from "./commands/doctor";
-import { gatesReport } from "./commands/gates";
+import { GATES_USAGE, gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
 import { lessonsCommand } from "./commands/lessons";
 import { listCommand } from "./commands/list";
@@ -27,7 +27,7 @@ export const COMMANDS: Record<string, Command> = {
   lessons: { usage: "lessons …", run: lessonsCommand },
   graph: { usage: "graph …", run: graphCommand },
   ready: { usage: "ready <spec-name>", run: (dir, args) => readyReport(dir, args[0]) },
-  gates: { usage: "gates <spec-name>", run: (dir, args) => gatesReport(dir, args[0]) },
+  gates: { usage: GATES_USAGE, run: gatesReport },
   list: { usage: "list [all] [filter] [--json]", run: (dir, args) => listCommand(dir, args, isoDay(new Date())) },
   playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
   phase: { usage: PHASE_USAGE, run: phaseCommand },
