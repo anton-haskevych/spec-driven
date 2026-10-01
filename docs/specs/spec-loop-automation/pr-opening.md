@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Reviewed (`reviews/2026-09-30-pre-execution-collegium.md`). Done: phases 1–4. Left: 5–9 (code), 10 (task). Branches (local, not pushed; both also carry the spec/review commits that sit only on local `main`): `feat/context-pack-loads` = PR A (phase 1; phase 9 goes here). `feat/phase-writers` = PR B (phases 2, 3, 4 — complete), branched from PR A's branch, so rebase it onto `main` after A merges. No PR yet.
+Reviewed (`reviews/2026-09-30-pre-execution-collegium.md`). Done: phases 1–4; 5 in progress (6 of 8). Left: 5–9 (code), 10 (task). Branches (local, not pushed; both also carry the spec/review commits that sit only on local `main`): `feat/context-pack-loads` = PR A (phase 1; phase 9 goes here). `feat/phase-writers` = PR B (phases 2, 3, 4 — complete), branched from PR A's branch, so rebase it onto `main` after A merges. `feat/project-settings` = PR C (phase 5 in progress), branched from PR B's branch. No PR yet.
 
 Suggested PR split (from phase `pr:` fields):
 - **A** — phases 1, 9 (pack parse fix, outcome line)

@@ -20,5 +20,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-phase-ids-never-retire.md` — [phase 1, 3] — split keeps the original id; `comparePhaseIds` orders letters
 - `decision-parse-prose-stays-as-fallback.md` — [phase 1] — SKILL.md parse rules stay, aligned with the tool
 - `decision-bash-writes-denied-not-swept.md` — [phase 8] — PreToolUse deny on write signals, no mtime sweep
+- `decision-index-pointer-check-scope.md` — [phase 5, 10] — only docs/specs/_ledger rows resolve; CRM cross-spec rows have no base
+- `decision-parse-settings-returns-problems.md` — [phase 5+] — one schema walk: defaults + problems; settings.file marks presence
 
 ## Workarounds
