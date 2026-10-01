@@ -2,7 +2,8 @@ import type { SpecState } from "../core/spec-state";
 import { isFinished, type SpecNode } from "../graph/nodes";
 import { phaseNeeds, readySet } from "../ready/ready-set";
 import type { PhaseActivity } from "./activity";
-import type { BoardInputs } from "./inputs";
+import { holderName } from "../claims/rules";
+import type { BoardInputs, HeldClaim } from "./inputs";
 import type { FlightRow } from "./model";
 import { resolvedPhaseKeys, rowKey } from "./phase-keys";
 
@@ -13,13 +14,16 @@ export interface WorkspaceReady {
 
 const KEY_ORDER = new Intl.Collator("en", { numeric: true });
 
+const NO_ACTIVITY: PhaseActivity = { tickedIn: [], wipIn: [] };
+
 export function flightRows(activity: ReadonlyMap<string, PhaseActivity>, inputs: BoardInputs): FlightRow[] {
-  return [...activity]
-    .map(([key, { tickedIn, wipIn }]) => ({ ...splitKey(key), tickedIn, wipIn }))
+  const claims = claimsOnBoard(inputs);
+  return [...new Set([...activity.keys(), ...claims.keys()])]
+    .map((key) => ({ ...splitKey(key), ...(activity.get(key) ?? NO_ACTIVITY), held: claims.get(key) }))
     .filter(({ spec }) => isOnBoard(specNode(spec, inputs)))
     .toSorted((a, b) => KEY_ORDER.compare(rowKey(a), rowKey(b)))
-    .map(({ spec, phase, tickedIn, wipIn }): FlightRow => {
-      const [workspace = "", ...alsoIn] = tickedIn.length > 0 ? tickedIn : wipIn;
+    .map(({ spec, phase, tickedIn, wipIn, held }): FlightRow => {
+      const [workspace = held?.claim.workspace ?? "", ...alsoIn] = tickedIn.length > 0 ? tickedIn : wipIn;
       const prGroup = workspaceState(spec, workspace, inputs)?.phases.find((candidate) => candidate.id === phase)?.edges.pr;
       return {
         spec,
@@ -27,10 +31,17 @@ export function flightRows(activity: ReadonlyMap<string, PhaseActivity>, inputs:
         ...(prGroup ? { prGroup } : {}),
         workspace,
         ...(alsoIn.length > 0 && tickedIn.length > 0 ? { alsoIn } : {}),
+        ...(held ? { holder: holderName(held.claim) } : {}),
         target: { workspace },
         next: tickedIn.length > 0 ? "ticked on branch, not merged" : "executing",
       };
     });
+}
+
+// Done claims are finished work and gone ones lost their worktree: neither is in flight.
+export function claimsOnBoard(inputs: BoardInputs): Map<string, HeldClaim> {
+  const shown = inputs.claims.filter((held) => held.status !== "done" && held.status !== "gone");
+  return new Map(shown.map((held) => [rowKey(held.claim), held]));
 }
 
 // Phases that become ready when one workspace's ticks count as done. Base stays untouched: each

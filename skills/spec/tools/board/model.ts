@@ -29,6 +29,8 @@ export interface FlightRow extends RowBase {
   workspace?: string;
   // Further worktrees where the same phase is ticked.
   alsoIn?: string[];
+  // The session name on the phase's claim.
+  holder?: string;
   session?: SessionCell;
   // "unknown": gh couldn't list PRs.
   pr?: PrCell | "unknown";
@@ -61,7 +63,8 @@ export type AttentionRow =
   | { kind: "overdue"; spec: string; phase?: string; due: string }
   | { kind: "deploy"; spec: string; phase: string; waiting: string[] }
   | { kind: "merge"; spec: string; phase?: string; prGroup?: string; pr: number }
-  | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number };
+  | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number }
+  | { kind: "claim"; spec: string; phase: string; holder: string };
 
 export type BaseMode = "fetched" | "offline" | "busy" | "local";
 

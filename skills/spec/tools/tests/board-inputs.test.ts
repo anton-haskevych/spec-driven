@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadBoard, loadBoardInputs, repoName, type BoardRunners } from "../board/load";
 import { renderBoard } from "../board/render";
@@ -28,6 +28,23 @@ describe("loadBoardInputs (real git)", () => {
   });
 
   afterAll(() => repo.cleanup());
+
+  test("loads claims with their status and scans a claimed worktree even with nothing to diff", async () => {
+    const claimed = repo.addWorktree("claimed", "feat/claimed");
+    const claimsDir = join(repo.dir, ".git", "spec-board", "claims");
+    mkdirSync(claimsDir, { recursive: true });
+    const claim = { spec: "a", phase: "1", sessionId: "s1", workspace: realpathSync(claimed.dir), claimedAt: "t" };
+    writeFileSync(join(claimsDir, "a#1.json"), JSON.stringify(claim));
+    try {
+      const inputs = await loadBoardInputs(repo.dir, { local: true }, runners);
+      if (!inputs.ok) throw new Error(inputs.reason);
+      expect(inputs.value.claims).toEqual([{ claim, status: "unknown" }]);
+      expect(inputs.value.workspaces.map((workspace) => workspace.path)).toContain(realpathSync(claimed.dir));
+    } finally {
+      rmSync(claimsDir, { recursive: true, force: true });
+      repo.git("worktree", "remove", "--force", claimed.dir);
+    }
+  });
 
   test("reads the same base from the main checkout and from a worktree with local edits", async () => {
     const fromMain = await loadBoardInputs(repo.dir, { local: true }, runners);

@@ -7,6 +7,11 @@ import type { Claim } from "./store";
 
 export type ClaimStatus = "unknown" | "live" | "done" | "gone" | "closed";
 
+export interface HeldClaim {
+  claim: Claim;
+  status: ClaimStatus;
+}
+
 export interface ClaimContext {
   sessions: Result<LiveSession[]>;
   // Every listed worktree, not only the board's live ones: a merged worktree still holds its claim.

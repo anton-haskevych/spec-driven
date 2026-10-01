@@ -1,13 +1,14 @@
 import { isOverdue } from "../core/schedule";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
+import { holderName } from "../claims/rules";
 import type { BoardInputs } from "./inputs";
 import type { AttentionRow, FlightRow } from "./model";
-import { resolvedPhaseKeys } from "./phase-keys";
+import { resolvedPhaseKeys, rowKey } from "./phase-keys";
 
 export function needsYou(active: readonly SpecNode[], inputs: BoardInputs, today: string, inFlight: readonly FlightRow[]): AttentionRow[] {
   const states = active.flatMap((node) => inputs.states.get(node.spec.name) ?? []);
-  return [...prAttention(inFlight), ...active.flatMap((node) => overdue(node, inputs.states.get(node.spec.name), today)), ...awaitingDeploy(states, inputs.nodes)];
+  return [...prAttention(inFlight), ...closedClaims(inputs, inFlight), ...active.flatMap((node) => overdue(node, inputs.states.get(node.spec.name), today)), ...awaitingDeploy(states, inputs.nodes)];
 }
 
 export function prAttention(inFlight: readonly FlightRow[]): AttentionRow[] {
@@ -24,6 +25,13 @@ function prVerdictRow(row: FlightRow): AttentionRow | undefined {
   const where = { spec: row.spec, ...(row.phase ? { phase: row.phase } : {}), ...(row.prGroup ? { prGroup: row.prGroup } : {}) };
   if (row.next === "fix CI") return { kind: "fix", ...where, pr: row.pr.number, failing: row.pr.failing ?? 0 };
   return row.next === "merge" ? { kind: "merge", ...where, pr: row.pr.number } : undefined;
+}
+
+function closedClaims(inputs: BoardInputs, inFlight: readonly FlightRow[]): AttentionRow[] {
+  const shown = new Set(inFlight.map(rowKey));
+  return inputs.claims
+    .filter((held) => held.status === "closed" && shown.has(rowKey(held.claim)))
+    .map(({ claim }) => ({ kind: "claim", spec: claim.spec, phase: claim.phase, holder: holderName(claim) }));
 }
 
 function overdue(node: SpecNode, state: SpecState | undefined, today: string): AttentionRow[] {

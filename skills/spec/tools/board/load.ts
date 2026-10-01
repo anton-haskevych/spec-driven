@@ -8,7 +8,8 @@ import { loadMainline } from "../mainline/load";
 import { fetchPrLists, type PrLists } from "../pr/gh-lists";
 import { specPrNumbers } from "../pr/resolve";
 import { toPrRows, type PrRow } from "../pr/rollup";
-import { loadLiveSessions } from "../sessions/live";
+import { heldClaims } from "../claims/held";
+import { loadLiveSessions, type LiveSession } from "../sessions/live";
 import { psProcStarts } from "../sessions/proc-starts";
 import { scanWorkspaces, type WorkspaceScanResult } from "../workspaces/scan";
 import { canonicalPath } from "../workspaces/list";
@@ -29,6 +30,7 @@ export interface BoardRunners {
   claudeHome: string;
 }
 
+const LOCAL_LIVENESS: Result<LiveSession[]> = { ok: false, reason: "--local skips sessions" };
 const NO_SCAN: WorkspaceScanResult = { scans: [], counts: { merged: 0, unknownBase: 0, unreadable: 0 } };
 
 export async function loadBoard(projectDir: string, request: BoardRequest, runners: BoardRunners, now: Date): Promise<Result<Board>> {
@@ -44,7 +46,9 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
   const mainline = await loadMainline(git, branch, { timeoutMs: FETCH_TIMEOUT_MS, local: request.local });
   if (!mainline.ok) return mainline;
   const { base, commonDir, nodes, states, stages, backlog, settings, duplicates } = mainline.value;
-  const scanned = await scanWorkspaces(git, runners.asyncRunner, base.sha, new Set());
+  const sessions = request.local ? "local" : loadLiveSessions(runners.claudeHome, psProcStarts(runners.runner));
+  const claims = heldClaims(git, sessions === "local" ? LOCAL_LIVENESS : sessions, states);
+  const scanned = await scanWorkspaces(git, runners.asyncRunner, base.sha, new Set(claims.map((held) => held.claim.workspace)));
   const { scans, counts } = scanned.ok ? scanned.value : NO_SCAN;
   const workspaces = loadWorkspaceViews(scans, nodes);
   return {
@@ -59,7 +63,8 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       workspaces,
       counts: { ...counts, duplicates },
       backlogCount: backlog.length,
-      sessions: request.local ? "local" : loadLiveSessions(runners.claudeHome, psProcStarts(runners.runner)),
+      sessions,
+      claims,
       prs: prLists ? prRows(await prLists, settings.checks.external) : "local",
       prLinks: prLinks(states, workspaces),
     },

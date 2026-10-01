@@ -1,8 +1,11 @@
+import type { HeldClaim } from "../claims/rules";
 import type { Result } from "../core/result";
 import type { PrRow } from "../pr/rollup";
 import type { LiveSession } from "../sessions/live";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
+
+export type { HeldClaim };
 
 export interface BaseRef {
   branch: string;
@@ -34,6 +37,7 @@ export interface BoardInputs {
   backlogCount: number;
   // "local": --local skipped the source.
   sessions: Result<LiveSession[]> | "local";
+  claims: readonly HeldClaim[];
   prs: Result<PrRow[]> | "local";
   // Spec → PR numbers its pr-opening.md links, oldest first.
   prLinks: ReadonlyMap<string, readonly number[]>;

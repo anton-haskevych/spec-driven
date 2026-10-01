@@ -2,6 +2,7 @@ import { phaseActivity, type PhaseActivity } from "../board/activity";
 import { loadBoardInputs } from "../board/load";
 import { claimStatus, holderName, isStale, takeRefusal, type ClaimContext } from "../claims/rules";
 import { claimsDir, loadClaims, pruneClaims, releaseClaims, takeClaim, type Claim, type TakeOutcome } from "../claims/store";
+import { claimContext } from "../claims/held";
 import { gitAt } from "../core/git";
 import type { Result } from "../core/result";
 import type { SpecState } from "../core/spec-state";
@@ -53,11 +54,12 @@ async function loadClaimWorld(projectDir: string, deps: ClaimDeps): Promise<Resu
   const inputs = await loadBoardInputs(projectDir, { local: true }, deps);
   if (!inputs.ok) return inputs;
   const { states, workspaces, currentPath } = inputs.value;
+  const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   return {
     ok: true,
     value: {
       dir: dir.value,
-      context: { sessions: loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner)), worktrees: new Set(worktrees.value.map((worktree) => worktree.path)), baseStates: states },
+      context: claimContext(git, sessions, states, loadClaims(dir.value).claims),
       activity: phaseActivity(states, workspaces),
       currentPath,
       ownStates: workspaces.find((workspace) => workspace.path === currentPath)?.states,

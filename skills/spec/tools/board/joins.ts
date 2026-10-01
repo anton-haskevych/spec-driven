@@ -1,7 +1,9 @@
 import { sep } from "node:path";
 import type { PrRow } from "../pr/rollup";
 import type { LiveSession } from "../sessions/live";
+import { claimsOnBoard } from "./flight";
 import type { BoardInputs } from "./inputs";
+import { rowKey } from "./phase-keys";
 import type { FlightNext, FlightRow, PrCell, SessionCell } from "./model";
 
 export function joinFlightRows(rows: readonly FlightRow[], inputs: BoardInputs): FlightRow[] {
@@ -12,9 +14,13 @@ export function attachSessions(rows: readonly FlightRow[], inputs: BoardInputs):
   const { sessions } = inputs;
   if (sessions === "local") return [...rows];
   if (!sessions.ok) return rows.map((row) => ({ ...row, session: { status: "unknown" } }));
+  const claims = claimsOnBoard(inputs);
   const byWorkspace = sessionsByWorkspace(sessions.value, inputs.workspaces.map((workspace) => workspace.path));
   return rows.map((row) => {
-    const latest = (byWorkspace.get(row.workspace ?? "") ?? []).toSorted((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
+    const held = claims.get(rowKey(row));
+    if (held?.status === "closed") return { ...row, session: { status: "closed" } };
+    const claimant = held && sessions.value.find((session) => session.sessionId === held.claim.sessionId);
+    const latest = claimant ?? (byWorkspace.get(row.workspace ?? "") ?? []).toSorted((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];
     return latest ? { ...row, session: sessionCell(latest) } : { ...row };
   });
 }
