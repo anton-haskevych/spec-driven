@@ -277,7 +277,7 @@ Tables are empty at spec birth. `update.md` fills them in as load-bearing files 
 
 #### `docs/specs/$ARGUMENTS/phases/phase-<N>-<slug>.md` (flat file shape)
 
-One file per phase that chose flat-file shape in *Plan — the phasing gate*. Content template:
+One file per phase that chose flat-file shape in *Plan — the phasing gate*. The **Outcome** line is for the user, not the engineer: what changes for them, then cost and risk, with no file names, commands or jargon. Its first sentence is what the status table shows. Content template:
 
 ```markdown
 ---
@@ -292,6 +292,8 @@ code: false   # only for a task phase; omit for code phases
 # Phase <N> — <Name>
 
 **Goal:** <one-sentence phase goal>
+
+**Outcome:** <plain words: what changes for the user · cost · risk>
 
 **Files to touch:**
 - <path/to/file>
