@@ -9,12 +9,16 @@ export interface PhaseLine {
 
 const DEPLOYED_SUFFIX = /^\s*[·•(,;:–—-]*\s*deployed\b/i;
 
+export function deployedMarker(day: string): string {
+  return ` · deployed ${day}`;
+}
+
 export interface CheckboxCount {
   checked: number;
   unchecked: number;
 }
 
-const PHASE_POINTER = /phases\/\S+?\.md/;
+export const PHASE_POINTER = /phases\/\S+?\.md/;
 const TOP_LEVEL = 0;
 
 export function parsePhaseLines(progress: string): PhaseLine[] {
@@ -25,6 +29,14 @@ export function parsePhaseLines(progress: string): PhaseLine[] {
     const deployed = task.checked && DEPLOYED_SUFFIX.test(task.text.slice(end));
     return [{ done: task.checked, deployed, title: task.text.slice(0, end), pointer: match[0] }];
   });
+}
+
+const PHASE_TITLE = /^Phase\s/i;
+
+export function indentedPhaseLines(progress: string): string[] {
+  return outlineMarkdown(progress)
+    .tasks.filter((task) => task.depth > TOP_LEVEL && PHASE_TITLE.test(task.text) && PHASE_POINTER.test(task.text))
+    .map((task) => task.text);
 }
 
 export function countCheckboxes(markdown: string): CheckboxCount {

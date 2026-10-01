@@ -1,10 +1,9 @@
 import { join } from "node:path";
+import { hasEvidence, tickedItemText } from "../core/checkbox";
 import { parseFrontmatter } from "../core/frontmatter";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import { error, warning, type Issue } from "./issue";
 
-const TICKED_ITEM = /^\s*[-*+]\s+\[[xX]\]\s+(.+)$/;
-const EVIDENCE = /\d{4}-\d{2}-\d{2}|https?:\/\/|`[^`]+`|\S+\/\S+/;
 const SELF_CHECK = /\b(verif\w*|qa|manual test\w*|smoke test\w*|open (a )?pr|pull request)\b/i;
 
 export function taskPhaseIssues(state: SpecState, onlyPointer?: string): Issue[] {
@@ -34,7 +33,7 @@ function checkPhase(file: string, phase: PhaseState): Issue[] {
 
 function unevidencedItems(body: string): string[] {
   return body.split("\n").flatMap((line) => {
-    const item = TICKED_ITEM.exec(line)?.[1]?.trim();
-    return item && !EVIDENCE.test(item) ? [item] : [];
+    const item = tickedItemText(line);
+    return item && !hasEvidence(item) ? [item] : [];
   });
 }

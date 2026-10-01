@@ -94,7 +94,7 @@ For each unit:
 3. **Green.** Run the unit test → green. Run the broader test suite → still green.
 4. **Refactor (if warranted).** Improve names, split functions that grew too large, eliminate duplication that just appeared. Tests stay green throughout.
 5. **Commit.** One logical change per commit. Commit message states the *why*, not just the *what*. Body explains anything non-obvious about the approach.
-6. **Update progress.** Tick the corresponding sub-checkbox in the phase entry (`phases/phase-<N>-<slug>.md` or the folder's `plan.md`). If this completes all sub-checkboxes for the phase, flip the top-level box in `progress.md` and refresh the **Spec state** in `pr-opening.md` (phases done / left).
+6. **Update progress.** Tick the matching sub-checkbox with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"` (or `#N` for the Nth open item, which keeps backticks out of the shell). When it ticks the last open item it also flips the `progress.md` box and says `Phase N complete`. Then refresh the **Spec state** in `pr-opening.md` (phases done / left). Without Bun, edit the boxes by hand: the entry's sub-checkbox, and the `progress.md` box only when every sub-checkbox is ticked.
 
 ## 7. Capture durable learnings as you go
 
@@ -146,8 +146,8 @@ A task phase (`code: false`) delivers work outside the repo. No recon waves, no 
 2. **Split the open items by who can do them.**
    - **Items you can do here** (draft the copy, write the brief, prepare the run of show, build a shareable page): do them, save the result where the project keeps it, and tick each with that file or link.
    - **Items a person must do** (record, meet, send, publish from their account): tell the user what each needs from them, in one short list. Tick an item only when they report it done, with the evidence they give.
-3. **Tick with evidence**, always: `- [x] <item> — <link, date or file>`. The doctor warns about ticks with nothing after them.
-4. **Found code work?** It doesn't belong in a task phase. Add a code phase through `update` and link it with `needs`.
+3. **Tick with evidence**, always: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>" --evidence "<link, date or file>"` writes `- [x] <item> — <evidence>` and refuses anything that isn't evidence. Without Bun, write that line by hand. The doctor warns about ticks with nothing after them.
+4. **Found code work?** It doesn't belong in a task phase. Add a code phase with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase add <spec> "<title>"` (update.md → *New work → add or split a phase*) and link the two with `needs`.
 5. The stopping rule (§8), end-of-chunk (§9) and handoff apply as for code phases.
 
 ## Notes

@@ -14,10 +14,11 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/tests/tree.ts` | Temp project/spec builder for writer tests | 2 |
 | `skills/spec/tools/core/apply-edits.ts` | `EditPlan` + the only place writers touch disk | 2 |
 | `skills/spec/tools/core/checkbox.ts` | Checkbox/evidence patterns shared by writers and doctor | 2 |
-| `skills/spec/tools/phases/` | `locate`, `tick`, `deployed`, `add`, `split` writers | 2, 3 |
+| `skills/spec/tools/phases/` | `tick`, `deployed`, `add`, `split` writers + shared `find-phase`, `locate`, `validate` (diff-based checks), `ids`, `template`, `progress-lines`, `move-items`, `review-refs` | 2, 3 |
 | `skills/spec/tools/commands/phase.ts` | `phase tick\|deployed\|add\|split` adapter | 2, 3 |
 | `skills/spec/tools/core/ledger-index.ts` | One INDEX row parser for spec, project and pointer rows; `insertRow` | 4 |
 | `skills/spec/tools/lessons/add.ts` | Lesson bookkeeping after the agent writes the entry | 4 |
+| `skills/spec/tools/core/frontmatter-patch.ts` | `setFrontmatterLine`: set one key in the header only | 4 |
 | `skills/spec/tools/playbook/settings.ts` | `_playbook/settings.md` parse + defaults | 5 |
 | `skills/spec/tools/doctor/settings.ts`, `doctor/gitattributes.ts` | Settings and union-rule checks (only when settings.md exists) | 5 |
 | `skills/spec/tools/pr/` | `checks`, `main-compare`, `log-tail`, `render` | 6 |

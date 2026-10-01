@@ -11,6 +11,8 @@ created: 2026-09-30T15:16:12-07:00
 Rules:
 - Writers are pure and return `EditPlan = {kind:"ok", edits, renames?} | {kind:"unchanged"} | {kind:"invalid", reason}` covering **every** file they change.
 - Before returning `ok`, run the existing checkers on the planned text (`checkPhases`, `taskPhaseIssues`, `checkProjectLesson`, `checkLedgerIndex`). Tool writes don't pass through the Write/Edit hook, so this is their only validation.
+- Fail only on issues the plan **introduces**: compare checker output before vs. after. The checkers warn about pre-existing drift, so an "any issue → invalid" rule would block every write to a spec that already has a warning.
+- Build the planned `SpecState` with `specStateFrom(spec, read)`, using a reader that lays the plan's edits over disk. `loadSpecState` is the disk-only wrapper.
 - `core/apply-edits.ts` is the only code that touches disk (renames, then writes).
 - Shared text patterns live in `core/` (`checkbox.ts`, `progress.ts`, `ledger-index.ts`); writers never import from `doctor/`.
 - Every writer test ends with a `loadSpecState` round-trip.

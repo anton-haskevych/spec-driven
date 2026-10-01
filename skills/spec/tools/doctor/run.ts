@@ -13,7 +13,7 @@ import { phaseEdgeIssues } from "./phase-edges";
 import { phaseScheduleIssues, specOverdueIssues } from "./schedule";
 import { taskPhaseIssues } from "./task-phases";
 import { phasePlaybookIssues } from "./playbooks";
-import { checkInFlight, checkPhases } from "./phases";
+import { checkIndentedPhaseLines, checkInFlight, checkPhases } from "./phases";
 import { checkSpecMeta } from "./spec-meta";
 
 export interface DoctorContext {
@@ -63,8 +63,12 @@ function ledgerIssues(spec: SpecFolder): Issue[] {
 
 function progressIssues(spec: SpecFolder): Issue[] {
   const progressFile = join(spec.dir, "progress.md");
-  const phases = parsePhaseLines(readTextIfExists(progressFile) ?? "");
-  const phaseIssues = checkPhases(progressFile, phases, (pointer) => readTextIfExists(join(spec.dir, pointer)));
+  const progress = readTextIfExists(progressFile) ?? "";
+  const phases = parsePhaseLines(progress);
+  const phaseIssues = [
+    ...checkPhases(progressFile, phases, (pointer) => readTextIfExists(join(spec.dir, pointer))),
+    ...checkIndentedPhaseLines(progressFile, progress),
+  ];
 
   const inFlightFile = join(spec.dir, "in-flight.md");
   const inFlight = readTextIfExists(inFlightFile);

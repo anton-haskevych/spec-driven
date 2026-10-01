@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readSpecMeta } from "../core/spec-meta";
-import { isOverdue, isoDay, priorityRank, readSchedule } from "../core/schedule";
+import { join } from "node:path";
+import { isOverdue, isoDay, isoTimestamp, priorityRank, readSchedule } from "../core/schedule";
 import { phaseScheduleIssues, specOverdueIssues } from "../doctor/schedule";
 import { phaseState, specMeta, specNode } from "./factories";
 
@@ -90,5 +91,25 @@ describe("schedule checks in the doctor", () => {
       "spec was due 2026-09-01 and is not finished",
     ]);
     expect(specOverdueIssues("CLAUDE.md", specNode({ status: "done", meta: specMeta({ due: "2026-09-01" }) }), TODAY)).toEqual([]);
+  });
+});
+
+describe("isoTimestamp", () => {
+  const SHAPE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
+  const offsetOf = (stamp: string) => stamp.slice(-6);
+
+  test("prints local time with a colon offset, the same shape as spec-bump.sh --now", () => {
+    const script = join(import.meta.dir, "..", "..", "scripts", "spec-bump.sh");
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const bumped = Bun.spawnSync(["bash", script, "--now"], { env: { ...process.env, TZ: zone } }).stdout.toString().trim();
+    const ours = isoTimestamp(new Date());
+    expect(bumped).toMatch(SHAPE);
+    expect(ours).toMatch(SHAPE);
+    expect(offsetOf(ours)).toBe(offsetOf(bumped));
+  });
+
+  test("starts with the same local day isoDay prints", () => {
+    const date = new Date(2026, 0, 5, 7, 8, 9);
+    expect(isoTimestamp(date)).toStartWith("2026-01-05T07:08:09");
   });
 });

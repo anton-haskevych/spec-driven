@@ -38,15 +38,23 @@ Compare recent commits against unchecked sub-items in the current phase entry. F
 
 ### Check off sub-checkboxes inside the phase entry
 
-- Edit the phase's flat file or folder `plan.md` to change `- [ ]` to `- [x]` for completed sub-items.
-- **Task phase (`code: false`)?** Git can't prove these items, so append the evidence to each tick: `- [x] Record the interview — 2026-09-24, Drive/Recordings/ballroom.mp4`, or a link to the published page. No evidence from the user or the session, no tick.
+- Tick each completed sub-item with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"|#N`. Without Bun, change `- [ ]` to `- [x]` in the phase's flat file or folder `plan.md`.
+- **Task phase (`code: false`)?** Git can't prove these items, so each tick carries its evidence: `phase tick … --evidence "2026-09-24, Drive/Recordings/ballroom.mp4"` writes `- [x] Record the interview — 2026-09-24, Drive/Recordings/ballroom.mp4`. A link to the published page works too. No evidence from the user or the session, no tick.
 - **Do NOT check off or modify anything in `progress.md`** except in the narrow case below.
 
 ### Update the top-level phase checkbox in progress.md
 
-- Only flip a top-level phase checkbox in `progress.md` to `[x]` when **all** sub-checkboxes in that phase's entry are checked.
+- `phase tick` flips the top-level box itself when it ticks the last open sub-item. By hand: flip it to `[x]` only when **all** sub-checkboxes in that phase's entry are checked.
 - Do not partially mark a phase as done at the top level.
-- When the user confirms a ticked phase has been deployed, append ` · deployed <YYYY-MM-DD>` to its line (SKILL.md → *Phase edges*). This is what releases phases that declare `needs-deployed` on it. Never infer a deploy from a merge.
+- When the user confirms a ticked phase has been deployed, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase deployed <spec> <phase> [--date YYYY-MM-DD]` (SKILL.md → *Phase edges*). This is what releases phases that declare `needs-deployed` on it. Never infer a deploy from a merge. Without Bun, insert ` · deployed <YYYY-MM-DD>` directly after the pointer (after its closing backtick), before any trailing note; the reader doesn't see it anywhere else.
+
+### New work → add or split a phase
+
+Phase ids never change or disappear: `spec#7` refs, `[phase 7]` ledger scopes and `research/phase-7/` all depend on them.
+
+- **Work that deserves its own phase:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase add <spec> "<title>" [--after <id>] [--needs a,b] [--pr X] [--code false]`. It takes the next integer, or with `--after 7` the next free letter (`7a`), writes the phase file from the template and the `progress.md` line. Then fill in its Goal, Outcome, files and deliverables.
+- **A phase that grew two jobs:** `phase split <spec> <id> "<title>"… [--items "b:1,2 c:3"]`. The original keeps its id, file and ticked items; each title becomes a lettered part (`b` = first title) and takes the open items listed by `#N`. The output lists every ref that still points at the original: keep each one or retarget it to a part.
+- **Without Bun:** do the same by hand, following the same id rules. Copy the flat template from `create.md`, and put the `progress.md` line after the last line of that id's family. Never write a nested `- [ ] Phase …` line: the tools can't see it, and the doctor warns.
 
 ### Add supplementary files to a folder-shape phase if warranted
 
@@ -181,3 +189,5 @@ If the current phase is a **flat file** and it has outgrown its scale — multip
 5. The next resume/update session automatically uses the new folder path because `progress.md` is authoritative
 
 Reverse demotion (folder → flat file) is not automated. If it's ever needed, the user does it manually.
+
+`phase split` refuses folder-shape phases: split those by hand, keeping the original id.

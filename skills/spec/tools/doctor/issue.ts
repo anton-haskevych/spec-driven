@@ -21,3 +21,12 @@ export function formatIssues(issues: readonly Issue[], projectDir: string): stri
     .map((issue) => `${issue.severity}  ${relative(projectDir, issue.file)}: ${issue.problem}`)
     .join("\n");
 }
+
+export function newIssues(before: readonly Issue[], after: readonly Issue[]): Issue[] {
+  const seen = new Set(before.map(issueKey));
+  return after.filter((issue) => !seen.has(issueKey(issue)));
+}
+
+function issueKey(issue: Issue): string {
+  return `${issue.severity} ${issue.file} ${issue.problem}`;
+}
