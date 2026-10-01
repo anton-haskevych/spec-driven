@@ -21,6 +21,6 @@ pr: A
 
 ## Deliverables
 
-- [ ] Red→green: phase `needs: [gift-cards]` on a phase-less prep spec → waits with `needs gift-cards`; no doctor issue
-- [ ] Red→green: same ref once that spec's status is `done` (or `abandoned`) → satisfied, even with unticked phases
-- [ ] Docs: SKILL.md phase edges + relations, create.md phase template, resume.md blocked-by bullet name the whole-spec form
+- [x] Red→green: phase `needs: [gift-cards]` on a phase-less prep spec → waits with `needs gift-cards`; no doctor issue
+- [x] Red→green: same ref once that spec's status is `done` (or `abandoned`) → satisfied, even with unticked phases
+- [x] Docs: SKILL.md phase edges + relations, create.md phase template, resume.md blocked-by bullet name the whole-spec form
