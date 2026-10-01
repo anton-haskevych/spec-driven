@@ -8,6 +8,7 @@ export interface RunOptions {
   cwd?: string;
   env?: Record<string, string>;
   stdin?: string;
+  timeoutMs?: number;
 }
 
 export interface Runner {
@@ -23,8 +24,10 @@ export const systemRunner: Runner = {
         cwd: options.cwd,
         env: { ...process.env, ...options.env },
         stdin: options.stdin === undefined ? "ignore" : Buffer.from(options.stdin),
+        timeout: options.timeoutMs,
       });
-      return { code: result.exitCode ?? 1, stdout: result.stdout.toString(), stderr: result.stderr.toString() };
+      const stderr = result.exitedDueToTimeout ? `timed out after ${options.timeoutMs} ms` : result.stderr.toString();
+      return { code: result.exitCode ?? 1, stdout: result.stdout.toString(), stderr };
     } catch (cause) {
       return { code: COMMAND_NOT_FOUND, stdout: "", stderr: cause instanceof Error ? cause.message : String(cause) };
     }

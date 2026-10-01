@@ -13,6 +13,14 @@ describe("systemRunner", () => {
     expect(result.stdout).toBe("x:path");
   });
 
+  test("kills a command that outlives timeoutMs and says so in stderr", () => {
+    const started = performance.now();
+    const result = systemRunner.run(["sleep", "5"], { timeoutMs: 200 });
+    expect(performance.now() - started).toBeLessThan(2_000);
+    expect(result.code).not.toBe(0);
+    expect(result.stderr).toBe("timed out after 200 ms");
+  });
+
   test("turns a missing binary into exit code 127 instead of throwing", () => {
     const result = systemRunner.run(["spec-driven-no-such-binary"]);
     expect(result.code).toBe(127);

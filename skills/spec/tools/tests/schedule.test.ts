@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readSpecMeta } from "../core/spec-meta";
 import { join } from "node:path";
-import { isOverdue, isoDay, isoTimestamp, priorityRank, readSchedule } from "../core/schedule";
+import { compareSchedule, isOverdue, isoDay, isoTimestamp, priorityRank, readSchedule } from "../core/schedule";
 import { phaseScheduleIssues, specOverdueIssues } from "../doctor/schedule";
 import { phaseState, specMeta, specNode } from "./factories";
 
@@ -47,6 +47,23 @@ describe("isoDay", () => {
 describe("priorityRank", () => {
   test("orders p1 first and unprioritized last", () => {
     expect([priorityRank("p1"), priorityRank("p2"), priorityRank("p3"), priorityRank(undefined)]).toEqual([1, 2, 3, 4]);
+  });
+});
+
+describe("compareSchedule", () => {
+  test("orders by priority, then by due date, with unset values last", () => {
+    const items = [{}, { due: "2026-10-09" }, { priority: "p2" as const }, { priority: "p2" as const, due: "2026-10-20" }, { priority: "p1" as const }];
+    expect(items.toSorted(compareSchedule)).toEqual([
+      { priority: "p1" },
+      { priority: "p2", due: "2026-10-20" },
+      { priority: "p2" },
+      { due: "2026-10-09" },
+      {},
+    ]);
+  });
+
+  test("ties are zero so callers chain their own keys", () => {
+    expect(compareSchedule({ priority: "p1", due: "2026-10-09" }, { priority: "p1", due: "2026-10-09" })).toBe(0);
   });
 });
 
