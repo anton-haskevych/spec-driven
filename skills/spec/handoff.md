@@ -151,6 +151,8 @@ bun ${CLAUDE_SKILL_DIR}/tools/spec.ts push                       # docs: branch
 
 Pushing is confined: the branch goes to its own name, and only committed spec docs go to the default branch. Keep the output for *Signal completion*. A line starting `push:` or `publish-docs:` is a refusal; print it as is and don't retry, force or work around it. `diverged on main` means main changed the same spec lines: the next session merges main, then publishes. Without Bun, run `git push -u origin "HEAD:refs/heads/$(git branch --show-current)"` and say that the docs were not published; the next publish covers everything since the last snapshot.
 
+Then release this session's claims on the spec, so another session can pick the phase up: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim release <spec-name>`. Keep its `claim:` line for *Signal completion*. Releasing a half-done phase is safe: `claim take` refuses it in any other worktree while the work sits in this one.
+
 ## 4. Signal completion
 
 Print:
@@ -163,6 +165,7 @@ Committed: <commit hash> — <commit message first line>
 Ledger entries added: <count> — <comma-separated slugs>
 In-flight state: <"has pending work" | "clean boundary">
 <the Remote: line, plus any refusal line, from Commit>
+<the claim: line from Commit>
 
 Unblocked: <specs whose needs point at phases finished this session, from `spec.ts graph <spec-name>`; omit the line if none>
 Next agent should run: /spec resume <spec-name>

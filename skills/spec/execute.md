@@ -32,6 +32,12 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 
 ## 1. Load the principles
 
+**Claim the phase first**, so two sessions never start the same one: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim take <spec> <phase>`.
+- A `claim:` line means this session holds it. `took over <spec> phase <id> from <holder> (closed)` took a claim its session left behind; say so in one line.
+- `claim refused:` with no phase named by the user (the pack picked it): re-run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <spec>`. The new pack skips the held phase. Reload Stage B for its pick and claim that.
+- `claim refused:` for a phase the user named: stop and tell the user who holds it and in which worktree.
+- Without Bun, skip this step.
+
 **Task phase?** If the picked phase has `code: false` (the execute pack says so under `Picked:`), skip to *Task phases* below; §1–§7 are for code.
 
 **Fresh worktree?** When project settings name `gates.bootstrap` (the pack's `Settings:` line says `fresh worktree: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do the steps whose condition holds; the gate text defines "fresh". No `Settings:` line means no bootstrap step. Without Bun, read `gates.bootstrap` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
