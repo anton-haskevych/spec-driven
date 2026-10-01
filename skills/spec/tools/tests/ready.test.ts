@@ -77,6 +77,28 @@ describe("readySet", () => {
   });
 });
 
+describe("whole-spec needs", () => {
+  const giftCards = specNode({ spec: { name: "gift-cards", dir: "/specs/gift-cards" }, status: "prep" });
+  const waitsOn = (node: SpecNode, field: "needs" | "needs-deployed" = "needs") =>
+    readySet(state([phaseState({ id: "14", edges: edges({ [field]: [node.spec.name] }) })]), new Map([[node.spec.name, node]]));
+
+  test("a spec with no phases yet resolves, and the phase waits until that spec is finished", () => {
+    expect(waitsOn(giftCards).waiting[0]?.reasons).toEqual(["needs gift-cards"]);
+    expect(phaseEdgeIssues(state([phaseState({ edges: edges({ needs: ["gift-cards"] }) })]), new Map([["gift-cards", giftCards]]))).toEqual([]);
+    expect(waitsOn({ ...giftCards, status: "done" }).ready.map((p) => p.id)).toEqual(["14"]);
+  });
+
+  test("a finished status meets it even with phases left unticked", () => {
+    expect(waitsOn({ ...safety, status: "abandoned" }).ready.map((p) => p.id)).toEqual(["14"]);
+  });
+
+  test("an open spec with phases still waits on each open phase, deploys included", () => {
+    expect(waitsOn(safety).waiting[0]?.reasons).toEqual(["needs safety#2"]);
+    const shipped = specNode({ ...safety, phases: [{ id: "1", done: true, deployed: false }] });
+    expect(waitsOn(shipped, "needs-deployed").waiting[0]?.reasons).toEqual(["needs deployed safety#1"]);
+  });
+});
+
 describe("phaseEdgeIssues", () => {
   test("reports references that do not resolve and needs cycles", () => {
     const broken = state([

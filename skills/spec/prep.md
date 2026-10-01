@@ -30,9 +30,12 @@ See `SKILL.md` for layout rules, `product-brief.md` / `research/` semantics, and
 
 ## 0. Precondition check
 
+**Spin-off check first.** If this session already works another spec (a `/spec` command for a different name ran here, or you have been executing, reviewing or creating another spec), do not prep inline: follow *Spin-off* below. Prep here only when the user explicitly asks for it in this session.
+
 Resolve the target folder `docs/specs/<name>/`:
 
 - **Does not exist** → fresh prep. Start at Stage 0 (Frame). If `docs/specs/_backlog/<name>.md` exists, or the user names an idea from the backlog, that idea is the starting ask: read it first and frame from its title and body.
+- **Exists, seeded** (has `seed.md`, no `product-brief.md`) → another session spun this spec off. Read `seed.md`, every file under its *Evidence*, and `research/*-wave-0-*.md`. The seed replaces Stages 0–1: state the real change in one sentence, then write the brief (Stage 2.2) from the seed, using the user's quoted words and the recorded decisions rather than re-asking them. Keep the existing stub `CLAUDE.md` (refresh it with `spec-bump.sh <name>`). Stop at 2.3 as usual, listing the seed's *Open questions* under the brief path. After the brief is confirmed, wave 0 counts as recon: Wave 1 aims only at what it left open. `seed.md` stays as the origin record.
 - **Exists, prep-stage only** (has `product-brief.md` and/or `research/`, but no `progress.md`) → prep was already started. Read the brief and any `research/` snapshots, print one line (`prep in progress — brief ✓, N research snapshot(s)`), and resume at the right point: no research yet → Stage 3; implementation waves done but no craft snapshot → Stage 5; both lenses covered → Stage 6 lock check / handoff.
 - **Exists as a full spec** (has `progress.md` or `phases/`) → not a prep target. Print `Spec '<name>' already exists at docs/specs/<name>/. Use /spec <name> to resume or /spec <name> review.` and stop.
 
@@ -279,6 +282,48 @@ Open risks: <anything unresolved, or "none">
 ```
 
 Then offer the handoff — a soft offer, not a gate: *"Ready to write the spec? `/spec create <name>` builds it from the brief + research."* If the user confirms, read [create.md](create.md) and follow it (its Discover stage loads the brief + research instead of cold-exploring). If they'd rather read the research first, stop.
+
+## Spin-off — a new spec from another spec's session
+
+A session works one spec (SKILL.md → *Session lifecycle*). When it needs a new spec B (prep asked for B here, `create` needs a spec that doesn't exist, or execute/update finds work that is its own spec), it hands B to a fresh session instead of prepping it on a full context. Work that can wait goes to `/spec idea`; spin off what should be prepped now.
+
+1. **Name and check.** Kebab-case name for the intent (Stage 2.1). Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list <key words>`; if an open spec or idea already covers it, point there instead. Without Bun, list `docs/specs/` and `docs/specs/_backlog/`.
+2. **Stub.** `mkdir -p docs/specs/<B>` and write the Stage 2.1 stub `CLAUDE.md`, with the body line `Seeded from <A>: see seed.md. /spec prep <B> continues.` and a `related:` entry `- <A>: <what A needs from it>`. Carry `priority`; add `due:` only when A's date really binds B.
+3. **Seed.** Write `docs/specs/<B>/seed.md` from the template below, at most 60 lines. It carries what a fresh session can't recover: quote the user, don't paraphrase; name rejected options; point at files, not memories.
+4. **Wave 0.** If this session's agents already ran recon that bears on B, write it as `research/<YYYY-MM-DD>-wave-0-<slug>.md`: the Stage 4.1 format with `wave: 0`, `lens: inherited`, `from: <A>`, keeping `file:line` refs and noting what you spot-checked or corrected. Findings only, never the transcript.
+5. **Link.** When A waits on B, declare it on A, not in prose: the waiting phase gets `needs: [<B>]` (a whole spec resolves before it has phases), or A's `CLAUDE.md` does when all of A waits. Narrow to `<B>#<N>` once B's phases exist.
+6. **Commit** B's folder and A's edge (`[seed] <B>: from <A>`), following the project's docs setting.
+7. **Launch** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch prep <B>`, one per spec; several run side by side. On `launch: run this in a new terminal: …`, or without Bun, give the user the line (`claude -n "<B> prep" "/spec-driven:spec prep <B>"` from the project directory).
+8. Tell the user one line per spec (`Seeded <B> — prep running in a new tab`), then return to A's work.
+
+```markdown
+---
+from: <A, or the journal/incident it came from>
+from-session: <$CLAUDE_CODE_SESSION_ID, when set>
+created: <spec-bump.sh --now>
+---
+
+# <B> — Seed
+
+## Why it branched
+<2–3 lines: what in A's work surfaced it>
+
+## In the user's words
+> "<verbatim>" (<user>, <date>)
+
+## Decided
+- <decision> — chosen <x>, rejected <y> (why) · <user | recommended, unconfirmed>
+
+## What <A> needs
+<A's phase N needs …, by <date>; or "nothing, a side discovery">
+
+## Evidence
+- `research/<date>-wave-0-<slug>.md` — <what it covers>
+- `<path>` § <section or lines> — <why it matters>
+
+## Open questions
+- <only what the brief can't be written without>
+```
 
 ## What this mode does not do
 

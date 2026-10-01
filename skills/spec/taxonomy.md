@@ -4,7 +4,7 @@
 
 Lifecycle order: `prep` → `draft` → `active` → `done` / `good-enough`.
 
-- `prep` — Reconnaissance stage: folder + `product-brief.md` + `research/`; spec body not yet written
+- `prep` — Reconnaissance stage: folder + `product-brief.md` + `research/` (a spun-off spec starts with `seed.md`); spec body not yet written
 - `draft` — Spec written, not yet under implementation (may be in review)
 - `active` — Implementation in progress
 - `paused` — Implementation started, intentionally on hold

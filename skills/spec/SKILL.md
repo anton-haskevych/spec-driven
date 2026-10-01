@@ -77,6 +77,8 @@ One session works one spec, and usually one chunk:
 2. Work runs until the stopping rule in `execute.md` fires.
 3. `/spec handoff` closes the session. The next chunk starts in a new session.
 
+**A new spec found mid-session is spun off, not prepped here.** prep.md → *Spin-off* writes its `seed.md`, links the dependency and launches a fresh session for it; this session stays on its spec.
+
 Compaction is not part of the flow. If the conversation does get compacted, treat it as a stop signal and hand off at the next clean boundary.
 
 Worktrees change nothing here. One worktree per spec is common, several per spec is fine, and every path in this skill is relative to the session's working directory.
@@ -92,6 +94,7 @@ Worktrees change nothing here. One worktree per spec is common, several per spec
 - **Tag playbooks.** Any other `docs/specs/_playbook/<name>.md` whose frontmatter has `match:` is the project's rules for one kind of work, e.g. `match: { domain: [growth] }`. A spec gets it when every field in `match:` hits one of the values in its `CLAUDE.md` (any taxonomy field: `domain`, `area`, `scope`, tags); a phase can also name one with `playbook: <name>`. The resume and execute packs inject matching playbooks automatically; prep, create and review run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts playbooks <name>`. Treat a playbook as house rules for that spec, ranked above the plugin's defaults. Keep each under 60 lines and point to a skill for depth; the doctor checks `match:` values against `.claude/taxonomy.md`.
 - **Spec-file writers.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick|deployed|add|split …` edit checkboxes, the deployed marker and the phase list; `lessons add` records a project lesson (*Project ledger → Write path*). Each validates its whole change before writing and refuses with a reason (ambiguous item, task phase without evidence, unticked phase). Run `spec.ts phase` for the flags. Use them when they fit; hand edits (Edit, Write or a script) are fine, and the doctor checks the result at handoff.
 - **Remote.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts pr-status [<pr>|<spec>]` reports a PR in one call: state, check counts (external checks from settings counted apart), failing jobs' log tails and whether main fails too. At most 30 gh calls; never waits. Execute's PR gate uses it. `spec.ts push` pushes the current branch to its own name on origin (refuses a detached HEAD, and code on the default branch). `spec.ts publish-docs <spec>`, in `docs: main` projects, pushes the branch, then lands its committed spec docs on the default branch through git's 3-way merge (refuses, pushing nothing to main, when main changed the same lines) and merges that snapshot back. Both print one `Remote:` line; handoff runs them.
+- **Launch.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch <sub-command> <spec-name>` opens a fresh Claude Code session running `/spec-driven:spec <sub-command> <spec-name>` in a new iTerm tab, tmux window or Terminal.app window, picked from the environment. One line back: `Launched: <terminal> — <name> <sub>`, or `launch: run this in a new terminal: <line>` when it can't (no supported terminal, Codex, automation refused); then give the user that line. Prep's *Spin-off* uses it.
 - **List.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list [all] [filter] [--json]` prints open specs and backlog ideas by priority ([list.md](list.md)). `--json` is the same data for other agents and skills.
 - **Doctor.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <name>` checks one spec for drift: frontmatter against the taxonomy, ledger entries against `ledger/INDEX.md`, phase boxes in `progress.md` against their phase entries, and stale `in-flight.md`. Handoff runs it before committing. Fix every `error` line; fix `warning` lines that this session caused.
 
@@ -116,7 +119,7 @@ Check if a spec folder exists at `docs/specs/$ARGUMENTS/`.
 Every mode that works on an existing spec (`resume`, `execute`, `review`, `update`, `handoff`, `status`) runs this check first — one definition, referenced by name from each mode file. Resolve `docs/specs/<name>/`, then:
 
 1. **Missing folder** → print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Never offer to create — that is `create`'s job.
-2. **Prep stage** (folder exists, no `progress.md` — only `product-brief.md` / `research/`) → the spec body isn't written yet. Take the mode's prep-stage action from the table and stop.
+2. **Prep stage** (folder exists, no `progress.md` — only `seed.md` / `product-brief.md` / `research/`) → the spec body isn't written yet. Take the mode's prep-stage action from the table and stop.
 3. **Legacy layout** (has `progress.md`, no `ledger/INDEX.md`) → read [legacy-layout.md](legacy-layout.md) and apply the section for this mode wherever the mode file targets files the spec doesn't have.
 4. Otherwise → current layout; continue with the mode.
 
@@ -147,6 +150,7 @@ All sub-modes follow the rules below. This reference is embedded in SKILL.md (no
 ```
 docs/specs/<name>/
 ├── CLAUDE.md                                   # metadata + routing
+├── seed.md                                     # origin record when spun off from another session (prep.md → Spin-off)
 ├── product-brief.md                            # stable reference — business intent (≤30 lines, no code); by prep
 ├── design.md                                   # stable reference — problem, UX, decisions
 ├── technical.md                                # stable reference — contracts, architecture
@@ -177,6 +181,7 @@ docs/specs/<name>/
 |---|---|---|
 | `CLAUDE.md` | stable | Metadata frontmatter + file index + relationship to code |
 | `product-brief.md` | stable | Business intent — who/what/why, the real change, out of scope. ≤30 lines, no code. Written by prep; the contract recon agents work against |
+| `seed.md` | stable | Handover from the session that spun this spec off: the user's words, decisions, what the parent needs, evidence. Read by prep; then kept as the origin record |
 | `design.md` | stable | Problem, decisions table, UX flows, wireframes |
 | `technical.md` | stable | API contracts, data models, architecture |
 | `progress.md` | small | Thin index of phases; top-level checkboxes; pointers into `phases/` |
@@ -238,7 +243,7 @@ Each phase file starts with frontmatter that holds only hard constraints:
 
 ```yaml
 ---
-needs: [2, 3, competitions-content-publishing-safety#2]  # must be ticked first; local ids or spec#phase
+needs: [2, 3, competitions-content-publishing-safety#2]  # must be ticked first; local ids, spec#phase or a whole spec
 needs-deployed: [2]         # must be ticked and deployed (blue/green, bake time), not just merged
 same-files-as: [5]          # no logical dependency, but edits the same files: lands after 5, not alongside
 pr: B                       # PR group; pr-opening.md's split comes from these (code phases only)
@@ -252,6 +257,7 @@ playbook: growth            # optional; adds a project playbook to this phase's 
 - **Write `needs: []` for a phase with no dependencies.** A phase without frontmatter, in a spec where other phases declare edges, is treated as needing every earlier phase.
 - **Deployed** is a marker right after the pointer on the ticked phase line in `progress.md`: ``- [x] Phase 2 — Aggregate → `phases/…` · deployed 2026-09-20``. `update` adds it with `spec.ts phase deployed` once the user confirms the deploy.
 - **Parallelism is computed.** `spec.ts ready <name>` prints the ready set, the waiting phases with reasons, and the PR groups.
+- **A whole spec** (`needs: [gift-cards]`) works even before that spec has phases, e.g. a spec still in prep: the phase waits until the spec is finished (status `done`, `good-enough` or `abandoned`, or every phase ticked). Once its phases exist, narrow the ref to `<spec>#<phase>` when only part of it is needed.
 - **Checks.** The doctor and the spec-file check flag references that don't resolve and `needs` cycles.
 
 ## Ledger entry format
@@ -336,7 +342,7 @@ related:                                             # anything else, with a one
   - organizer-profile-redesign: owns the brand page visuals
 ```
 
-- **References** are `<spec>` or `<spec>#<phase>`. `<phase>` is an exact phase id (`2b-pre`) or a numeric range (`4-5`, which includes `4a`).
+- **References** are `<spec>` or `<spec>#<phase>`. `<phase>` is an exact phase id (`2b-pre`) or a numeric range (`4-5`, which includes `4a`). A bare `<spec>` may name a spec with no phases yet; it stays open until that spec is finished.
 - **Four types only.** Prose may still explain a relation, but the frontmatter entry is what counts.
 - **An umbrella** is a spec whose children declare `part-of` it. Nesting needs nothing more.
 - **When the other side's work moves** (a phase dissolved, split or renamed), update the declaring spec's reference. The doctor flags references that no longer resolve.
@@ -457,6 +463,7 @@ Handoff **must not**:
 | `phases/phase-<N>-<slug>.md` or `phases/phase-<N>-<slug>/plan.md` | yes — one per planned phase |
 | `ledger/` | yes |
 | `ledger/INDEX.md` | yes (header only) |
+| `seed.md` | no — written by another spec's session when it spins this one off |
 | `product-brief.md` | no — created by `prep` before the spec body exists |
 | `in-flight.md` | no — created by handoff when pending state exists |
 | `reviews/` | no — created on first review write |
@@ -471,7 +478,7 @@ If `docs/specs/<name>/ledger/INDEX.md` is absent, the spec predates this layout.
 
 ## Shared conventions
 
-- **Lifecycle:** `prep` (folder + brief + recon) → `draft` (spec written) → `active` (implementing) → `done`/`good-enough`. Prep is optional but recommended for non-trivial specs; `create` can run cold.
+- **Lifecycle:** `prep` (folder + brief + recon; a spun-off spec starts from `seed.md`) → `draft` (spec written) → `active` (implementing) → `done`/`good-enough`. Prep is optional but recommended for non-trivial specs; `create` can run cold.
 - **Stage vs. status:** the stage is read from the files (no `progress.md` = prep; no ticked box yet = draft). The `status:` field only ever holds a value the project allows. When a project taxonomy (`.claude/taxonomy.md`) lists `status` values, use only those: write the stage name when it is listed, otherwise `active` until the spec is `done` or `good-enough`.
 - **Timestamps:** never write by hand. `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>` bumps `updated:` in the spec's `CLAUDE.md`; `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh --now` prints the canonical timestamp for any other field (ledger `created:`, stub frontmatter).
 - **Taxonomy values:** use the controlled vocabulary injected at the top of this file.

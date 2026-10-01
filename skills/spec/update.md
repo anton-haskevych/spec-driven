@@ -53,6 +53,7 @@ Compare recent commits against unchecked sub-items in the current phase entry. F
 Phase ids never change or disappear: `spec#7` refs, `[phase 7]` ledger scopes and `research/phase-7/` all depend on them.
 
 - **Work that deserves its own phase:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase add <spec> "<title>" [--after <id>] [--needs a,b] [--pr X] [--code false]`. It takes the next integer, or with `--after 7` the next free letter (`7a`), writes the phase file from the template and the `progress.md` line. Then fill in its Goal, Outcome, files and deliverables.
+- **Work that is its own spec** (a dependency with its own phases, a system other specs will use, another owner): spin it off (prep.md → *Spin-off*) and give the waiting phase `needs: [<new spec>]`.
 - **A phase that grew two jobs:** `phase split <spec> <id> "<title>"… [--items "b:1,2 c:3"]`. The original keeps its id, file and ticked items; each title becomes a lettered part (`b` = first title) and takes the open items listed by `#N`. The output lists every ref that still points at the original: keep each one or retarget it to a part.
 - **Without Bun:** do the same by hand, following the same id rules. Copy the flat template from `create.md`, and put the `progress.md` line after the last line of that id's family. Never write a nested `- [ ] Phase …` line: the tools can't see it, and the doctor warns.
 

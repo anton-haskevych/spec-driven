@@ -57,7 +57,11 @@ function codeMapPaths(codeMap: string): string[] {
   });
 }
 
+export function hasFinishedStatus(node: SpecNode): boolean {
+  return node.status === "done" || node.status === "good-enough" || node.status === "abandoned";
+}
+
 export function isFinished(node: SpecNode): boolean {
-  if (node.status === "done" || node.status === "good-enough" || node.status === "abandoned") return true;
+  if (hasFinishedStatus(node)) return true;
   return node.phases.length > 0 && node.phases.every((phase) => phase.done);
 }
