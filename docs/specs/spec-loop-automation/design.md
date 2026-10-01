@@ -65,7 +65,7 @@ phase done ──► pre-PR checks ──► spec.ts gates <names>
 merged main? ─► spec.ts gates --name <settings.gates.after-merge-main>
 open PR ─────► draft per settings.pr.draft; body leads with phase Outcomes
 asked "status?" / PR gate ─► spec.ts pr-status [<pr>|<spec>]   (default: this branch's PR)
-handoff ─────► doctor → commit → spec.ts push → (settings.docs=main) spec.ts publish-docs <spec> → push again (snapshot merge)
+handoff ─────► doctor → commit → settings.docs=main ? spec.ts publish-docs <spec> (push → publish → merge back → push) : spec.ts push
                └─ prints  Remote: pushed feat/x (+3) · docs → main 1a2b3c4 · behind main 12
 ```
 

@@ -14,7 +14,7 @@ pr: C
 - `skills/spec/tools/publish/snapshot.ts`, `publish/publish.ts`, `publish/push.ts` (new)
 - `skills/spec/tools/commands/push.ts`, `commands/publish-docs.ts` (new); `spec.ts` table
 - `skills/spec/tools/tests/publish.test.ts`, `tests/push.test.ts` (use phase 1's `tests/git-repo.ts`)
-- `skills/spec/handoff.md` (§3, §4), `update.md` (§9), `SKILL.md` (*Tools*)
+- `skills/spec/handoff.md` (§3, §4), `update.md` (§9), `SKILL.md` (*Tools*), `README.md` (command lines)
 
 ## Implementation guidance
 
@@ -25,9 +25,9 @@ Algorithm in `technical.md` → *publish-docs algorithm*; it replaces the draft'
 - `push.ts`: `git push origin HEAD:refs/heads/<current>` (`-u` when no upstream — a bare `git push` goes to `origin/main` for worktree branches created from it); refuse detached HEAD; on the default branch refuse when unpushed commits touch paths outside `isSpecDocPath`. Skip publish-docs on the default branch.
 - `Remote:` line: `Remote: pushed <branch> (+N) · docs → <default> <sha> · behind <default> M` (omit parts that don't apply).
 
-Tests run real git in `git-repo.ts` repos (CI has no git identity — set `GIT_AUTHOR_*`/`GIT_COMMITTER_*`). Cover the probe's rows: only spec files land on main; branch code not leaked; INDEX union keeps both sides; branch-merge of X is a no-op; a later merge of main is clean; a second publish is clean; main edits the same file → refused, nothing pushed. Plus: `origin/main` moved between steps (pinned SHA wins); rename published as its new path; deletions reported; uncommitted edits not published; `landing/docs/specs` files included.
+Tests run real git in `git-repo.ts` repos (CI has no git identity — set `GIT_AUTHOR_*`/`GIT_COMMITTER_*`). Cover the probe's rows: only spec files land on main; branch code not leaked; INDEX union keeps both sides; branch-merge of X is a no-op; a later merge of main is clean; a second publish is clean; main edits the same file → refused, nothing pushed; a publish after merging main that already holds another spec's snapshot is clean. Plus: `origin/main` moved between steps (pinned SHA wins); rename published as its new path; deletions reported; uncommitted edits not published; `landing/docs/specs` files included.
 
-handoff §3: commit → `spec.ts push` → `publish-docs <spec>` when `docs: main`. No Bun → prose fallback: `git push origin HEAD` and the manual recipe pointer (quote `"${sha}:refs/heads/main"` — zsh applies `:r` to `$sha:refs`).
+handoff §3: commit → `spec.ts publish-docs <spec>` when `docs: main` (it pushes the branch first, then publishes and pushes the merge-back), else `spec.ts push` (`decision-publish-docs-pushes-first.md`). `merge-tree` exit 1 = conflict, other non-zero = error; a failed merge-back after a good publish is reported with the `git merge <X>` to run. No Bun → prose fallback: `git push origin HEAD` and the manual recipe pointer (quote `"${sha}:refs/heads/main"` — zsh applies `:r` to `$sha:refs`).
 
 ## Deliverables
 

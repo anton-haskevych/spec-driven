@@ -66,7 +66,7 @@ Commands take `runner: Runner = systemRunner` as their last param. Tests: stub r
 | `gates --name <g…>` | see *Named gates* | `commands/gates.ts` |
 | `pr-status [<pr>\|<spec>]` | see design.md output and *pr-status* below | `commands/pr-status.ts`, `pr/*` |
 | `push` | `git push origin HEAD:refs/heads/<current>` (sets upstream when none); refuses detached HEAD; on the default branch refuses when unpushed commits touch paths outside `isSpecDocPath`; prints `Remote:` line | `commands/push.ts`, `publish/push.ts` |
-| `publish-docs [<spec>]` | only when `docs: main` and not on the default branch; algorithm below; `<spec>` only labels the commit | `commands/publish-docs.ts`, `publish/snapshot.ts`, `publish/publish.ts` |
+| `publish-docs [<spec>]` | only when `docs: main` and not on the default branch; pushes the branch first (same as `push`), then the algorithm below, then pushes the merge-back; prints one `Remote:` line; `<spec>` only labels the commit | `commands/publish-docs.ts`, `publish/snapshot.ts`, `publish/publish.ts` |
 
 ### Context parse (replaces `context.ts:24-31`)
 1. Tokenize; strip trailing `[.,;:!?]+` per token.
@@ -86,9 +86,9 @@ SKILL.md keeps its parse rules — they are the no-Bun fallback and the only par
 2. Base `P` = the last snapshot commit reachable from HEAD (`git log -1 --format=%H --grep '^docs(spec): snapshot' HEAD`), else `git merge-base HEAD M`.
 3. Files = `git diff --name-only --no-renames --diff-filter=AM P HEAD` filtered by `isSpecDocPath`. Deleted paths → reported "not published".
 4. Snapshot: temp `GIT_INDEX_FILE`; `read-tree P`; for each file `update-index --add --cacheinfo <mode>,<HEAD blob>,<path>` (HEAD blobs — never worktree content); `write-tree`; `X = commit-tree -p P -m "docs(spec): snapshot <spec>"`.
-5. `git merge-tree --write-tree M X`. Exit 1 (conflict) → stop, name the conflicting files ("diverged on main — merge main first"), push nothing. INDEX files union-merge through `.gitattributes`; no hand merge, no line guard.
+5. `git merge-tree --write-tree M X`. Exit 1 (conflict) → stop, name the conflicting files ("diverged on main — merge main first"), push nothing. Any other non-zero exit → stop with stderr (needs git ≥ 2.38). INDEX files union-merge through `.gitattributes`; no hand merge, no line guard.
 6. `D = commit-tree <tree> -p M -p X -m "docs(spec): publish <spec>"`; `push origin D:refs/heads/<default>`. Non-fast-forward → re-fetch, re-pin, rebuild once; then stop. Any other rejection (protection, pre-push hook) → stop with the error, no retry.
-7. `git merge --no-edit X` into the branch — a no-op diff that records the snapshot as an ancestor, so the next "merge main" and the next publish see only new changes.
+7. `git merge --no-edit X` into the branch — a no-op diff that records the snapshot as an ancestor, so the next "merge main" and the next publish see only new changes. If it fails, main keeps the publish; report it with `git merge <X>` to run by hand.
 8. Print `published N files to <default> (<sha>)` and skipped deletions.
 
 ### pr-status
