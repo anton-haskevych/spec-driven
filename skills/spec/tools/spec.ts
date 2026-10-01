@@ -7,6 +7,7 @@ import { graphCommand } from "./commands/graph";
 import { LAUNCH_USAGE, launchReport } from "./commands/launch";
 import { lessonsCommand } from "./commands/lessons";
 import { BOARD_USAGE, boardCommand, systemBoardDeps } from "./commands/board";
+import { CLAIM_USAGE, claimCommand } from "./commands/claim";
 import { listCommand } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
@@ -40,6 +41,7 @@ export const COMMANDS: Record<string, Command> = {
   "pr-status": { usage: PR_STATUS_USAGE, run: (dir, args) => prStatusReport(dir, args) },
   push: { usage: PUSH_USAGE, run: (dir, args) => pushReport(dir, args) },
   "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
+  claim: { usage: CLAIM_USAGE, run: (dir, args) => claimCommand(dir, args) },
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchReport(dir, args) },
 };
 
