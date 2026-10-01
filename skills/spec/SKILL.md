@@ -77,6 +77,8 @@ One session works one spec, and usually one chunk:
 2. Work runs until the stopping rule in `execute.md` fires.
 3. `/spec handoff` closes the session. The next chunk starts in a new session.
 
+**A new spec found mid-session is spun off, not prepped here.** prep.md → *Spin-off* writes its `seed.md`, links the dependency and launches a fresh session for it; this session stays on its spec.
+
 Compaction is not part of the flow. If the conversation does get compacted, treat it as a stop signal and hand off at the next clean boundary.
 
 Worktrees change nothing here. One worktree per spec is common, several per spec is fine, and every path in this skill is relative to the session's working directory.
@@ -117,7 +119,7 @@ Check if a spec folder exists at `docs/specs/$ARGUMENTS/`.
 Every mode that works on an existing spec (`resume`, `execute`, `review`, `update`, `handoff`, `status`) runs this check first — one definition, referenced by name from each mode file. Resolve `docs/specs/<name>/`, then:
 
 1. **Missing folder** → print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Never offer to create — that is `create`'s job.
-2. **Prep stage** (folder exists, no `progress.md` — only `product-brief.md` / `research/`) → the spec body isn't written yet. Take the mode's prep-stage action from the table and stop.
+2. **Prep stage** (folder exists, no `progress.md` — only `seed.md` / `product-brief.md` / `research/`) → the spec body isn't written yet. Take the mode's prep-stage action from the table and stop.
 3. **Legacy layout** (has `progress.md`, no `ledger/INDEX.md`) → read [legacy-layout.md](legacy-layout.md) and apply the section for this mode wherever the mode file targets files the spec doesn't have.
 4. Otherwise → current layout; continue with the mode.
 
@@ -148,6 +150,7 @@ All sub-modes follow the rules below. This reference is embedded in SKILL.md (no
 ```
 docs/specs/<name>/
 ├── CLAUDE.md                                   # metadata + routing
+├── seed.md                                     # origin record when spun off from another session (prep.md → Spin-off)
 ├── product-brief.md                            # stable reference — business intent (≤30 lines, no code); by prep
 ├── design.md                                   # stable reference — problem, UX, decisions
 ├── technical.md                                # stable reference — contracts, architecture
@@ -178,6 +181,7 @@ docs/specs/<name>/
 |---|---|---|
 | `CLAUDE.md` | stable | Metadata frontmatter + file index + relationship to code |
 | `product-brief.md` | stable | Business intent — who/what/why, the real change, out of scope. ≤30 lines, no code. Written by prep; the contract recon agents work against |
+| `seed.md` | stable | Handover from the session that spun this spec off: the user's words, decisions, what the parent needs, evidence. Read by prep; then kept as the origin record |
 | `design.md` | stable | Problem, decisions table, UX flows, wireframes |
 | `technical.md` | stable | API contracts, data models, architecture |
 | `progress.md` | small | Thin index of phases; top-level checkboxes; pointers into `phases/` |
@@ -459,6 +463,7 @@ Handoff **must not**:
 | `phases/phase-<N>-<slug>.md` or `phases/phase-<N>-<slug>/plan.md` | yes — one per planned phase |
 | `ledger/` | yes |
 | `ledger/INDEX.md` | yes (header only) |
+| `seed.md` | no — written by another spec's session when it spins this one off |
 | `product-brief.md` | no — created by `prep` before the spec body exists |
 | `in-flight.md` | no — created by handoff when pending state exists |
 | `reviews/` | no — created on first review write |
@@ -473,7 +478,7 @@ If `docs/specs/<name>/ledger/INDEX.md` is absent, the spec predates this layout.
 
 ## Shared conventions
 
-- **Lifecycle:** `prep` (folder + brief + recon) → `draft` (spec written) → `active` (implementing) → `done`/`good-enough`. Prep is optional but recommended for non-trivial specs; `create` can run cold.
+- **Lifecycle:** `prep` (folder + brief + recon; a spun-off spec starts from `seed.md`) → `draft` (spec written) → `active` (implementing) → `done`/`good-enough`. Prep is optional but recommended for non-trivial specs; `create` can run cold.
 - **Stage vs. status:** the stage is read from the files (no `progress.md` = prep; no ticked box yet = draft). The `status:` field only ever holds a value the project allows. When a project taxonomy (`.claude/taxonomy.md`) lists `status` values, use only those: write the stage name when it is listed, otherwise `active` until the spec is `done` or `good-enough`.
 - **Timestamps:** never write by hand. `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>` bumps `updated:` in the spec's `CLAUDE.md`; `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh --now` prints the canonical timestamp for any other field (ledger `created:`, stub frontmatter).
 - **Taxonomy values:** use the controlled vocabulary injected at the top of this file.

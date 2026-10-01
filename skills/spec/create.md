@@ -19,6 +19,8 @@ Understand the problem space before designing anything.
 - This **is** your Discover. Do not re-run a cold codebase sweep; the waves already located the seam, the reuse, and the blast radius. Trust the brief for the *what/why* and the research for the *how*.
 - Confirm your understanding back to the user in 2–3 bullets, then move to Decide. The brief and research carry into every later stage — decisions, technical contracts, and phase plans all cite them.
 
+**Only a `seed.md`?** Another session spun this spec off and prep hasn't run: run prep first (prep.md → *Exists, seeded*).
+
 **No prep output?** Cold-discover. For a non-trivial change, recommend prep first:
 
 > For a change this size, `/spec prep $ARGUMENTS` grounds the spec in a reconnaissance pass before we write it — want that, or proceed cold?
@@ -130,7 +132,7 @@ Create the spec folder with the full file set below. Use the taxonomy values fro
 
 #### `docs/specs/$ARGUMENTS/CLAUDE.md`
 
-Fill the relation fields from prep's overlap findings (see `prep.md` → *Overlap check*). Without prep, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts graph files <the files this spec will touch>` first. Declare only relations this spec owns (SKILL.md → *Relations between specs*), and drop any field that stays empty.
+Fill the relation fields from prep's overlap findings (see `prep.md` → *Overlap check*). Without prep, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts graph files <the files this spec will touch>` first. Declare only relations this spec owns (SKILL.md → *Relations between specs*), and drop any field that stays empty. A spec this one needs that doesn't exist yet is spun off, one seed and one launch each (prep.md → *Spin-off*), never hand-written as a stub brief here; then `needs: [<it>]` on the phases that wait.
 
 ```markdown
 ---
