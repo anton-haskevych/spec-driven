@@ -12,14 +12,14 @@ Split (value first):
 Scoped to the plugin repo (`skills/spec/`). Plugin repo PRs are ready, not draft — never straight to `main`.
 
 PR A:
-- [ ] `bun test` passes (all suites, including `commands-table.test.ts`, `skill-wiring.test.ts`, `portfolio.test.ts`)
-- [ ] `bun run typecheck` clean
-- [ ] `bun install --frozen-lockfile` clean (no new runtime deps)
-- [ ] `python3 scripts/version.py` — all version declarations match; bump at release
-- [ ] Smoke in CRM: `spec.ts list` from the main checkout and from one worktree print the same board except `◀ here`; time it cold and warm (target < 3 s without gh)
-- [ ] Smoke offline (no network): header says offline, board renders; `spec.ts list blocked` and `list <words>` still print the table
-- [ ] Smoke: a phase ticked only in a worktree shows in flight, and its dependent shows `in <workspace>`, not ready from main
-- [ ] `list.md` no-Bun fallback still describes the table; README + SKILL.md *Tools* updated; ROADMAP row
+- [x] `bun test` passes (all suites, including `commands-table.test.ts`, `skill-wiring.test.ts`, `portfolio.test.ts`) — 523 pass, 2026-10-01
+- [x] `bun run typecheck` clean
+- [x] `bun install --frozen-lockfile` clean (no new runtime deps)
+- [x] `python3 scripts/version.py` — all version declarations match (2.34.0); bump to 2.35.0 at release
+- [ ] Smoke in CRM: `spec.ts list` from the main checkout and from one worktree print the same board except `◀ here`; time it cold and warm (target < 3 s without gh) — same board ✓; warm 2.2 s ✓; **cold 3.3 s ✗** (fetch 0.6 s + archive 0.7 s + scan 0.9 s + loaders 0.6 s)
+- [x] Smoke offline (no network): header says offline, board renders; `spec.ts list blocked` and `list <words>` still print the table — 2.2 s offline; table output identical to 2.33
+- [x] Smoke: a phase ticked only in a worktree shows in flight, and its dependent shows `in <workspace>`, not ready from main — CRM double-charge-proof-checkout 4–10 in flight, 11 ready `in double-charge-proof-checkout (needs 10, ticked there)`
+- [x] `list.md` no-Bun fallback still describes the table; README + SKILL.md *Tools* updated; ROADMAP row
 
 PR B:
 - [ ] `bun test`, `bun run typecheck`, frozen lockfile, `version.py` as above

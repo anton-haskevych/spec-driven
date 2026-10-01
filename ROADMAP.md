@@ -76,6 +76,15 @@ Spec: `docs/specs/spec-spin-off/`. Two CRM sessions on 2026-09-30 needed new spe
 |---|---|---|
 | 2.34.0 | **Spin-off.** A session that needs a new spec writes its `seed.md` (+ inherited wave 0), links it with `needs`, and `spec.ts launch prep <name>` opens a fresh session (iTerm tab, tmux, Terminal.app). Prep starts a seeded spec from the seed. Phase `needs: [<spec>]` resolves on a spec with no phases yet | shipped |
 
+## Spec board (2.35 → 2.36)
+
+Spec: `docs/specs/spec-board/`. Parallel sessions across worktrees had no shared view of which phase is where, what can start and what waits on what. `/spec list` becomes a board of every open phase, the same from any checkout.
+
+| Version | Change | Status |
+|---|---|---|
+| 2.35.0 | **Board.** `/spec list` shows lanes (in flight, ready, blocked, needs you) built from `origin/<default>` plus every worktree's unmerged spec docs; ready ranked, ★ when clear of work in flight, `in <worktree>` when a need is ticked only there; `spec.ts board [<lane>] [--json] [--local]` for agents | PR A |
+| 2.36.0 | **PRs, sessions, claims.** PR and session cells, needs-you actions (merge, fix CI), phase claims so parallel sessions don't pick the same phase, `launch execute` into the row's worktree | planned |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through

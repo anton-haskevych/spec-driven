@@ -10,7 +10,7 @@ Answers "what can I start next, what waits on what, and what's open": a board of
 | One lane: `ready`, `blocked`, `in flight` / `flight`, `needs you` / `you` | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board <ready\|blocked\|flight\|you>` — that lane, uncapped |
 | `table`, `all`, or any other filter | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list [table] [all] [<filter>]` — the table |
 
-**The board** reads `origin/<default>` (fetched, 10 s timeout), so it is the same from any checkout or worktree. Lanes: in flight, ready (ranked: overdue, priority, due, unblocks most, recently updated), blocked (with the reasons), needs you (overdue work, a done phase another one waits to see deployed). The header says when origin couldn't be fetched. If the board can't be built (not a git repo, no origin), the tool prints the table and a `board unavailable: <reason>` line.
+**The board** reads `origin/<default>` (fetched, 10 s timeout) plus every worktree's unmerged spec docs, so it is the same from any checkout or worktree (the current one is marked `◀ here`). Lanes: in flight (phases ticked or half-done in a worktree), ready (ranked: overdue, priority, due, unblocks most, recently updated; ★ = shares no files with anything in flight; a phase whose need is ticked only in one worktree is ready `in <worktree>`; a spec only on a branch says `only on <branch>`), blocked (with the reasons), needs you (overdue work, a done phase another one waits to see deployed). The header says when origin couldn't be fetched. If the board can't be built (not a git repo, no origin), the tool prints the table and a `board unavailable: <reason>` line.
 
 **The table**:
 - **No filter** (`list table`): the top 30 open specs plus every open backlog idea.
