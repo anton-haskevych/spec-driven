@@ -3,6 +3,8 @@ import { applyEdits } from "../core/apply-edits";
 import { findSpecs } from "../core/spec-folders";
 import { isoDay } from "../core/schedule";
 import type { SpecFolder } from "../core/spec-folders";
+import { loadNodes } from "../graph/nodes";
+import { planAdd } from "../phases/add";
 import { planDeployed } from "../phases/deployed";
 import { planTick } from "../phases/tick";
 
@@ -14,6 +16,10 @@ interface PhaseAction {
 const ACTIONS: Record<string, PhaseAction> = {
   tick: { usage: 'phase tick <spec> <phase> "<item prefix>"|#N [--evidence <text>]', run: tick },
   deployed: { usage: "phase deployed <spec> <phase> [--date YYYY-MM-DD]", run: deployed },
+  add: {
+    usage: 'phase add <spec> "<title>" [--after <id>] [--needs a,b] [--pr X] [--code false]',
+    run: add,
+  },
 };
 
 export const PHASE_USAGE = Object.values(ACTIONS)
@@ -57,6 +63,36 @@ function deployed(projectDir: string, args: string[]): string {
   if (result.plan.kind === "unchanged") return result.plan.reason;
   applyEdits(result.plan);
   return `Phase ${result.phaseId} marked deployed ${day}`;
+}
+
+function add(projectDir: string, args: string[]): string {
+  const usage = `usage: ${ACTIONS.add?.usage}`;
+  const options = { after: { type: "string" }, needs: { type: "string" }, pr: { type: "string" }, code: { type: "string" } } as const;
+  const parsed = parseFlags(args, options);
+  const [specName, title] = parsed?.positionals ?? [];
+  if (!parsed || !specName || !title?.trim()) return usage;
+
+  const spec = resolveSpec(projectDir, specName);
+  if (typeof spec === "string") return `phase add: ${spec}`;
+  const code = parseCodeFlag(parsed.values.code);
+  if (typeof code === "string") return `phase add: ${code}`;
+
+  const edges = { needs: idList(parsed.values.needs), pr: parsed.values.pr, code };
+  const result = planAdd(spec, { title: title.trim(), after: parsed.values.after, edges }, loadNodes(projectDir));
+  if (result.plan.kind !== "ok") return `phase add: ${result.plan.reason}`;
+  applyEdits(result.plan);
+  return `added Phase ${result.phaseId} — ${title.trim()} → ${result.pointer}\nFill in its Goal, Outcome, files and deliverables.`;
+}
+
+const CODE_FLAG_VALUES: Record<string, boolean> = { true: true, false: false };
+
+function parseCodeFlag(raw: string | undefined): boolean | undefined | string {
+  if (raw === undefined) return undefined;
+  return Object.hasOwn(CODE_FLAG_VALUES, raw) ? CODE_FLAG_VALUES[raw] : `--code must be true or false, not "${raw}"`;
+}
+
+function idList(raw: string | undefined): string[] {
+  return (raw ?? "").split(",").map((id) => id.trim()).filter(Boolean);
 }
 
 function resolveSpec(projectDir: string, name: string): SpecFolder | string {
