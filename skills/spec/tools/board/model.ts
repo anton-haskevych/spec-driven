@@ -25,6 +25,8 @@ export type FlightNext = "executing" | "fix CI" | "merge" | "ticked on branch, n
 export interface FlightRow extends RowBase {
   prGroup?: string;
   workspace?: string;
+  // Further worktrees where the same phase is ticked.
+  alsoIn?: string[];
   session?: SessionCell;
   pr?: PrCell;
   next: FlightNext;
@@ -41,6 +43,11 @@ export interface ReadyRow extends RowBase {
   updated?: string;
   unblocks: number;
   safe: boolean;
+  // Ready only in this worktree, where the phases it needs are ticked but not merged.
+  readyIn?: { workspace: string; needs: string[] };
+  // The spec exists only on this branch.
+  onlyOn?: string;
+  sharesWith?: string[];
 }
 
 export interface BlockedRow extends RowBase {
@@ -57,6 +64,8 @@ export interface Board {
   version: typeof BOARD_VERSION;
   repo: string;
   generatedAt: string;
+  here: string;
+  mainCheckout?: string;
   base: { branch: string; sha: string; date: string; mode: BaseMode; reason?: string };
   lanes: { inFlight: FlightRow[]; ready: ReadyRow[]; blocked: BlockedRow[]; needsYou: AttentionRow[] };
   footer: {

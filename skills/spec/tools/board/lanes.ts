@@ -1,10 +1,12 @@
 import { isOverdue, isoDay } from "../core/schedule";
-import type { PhaseState } from "../core/spec-state";
+import type { PhaseState, SpecState } from "../core/spec-state";
 import { blockers, neighborhood } from "../graph/neighborhood";
 import { isFinished, type SpecNode } from "../graph/nodes";
 import { readySet } from "../ready/ready-set";
+import { phaseActivity, type PhaseActivity } from "./activity";
 import { needsYou } from "./attention";
-import type { BaseRef, BoardInputs, SpecStage } from "./inputs";
+import { flightRows, isOnBoard, readyInWorkspaces } from "./flight";
+import type { BaseRef, BoardInputs, SpecStage, WorkspaceView } from "./inputs";
 import { BOARD_VERSION, type Board, type BlockedRow, type ReadyRow } from "./model";
 import { rowKey } from "./phase-keys";
 import { rankReady, unblockCounts } from "./rank";
@@ -15,6 +17,14 @@ interface Placement {
   inputs: BoardInputs;
   today: string;
   unblocks: ReadonlyMap<string, number>;
+  activity: ReadonlyMap<string, PhaseActivity>;
+  inFlight: ReadonlySet<string>;
+}
+
+// A spec that exists only on a branch: its rows run in that worktree.
+interface BranchOrigin {
+  workspace: string;
+  branch: string;
 }
 
 interface SpecLanes {
@@ -26,16 +36,20 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
   const today = isoDay(now);
   const open = [...inputs.nodes.values()].filter((node) => !isFinished(node));
   const active = open.filter((node) => node.status !== "paused");
-  const placement: Placement = { inputs, today, unblocks: unblockCounts(inputs.states, inputs.nodes) };
-  const lanes = active.map((node) => specLanes(node, placement));
+  const activity = phaseActivity(inputs.states, inputs.workspaces);
+  const inFlight = flightRows(activity, inputs);
+  const placement: Placement = { inputs, today, unblocks: unblockCounts(inputs.states, inputs.nodes), activity, inFlight: new Set(inFlight.map(rowKey)) };
+  const lanes = [...active.map((node) => specLanes(node, placement)), ...branchOnlyLanes(inputs.workspaces, placement)];
   const { duplicates, ...counts } = inputs.counts;
   return {
     version: BOARD_VERSION,
     repo: inputs.repo,
     generatedAt: now.toISOString(),
+    here: inputs.currentPath,
+    ...mainCheckout(inputs.workspaces),
     base: baseHeader(inputs.base),
     lanes: {
-      inFlight: [],
+      inFlight,
       ready: rankReady(lanes.flatMap((spec) => spec.ready)),
       blocked: lanes.flatMap((spec) => spec.blocked),
       needsYou: needsYou(active, inputs, today),
@@ -45,16 +59,37 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
 }
 
 function specLanes(node: SpecNode, placement: Placement): SpecLanes {
-  const name = node.spec.name;
-  const stage = placement.inputs.stages.get(name);
+  const stage = placement.inputs.stages.get(node.spec.name);
   if (stage) return stageLanes(node, stage, placement);
-  const state = placement.inputs.states.get(name);
-  if (!state) return { ready: [], blocked: [] };
+  const state = placement.inputs.states.get(node.spec.name);
+  return state ? phaseLanes(node, state, placement) : { ready: [], blocked: [] };
+}
+
+function phaseLanes(node: SpecNode, state: SpecState, placement: Placement, origin?: BranchOrigin): SpecLanes {
+  const name = node.spec.name;
+  const landed = (phase: PhaseState) => !placement.inFlight.has(rowKey({ spec: name, phase: phase.id }));
   const { ready, waiting } = readySet(state, placement.inputs.nodes);
-  return {
-    ready: ready.map((phase) => phaseRow(node, phase, placement)),
-    blocked: waiting.map(({ phase, reasons }) => ({ spec: name, phase: phase.id, reasons })),
-  };
+  const readyIn = readyInWorkspaces(state, placement.activity, placement.inputs.nodes);
+  const lanes: SpecLanes = { ready: ready.filter(landed).map((phase) => phaseRow(node, phase, placement, origin)), blocked: [] };
+  for (const { phase, reasons } of waiting.filter(({ phase }) => landed(phase))) {
+    const inWorkspace = readyIn.get(phase.id);
+    if (inWorkspace) lanes.ready.push({ ...phaseRow(node, phase, placement), target: { workspace: inWorkspace.workspace }, readyIn: inWorkspace, safe: false });
+    else lanes.blocked.push({ spec: name, phase: phase.id, ...(origin ? { target: { workspace: origin.workspace } } : {}), reasons });
+  }
+  return lanes;
+}
+
+// The first worktree holding a branch-only spec stands in for its base (as in phaseActivity).
+function branchOnlyLanes(workspaces: readonly WorkspaceView[], placement: Placement): SpecLanes[] {
+  const seen = new Set<string>();
+  return workspaces.flatMap((workspace) =>
+    [...workspace.branchOnly].flatMap(([name, node]) => {
+      const state = workspace.states.get(name);
+      if (seen.has(name) || placement.inputs.nodes.has(name) || !state || !isOnBoard(node)) return [];
+      seen.add(name);
+      return [phaseLanes(node, state, placement, { workspace: workspace.path, branch: workspace.branch ?? workspace.path })];
+    }),
+  );
 }
 
 function stageLanes(node: SpecNode, stage: SpecStage, { inputs, today, unblocks }: Placement): SpecLanes {
@@ -76,13 +111,14 @@ function stageLanes(node: SpecNode, stage: SpecStage, { inputs, today, unblocks 
   return { ready: [row], blocked: [] };
 }
 
-function phaseRow(node: SpecNode, phase: PhaseState, { today, unblocks }: Placement): ReadyRow {
+function phaseRow(node: SpecNode, phase: PhaseState, { today, unblocks }: Placement, origin?: BranchOrigin): ReadyRow {
   const name = node.spec.name;
   const due = phase.schedule.due ?? node.meta.due;
   return {
     spec: name,
     phase: phase.id,
-    target: { newWorktree: `${name}-${phase.id}` },
+    target: origin ? { workspace: origin.workspace } : { newWorktree: `${name}-${phase.id}` },
+    ...(origin ? { onlyOn: origin.branch } : {}),
     next: "execute",
     prGroup: phase.edges.pr,
     priority: phase.schedule.priority ?? node.meta.priority,
@@ -90,8 +126,13 @@ function phaseRow(node: SpecNode, phase: PhaseState, { today, unblocks }: Placem
     overdue: isOverdue(due, today),
     updated: node.meta.updated,
     unblocks: unblocks.get(rowKey({ spec: name, phase: phase.id })) ?? 0,
-    safe: true,
+    safe: origin === undefined,
   };
+}
+
+function mainCheckout(workspaces: readonly WorkspaceView[]): Pick<Board, "mainCheckout"> {
+  const main = workspaces.find((workspace) => workspace.isMain);
+  return main ? { mainCheckout: main.path } : {};
 }
 
 function baseHeader(base: BaseRef): Board["base"] {
