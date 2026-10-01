@@ -15,7 +15,7 @@ pr: C
 - `skills/spec/tools/commands/gates.ts` (`--name` form) + `tests/playbook.test.ts`
 - `skills/spec/tools/doctor/settings.ts`, `doctor/gitattributes.ts` (new); `doctor/ledger.ts` (duplicates; project INDEX); `commands/doctor.ts` (:25-26)
 - `skills/spec/tools/hooks/spec-file-check.ts` (:27,41 — route `_playbook/settings.md` to the settings check)
-- `skills/spec/tools/context/packs.ts` (one-line `Settings:` summary)
+- `skills/spec/tools/commands/context.ts` (one-line `Settings:` summary)
 - `skills/spec/execute.md` (:134 gates wording, :137, after-merge step), `SKILL.md` (:89, :401, *Tools*, *Playbook*), `create.md` (:241-242, `.gitattributes` scaffold), `review.md` (:335)
 - `skills/spec/tools/tests/hook.test.ts` (:33 exact doctor output)
 

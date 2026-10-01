@@ -403,7 +403,7 @@ Lessons reach a session in three ways. None of them needs anyone to ask.
 - **The PR-readiness gate — not a phase.** Verification, QA, and PR-opening never appear as phases (see Per-phase entry rules); their content lives here.
 - **Two sections only:**
   - **Spec state** (< 20 lines) — running summary: phases done / left, branch + PR link once they exist, the suggested PR split (from the phases' `pr:` fields, listed by `spec.ts ready <name>`). Kept current by execute/handoff as phases land — not a re-list of the phase index.
-  - **Pre-PR checks** — checkboxes scoped to the subprojects the spec touches (derive from `code-map.md`). Ticked before the **draft** PR opens. Never straight to `main`.
+  - **Pre-PR checks** — checkboxes scoped to the subprojects the spec touches (derive from `code-map.md`). Ticked before the PR opens: a draft unless project settings say `pr.draft: false`. Never straight to `main`.
 - **Project-scoped checks.** The concrete checks depend on which build targets the spec touches. If the project defines canonical checks (a `.claude/` convention, a CI manifest), use those; otherwise default, per touched module, to: tests pass · lint + typecheck/compile · any feature-specific e2e.
 - **Scaffolded by create, kept current by execute/handoff.** Not immutable — it's a live gate, edited in place. A spec whose phases are all task phases opens no PR and has no `pr-opening.md`.
 

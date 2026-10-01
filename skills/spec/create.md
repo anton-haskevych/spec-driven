@@ -239,7 +239,7 @@ Spec written, not yet implemented. <N> code-only phases planned. No branch/PR ye
 ## Pre-PR checks
 
 Scoped to the subprojects this spec touches (derive from `code-map.md`). Tick each
-before opening the **draft** PR — never straight to `main`.
+before opening the PR — never straight to `main`.
 
 - [ ] <check 1>
 - [ ] <check 2>

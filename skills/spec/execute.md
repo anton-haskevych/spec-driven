@@ -34,6 +34,8 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 
 **Task phase?** If the picked phase has `code: false` (the execute pack says so under `Picked:`), skip to *Task phases* below; §1–§7 are for code.
 
+**Fresh worktree?** When project settings name `gates.bootstrap` (the pack's `Settings:` line says `fresh worktree: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do the steps whose condition holds; the gate text defines "fresh". No `Settings:` line means no bootstrap step. Without Bun, read `gates.bootstrap` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
+
 Read [principles.md](principles.md) once at the start of execution. These rules govern every code change you produce.
 
 ## 2. Recon the phase seam — before any decomposition
@@ -134,7 +136,13 @@ When the code phases this PR covers are all done, opening the PR is gated by `pr
 1. Run the **pre-PR checks** in `pr-opening.md`, scoped to the subprojects this PR touches. Lines like `gate: landing` point at named blocks in `docs/specs/_playbook/gates.md`; `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates <spec-name>` expands the ones this spec references (`gates --name <gate…>` expands any named section). Without Bun, read those sections in `gates.md`.
 2. Tick each check only when it actually passes; paste the failing output instead if it doesn't.
 3. Refresh the **Spec state** (phases done, branch, PR link once it exists).
-4. Open the PR as a **draft, off a feature branch — never to `main`**, following the PR split recorded in `pr-opening.md`.
+4. Open the PR **off a feature branch — never to `main`**, following the PR split recorded in `pr-opening.md`. It is a draft unless project settings say `pr.draft: false` (the pack's `Settings:` line reads `PRs ready`); no `Settings:` line means draft.
+
+**After merging main into the branch**, when settings name `gates.after-merge-main` (`after merging main: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and work through it before pushing.
+
+**Merging the PR** is the user's call; never merge on your own. When they say merge, use the method in `pr.merge` (`merge squash|merge|rebase`); unset → ask which. From a worktree, `gh pr merge` fails trying to check out the default branch, so merge with `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=<method>`.
+
+Without Bun, read `docs/specs/_playbook/settings.md` for these keys and `gates.md` for the named section. No settings file → draft PRs, no after-merge gate, ask for the merge method.
 
 Never invent a "verification" or "open PR" phase to hold this — that's what `pr-opening.md` is for.
 
