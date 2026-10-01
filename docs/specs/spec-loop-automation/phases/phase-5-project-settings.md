@@ -39,7 +39,7 @@ Schema and defaults in `technical.md` → *Project settings*. `parseSettings` us
 - [x] `doctor/gitattributes.ts` via `git check-attr`, only with settings.md; repo lines after spec lines; exact-output tests updated
 - [x] `checkLedgerIndex` duplicates + project INDEX + pointer rows
 - [x] Pack `Settings:` line
-- [ ] Draft / after-merge / bootstrap / merge-method prose reads settings (execute, SKILL.md, create, review)
+- [x] Draft / after-merge / bootstrap / merge-method prose reads settings (execute, SKILL.md, create, review)
 - [ ] `create.md` adds both union rules to `.gitattributes` when missing
 
 ## Phase-local notes
