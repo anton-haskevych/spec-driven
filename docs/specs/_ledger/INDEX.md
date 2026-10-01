@@ -8,3 +8,4 @@
 - `gotcha-git-name-only-quotes-non-ascii-paths.md` — `skills/spec/tools/**` — git quotes non-ASCII paths unless -z; spec-doc matching misses them
 - `gotcha-git-status-glob-pathspec-walks-untracked-dirs.md` — `skills/spec/tools/**` — glob pathspec makes git status walk untracked dirs; pass literal roots
 - `gotcha-bun-glob-scan-throws-on-missing-cwd.md` — `skills/spec/tools/**` — Bun.Glob scanSync throws ENOENT on a missing cwd; check existsSync
+- `workaround-squash-merge-leaves-local-main-diverged.md` — `docs/specs/**` — squash merge leaves local main diverged; verify tree, reset --keep
