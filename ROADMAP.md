@@ -78,11 +78,13 @@ Spec: `docs/specs/spec-spin-off/`. Two CRM sessions on 2026-09-30 needed new spe
 
 ## Spec board (2.35 → 2.36)
 
+2.35.0 shipped on 2026-10-01 (PR #8).
+
 Spec: `docs/specs/spec-board/`. Parallel sessions across worktrees had no shared view of which phase is where, what can start and what waits on what. `/spec list` becomes a board of every open phase, the same from any checkout.
 
 | Version | Change | Status |
 |---|---|---|
-| 2.35.0 | **Board.** `/spec list` shows lanes (in flight, ready, blocked, needs you) built from `origin/<default>` plus every worktree's unmerged spec docs; ready ranked, ★ when clear of work in flight, `in <worktree>` when a need is ticked only there; `spec.ts board [<lane>] [--json] [--local]` for agents | PR A |
+| 2.35.0 | **Board.** `/spec list` shows lanes (in flight, ready, blocked, needs you) built from `origin/<default>` plus every worktree's unmerged spec docs; ready ranked, ★ when clear of work in flight, `in <worktree>` when a need is ticked only there; `spec.ts board [<lane>] [--json] [--local]` for agents | shipped |
 | 2.36.0 | **PRs, sessions, claims.** PR and session cells, needs-you actions (merge, fix CI), phase claims so parallel sessions don't pick the same phase, `launch execute` into the row's worktree | planned |
 
 ## Adoption
