@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { checkLedgerEntry, checkLedgerIndex } from "../doctor/ledger";
-import { checkInFlight, checkPhases } from "../doctor/phases";
+import { checkIndentedPhaseLines, checkInFlight, checkPhases } from "../doctor/phases";
 import { checkSpecMeta } from "../doctor/spec-meta";
 import { phaseLine } from "./factories";
 
@@ -53,6 +53,23 @@ describe("checkLedgerIndex", () => {
     const problems = checkLedgerIndex("INDEX.md", index, ["gotcha-a.md", "gotcha-b.md"]).map((i) => i.problem);
     expect(problems).toEqual(["lists gotcha-gone.md, which does not exist", "has no row for gotcha-b.md"]);
   });
+
+  test("warns about a row listed twice, the trace a union merge leaves", () => {
+    const index = "- `gotcha-a.md` — [general] — old\n- `gotcha-a.md` — [general] — edited\n";
+    expect(checkLedgerIndex("INDEX.md", index, ["gotcha-a.md"])).toEqual([
+      { file: "INDEX.md", severity: "warning", problem: "lists gotcha-a.md 2 times; keep one row" },
+    ]);
+  });
+
+  test("checks pointer rows against the repo, and never counts them as local entries", () => {
+    const index =
+      "- `docs/specs/_ledger/gotcha-here.md` — [general] — x\n- `docs/specs/_ledger/gotcha-gone.md` — [general] — y\n- `other-spec/ledger/gotcha-z.md` — [phase 2] — another spec's entry, not checked\n";
+    const exists = (path: string) => path === "docs/specs/_ledger/gotcha-here.md";
+    expect(checkLedgerIndex("INDEX.md", index, [], exists).map((issue) => [issue.severity, issue.problem])).toEqual([
+      ["error", "points at docs/specs/_ledger/gotcha-gone.md, which does not exist"],
+    ]);
+    expect(checkLedgerIndex("INDEX.md", index, [])).toEqual([]);
+  });
 });
 
 describe("checkPhases", () => {
@@ -81,5 +98,23 @@ describe("checkInFlight", () => {
     expect(checkInFlight("in-flight.md", "# In flight\n\nhalf-wired thing", true)).toHaveLength(1);
     expect(checkInFlight("in-flight.md", "# In flight\n", true)).toEqual([]);
     expect(checkInFlight("in-flight.md", "# In flight\n\nnotes", false)).toEqual([]);
+  });
+});
+
+describe("checkIndentedPhaseLines", () => {
+  test("warns about a nested phase line that parsePhaseLines drops, and nothing else", () => {
+    const progress = [
+      "- [ ] Phase 1 — One → `phases/p1.md`",
+      "  - [ ] Phase 1a — Sub → `phases/p1a.md`",
+      "  - [ ] see `phases/p1/fixtures.md`",
+      "",
+    ].join("\n");
+    expect(checkIndentedPhaseLines("progress.md", progress)).toEqual([
+      {
+        file: "progress.md",
+        severity: "warning",
+        problem: "indented phase line is invisible to the tools: Phase 1a — Sub → phases/p1a.md",
+      },
+    ]);
   });
 });

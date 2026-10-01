@@ -1,6 +1,7 @@
 ---
 kind: decision
 applies-to: [phase 8]
+superseded-by: decision-no-bash-guard.md
 created: 2026-09-30T15:16:12-07:00
 ---
 

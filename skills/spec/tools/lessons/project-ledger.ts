@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { markdownFilesIn, readTextIfExists } from "../core/files";
 import { parseFrontmatter, stringField, stringList } from "../core/frontmatter";
 import { outlineMarkdown } from "../core/markdown";
@@ -16,6 +16,11 @@ export interface Lesson {
   paths: string[];
   seenIn: string[];
   enforcedBy?: string;
+}
+
+export function lessonFileName(entry: string): string {
+  const name = basename(entry);
+  return name.endsWith(".md") ? name : `${name}.md`;
 }
 
 export function loadProjectLessons(projectDir: string): Lesson[] {

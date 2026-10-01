@@ -50,3 +50,18 @@ export function stringList(data: FrontmatterData, key: string): string[] {
 function describe(cause: unknown): string {
   return cause instanceof Error ? cause.message : String(cause);
 }
+
+export function booleanField(data: FrontmatterData, key: string): boolean | undefined {
+  const value = data[key];
+  return typeof value === "boolean" ? value : undefined;
+}
+
+export function numberField(data: FrontmatterData, key: string): number | undefined {
+  const value = data[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+export function recordField(data: FrontmatterData, key: string): FrontmatterData | undefined {
+  const value = data[key];
+  return isRecord(value) ? value : undefined;
+}

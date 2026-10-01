@@ -142,6 +142,15 @@ Next: <what the next agent should pick up>
 
 If there are no changes to commit (everything was already committed), skip this step and note it.
 
+Then send the work to origin. `spec.ts settings` says where spec docs live (`docs on main` or `docs on branch`):
+
+```bash
+bun ${CLAUDE_SKILL_DIR}/tools/spec.ts publish-docs <spec-name>   # docs: main — pushes the branch, then publishes the spec docs
+bun ${CLAUDE_SKILL_DIR}/tools/spec.ts push                       # docs: branch
+```
+
+Pushing is confined: the branch goes to its own name, and only committed spec docs go to the default branch. Keep the output for *Signal completion*. A line starting `push:` or `publish-docs:` is a refusal; print it as is and don't retry, force or work around it. `diverged on main` means main changed the same spec lines: the next session merges main, then publishes. Without Bun, run `git push -u origin "HEAD:refs/heads/$(git branch --show-current)"` and say that the docs were not published; the next publish covers everything since the last snapshot.
+
 ## 4. Signal completion
 
 Print:
@@ -153,6 +162,7 @@ Handoff complete for <spec-name>.
 Committed: <commit hash> — <commit message first line>
 Ledger entries added: <count> — <comma-separated slugs>
 In-flight state: <"has pending work" | "clean boundary">
+<the Remote: line, plus any refusal line, from Commit>
 
 Unblocked: <specs whose needs point at phases finished this session, from `spec.ts graph <spec-name>`; omit the line if none>
 Next agent should run: /spec resume <spec-name>

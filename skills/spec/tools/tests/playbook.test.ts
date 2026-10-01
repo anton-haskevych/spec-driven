@@ -42,8 +42,26 @@ describe("gatesReport", () => {
   afterAll(() => rmSync(project, { recursive: true, force: true }));
 
   test("expands the gates a spec references into its checks", () => {
-    expect(gatesReport(project, "share")).toBe(
+    expect(gatesReport(project, ["share"])).toBe(
       "## gate: landing\n- [ ] unit tests in both time zones\n- [ ] landing build (CI does not run it)",
     );
+  });
+
+  test("--name expands gates.md sections directly, case-insensitively", () => {
+    expect(gatesReport(project, ["--name", "Backend", "landing"])).toBe(
+      "## gate: backend\n- [ ] ./gradlew check\n\n## gate: landing\n- [ ] unit tests in both time zones\n- [ ] landing build (CI does not run it)",
+    );
+    expect(gatesReport(project, ["--name", "deploy"])).toBe("## gate: deploy\n(not defined in docs/specs/_playbook/gates.md; known gates: landing, backend)");
+  });
+
+  test("usage when no spec or gate is named", () => {
+    expect(gatesReport(project, [])).toBe("usage: gates <spec-name> | gates --name <gate…>");
+    expect(gatesReport(project, ["--name"])).toBe("usage: gates <spec-name> | gates --name <gate…>");
+  });
+
+  test("--name without a gates.md says so", () => {
+    const empty = mkdtempSync(join(tmpdir(), "spec-gates-empty-"));
+    expect(gatesReport(empty, ["--name", "landing"])).toBe("docs/specs/_playbook/gates.md does not exist.");
+    rmSync(empty, { recursive: true, force: true });
   });
 });

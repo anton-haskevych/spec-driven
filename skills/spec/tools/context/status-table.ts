@@ -1,3 +1,4 @@
+import { firstSentence } from "../core/phase-entry";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import { truncate } from "./text";
 
@@ -34,7 +35,8 @@ function renderRow(phase: PhaseState, phaseStatus: string): string {
   const label = `${phase.id} — ${phase.name}`;
   const status = !phase.done && phase.schedule.due ? `${phaseStatus} · due ${phase.schedule.due}` : phaseStatus;
   if (!phase.summary) return row([label, status, `${phase.pointer} not found.`, "N/A"]);
-  const delivers = truncate(phase.summary.goal ?? phase.name, DELIVERS_LIMIT);
+  const outcome = phase.summary.outcome && firstSentence(phase.summary.outcome);
+  const delivers = truncate(outcome || phase.summary.goal || phase.name, DELIVERS_LIMIT);
   const work = phase.summary.work ? truncate(phase.summary.work, WORK_LIMIT) : "N/A";
   return row([label, status, delivers, work]);
 }

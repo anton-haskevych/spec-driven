@@ -16,6 +16,8 @@ import { phaseEdgeIssues } from "../doctor/phase-edges";
 import { phaseScheduleIssues } from "../doctor/schedule";
 import { taskPhaseIssues } from "../doctor/task-phases";
 import { checkPlaybook, phasePlaybookIssues } from "../doctor/playbooks";
+import { checkSettings } from "../doctor/settings";
+import { loadGates } from "../playbook/gates";
 import { loadPlaybooks } from "../playbook/playbooks";
 import { projectFieldValues } from "../core/taxonomy";
 import { isoDay } from "../core/schedule";
@@ -24,6 +26,7 @@ const WATCHED_TOOLS = new Set(["Write", "Edit", "MultiEdit"]);
 
 const PROJECT_LESSON = /\/docs\/specs\/_ledger\/(?!INDEX\.md$)[^/]+\.md$/;
 const BACKLOG_ITEM = /\/docs\/specs\/_backlog\/(_closed\/)?[^/]+\.md$/;
+const SETTINGS = /\/docs\/specs\/_playbook\/settings\.md$/;
 const PLAYBOOK = /\/docs\/specs\/_playbook\/[^/]+\.md$/;
 const PROJECT_FILES = [PROJECT_LESSON, BACKLOG_ITEM, PLAYBOOK];
 
@@ -38,6 +41,7 @@ export function issuesForWrittenFile(filePath: string, projectDir: string): Issu
 
 function projectFileIssues(filePath: string, text: string, projectDir: string): Issue[] {
   if (PROJECT_LESSON.test(filePath)) return checkProjectLesson(filePath, text);
+  if (SETTINGS.test(filePath)) return checkSettings(filePath, text, loadGates(projectDir));
   if (PLAYBOOK.test(filePath)) return checkPlaybook(filePath, text, (field) => projectFieldValues(projectDir, field));
   const backlog = BACKLOG_ITEM.exec(filePath);
   return backlog ? checkBacklogItem(filePath, text, backlog[1] !== undefined) : [];

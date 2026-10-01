@@ -1,8 +1,9 @@
 import { parseFrontmatter, stringField } from "../core/frontmatter";
+import { parseIndexRows } from "../core/ledger-index";
+import { PROJECT_LEDGER_DIR } from "../lessons/project-ledger";
 import { error, warning, type Issue } from "./issue";
 
 const REQUIRED_FIELDS = ["kind", "applies-to"];
-const INDEX_ROW_FILE = /^\s*[-*]\s+`([^`/]+\.md)`/gm;
 const NO_SUCCESSOR = new Set(["none", "null", "-"]);
 
 export type EntryExists = (name: string) => boolean;
@@ -26,14 +27,28 @@ export function checkLedgerEntry(file: string, text: string, entryExists: EntryE
   return issues;
 }
 
-export function checkLedgerIndex(indexFile: string, indexText: string, entryNames: readonly string[]): Issue[] {
-  const listed = new Set([...indexText.matchAll(INDEX_ROW_FILE)].map((match) => match[1] ?? ""));
+const PROJECT_LESSON_POINTER_PREFIX = `${PROJECT_LEDGER_DIR}/`;
+
+export type RepoPathExists = (repoRelativePath: string) => boolean;
+
+export function checkLedgerIndex(indexFile: string, indexText: string, entryNames: readonly string[], pathExists?: RepoPathExists): Issue[] {
+  const counts = new Map<string, number>();
+  for (const row of parseIndexRows(indexText)) counts.set(row.file, (counts.get(row.file) ?? 0) + 1);
   const issues: Issue[] = [];
-  for (const name of listed) {
-    if (!entryNames.includes(name)) issues.push(error(indexFile, `lists ${name}, which does not exist`));
+  for (const [file, count] of counts) {
+    if (file.includes("/")) {
+      if (isProjectLessonPointer(file) && pathExists && !pathExists(file)) issues.push(error(indexFile, `points at ${file}, which does not exist`));
+    } else if (!entryNames.includes(file)) {
+      issues.push(error(indexFile, `lists ${file}, which does not exist`));
+    }
+    if (count > 1) issues.push(warning(indexFile, `lists ${file} ${count} times; keep one row`));
   }
   for (const name of entryNames) {
-    if (!listed.has(name)) issues.push(warning(indexFile, `has no row for ${name}`));
+    if (!counts.has(name)) issues.push(warning(indexFile, `has no row for ${name}`));
   }
   return issues;
+}
+
+function isProjectLessonPointer(file: string): boolean {
+  return file.startsWith(PROJECT_LESSON_POINTER_PREFIX);
 }
