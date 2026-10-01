@@ -38,7 +38,7 @@ See `technical.md` → *claims* → *Remote layer*.
 
 ## Deliverables
 
-- [ ] Probe: GitHub accepts pushing and deleting `refs/spec-claims/*` with a create-only lease; confirm `gh`/`git fetch` read them back. Record the result in the ledger
+- [x] Probe: GitHub accepts pushing and deleting `refs/spec-claims/*` with a create-only lease; confirm `gh`/`git fetch` read them back. Record the result in the ledger
 - [ ] `remote.ts`: `pushClaim` (commit-tree payload, `--force-with-lease=<ref>:` create-only), `deleteClaim` (lease on own sha), `fetchClaims`; race test, two pushers on one bare origin, exactly one wins
 - [ ] `claim take` pushes after the local take and rolls back the local claim on refusal; offline → local only + one line; `release` deletes the own ref
 - [ ] `--take-over` escape hatch: any claim, remote or local, live included; lease on the old sha; payload `takenFrom`; prints the old holder's branch; the old holder's `release` reports `taken over by …` and exits 0

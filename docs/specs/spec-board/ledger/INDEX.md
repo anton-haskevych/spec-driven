@@ -16,6 +16,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `principle-claim-writes-are-single-atomic-ops.md` — [phase 5] — link to create, rename to take over or prune; the board never writes
 
 ## Domain
+- `domain-github-claim-ref-leases.md` — [phase 5a] — GitHub probe: create-only, take-over and delete leases all hold; fetch --prune
 
 ## Decisions
 - `decision-base-from-git-archive-cache.md` — [phase 1+] — base = git archive cache + unchanged loaders, not blobs
