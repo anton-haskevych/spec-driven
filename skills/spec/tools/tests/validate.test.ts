@@ -28,3 +28,17 @@ describe("issuesIntroducedBy", () => {
     expect(issuesIntroducedBy(spec, [{ file: join(spec.dir, "phases/p1.md"), text: "- [x] still open\n" }])).toEqual([]);
   });
 });
+
+describe("issuesIntroducedBy with phase edges", () => {
+  test("reports a needs ref the plan adds that resolves nowhere", () => {
+    tree = createTree("spec-validate-");
+    const spec = tree.spec("checkout", {
+      "progress.md": "- [ ] Phase 1 — One → `phases/p1.md`\n",
+      "phases/p1.md": "---\nneeds: []\n---\n- [ ] a\n",
+    });
+    const edits = [{ file: join(spec.dir, "phases/p1.md"), text: "---\nneeds: [99]\n---\n- [ ] a\n" }];
+    expect(issuesIntroducedBy(spec, edits, new Map()).map((issue) => issue.problem)).toEqual([
+      "needs 99: no phase 99 in this spec",
+    ]);
+  });
+});
