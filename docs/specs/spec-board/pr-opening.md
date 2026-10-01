@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Spec written and reviewed (`reviews/2026-10-01-pre-build-collegium.md`), not yet implemented. 6 code phases planned. No branch/PR yet.
+Phase 1 in progress (5 of 8 items: base cache, loadMainline, Board model, lanes, rank; next: render, `list`/`board` commands, docs). Phases 2–6 open. Branch `feat/spec-board`, no PR yet.
 Split (value first):
 - **PR A: phases 1–3.** Board from main, workspace scan, in-flight overlay. Phases 1 and 2 can run in parallel. Release 2.35.0.
 - **PR B: phases 4–6.** PRs and sessions, claims, loop wiring. Release 2.36.0.
