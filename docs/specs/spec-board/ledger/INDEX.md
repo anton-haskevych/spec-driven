@@ -23,5 +23,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-launch-targets-row-workspace.md` — [phase 6] — launch cds into the row's worktree or uses claude -w
 - `decision-board-inputs-types-apart-from-loader.md` — [phase 2+] — inputs.ts is types; board/load.ts composes sources (no cycle)
 - `decision-workspace-scan-is-one-call.md` — [phase 3+] — scanWorkspaces returns live scans + counts; forceLive paths realpath'd
+- `decision-in-flight-built-from-activity.md` — [phase 4+] — flight rows from activity; executing is a placeholder; ready-in = overlay
 
 ## Workarounds

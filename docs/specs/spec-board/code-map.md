@@ -11,12 +11,15 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/mainline/load.ts` | pinDefault + base cache + unchanged disk loaders | 1 |
 | `skills/spec/tools/board/model.ts` | `Board` (versioned) — the contract every view reads | 1 |
 | `skills/spec/tools/board/lanes.ts` | `buildBoard` — pure lane rules | 1 |
-| `skills/spec/tools/board/inputs.ts` | `loadBoardInputs` — composes the sources, the only IO | 1 |
+| `skills/spec/tools/board/inputs.ts` | `BoardInputs`, `WorkspaceView` — types only | 1 |
+| `skills/spec/tools/board/load.ts` | `loadBoardInputs` — composes the sources, the only IO | 1 |
 | `skills/spec/tools/commands/board.ts` | `spec.ts board [<lane>] [--json] [--local]` — agent feed | 1 |
 | `skills/spec/tools/workspaces/classify.ts` | merged / live / unknown-base / unreadable | 2 |
 | `skills/spec/tools/workspaces/changes.ts` | `workspaceSpecChanges` per live worktree | 2 |
 | `skills/spec/tools/workspaces/scan.ts` | `scanWorkspaces` — the one call `board/load.ts` makes | 2 |
 | `skills/spec/tools/board/activity.ts` | `tickedIn` / `wipIn` — base is never patched | 3 |
+| `skills/spec/tools/board/flight.ts` | in-flight rows; `readyInWorkspaces` overlay | 3 |
+| `skills/spec/tools/workspaces/views.ts` | each worktree's changed spec states + branch-only nodes | 3 |
 | `skills/spec/tools/sessions/live.ts` | Only reader of `~/.claude/sessions/*.json` | 4 |
 | `skills/spec/tools/claims/store.ts` | Atomic claim create / takeover / release | 5 |
 | `skills/spec/tools/claims/rules.ts` | `claimStatus` precedence | 5 |

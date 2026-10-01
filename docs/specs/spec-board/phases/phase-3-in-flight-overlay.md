@@ -41,11 +41,11 @@ usage counted over all open specs, and `> HUB_LIMIT` is ignored, as in the exist
 
 ## Deliverables
 
-- [ ] `phaseActivity`: ticked on a branch, wip on a branch, uncommitted only, same phase ticked in two worktrees, spec only on a branch, a workspace folder without `CLAUDE.md` skipped
-- [ ] Lanes: in flight from activity; a spec with every phase ticked on a branch stays on the board; a dependent of a branch-only tick is ready `in <workspace>` with that target, never ★; others stay blocked
-- [ ] `sharedPaths` + `inFlightOverlaps` (hub-limited over all open specs, self and finished skipped, declared relations count) — 3 pure tests; `undeclaredOverlaps` unchanged in behavior
-- [ ] `rankReady` ★ via `inFlightOverlaps` + `same-files-as`; render `◀ here`, in-flight rows, footer `merged · unknown base · unreadable`
-- [ ] `loadBoardInputs` adds the workspace scan; real-git test: base + two worktrees, board text from the main checkout equals board text from a worktree except `◀ here` (sessions and gh injected empty)
+- [x] `phaseActivity`: ticked on a branch, wip on a branch, uncommitted only, same phase ticked in two worktrees, spec only on a branch, a workspace folder without `CLAUDE.md` skipped
+- [x] Lanes: in flight from activity; a spec with every phase ticked on a branch stays on the board; a dependent of a branch-only tick is ready `in <workspace>` with that target, never ★; others stay blocked
+- [x] `sharedPaths` + `inFlightOverlaps` (hub-limited over all open specs, self and finished skipped, declared relations count) — 3 pure tests; `undeclaredOverlaps` unchanged in behavior
+- [x] `rankReady` ★ via `inFlightOverlaps` + `same-files-as`; render `◀ here`, in-flight rows, footer `merged · unknown base · unreadable`
+- [x] `loadBoardInputs` adds the workspace scan; real-git test: base + two worktrees, board text from the main checkout equals board text from a worktree except `◀ here` (sessions and gh injected empty)
 
 ## Phase-local notes
 
