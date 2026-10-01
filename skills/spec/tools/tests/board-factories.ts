@@ -1,4 +1,4 @@
-import type { BaseRef, BoardInputs, SpecStage } from "../board/inputs";
+import type { BaseRef, BoardInputs, SpecStage, WorkspaceView } from "../board/inputs";
 import { BOARD_VERSION, type Board, type FlightRow, type ReadyRow } from "../board/model";
 import type { SpecMeta } from "../core/spec-meta";
 import type { PhaseState, SpecState } from "../core/spec-state";
@@ -44,13 +44,26 @@ export function baseRef(overrides: Partial<BaseRef> = {}): BaseRef {
 export function boardInputs(specs: readonly SpecFixture[], overrides: Partial<BoardInputs> = {}): BoardInputs {
   return {
     repo: "crm",
+    currentPath: "/repo",
     base: baseRef(),
     nodes: new Map(specs.map((fixture) => [fixture.node.spec.name, fixture.node])),
     states: new Map(specs.map((fixture) => [fixture.node.spec.name, fixture.state])),
     stages: new Map(specs.flatMap((fixture) => (fixture.stage ? [[fixture.node.spec.name, fixture.stage] as const] : []))),
+    workspaces: [],
     counts: { merged: 0, unknownBase: 0, unreadable: 0, duplicates: [] },
     backlogCount: 0,
     ...overrides,
+  };
+}
+
+// A worktree that changed these specs; a fixture absent from base becomes branch-only.
+export function workspaceView(path: string, specs: readonly SpecFixture[], options: { branch?: string; isMain?: boolean; branchOnly?: boolean } = {}): WorkspaceView {
+  return {
+    path,
+    branch: options.branch ?? path.split("/").at(-1),
+    isMain: options.isMain ?? false,
+    states: new Map(specs.map((fixture) => [fixture.node.spec.name, fixture.state])),
+    branchOnly: new Map(options.branchOnly ? specs.map((fixture) => [fixture.node.spec.name, fixture.node]) : []),
   };
 }
 
