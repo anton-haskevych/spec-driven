@@ -56,7 +56,7 @@ else → table.
 - [x] `rankReady` (overdue, priority, due, unblocks, updated, name)
 - [x] `renderBoard`: header modes, lanes with caps and `+N more`, empty lanes, footer counts; `ago` via `Intl.DurationFormat` narrow
 - [x] `list` (no args → board, in a code fence; filters and `table` → `portfolioTable`; failure → table + reason), `board [<lane>] [--json] [--local]`; `Command.run` async
-- [ ] `list.md` §1 (board; filters → table; lane words → `board <lane>`), SKILL.md *Tools* → List + Board, README
+- [x] `list.md` §1 (board; filters → table; lane words → `board <lane>`), SKILL.md *Tools* → List + Board, README
 
 ## Phase-local notes
 
