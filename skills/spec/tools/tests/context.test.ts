@@ -8,6 +8,7 @@ import { parsePhaseTitle } from "../core/phase-title";
 import { parseLedgerIndex, rowsForPhase } from "../context/ledger-scope";
 import { phaseStatuses, renderStatusTable } from "../context/status-table";
 import { phaseState } from "./factories";
+import { systemRunner } from "../core/run";
 import { stubRunner } from "./stub-runner";
 
 const phase = (done: boolean, checked: number, unchecked: number) =>
@@ -165,6 +166,34 @@ describe("contextPack", () => {
     expect(pack).not.toContain("`gotcha-b.md`");
     expect(pack).toContain("| `src/Checkout.java` | aggregate |");
     expect(pack).not.toContain("src/Other.java");
+  });
+
+  test("packs skip a ready phase another session holds and say so", () => {
+    write("progress.md", "- [x] Phase 1 — Harness → `phases/phase-1.md`\n- [ ] Phase 2 — Aggregate → `phases/phase-2.md`\n- [ ] Phase 3 — Views → `phases/phase-3.md`\n");
+    write("phases/phase-2.md", "---\nneeds: [1]\n---\n**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+    write("phases/phase-3.md", "---\nneeds: [1]\n---\n**Goal:** Views.\n## Deliverables\n- [ ] render\n");
+    const held = () => new Map([["checkout#2", "checkout execute 2"]]);
+    try {
+      expect(contextPack(project, { mode: "execute", name: "checkout" }, systemRunner, held)).toContain(
+        "Picked: Phase 3 — Views (first ready phase; skipped 2 (in flight: checkout execute 2))",
+      );
+      expect(contextPack(project, { mode: "resume", name: "checkout" }, systemRunner, held)).toContain(
+        "### Next chunk: Phase 3 — Views\n- render\nSkipped: 2 (in flight: checkout execute 2)",
+      );
+      const allHeld = () => new Map([["checkout#2", "s2"], ["checkout#3", "s3"]]);
+      expect(contextPack(project, { mode: "execute", name: "checkout" }, systemRunner, allHeld)).toContain(
+        "Every ready phase is in flight in another session: 2 (in flight: s2), 3 (in flight: s3). Tell the user and stop.",
+      );
+    } finally {
+      write("progress.md", "- [x] Phase 1 — Harness → `phases/phase-1.md`\n- [ ] Phase 2 — Aggregate → `phases/phase-2.md`\n");
+      write("phases/phase-2.md", "**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+      rmSync(join(spec(), "phases/phase-3.md"));
+    }
+  });
+
+  test("a hinted phase is picked even when another session holds it; claim take guards it", () => {
+    const pack = contextPack(project, { mode: "execute", name: "checkout", hint: "2" }, systemRunner, () => new Map([["checkout#2", "s2"]]));
+    expect(pack).toContain('Picked: Phase 2 — Aggregate (from your hint "2")');
   });
 
   test.each(["phase 1", "phase1", "phase-1", "1"])("execute pack honours the hint %p", (hint) => {

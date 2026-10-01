@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { chmodSync, mkdirSync, realpathSync } from "node:fs";
 import { join } from "node:path";
-import { loadLiveSessions, parseSessionFile, type ProcStarts } from "../sessions/live";
+import { homedir } from "node:os";
+import { defaultClaudeHome, loadLiveSessions, parseSessionFile, type ProcStarts } from "../sessions/live";
 import { parseProcStarts, psProcStarts } from "../sessions/proc-starts";
 import { stubRunner } from "./stub-runner";
 import { createTree, type Tree } from "./tree";
@@ -129,5 +130,12 @@ describe("ps start times", () => {
     const runner = stubRunner([]);
     expect(psProcStarts(runner)([])).toEqual(new Map());
     expect(runner.calls).toEqual([]);
+  });
+});
+
+describe("defaultClaudeHome", () => {
+  test("CLAUDE_CONFIG_DIR wins, else ~/.claude", () => {
+    expect(defaultClaudeHome({ CLAUDE_CONFIG_DIR: "/cfg" })).toBe("/cfg");
+    expect(defaultClaudeHome({})).toBe(join(homedir(), ".claude"));
   });
 });

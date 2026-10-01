@@ -15,26 +15,33 @@ import { describeSettings, loadSettings } from "../playbook/settings";
 import { normalizePhaseHint, type ContextRequest } from "../context/request";
 import { specsInPlay } from "../context/infer-spec";
 import { systemRunner, type Runner } from "../core/run";
+import { heldByOthers, type HeldPhases } from "../claims/live";
+import { firstUnheld, specsInFlight } from "../context/held-phases";
+import { defaultClaudeHome } from "../sessions/live";
 
 const DOCTOR_LINES = 6;
 const PACK_MODES = new Set(["resume", "status", "execute", "route"]);
 const INFERRING_MODES = new Set(["resume", "status", "execute"]);
 const INFERRED_NOTE = "Spec inferred from changed files: say which spec you are working on in one line, then carry on.";
 
-export function contextPack(projectDir: string, request: ContextRequest, runner: Runner = systemRunner): string {
+export type HeldReader = (projectDir: string) => HeldPhases;
+
+const systemHeldReader: HeldReader = (projectDir) => heldByOthers(projectDir, { runner: systemRunner, claudeHome: defaultClaudeHome(), env: process.env });
+
+export function contextPack(projectDir: string, request: ContextRequest, runner: Runner = systemRunner, readHeld: HeldReader = systemHeldReader): string {
   if (!PACK_MODES.has(request.mode)) return "";
-  if (request.name) return specPack(projectDir, request, request.name, false);
+  if (request.name) return specPack(projectDir, request, request.name, false, readHeld);
   if (!INFERRING_MODES.has(request.mode)) return "";
 
   const candidates = specsInPlay(projectDir, runner);
   if (candidates === undefined) return "";
   const [only] = candidates;
-  if (only !== undefined && candidates.length === 1) return specPack(projectDir, request, only, true);
+  if (only !== undefined && candidates.length === 1) return specPack(projectDir, request, only, true, readHeld);
   if (candidates.length === 0) return "No spec named, and no changed file belongs to a spec. Infer it from the conversation.";
   return `No spec named; the changed files belong to ${candidates.join(", ")}. Ask which one.`;
 }
 
-function specPack(projectDir: string, request: ContextRequest, name: string, inferred: boolean): string {
+function specPack(projectDir: string, request: ContextRequest, name: string, inferred: boolean, readHeld: HeldReader): string {
   const specs = findSpecs(projectDir, name);
   if (specs.length !== 1 || !specs[0]) return "";
 
@@ -45,13 +52,14 @@ function specPack(projectDir: string, request: ContextRequest, name: string, inf
   const doctor = doctorReport(projectDir, name).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
   const nodes = loadNodes(projectDir);
-  const relations = neighborhoodReport(nodes, state.spec.name, projectDir);
+  const held = readHeld(projectDir);
+  const relations = neighborhoodReport(nodes, state.spec.name, projectDir, specsInFlight(held, state.spec.name));
   const ready = readySet(state, nodes);
   const playbooks = playbooksForSpec(projectDir, state.spec);
   const settings = settingsLine(projectDir);
   const body = mode === "execute"
-    ? executeBody(projectDir, { state, doctor, relations, ready, playbooks, settings, lessons: loadProjectLessons(projectDir) }, request.hint)
-    : resumePack({ state, doctor, relations, ready, playbooks, settings, lessons: [] });
+    ? executeBody(projectDir, { state, doctor, relations, ready, held, playbooks, settings, lessons: loadProjectLessons(projectDir) }, request.hint)
+    : resumePack({ state, doctor, relations, ready, held, playbooks, settings, lessons: [] });
   const header = `<spec-pack spec="${state.spec.name}" mode="${mode}"${inferred ? ' inferred="true"' : ""}>`;
   return `${header}\n${inferred ? `${INFERRED_NOTE}\n\n` : ""}${body}\n</spec-pack>`;
 }
@@ -59,9 +67,12 @@ function specPack(projectDir: string, request: ContextRequest, name: string, inf
 function executeBody(projectDir: string, input: PackInput, hint: string | undefined): string {
   const { state } = input;
   const hinted = hint ? phaseForHint(state, hint) : undefined;
-  const phase = hinted ?? input.ready.ready[0];
+  const unheld = firstUnheld(state.spec.name, input.ready.ready, input.held);
+  const phase = hinted ?? unheld.phase;
+  if (!phase && unheld.skipped.length > 0) return `Every ready phase is in flight in another session: ${unheld.skipped.join(", ")}. Tell the user and stop.`;
   if (!phase) return noPhaseReady(input);
-  const fallback = input.ready.ready.length > 1 ? "first ready phase; others are ready too" : "first ready phase";
+  const others = input.ready.ready.length - unheld.skipped.length > 1 ? "first ready phase; others are ready too" : "first ready phase";
+  const fallback = unheld.skipped.length > 0 ? `${others}; skipped ${unheld.skipped.join(", ")}` : others;
   const note = hinted ? `from your hint "${hint}"` : hint ? `hint "${hint}" matched no phase; ${fallback}` : fallback;
   const playbooks = phase.playbook ? playbooksForSpec(projectDir, state.spec, phase.playbook) : input.playbooks;
   return executePack({ ...input, playbooks }, phase, note);

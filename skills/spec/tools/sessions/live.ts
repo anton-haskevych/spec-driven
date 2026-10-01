@@ -1,4 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { isRecord, numberField, stringField } from "../core/frontmatter";
 import type { Result } from "../core/result";
@@ -14,6 +15,10 @@ export interface LiveSession {
   name?: string;
   updatedAt: Date;
   procStart: string;
+}
+
+export function defaultClaudeHome(env: Readonly<Record<string, string | undefined>> = process.env): string {
+  return env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude");
 }
 
 export type ProcStarts = (pids: readonly number[]) => ReadonlyMap<number, string>;

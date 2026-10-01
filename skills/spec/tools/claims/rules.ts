@@ -42,3 +42,7 @@ export function takeRefusal(spec: string, phase: string, view: TakeView): string
   const elsewhere = [...(activity?.wipIn ?? []), ...(activity?.tickedIn ?? [])].find((path) => path !== view.currentPath);
   return elsewhere ? `phase ${phase} is in progress in ${elsewhere}` : undefined;
 }
+
+export function holderName(claim: Claim): string {
+  return claim.sessionName ?? `session ${claim.sessionId.slice(0, 8)}`;
+}

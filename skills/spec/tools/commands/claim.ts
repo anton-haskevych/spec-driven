@@ -1,6 +1,6 @@
 import { phaseActivity, type PhaseActivity } from "../board/activity";
 import { loadBoardInputs } from "../board/load";
-import { claimStatus, isStale, takeRefusal, type ClaimContext } from "../claims/rules";
+import { claimStatus, holderName, isStale, takeRefusal, type ClaimContext } from "../claims/rules";
 import { claimsDir, loadClaims, pruneClaims, releaseClaims, takeClaim, type Claim, type TakeOutcome } from "../claims/store";
 import { gitAt } from "../core/git";
 import type { Result } from "../core/result";
@@ -138,8 +138,4 @@ function listClaims(world: ClaimWorld): string {
 function removable(claim: Claim, context: ClaimContext): boolean {
   const status = claimStatus(claim, context);
   return status === "done" || status === "gone";
-}
-
-function holderName(claim: Claim): string {
-  return claim.sessionName ?? `session ${claim.sessionId.slice(0, 8)}`;
 }

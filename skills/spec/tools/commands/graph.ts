@@ -19,7 +19,7 @@ export function graphCommand(projectDir: string, args: readonly string[]): strin
   return neighborhoodReport(nodes, first, projectDir);
 }
 
-export function neighborhoodReport(nodes: ReadonlyMap<string, SpecNode>, name: string, projectDir: string): string {
+export function neighborhoodReport(nodes: ReadonlyMap<string, SpecNode>, name: string, projectDir: string, inFlight?: ReadonlyMap<string, string>): string {
   const node = nodes.get(name);
   if (!node) return `graph: no spec named ${name}`;
   const links = neighborhood(nodes, name);
@@ -27,7 +27,7 @@ export function neighborhoodReport(nodes: ReadonlyMap<string, SpecNode>, name: s
   const issues = linkIssues(nodes, name, join(node.spec.dir, "CLAUDE.md"));
   return [
     `${name} (${isFinished(node) ? "finished" : "open"})`,
-    renderLinks(links, undeclaredOverlaps(nodes, name)),
+    renderLinks(links, undeclaredOverlaps(nodes, name), inFlight),
     `Blocked by: ${blocking.length > 0 ? blocking.join(", ") : "nothing"}`,
     issues.length > 0 ? formatIssues(issues, projectDir) : "",
   ].filter(Boolean).join("\n");
