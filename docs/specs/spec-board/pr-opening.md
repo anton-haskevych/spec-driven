@@ -2,7 +2,7 @@
 
 ## Spec state
 
-PR A (phases 1–3) merged as #8 and shipped in 2.35.0 on 2026-10-01 (cold timing 3.3 s accepted). PR B (phases 4–6) on branch `feat/spec-board-pr-b`: phase 4 done (CRM warm 2.3 s with gh and sessions); phase 5 items 1–3 done (claim store, rules, `claim` command); 5 items 4–6, 5a, 6 left.
+PR A (phases 1–3) merged as #8 and shipped in 2.35.0 on 2026-10-01 (cold timing 3.3 s accepted). PR B (phases 4–6) on branch `feat/spec-board-pr-b`: phase 4 done (CRM warm 2.3 s with gh and sessions); phase 5 done (claims: store, command, packs, board, execute/handoff wiring); 5a and 6 left, both ready.
 Split (value first):
 - **PR A: phases 1–3.** Board from main, workspace scan, in-flight overlay. Phases 1 and 2 can run in parallel. Release 2.35.0.
 - **PR B: phases 4–6.** PRs and sessions, claims (local + remote, 5a), loop wiring. Release 2.36.0.

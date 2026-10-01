@@ -27,6 +27,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-in-flight-built-from-activity.md` — [phase 4+] — flight rows from activity; executing is a placeholder; ready-in = overlay
 - `decision-board-timing-accepted.md` — [phase 4+] — cold 3.3 s accepted; run phase 4's gh calls alongside the scan
 - `decision-prs-and-sessions-join-shape.md` — [phase 5+] — gh lists async, joins refine next, needs-you reads rows; tests stub gh
+- `decision-claims-landing-shape.md` — [phase 5a, 6] — claim:/claim refused: lines, one status path, packs read heldByOthers
 
 ## Workarounds
 - `docs/specs/_ledger/workaround-squash-merge-leaves-local-main-diverged.md` — [general] — squash merge leaves local main diverged; verify tree, reset --keep

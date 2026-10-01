@@ -26,7 +26,12 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/pr/rollup.ts` | `rollupToChecks` must agree with gh's `bucket`; `toPrRows` | 4 |
 | `skills/spec/tools/board/joins.ts` | sessions and PRs onto in-flight rows; sets `fix CI` / `merge` | 4 |
 | `skills/spec/tools/claims/store.ts` | Atomic claim create / takeover / release | 5 |
-| `skills/spec/tools/claims/rules.ts` | `claimStatus` precedence | 5 |
+| `skills/spec/tools/claims/rules.ts` | `claimStatus` precedence; `takeRefusal`; `holderName`; `HeldClaim` | 5 |
+| `skills/spec/tools/claims/atomic-file.ts` | link-create, rename-verify-restore, ENOENT-safe read | 5 |
+| `skills/spec/tools/claims/held.ts` | `claimContext` + `heldClaims` — the board loader's and claim command's one IO path | 5 |
+| `skills/spec/tools/claims/live.ts` | `heldByOthers` — the only claim IO the packs do | 5 |
+| `skills/spec/tools/commands/claim.ts` | `spec.ts claim take\|release\|list`; `claim:` vs `claim refused:` lines | 5 |
+| `skills/spec/tools/context/held-phases.ts` | `firstUnheld`, `specsInFlight` for the packs | 5 |
 
 ## Existing files touched
 
