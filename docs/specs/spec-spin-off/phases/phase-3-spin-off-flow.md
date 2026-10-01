@@ -21,6 +21,6 @@ pr: A
 
 ## Deliverables
 
-- [ ] prep.md: *Spin-off* section (trigger, seed template, wave 0, link, commit, launch) and *seeded* precondition branch
-- [ ] SKILL.md lifecycle rule + prep-stage wording + layout rows; taxonomy.md
-- [ ] create.md and update.md route new specs to spin-off; README line
+- [x] prep.md: *Spin-off* section (trigger, seed template, wave 0, link, commit, launch) and *seeded* precondition branch
+- [x] SKILL.md lifecycle rule + prep-stage wording + layout rows; taxonomy.md
+- [x] create.md and update.md route new specs to spin-off; README line

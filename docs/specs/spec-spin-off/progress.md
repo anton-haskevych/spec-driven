@@ -14,4 +14,4 @@
 
 - [x] Phase 1 — Whole-spec needs → `phases/phase-1-whole-spec-needs.md`
 - [x] Phase 2 — Launch command → `phases/phase-2-launch-command.md`
-- [ ] Phase 3 — Spin-off flow in the modes → `phases/phase-3-spin-off-flow.md`
+- [x] Phase 3 — Spin-off flow in the modes → `phases/phase-3-spin-off-flow.md`

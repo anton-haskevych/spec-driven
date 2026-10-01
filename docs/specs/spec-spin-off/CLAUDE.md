@@ -1,6 +1,6 @@
 ---
 created: 2026-10-01T12:23:20-07:00
-updated: 2026-10-01T12:29:08-07:00
+updated: 2026-10-01T12:31:33-07:00
 status: active
 priority: p1
 area: [tools, sub-commands]
