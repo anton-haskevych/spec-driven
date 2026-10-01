@@ -4,7 +4,7 @@ import { parsePhaseLines } from "../core/progress";
 import type { SpecState } from "../core/spec-state";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
 import type { SpecNode } from "../graph/nodes";
-import { readySet } from "../ready/ready-set";
+import { phaseNeeds, readySet } from "../ready/ready-set";
 import { phaseState, specNode } from "./factories";
 
 const edges = (data: Record<string, unknown>) => parsePhaseEdges(data);
@@ -20,6 +20,22 @@ const safety = specNode({
     { id: "1", done: true, deployed: false },
     { id: "2", done: false, deployed: false },
   ],
+});
+
+describe("phaseNeeds", () => {
+  test("declared edges are the needs list; a phase without frontmatter in a declared spec needs every earlier phase", () => {
+    const declared = state([
+      phaseState({ id: "1", edges: edges({ needs: [] }) }),
+      phaseState({ id: "2", edges: edges({ needs: [1, "safety#2"] }) }),
+      phaseState({ id: "3" }),
+    ]);
+    expect(declared.phases.map((phase, index) => phaseNeeds(declared, phase, index))).toEqual([[], ["1", "safety#2"], ["1", "2"]]);
+  });
+
+  test("with no edges anywhere, each phase directly needs the one before it", () => {
+    const linear = state([phaseState({ id: "1" }), phaseState({ id: "2" }), phaseState({ id: "3" })]);
+    expect(linear.phases.map((phase, index) => phaseNeeds(linear, phase, index))).toEqual([[], ["1"], ["2"]]);
+  });
 });
 
 describe("parsePhaseEdges", () => {

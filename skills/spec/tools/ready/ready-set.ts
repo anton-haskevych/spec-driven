@@ -35,10 +35,15 @@ function linearReasons(state: SpecState, index: number): string[] {
   return earlier ? [`after phase ${earlier.id} (no edges declared, so order follows progress.md)`] : [];
 }
 
+// Linear specs list only the previous phase: the direct dependency, which is what "unblocks" counts.
+export function phaseNeeds(state: SpecState, phase: PhaseState, index: number): string[] {
+  if (!state.phases.some((candidate) => candidate.edges.declared)) return state.phases.slice(Math.max(0, index - 1), index).map((earlier) => earlier.id);
+  return phase.edges.declared ? phase.edges.needs : state.phases.slice(0, index).map((earlier) => earlier.id);
+}
+
 function declaredReasons(state: SpecState, nodes: ReadonlyMap<string, SpecNode>, phase: PhaseState, index: number): string[] {
-  const needs = phase.edges.declared ? phase.edges.needs : state.phases.slice(0, index).map((earlier) => earlier.id);
   return [
-    ...unmet(needs, state, nodes, (p) => p.done, "needs"),
+    ...unmet(phaseNeeds(state, phase, index), state, nodes, (p) => p.done, "needs"),
     ...unmet(phase.edges.needsDeployed, state, nodes, (p) => p.done && p.deployed, "needs deployed"),
     ...sameFilesWaits(state, phase, index),
   ];
