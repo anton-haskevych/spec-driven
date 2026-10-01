@@ -7,6 +7,7 @@ import { loadPlaybooks } from "../playbook/playbooks";
 import { formatIssues } from "../doctor/issue";
 import { projectLedgerIssues } from "../doctor/project-ledger";
 import { runDoctor } from "../doctor/run";
+import { settingsFileIssues } from "../doctor/settings";
 import { loadNodes } from "../graph/nodes";
 import { loadGates } from "../playbook/gates";
 
@@ -22,8 +23,9 @@ export function doctorReport(projectDir: string, specName?: string): string {
   const playbooks = new Set(loadPlaybooks(projectDir).map((playbook) => playbook.name));
   const context = { statuses, nodes, gates, today: isoDay(new Date()), playbooks };
   const specIssues = specs.flatMap((spec) => runDoctor(spec, context));
+  const repoIssues = settingsFileIssues(projectDir, gates);
   const projectIssues = [...projectLedgerIssues(projectDir), ...backlogIssues(projectDir), ...playbookIssues(projectDir)];
-  const issues = specName ? specIssues : [...projectIssues, ...specIssues];
+  const issues = specName ? [...specIssues, ...repoIssues] : [...projectIssues, ...repoIssues, ...specIssues];
   if (issues.length === 0) return `doctor: clean (${specs.length} spec${specs.length === 1 ? "" : "s"})`;
 
   const errors = issues.filter((issue) => issue.severity === "error").length;
