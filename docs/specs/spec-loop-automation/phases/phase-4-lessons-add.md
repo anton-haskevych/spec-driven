@@ -30,4 +30,4 @@ pr: B
 - [x] `setFrontmatterLine` extracted; `addSeenIn` tests still green
 - [x] `lessons add` bookkeeping on an existing entry: `created`, `seen-in`, project row, pointer row; one plan
 - [x] `lessons add` prints close `similar` matches without refusing
-- [ ] SKILL.md write path rewritten (write the entry → `lessons add`; no-Bun fallback kept)
+- [x] SKILL.md write path rewritten (write the entry → `lessons add`; no-Bun fallback kept)

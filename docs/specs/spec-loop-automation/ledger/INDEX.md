@@ -13,7 +13,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 
 ## Domain
 
-- `domain-writer-building-blocks.md` — [phase 3, 4] — findPhase, locate, issuesIntroducedBy, ACTIONS, tree.spec
+- `domain-writer-building-blocks.md` — [phase 3, 4, 5] — findPhase, locate, newIssues, ledger-index, tree.spec
 
 ## Decisions
 - `decision-publish-docs-snapshot-merge.md` — [phase 7, load-bearing] — snapshot commit + merge-tree + merge-back (probe-verified)

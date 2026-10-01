@@ -1,10 +1,10 @@
 ---
 kind: domain
-applies-to: [phase 3, 4]
+applies-to: [phase 3, 4, 5]
 created: 2026-09-30T16:04:51-07:00
 ---
 
-# Spec-file writers: the building blocks phase 2 left for add, split and lessons add
+# Spec-file writers: the building blocks phases 2–4 left for later writers and checks
 
 Phase 2 shipped the pieces later writers compose. Reuse them rather than growing new ones:
 
@@ -16,3 +16,5 @@ Phase 2 shipped the pieces later writers compose. Reuse them rather than growing
 - `commands/phase.ts`: `ACTIONS` table (add a row for `add`/`split`), `resolveSpec`, and a generic `parseFlags` over `node:util` `parseArgs` (strict, typed values).
 - `EditPlan` `unchanged` carries a `reason` (it's used for "already deployed"), which technical.md's bare `{kind:"unchanged"}` omits.
 - Tests: `tests/tree.ts` `createTree().spec(name, files)` writes a default `CLAUDE.md`, because `findSpecs` only sees folders that have one. Each test gets its own tree and `afterEach(tree.cleanup)`.
+- Phase 4 added `core/ledger-index.ts` (`parseIndexRows` → `{section, file, tail, line}` for spec, project and pointer rows; `insertRow(text, row, section?)` matches headings by singular form; `kindSection`; three row formatters), `core/frontmatter-patch.ts` `setFrontmatterLine` (header only), `doctor/issue.ts` `newIssues(before, after)`, `core/spec-folders.ts` `resolveSpec` and `lessons/project-ledger.ts` `lessonFileName`.
+- Still open for phase 5: `doctor/ledger.ts:5` `INDEX_ROW_FILE` excludes `/`, so `checkLedgerIndex` never sees pointer rows. Move it onto `parseIndexRows`, count duplicates, and check that each `docs/specs/_ledger/…` target exists.
