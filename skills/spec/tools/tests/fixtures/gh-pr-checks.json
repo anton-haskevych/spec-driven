@@ -1,0 +1,10 @@
+[
+  {"bucket":"pass","link":"https://github.com/acme/app/actions/runs/36796809320/job/110162211167","name":"Ops Tests","state":"SUCCESS","workflow":"Monorepo CI"},
+  {"bucket":"pass","link":"https://github.com/acme/app/actions/runs/36796809320/job/110162211244","name":"Frontend Tests (2/2)","state":"SUCCESS","workflow":"Monorepo CI"},
+  {"bucket":"fail","link":"https://github.com/acme/app/actions/runs/36796809320/job/110162211428","name":"Backend Tests","state":"FAILURE","workflow":"Monorepo CI"},
+  {"bucket":"fail","link":"https://github.com/acme/app/runs/110164445230","name":"Backend Test Results","state":"FAILURE","workflow":"E2E Tests"},
+  {"bucket":"skipping","link":"https://github.com/acme/app/actions/runs/36796809320/job/110162212386","name":"Landing Tests","state":"SKIPPED","workflow":"Monorepo CI"},
+  {"bucket":"pending","link":"https://github.com/acme/app/actions/runs/36796809999/job/110162299999","name":"E2E Shard 1","state":"IN_PROGRESS","workflow":"E2E Tests"},
+  {"bucket":"pending","link":"https://vercel.com/acme/site-a/4nccAL4GtjNh7stHN5vyvsyoq6t2","name":"Vercel – site-a","state":"PENDING","workflow":""},
+  {"bucket":"fail","link":"https://vercel.com/acme/site-b/7fLz4HfuqXH4uMHDsBxDebWvXwES","name":"Vercel – site-b","state":"FAILURE","workflow":""}
+]
