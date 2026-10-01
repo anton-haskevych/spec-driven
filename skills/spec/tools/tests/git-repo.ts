@@ -18,43 +18,60 @@ export const isolatedRunner: Runner = {
   run: (argv, options = {}) => systemRunner.run(argv, { ...options, env: { ...ISOLATED_GIT_ENV, ...options.env } }),
 };
 
-export interface TestRepo {
-  root: string;
+export interface WorkingCopy {
   dir: string;
   git(...args: string[]): string;
   write(path: string, text: string): void;
   commitAll(message: string): void;
+}
+
+export interface TestRepo extends WorkingCopy {
+  root: string;
+  origin: string;
+  // A second clone of origin: another session moving the default branch.
+  clone(name: string): WorkingCopy;
   cleanup(): void;
 }
 
-export function repoWithOrigin(prefix: string, branch = "main"): TestRepo {
-  const root = mkdtempSync(join(tmpdir(), prefix));
-  const dir = join(root, "work");
-  const git = (cwd: string, args: string[]) => {
-    const result = isolatedRunner.run(["git", ...args], { cwd });
-    if (result.code !== 0) throw new Error(`git ${args.join(" ")} failed: ${result.stderr}`);
-    return result.stdout.trim();
-  };
-  git(root, ["init", "-q", "--bare", "-b", branch, "origin.git"]);
-  git(root, ["init", "-q", "-b", branch, "work"]);
-  git(dir, ["remote", "add", "origin", join(root, "origin.git")]);
+function runGit(cwd: string, args: readonly string[]): string {
+  const result = isolatedRunner.run(["git", ...args], { cwd });
+  if (result.code !== 0) throw new Error(`git ${args.join(" ")} failed: ${result.stderr}`);
+  return result.stdout.trim();
+}
 
-  const repo: TestRepo = {
-    root,
+function workingCopy(dir: string): WorkingCopy {
+  return {
     dir,
-    git: (...args) => git(dir, args),
+    git: (...args) => runGit(dir, args),
     write(path, text) {
       mkdirSync(dirname(join(dir, path)), { recursive: true });
       writeFileSync(join(dir, path), text);
     },
     commitAll(message) {
-      git(dir, ["add", "-A"]);
-      git(dir, ["commit", "-q", "--allow-empty", "-m", message]);
+      runGit(dir, ["add", "-A"]);
+      runGit(dir, ["commit", "-q", "--allow-empty", "-m", message]);
+    },
+  };
+}
+
+export function repoWithOrigin(prefix: string, branch = "main"): TestRepo {
+  const root = mkdtempSync(join(tmpdir(), prefix));
+  const origin = join(root, "origin.git");
+  runGit(root, ["init", "-q", "--bare", "-b", branch, "origin.git"]);
+  runGit(root, ["init", "-q", "-b", branch, "work"]);
+  const repo: TestRepo = {
+    ...workingCopy(join(root, "work")),
+    root,
+    origin,
+    clone(name) {
+      runGit(root, ["clone", "-q", origin, name]);
+      return workingCopy(join(root, name));
     },
     cleanup: () => rmSync(root, { recursive: true, force: true }),
   };
+  repo.git("remote", "add", "origin", origin);
   repo.commitAll("init");
-  git(dir, ["push", "-q", "-u", "origin", branch]);
-  git(dir, ["remote", "set-head", "origin", branch]);
+  repo.git("push", "-q", "-u", "origin", branch);
+  repo.git("remote", "set-head", "origin", branch);
   return repo;
 }
