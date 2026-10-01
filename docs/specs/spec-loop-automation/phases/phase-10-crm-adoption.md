@@ -10,30 +10,36 @@ code: false
 **Outcome:** In CRM, INDEX conflicts disappear, PRs open ready with CI, spec docs publish to main automatically, and after-merge steps are one list. Needs the released plugin version; config only.
 
 **Files to touch (in `~/IdeaProjects/crm`):**
-- `.gitattributes` (new)
+- `.gitattributes` (new — both union rules)
 - `docs/specs/_playbook/settings.md` (new)
 - `docs/specs/_playbook/gates.md` (new)
-- `docs/specs/_playbook/page.md` (new tag playbook)
 - `.claude/rules/git-workflow.md` (reconcile with settings)
+- `ops/src/hooks/post-tool-use/checkpoint-reminder.ts` (reconcile with the context nudge)
 - `docs/specs/_ledger/workaround-push-spec-docs-to-main-from-a-worktree.md` (`enforced-by:`)
 
 ## Implementation guidance
 
 Settings (Anton's decisions, 2026-09-30): `docs: main`, `pr.draft: false`, `pr.merge: squash`, `checks.external: ["Vercel*"]`, `gates.after-merge-main: merge-main`, `gates.bootstrap: bootstrap`, `nudge-at: 500000`.
 
+`.gitattributes`: `docs/specs/**/INDEX.md merge=union` **and** `*/docs/specs/**/INDEX.md merge=union` — CRM has 16 `landing/docs/specs` specs (11 with ledgers). Verify with `git check-attr merge` on one of each.
+
 `gates.md` sections — lift, don't invent (sources in `research/2026-09-30-wave-1-loop-mechanics.md` → *CRM prior art*):
 - per target, named after the CI filter outputs (`ci.yml:70-80`): backend, frontend, api, landing, websites, infra, ops, hooks;
 - `merge-main`: `pnpm install` → `api:regen` if OpenAPI changed → Modulith export if `backend/` changed (revert order-only churn) → route lock ×2 after regen → typecheck every touched subproject;
 - `bootstrap`: `pnpm install` → `pnpm api:build`; ports stay with `pnpm dev:all --auto-port`.
 
-`page.md`: `match: { scope: [uiux-design] }`; core from `growth.md:37-43` (`/seo` search-intent brief → `page-design` showcase round), under 60 lines.
+`git-workflow.md`: ready PRs (CI runs), merge is Anton's call via squash, CI checked on request, spec docs to main through publish-docs (a feature branch gains a no-op `docs(spec): snapshot` merge per publish — expected). Don't bulk-migrate existing specs or lessons.
 
-`git-workflow.md`: ready PRs (CI runs), merge is Anton's call via squash, CI checked on request, spec docs to main through publish-docs. Don't bulk-migrate existing specs or lessons.
+`checkpoint-reminder.ts` already nudges every 20 tool calls (PostToolUse). Decide with the nudge live: drop its spec-progress line (the loop now owns spec state) or leave it for journals only — don't run two context nags.
+
+`enforced-by:` must resolve inside CRM (`doctor/project-lesson.ts:25-28` resolves against the project), so point it at `docs/specs/_playbook/settings.md` (its `docs: main` key), not the plugin's code.
+
+The `_playbook/page.md` tag playbook from the draft is out of this spec's scope — capture it with `/spec idea` in CRM instead.
 
 ## Deliverables
 
-- [ ] `.gitattributes` union rule committed (evidence: commit sha)
+- [ ] `.gitattributes` union rules committed (evidence: commit sha; `git check-attr` output)
 - [ ] `_playbook/settings.md` with the decided values (evidence: sha; `spec.ts settings` output)
 - [ ] `_playbook/gates.md` targets + merge-main + bootstrap (evidence: sha; `spec.ts doctor` clean on settings)
-- [ ] `_playbook/page.md` tag playbook (evidence: sha)
-- [ ] `git-workflow.md` reconciled; workaround lesson `enforced-by:` set (evidence: sha)
+- [ ] `git-workflow.md` and `checkpoint-reminder.ts` reconciled (evidence: sha)
+- [ ] Workaround lesson `enforced-by: docs/specs/_playbook/settings.md` (evidence: sha; doctor clean)

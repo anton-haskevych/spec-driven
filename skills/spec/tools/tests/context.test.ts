@@ -2,12 +2,13 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { contextPack, parseContextRequest } from "../commands/context";
+import { contextPack } from "../commands/context";
 import { summarizePhaseEntry } from "../core/phase-entry";
 import { parsePhaseTitle } from "../core/phase-title";
 import { parseLedgerIndex, rowsForPhase } from "../context/ledger-scope";
 import { phaseStatuses, renderStatusTable } from "../context/status-table";
 import { phaseState } from "./factories";
+import { stubRunner } from "./stub-runner";
 
 const phase = (done: boolean, checked: number, unchecked: number) =>
   phaseState({ done, summary: { deliverables: { checked, unchecked }, nextRun: [] } });
@@ -88,15 +89,12 @@ describe("rowsForPhase", () => {
       "gotcha-a.md",
     ]);
   });
-});
 
-describe("parseContextRequest", () => {
-  test.each([
-    [["execute", "checkout", "phase", "3a"], { mode: "execute", name: "checkout", hint: "phase 3a" }],
-    [["checkout resume"], { mode: "resume", name: "checkout" }],
-    [["checkout"], { mode: "route", name: "checkout" }],
-  ])("%p", (argv, expected) => {
-    expect(parseContextRequest(argv)).toEqual({ hint: undefined, ...expected });
+  test("an open-ended letter phase does not reach back to an earlier letter", () => {
+    const parsed = parseLedgerIndex("- `gotcha-x.md` — [phase 7b+] — x\n");
+    expect(rowsForPhase(parsed.rows, "7a")).toEqual([]);
+    expect(rowsForPhase(parsed.rows, "7c").map((row) => row.file)).toEqual(["gotcha-x.md"]);
+    expect(rowsForPhase(parsed.rows, "9.10").map((row) => row.file)).toEqual(["gotcha-x.md"]);
   });
 });
 
@@ -138,6 +136,11 @@ describe("contextPack", () => {
     expect(pack).not.toContain("src/Other.java");
   });
 
+  test.each(["phase 1", "phase1", "phase-1", "1"])("execute pack honours the hint %p", (hint) => {
+    const pack = contextPack(project, { mode: "execute", name: "checkout", hint });
+    expect(pack).toContain(`Picked: Phase 1 — Harness (from your hint "${hint}")`);
+  });
+
   test("execute pack tells the agent when the picked phase is a task phase", () => {
     const codePack = contextPack(project, { mode: "execute", name: "checkout" });
     expect(codePack).not.toContain("Task phase");
@@ -170,5 +173,42 @@ describe("contextPack", () => {
   test("prints nothing for modes without a pack or unknown specs", () => {
     expect(contextPack(project, { mode: "prep", name: "checkout" })).toBe("");
     expect(contextPack(project, { mode: "resume", name: "missing" })).toBe("");
+  });
+
+  describe("without a spec name", () => {
+    const changed = (...paths: string[]) =>
+      stubRunner([
+        [["git", "rev-parse", "--show-toplevel"], { stdout: `${project}\n` }],
+        [["git", "status"], { stdout: paths.map((path) => ` M ${path}\0`).join("") }],
+      ]);
+
+    test("loads the one spec the changed files belong to and says it was inferred", () => {
+      const pack = contextPack(project, { mode: "execute", hint: "1" }, changed("docs/specs/checkout/progress.md"));
+      expect(pack).toStartWith('<spec-pack spec="checkout" mode="execute" inferred="true">');
+      expect(pack).toContain("inferred from changed files");
+      expect(pack).toContain('Picked: Phase 1 — Harness (from your hint "1")');
+    });
+
+    test("names the candidates when changed files span several specs", () => {
+      mkdirSync(join(project, "docs/specs/billing"), { recursive: true });
+      writeFileSync(join(project, "docs/specs/billing/CLAUDE.md"), "---\nstatus: active\n---\n");
+      const runner = changed("docs/specs/checkout/progress.md", "docs/specs/billing/CLAUDE.md");
+      expect(contextPack(project, { mode: "resume" }, runner)).toBe("No spec named; the changed files belong to billing, checkout. Ask which one.");
+      rmSync(join(project, "docs/specs/billing"), { recursive: true });
+    });
+
+    test("says so when no changed file belongs to a spec", () => {
+      expect(contextPack(project, { mode: "status" }, changed("src/app.ts"))).toBe(
+        "No spec named, and no changed file belongs to a spec. Infer it from the conversation.",
+      );
+    });
+
+    test("stays silent outside git and for modes that never infer", () => {
+      const runner = stubRunner([]);
+      expect(contextPack(project, { mode: "execute" }, runner)).toBe("");
+      expect(contextPack(project, { mode: "review" }, runner)).toBe("");
+      expect(contextPack(project, { mode: "route" }, runner)).toBe("");
+      expect(runner.calls).toHaveLength(1);
+    });
   });
 });

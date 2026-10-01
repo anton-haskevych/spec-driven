@@ -1,5 +1,5 @@
 import { isRecord, stringField, type FrontmatterData } from "../core/frontmatter";
-import { numericPart, samePhase } from "../core/phase-title";
+import { phaseInRange, samePhase } from "../core/phase-title";
 
 export type RelationType = "part-of" | "needs" | "supersedes" | "related";
 
@@ -41,10 +41,6 @@ export function phasesInRef(ref: string, phaseIds: readonly string[]): string[] 
   if (exact.length > 0) return exact;
   const range = RANGE.exec(ref);
   if (!range) return [];
-  const from = Number(range[1]);
-  const to = Number(range[2]);
-  return phaseIds.filter((id) => {
-    const value = numericPart(id);
-    return value !== undefined && value >= from && value <= to;
-  });
+  const [, from = "", to = ""] = range;
+  return phaseIds.filter((id) => phaseInRange(id, from, to));
 }

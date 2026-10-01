@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { SUB_COMMANDS } from "../commands/context";
+import { SUB_COMMANDS } from "../context/request";
 import { isRecord, parseFrontmatter, stringField } from "../core/frontmatter";
 
 const SKILL_DIR = join(import.meta.dir, "..", "..");

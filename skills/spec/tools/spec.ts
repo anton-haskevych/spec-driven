@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
-import { contextPack, parseContextRequest } from "./commands/context";
+import { contextPack } from "./commands/context";
+import { parseContextRequest } from "./context/request";
 import { doctorReport } from "./commands/doctor";
 import { gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
@@ -8,6 +9,7 @@ import { listCommand } from "./commands/list";
 import { playbooksReport } from "./commands/playbooks";
 import { readyReport } from "./commands/ready";
 import { isoDay } from "./core/schedule";
+import { findSpecs } from "./core/spec-folders";
 
 const USAGE = "usage: bun spec.ts doctor [<spec-name>] | context <sub-command> <spec-name> [hint] | lessons … | graph … | ready <spec-name> | gates <spec-name> | list [all] [filter] [--json] | playbooks <spec-name>";
 
@@ -17,7 +19,7 @@ function run(argv: readonly string[], projectDir: string): string {
     case "doctor":
       return doctorReport(projectDir, args[0]);
     case "context":
-      return contextPack(projectDir, parseContextRequest(args));
+      return contextPack(projectDir, parseContextRequest(args, (name) => findSpecs(projectDir, name).length > 0));
     case "lessons":
       return lessonsCommand(projectDir, args);
     case "graph":

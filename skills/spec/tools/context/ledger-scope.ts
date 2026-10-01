@@ -1,4 +1,4 @@
-import { numericPart, samePhase } from "../core/phase-title";
+import { comparePhaseIds, samePhase } from "../core/phase-title";
 
 export interface LedgerRow {
   file: string;
@@ -54,7 +54,6 @@ function appliesTo(tags: readonly string[], phaseId: string): boolean {
 
 function phaseMatches(value: string, openEnded: boolean, phaseId: string): boolean {
   if (!openEnded) return samePhase(value, phaseId);
-  const from = numericPart(value);
-  const current = numericPart(phaseId);
-  return from !== undefined && current !== undefined && from <= current;
+  const order = comparePhaseIds(value, phaseId);
+  return order !== undefined && order <= 0;
 }

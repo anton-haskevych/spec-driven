@@ -49,6 +49,7 @@ describe("parseRelations", () => {
   test("resolves exact ids before numeric ranges", () => {
     expect(phasesInRef("2b-pre", ["1", "2b-pre", "3"])).toEqual(["2b-pre"]);
     expect(phasesInRef("4-5", ["3", "4", "4a", "5", "6"])).toEqual(["4", "4a", "5"]);
+    expect(phasesInRef("9.9-9.10", ["9.8", "9.9", "9.10", "9.11"])).toEqual(["9.9", "9.10"]);
   });
 });
 

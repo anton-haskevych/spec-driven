@@ -11,35 +11,37 @@ import { readySet } from "../ready/ready-set";
 import { loadProjectLessons } from "../lessons/project-ledger";
 import { doctorReport } from "./doctor";
 import { playbooksForSpec } from "../playbook/playbooks";
+import { normalizePhaseHint, type ContextRequest } from "../context/request";
+import { specsInPlay } from "../context/infer-spec";
+import { systemRunner, type Runner } from "../core/run";
 
-export interface ContextRequest {
-  mode: string;
-  name?: string;
-  hint?: string;
-}
-
-export const SUB_COMMANDS = new Set(["prep", "create", "resume", "execute", "review", "update", "handoff", "status", "list", "idea"]);
 const DOCTOR_LINES = 6;
+const PACK_MODES = new Set(["resume", "status", "execute", "route"]);
+const INFERRING_MODES = new Set(["resume", "status", "execute"]);
+const INFERRED_NOTE = "Spec inferred from changed files: say which spec you are working on in one line, then carry on.";
 
-export function parseContextRequest(argv: readonly string[]): ContextRequest {
-  const tokens = argv.flatMap((arg) => arg.split(/\s+/)).filter(Boolean);
-  const first = tokens[0]?.toLowerCase();
-  const last = tokens.at(-1)?.toLowerCase();
-  if (first && SUB_COMMANDS.has(first)) return { mode: first, name: tokens[1], hint: tokens.slice(2).join(" ") || undefined };
-  if (last && SUB_COMMANDS.has(last)) return { mode: last, name: tokens[0] };
-  return { mode: "route", name: tokens[0] };
+export function contextPack(projectDir: string, request: ContextRequest, runner: Runner = systemRunner): string {
+  if (!PACK_MODES.has(request.mode)) return "";
+  if (request.name) return specPack(projectDir, request, request.name, false);
+  if (!INFERRING_MODES.has(request.mode)) return "";
+
+  const candidates = specsInPlay(projectDir, runner);
+  if (candidates === undefined) return "";
+  const [only] = candidates;
+  if (only !== undefined && candidates.length === 1) return specPack(projectDir, request, only, true);
+  if (candidates.length === 0) return "No spec named, and no changed file belongs to a spec. Infer it from the conversation.";
+  return `No spec named; the changed files belong to ${candidates.join(", ")}. Ask which one.`;
 }
 
-export function contextPack(projectDir: string, request: ContextRequest): string {
-  if (!request.name || !["resume", "status", "execute", "route"].includes(request.mode)) return "";
-  const specs = findSpecs(projectDir, request.name);
+function specPack(projectDir: string, request: ContextRequest, name: string, inferred: boolean): string {
+  const specs = findSpecs(projectDir, name);
   if (specs.length !== 1 || !specs[0]) return "";
 
   const state = loadSpecState(specs[0]);
   const hasLedger = existsSync(join(state.spec.dir, "ledger", "INDEX.md"));
   if (!state.hasProgress || !hasLedger) return "";
 
-  const doctor = doctorReport(projectDir, request.name).split("\n").slice(0, DOCTOR_LINES).join("\n");
+  const doctor = doctorReport(projectDir, name).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
   const nodes = loadNodes(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir);
@@ -48,7 +50,8 @@ export function contextPack(projectDir: string, request: ContextRequest): string
   const body = mode === "execute"
     ? executeBody(projectDir, { state, doctor, relations, ready, playbooks, lessons: loadProjectLessons(projectDir) }, request.hint)
     : resumePack({ state, doctor, relations, ready, playbooks, lessons: [] });
-  return `<spec-pack spec="${state.spec.name}" mode="${mode}">\n${body}\n</spec-pack>`;
+  const header = `<spec-pack spec="${state.spec.name}" mode="${mode}"${inferred ? ' inferred="true"' : ""}>`;
+  return `${header}\n${inferred ? `${INFERRED_NOTE}\n\n` : ""}${body}\n</spec-pack>`;
 }
 
 function executeBody(projectDir: string, input: PackInput, hint: string | undefined): string {
@@ -68,7 +71,7 @@ function noPhaseReady(input: PackInput): string {
 }
 
 function phaseForHint(state: SpecState, hint: string) {
-  const id = hint.replace(/^phase\s+/i, "").trim();
+  const id = normalizePhaseHint(hint);
   if (id.toLowerCase() === "next") return undefined;
   return state.phases.find((phase) => samePhase(phase.id, id));
 }
