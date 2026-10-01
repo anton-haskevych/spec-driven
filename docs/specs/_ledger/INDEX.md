@@ -5,3 +5,4 @@
 - `gotcha-code-under-test-that-spawns-git-needs-the-isolated-runner.md` — `skills/spec/tools/tests/**, skills/spec/tools/publish/**, skills/spec/tools/core/git.ts` — Code under test that spawns git must get `isolatedRunner`, not `systemRunner`
 - `gotcha-runner-stdout-is-decoded-text.md` — `skills/spec/tools/core/run.ts, skills/spec/tools/core/git.ts` — Runner stdout is decoded text; byte-framed git output breaks
 - `gotcha-git-archive-fails-on-any-unmatched-pathspec.md` — `skills/spec/tools/mainline/**` — git archive exits 128 if any pathspec is empty; archive only matching ones
+- `gotcha-git-name-only-quotes-non-ascii-paths.md` — `skills/spec/tools/**` — git quotes non-ASCII paths unless -z; spec-doc matching misses them

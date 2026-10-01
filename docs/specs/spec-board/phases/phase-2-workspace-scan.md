@@ -15,10 +15,10 @@ CRM's 64 · low risk, read-only git with `--no-optional-locks`.
 **Files to touch:**
 - `skills/spec/tools/core/run.ts` (`AsyncRunner`, `systemAsyncRunner`, `runAll`)
 - `skills/spec/tools/core/git-status.ts` (new, `parsePorcelainZ`), `context/infer-spec.ts` (uses it)
-- `skills/spec/tools/workspaces/list.ts`, `classify.ts`, `changes.ts` (new)
+- `skills/spec/tools/workspaces/list.ts`, `classify.ts`, `changes.ts`, `scan.ts` (new)
 - `skills/spec/tools/tests/stub-runner.ts` (`asyncStubRunner`), `tests/git-repo.ts` (`addWorktree`, `isolatedAsyncRunner`)
 - `skills/spec/tools/tests/fixtures/git-worktree-list.txt`, `git-for-each-ref.txt` (new)
-- tests: new `workspaces-list.test.ts`, `workspaces-classify.test.ts`, `workspaces-changes.test.ts`, `core-git-status.test.ts`, `run.test.ts`
+- tests: new `workspaces-list.test.ts`, `workspaces-classify.test.ts`, `workspaces-changes.test.ts`, `workspaces-scan.test.ts`, `core-git-status.test.ts`, `run.test.ts`
 
 ## Implementation guidance
 
@@ -36,7 +36,16 @@ new path matcher. The function is `workspaceSpecChanges` (`publish/snapshot.ts` 
 `specDocChanges`).
 
 **Classification.** It takes a `forceLive` set of paths, from claims and live session cwds, supplied by
-Phases 4–5. Until then the set is empty.
+Phases 4–5. Until then the set is empty. The main checkout is always live. `classifyWorkspaces` stays
+pure: the scan runs `merge-base` for branches > 1000 ahead and passes the verdicts in as `noMergeBase`.
+
+**Scan.** `workspaces/scan.ts` `scanWorkspaces(git, runner, baseSha, forceLive)` runs list →
+`for-each-ref` → `rev-list` → classify → changes, so Phase 3's `board/load.ts` makes one call
+(preflight 2026-10-01).
+
+**Committed query.** It runs only when the workspace has commits not on base (ahead > 0, or an unmerged
+detached head). A main checkout on the default branch therefore runs only the uncommitted query. Read
+path lists with `-z` (`docs/specs/_ledger/gotcha-git-name-only-quotes-non-ascii-paths.md`).
 
 **Fixtures.** Capture them from CRM and trim to ~10 entries. Keep one detached entry. Write one `locked`
 and one `prunable` entry by hand from the git docs.
@@ -44,11 +53,11 @@ and one `prunable` entry by hand from the git docs.
 ## Deliverables
 
 - [ ] `AsyncRunner` + `systemAsyncRunner` + `runAll` (order kept, concurrency capped, a failing job doesn't reject) with `asyncStubRunner`
-- [ ] `parsePorcelainZ` moved to `core/git-status.ts` with pure tests (rename/copy pairs, untracked, empty); `specsInPlay` uses it
+- [ ] `uncommittedPaths` (`context/infer-spec.ts`) moved to `core/git-status.ts` as `parsePorcelainZ` with pure tests (rename/copy pairs, untracked, empty); `specsInPlay` uses it
 - [ ] `parseWorktreeList` from the porcelain fixture: branch, detached, locked, prunable, main first
 - [ ] `parseAheadBehind` + `classifyWorkspaces` (merged, live, unknown-base, unreadable; detached via `rev-list`; `forceLive` overrides merged) from fixtures
-- [ ] `workspaceSpecChanges` with stubbed runner: committed via `diff <baseSha>...<head>`, uncommitted via `status -z` with `--no-optional-locks`, both scoped to spec docs; the main checkout runs only the uncommitted query
-- [ ] `addWorktree(name, branch)` + `isolatedAsyncRunner` in `tests/git-repo.ts` + one real-git test: two worktrees, one merged, one with an uncommitted spec-doc edit, paths compared after `realpathSync`
+- [ ] `workspaceSpecChanges` with stubbed runner: committed via `diff <baseSha>...<head>`, uncommitted via `status -z` with `--no-optional-locks`, both scoped to spec docs; no committed query without commits ahead of base (so a main checkout on the default branch runs only the uncommitted one)
+- [ ] `addWorktree(name, branch)` + `isolatedAsyncRunner` in `tests/git-repo.ts` + one real-git `scanWorkspaces` test: two worktrees, one merged, one with an uncommitted spec-doc edit, paths compared after `realpathSync`
 
 ## Phase-local notes
 
