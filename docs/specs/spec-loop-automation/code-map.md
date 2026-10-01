@@ -36,6 +36,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/core/progress.ts` | Phase-line reader; deployed suffix only seen right after the pointer | `gotcha-deployed-marker-goes-after-the-pointer.md` |
 | `skills/spec/tools/spec.ts` | Switch → command table with derived USAGE | — |
 | `skills/spec/tools/commands/gates.ts` | Takes a spec name today; gains `--name` | — |
+| `skills/spec/tools/core/phase-entry.ts`, `context/status-table.ts` | Reads the `**Outcome:**` line; Delivers shows its first sentence, else the Goal | 9 |
 | `skills/spec/tools/doctor/ledger.ts` | `checkLedgerIndex` — extended for duplicates + project INDEX | — |
 | `skills/spec/tools/hooks/spec-file-check.ts` | settings.md routing | 5 |
 | `skills/spec/SKILL.md` | Parse prose, Tools, hook frontmatter, stopping rule | `decision-parse-prose-stays-as-fallback.md` |
