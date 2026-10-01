@@ -34,6 +34,6 @@ Doctor: when `progress.md` has an indented `- [ ] Phase …` line that `parsePha
 - [x] `phase add` next-integer path with file (incl. Outcome) + progress line; round-trip via `loadSpecState`
 - [x] `phase add --after` letter suffix, collision check, insertion after the last `<id>*`
 - [x] `phase split` keeps the original id; new lettered parts; `--items` moves; refuses folder-shape and done phases
-- [ ] `phase split` prints sibling `needs` and external `spec#<id>` refs for review
+- [x] `phase split` prints sibling `needs` and external `spec#<id>` refs for review
 - [ ] Doctor warning for indented phase lines
 - [ ] Mode-file prose points at `phase add|split`; SKILL.md *Tools* + README
