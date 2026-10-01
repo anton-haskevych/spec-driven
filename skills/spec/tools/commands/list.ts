@@ -17,7 +17,7 @@ const DEFAULT_SPEC_LIMIT = 30;
 export async function listCommand(projectDir: string, args: readonly string[], deps: BoardDeps): Promise<string> {
   const today = isoDay(deps.now);
   if (args.length > 0) return portfolioTable(projectDir, args, today);
-  const board = await loadBoard(projectDir, { local: false }, deps.runner, deps.now);
+  const board = await loadBoard(projectDir, { local: false }, deps, deps.now);
   if (board.ok) return fenced(renderBoard(board.value));
   return `${portfolioTable(projectDir, args, today)}\n\nboard unavailable: ${board.reason}`;
 }

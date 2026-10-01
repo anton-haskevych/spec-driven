@@ -5,12 +5,12 @@ import { join } from "node:path";
 import { boardCommand, type BoardDeps } from "../commands/board";
 import { listCommand } from "../commands/list";
 import { NOW } from "./board-factories";
-import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
-import { stubRunner } from "./stub-runner";
+import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
+import { asyncStubRunner, stubRunner } from "./stub-runner";
 
 describe("board and list commands (real git)", () => {
   let repo: TestRepo;
-  const deps: BoardDeps = { runner: isolatedRunner, now: NOW };
+  const deps: BoardDeps = { runner: isolatedRunner, asyncRunner: isolatedAsyncRunner, now: NOW };
 
   beforeAll(() => {
     repo = repoWithOrigin("spec-board-command-");
@@ -59,7 +59,7 @@ describe("when the board can't be built", () => {
   const project = mkdtempSync(join(tmpdir(), "spec-board-nogit-"));
   mkdirSync(join(project, "docs/specs/a"), { recursive: true });
   writeFileSync(join(project, "docs/specs/a/CLAUDE.md"), "---\nstatus: active\n---\n");
-  const deps: BoardDeps = { runner: stubRunner([]), now: NOW };
+  const deps: BoardDeps = { runner: stubRunner([]), asyncRunner: asyncStubRunner([]), now: NOW };
   afterAll(() => rmSync(project, { recursive: true, force: true }));
 
   test("board --json says why, with a null board", async () => {

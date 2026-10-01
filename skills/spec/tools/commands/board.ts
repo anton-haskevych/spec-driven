@@ -1,23 +1,22 @@
 import { parseArgs } from "node:util";
-import { loadBoard } from "../board/load";
+import { loadBoard, type BoardRunners } from "../board/load";
 import { LANES, renderBoard, type Lane } from "../board/render";
-import { systemRunner, type Runner } from "../core/run";
+import { systemAsyncRunner, systemRunner } from "../core/run";
 
 export const BOARD_USAGE = "board [flight|ready|blocked|you] [--json] [--local]";
 
-export interface BoardDeps {
-  runner: Runner;
+export interface BoardDeps extends BoardRunners {
   now: Date;
 }
 
 export function systemBoardDeps(): BoardDeps {
-  return { runner: systemRunner, now: new Date() };
+  return { runner: systemRunner, asyncRunner: systemAsyncRunner, now: new Date() };
 }
 
 export async function boardCommand(projectDir: string, args: readonly string[], deps: BoardDeps = systemBoardDeps()): Promise<string> {
   const parsed = parseBoardArgs(args);
   if (typeof parsed === "string") return parsed;
-  const board = await loadBoard(projectDir, { local: parsed.local }, deps.runner, deps.now);
+  const board = await loadBoard(projectDir, { local: parsed.local }, deps, deps.now);
   if (parsed.json) return JSON.stringify(board.ok ? { board: board.value } : { board: null, error: board.reason }, null, 2);
   return board.ok ? fenced(renderBoard(board.value, { lane: parsed.lane })) : `board unavailable: ${board.reason}`;
 }
