@@ -1,8 +1,9 @@
-import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { isRecord, numberField, stringField } from "../core/frontmatter";
 import type { Result } from "../core/result";
 import { parseJson } from "../pr/gh-records";
+import { canonicalPath } from "../workspaces/list";
 
 // The only reader of `<claudeHome>/sessions/*.json`, an undocumented Claude Code internal (ledger).
 export interface LiveSession {
@@ -43,7 +44,7 @@ export function loadLiveSessions(claudeHome: string, procStarts: ProcStarts): Re
   if (sessions.length === 0) return { ok: true, value: [] };
   const starts = procStarts(sessions.map((session) => session.pid));
   const live = sessions.filter((session) => sameStart(starts.get(session.pid), session.procStart));
-  return { ok: true, value: newestPerSession(live).map((session) => ({ ...session, cwd: resolved(session.cwd) })) };
+  return { ok: true, value: newestPerSession(live).map((session) => ({ ...session, cwd: canonicalPath(session.cwd) })) };
 }
 
 function sessionFiles(dir: string): Result<string[]> {
@@ -80,10 +81,6 @@ function newestPerSession(sessions: readonly LiveSession[]): LiveSession[] {
     if (!seen || session.updatedAt > seen.updatedAt) newest.set(session.sessionId, session);
   }
   return [...newest.values()];
-}
-
-function resolved(path: string): string {
-  return existsSync(path) ? realpathSync(path) : path;
 }
 
 function toDate(value: unknown): Date | undefined {

@@ -21,7 +21,7 @@ export function loadWorkspaces(git: Git): Result<Workspace[]> {
 }
 
 // Session cwds and claims hold resolved paths (macOS: /private/var, not /var); compare like with like.
-function canonicalPath(path: string): string {
+export function canonicalPath(path: string): string {
   return existsSync(path) ? realpathSync(path) : path;
 }
 

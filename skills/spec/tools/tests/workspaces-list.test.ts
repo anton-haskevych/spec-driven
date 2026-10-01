@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync, realpathSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseWorktreeList } from "../workspaces/list";
+import { canonicalPath, parseWorktreeList } from "../workspaces/list";
 
 const porcelain = await Bun.file(join(import.meta.dir, "fixtures", "git-worktree-list.txt")).text();
 
@@ -48,5 +50,20 @@ describe("parseWorktreeList", () => {
 
   test("returns nothing for empty output", () => {
     expect(parseWorktreeList("")).toEqual([]);
+  });
+});
+
+describe("canonicalPath", () => {
+  test("resolves an existing path through symlinks (macOS /var → /private/var)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "spec-canonical-"));
+    try {
+      expect(canonicalPath(dir)).toBe(realpathSync(dir));
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("leaves a missing path as given", () => {
+    expect(canonicalPath("/no/such/worktree")).toBe("/no/such/worktree");
   });
 });

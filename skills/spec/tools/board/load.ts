@@ -1,4 +1,3 @@
-import { existsSync, realpathSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { gitAt, type Git } from "../core/git";
@@ -12,6 +11,7 @@ import { toPrRows, type PrRow } from "../pr/rollup";
 import { loadLiveSessions } from "../sessions/live";
 import { psProcStarts } from "../sessions/proc-starts";
 import { scanWorkspaces, type WorkspaceScanResult } from "../workspaces/scan";
+import { canonicalPath } from "../workspaces/list";
 import { loadWorkspaceViews } from "../workspaces/views";
 import type { BoardInputs, WorkspaceView } from "./inputs";
 import { buildBoard } from "./lanes";
@@ -85,8 +85,7 @@ function prLinks(states: ReadonlyMap<string, SpecState>, workspaces: readonly Wo
 // Resolved like worktree paths, so the board can match it against them.
 function checkoutRoot(git: Git, projectDir: string): string {
   const root = git.out(["rev-parse", "--show-toplevel"]);
-  const path = root.ok ? root.value : projectDir;
-  return existsSync(path) ? realpathSync(path) : path;
+  return canonicalPath(root.ok ? root.value : projectDir);
 }
 
 export function repoName(commonDir: string): string {
