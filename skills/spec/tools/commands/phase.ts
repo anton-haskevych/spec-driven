@@ -6,6 +6,8 @@ import type { SpecFolder } from "../core/spec-folders";
 import { loadNodes } from "../graph/nodes";
 import { planAdd } from "../phases/add";
 import { planDeployed } from "../phases/deployed";
+import { parseItemAssignments } from "../phases/move-items";
+import { planSplit } from "../phases/split";
 import { planTick } from "../phases/tick";
 
 interface PhaseAction {
@@ -19,6 +21,10 @@ const ACTIONS: Record<string, PhaseAction> = {
   add: {
     usage: 'phase add <spec> "<title>" [--after <id>] [--needs a,b] [--pr X] [--code false]',
     run: add,
+  },
+  split: {
+    usage: 'phase split <spec> <id> "<title b>" ["<title c>"…] [--items "b:1,2 c:3"]',
+    run: split,
   },
 };
 
@@ -82,6 +88,25 @@ function add(projectDir: string, args: string[]): string {
   if (result.plan.kind !== "ok") return `phase add: ${result.plan.reason}`;
   applyEdits(result.plan);
   return `added Phase ${result.phaseId} — ${title.trim()} → ${result.pointer}\nFill in its Goal, Outcome, files and deliverables.`;
+}
+
+function split(projectDir: string, args: string[]): string {
+  const usage = `usage: ${ACTIONS.split?.usage}`;
+  const parsed = parseFlags(args, { items: { type: "string", multiple: true } });
+  const [specName, id, ...rawTitles] = parsed?.positionals ?? [];
+  const titles = rawTitles.map((title) => title.trim()).filter(Boolean);
+  if (!parsed || !specName || !id || titles.length === 0) return usage;
+
+  const spec = resolveSpec(projectDir, specName);
+  if (typeof spec === "string") return `phase split: ${spec}`;
+  const items = parseItemAssignments(parsed.values.items ?? [], titles.length);
+  if (typeof items === "string") return `phase split: ${items}`;
+
+  const result = planSplit(spec, { id, titles, items }, loadNodes(projectDir));
+  if (result.plan.kind !== "ok") return `phase split: ${result.plan.reason}`;
+  applyEdits(result.plan);
+  const added = result.parts.map((part) => `${part.id} — ${part.title} → ${part.pointer}`).join(", ");
+  return `split Phase ${result.original?.id}: kept ${result.original?.id}, added ${added}`;
 }
 
 const CODE_FLAG_VALUES: Record<string, boolean> = { true: true, false: false };
