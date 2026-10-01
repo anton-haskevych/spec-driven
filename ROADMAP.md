@@ -68,11 +68,13 @@ Then CRM adopts it: settings, gates, `.gitattributes` (spec phase 10).
 
 ## Spin-off (2.34)
 
+Shipped as 2.34.0 on 2026-10-01 (PR #7).
+
 Spec: `docs/specs/spec-spin-off/`. Two CRM sessions on 2026-09-30 needed new specs mid-work and each improvised it: prepped inline on a full context, or wrote stub briefs that dropped the user's words, the rejected options and what the parent needed.
 
 | Version | Change | Status |
 |---|---|---|
-| 2.34.0 | **Spin-off.** A session that needs a new spec writes its `seed.md` (+ inherited wave 0), links it with `needs`, and `spec.ts launch prep <name>` opens a fresh session (iTerm tab, tmux, Terminal.app). Prep starts a seeded spec from the seed. Phase `needs: [<spec>]` resolves on a spec with no phases yet | in PR |
+| 2.34.0 | **Spin-off.** A session that needs a new spec writes its `seed.md` (+ inherited wave 0), links it with `needs`, and `spec.ts launch prep <name>` opens a fresh session (iTerm tab, tmux, Terminal.app). Prep starts a seeded spec from the seed. Phase `needs: [<spec>]` resolves on a spec with no phases yet | shipped |
 
 ## Adoption
 
