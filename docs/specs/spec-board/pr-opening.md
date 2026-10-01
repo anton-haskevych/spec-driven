@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Phase 1 in progress (5 of 8 items: base cache, loadMainline, Board model, lanes, rank; next: render, `list`/`board` commands, docs). Phases 2–6 open. Branch `feat/spec-board`, no PR yet.
+Phase 1 done (`/spec list` shows the board from origin; `spec.ts board`). Phases 2–6 open; 2 is ready, 3 waits on 2. Branch `feat/spec-board`, no PR yet (PR A after phase 3).
 Split (value first):
 - **PR A: phases 1–3.** Board from main, workspace scan, in-flight overlay. Phases 1 and 2 can run in parallel. Release 2.35.0.
 - **PR B: phases 4–6.** PRs and sessions, claims, loop wiring. Release 2.36.0.

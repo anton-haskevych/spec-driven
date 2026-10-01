@@ -43,15 +43,16 @@ claims/                new domain
   store.ts             claimsDir(git), takeClaim(dir, claim, isStale), releaseClaim, loadClaims
   rules.ts             claimStatus(claim, sessions, workspaces, baseDone) — pure
 board/                 new domain
-  inputs.ts            BoardInputs, BoardDeps; loadBoardInputs — composes one call per source
+  inputs.ts            BoardInputs, BaseRef, SpecStage — types only (adapters import them)
+  load.ts              loadBoardInputs — composes one call per source; loadBoard → buildBoard
   activity.ts          phaseActivity(baseStates, workspaceScans) → Map<key, PhaseActivity> — pure
   lanes.ts             buildBoard(inputs, now) → Board — in flight / ready / blocked
   attention.ts         needsYou(…) — pure
   joins.ts             attachSessions, attachPrs, workspaceForSpec — pure
   rank.ts              rankReady — pure
   model.ts             Board, rows, BOARD_VERSION
-  render.ts            renderBoard(board, { lane?, caps }); ago via Intl.DurationFormat narrow;
-                         padding via Bun.stringWidth
+  render.ts            renderBoard(board, { lane? }); lanes, header, footer
+  cells.ts             cell formatters (ago via Intl.DurationFormat narrow), alignColumns by Bun.stringWidth
 context/packs.ts,
 commands/context.ts    pick and resume suggestion skip live-claimed phases
 commands/claim.ts      new  claim take|release|list
