@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Reviewed (`reviews/2026-09-30-pre-execution-collegium.md`). Done: phases 1–7, 9 (all code phases). Left: 10 (task, in CRM, needs the release). Phase 8 dropped (`decision-no-bash-guard.md`). Branches (local, not pushed; both also carry the spec/review commits that sit only on local `main`): `feat/context-pack-loads` = PR A (phase 1). `feat/phase-writers` = PR B (phases 2, 3, 4 — complete), branched from PR A's branch, so rebase it onto `main` after A merges. `feat/project-settings` = PR C (phases 5, 6, 7, 9 — complete), branched from PR B's branch. No PR yet.
+Reviewed (`reviews/2026-09-30-pre-execution-collegium.md`). Done: phases 1–7, 9 (all code phases). Left: 10 (task, in CRM, needs the release). Phase 8 dropped (`decision-no-bash-guard.md`). Branches pushed 2026-09-30, stacked: `feat/context-pack-loads` = PR A #3 (https://github.com/anton-haskevych/spec-driven/pull/3; phase 1, plus the spec/review commits and ROADMAP rows). `feat/phase-writers` = PR B #4 (https://github.com/anton-haskevych/spec-driven/pull/4; phases 2, 3, 4), based on A; retarget to `main` after A merges. `feat/project-settings` = PR C #5 (https://github.com/anton-haskevych/spec-driven/pull/5; phases 5, 6, 7, 9), based on B.
 
 Suggested PR split (from phase `pr:` fields):
 - **A** — phase 1 (pack parse fix)
