@@ -281,7 +281,7 @@ One file per phase that chose flat-file shape in *Plan — the phasing gate*. Th
 
 ```markdown
 ---
-needs: [<phase ids or spec#phase that must be ticked first; [] if none>]
+needs: [<phase ids, spec#phase, or a whole spec (also one still in prep) that must land first; [] if none>]
 needs-deployed: [<phases that must be deployed first; omit if none>]
 same-files-as: [<phases editing the same files; omit if none>]
 pr: <PR group label; omit for a task phase>

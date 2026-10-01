@@ -238,7 +238,7 @@ Each phase file starts with frontmatter that holds only hard constraints:
 
 ```yaml
 ---
-needs: [2, 3, competitions-content-publishing-safety#2]  # must be ticked first; local ids or spec#phase
+needs: [2, 3, competitions-content-publishing-safety#2]  # must be ticked first; local ids, spec#phase or a whole spec
 needs-deployed: [2]         # must be ticked and deployed (blue/green, bake time), not just merged
 same-files-as: [5]          # no logical dependency, but edits the same files: lands after 5, not alongside
 pr: B                       # PR group; pr-opening.md's split comes from these (code phases only)
@@ -252,6 +252,7 @@ playbook: growth            # optional; adds a project playbook to this phase's 
 - **Write `needs: []` for a phase with no dependencies.** A phase without frontmatter, in a spec where other phases declare edges, is treated as needing every earlier phase.
 - **Deployed** is a marker right after the pointer on the ticked phase line in `progress.md`: ``- [x] Phase 2 — Aggregate → `phases/…` · deployed 2026-09-20``. `update` adds it with `spec.ts phase deployed` once the user confirms the deploy.
 - **Parallelism is computed.** `spec.ts ready <name>` prints the ready set, the waiting phases with reasons, and the PR groups.
+- **A whole spec** (`needs: [gift-cards]`) works even before that spec has phases, e.g. a spec still in prep: the phase waits until the spec is finished (status `done`, `good-enough` or `abandoned`, or every phase ticked). Once its phases exist, narrow the ref to `<spec>#<phase>` when only part of it is needed.
 - **Checks.** The doctor and the spec-file check flag references that don't resolve and `needs` cycles.
 
 ## Ledger entry format
@@ -336,7 +337,7 @@ related:                                             # anything else, with a one
   - organizer-profile-redesign: owns the brand page visuals
 ```
 
-- **References** are `<spec>` or `<spec>#<phase>`. `<phase>` is an exact phase id (`2b-pre`) or a numeric range (`4-5`, which includes `4a`).
+- **References** are `<spec>` or `<spec>#<phase>`. `<phase>` is an exact phase id (`2b-pre`) or a numeric range (`4-5`, which includes `4a`). A bare `<spec>` may name a spec with no phases yet; it stays open until that spec is finished.
 - **Four types only.** Prose may still explain a relation, but the frontmatter entry is what counts.
 - **An umbrella** is a spec whose children declare `part-of` it. Nesting needs nothing more.
 - **When the other side's work moves** (a phase dissolved, split or renamed), update the declaring spec's reference. The doctor flags references that no longer resolve.
