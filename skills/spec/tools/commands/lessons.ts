@@ -1,5 +1,5 @@
-import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { applyEdits } from "../core/apply-edits";
 import { readTextIfExists } from "../core/files";
 import { loadProjectLessons, PROJECT_LEDGER_DIR } from "../lessons/project-ledger";
 import { describeLesson, lessonsForFiles, toProjectPath } from "../lessons/recall";
@@ -50,7 +50,7 @@ function seen(projectDir: string, entry: string | undefined, specName: string | 
   const result = addSeenIn(text, specName);
   if (result.kind === "invalid") return `Could not update ${entry}: ${result.reason}.`;
   if (result.kind === "unchanged") return `${entry} already lists ${specName}.`;
-  writeFileSync(file, result.text);
+  applyEdits({ kind: "ok", edits: [{ file, text: result.text }] });
   return `${entry}: added ${specName} to seen-in.`;
 }
 
