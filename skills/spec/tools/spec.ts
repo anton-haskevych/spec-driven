@@ -9,6 +9,7 @@ import { listCommand } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
 import { readyReport } from "./commands/ready";
+import { settingsReport } from "./commands/settings";
 import { isoDay } from "./core/schedule";
 import { findSpecs } from "./core/spec-folders";
 
@@ -30,6 +31,7 @@ export const COMMANDS: Record<string, Command> = {
   list: { usage: "list [all] [filter] [--json]", run: (dir, args) => listCommand(dir, args, isoDay(new Date())) },
   playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
   phase: { usage: PHASE_USAGE, run: phaseCommand },
+  settings: { usage: "settings", run: (dir) => settingsReport(dir) },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)
