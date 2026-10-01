@@ -8,6 +8,7 @@ import { lessonsCommand } from "./commands/lessons";
 import { listCommand } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
+import { PR_STATUS_USAGE, prStatusReport } from "./commands/pr-status";
 import { readyReport } from "./commands/ready";
 import { settingsReport } from "./commands/settings";
 import { isoDay } from "./core/schedule";
@@ -32,6 +33,7 @@ export const COMMANDS: Record<string, Command> = {
   playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
   phase: { usage: PHASE_USAGE, run: phaseCommand },
   settings: { usage: "settings", run: (dir) => settingsReport(dir) },
+  "pr-status": { usage: PR_STATUS_USAGE, run: (dir, args) => prStatusReport(dir, args) },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)

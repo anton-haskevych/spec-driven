@@ -40,6 +40,11 @@ describe("prState", () => {
     expect(prState(unknown, summary({}))).toBe("unknown");
     expect(prState(unknown, summary({ fail: 1 }))).toBe("red");
   });
+
+  test("unreadable checks never read as green", () => {
+    expect(prState(OPEN, undefined)).toBe("unknown");
+    expect(prState({ ...OPEN, isDraft: true }, undefined)).toBe("draft");
+  });
 });
 
 describe("actionsJob", () => {

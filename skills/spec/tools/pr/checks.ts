@@ -19,11 +19,12 @@ export function summarizeChecks(checks: readonly Check[], externalPatterns: read
   return { counts, external: checks.length - counted.length, failing: counted.filter((check) => check.bucket === "fail") };
 }
 
-export function prState(view: PrView, summary: CheckSummary): PrState {
+export function prState(view: PrView, summary: CheckSummary | undefined): PrState {
   if (view.state === "MERGED") return "merged";
   if (view.state === "CLOSED") return "closed";
   if (view.mergeable === "CONFLICTING") return "conflicting";
   if (view.isDraft) return "draft";
+  if (!summary) return "unknown";
   if (summary.counts.fail > 0) return "red";
   if (summary.counts.pending > 0) return "pending";
   return view.mergeable === "UNKNOWN" ? "unknown" : "green";
