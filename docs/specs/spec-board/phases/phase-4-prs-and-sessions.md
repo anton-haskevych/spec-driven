@@ -13,10 +13,11 @@ opening GitHub or other terminals · two gh calls add ~2.3 s · risk: if gh is m
 cells show `?`; if the session files are unreadable, session cells show `unknown`.
 
 **Files to touch:**
-- `skills/spec/tools/pr/gh-lists.ts` (new: async `openPrs`, `recentPrs`), `pr/rollup.ts` (new: `checkBucket`, `rollupToChecks`, `toPrRows`), `pr/types.ts` (`PrRow`)
+- `skills/spec/tools/pr/gh-lists.ts` (new: async `openPrs`, `recentPrs`), `pr/rollup.ts` (new: `checkBucket`, `rollupToChecks`, `toPrRows`, `PrRow`)
 - `skills/spec/tools/sessions/live.ts`, `sessions/proc-starts.ts` (new)
+- `skills/spec/tools/commands/board.ts` (`claudeHome` in `BoardDeps`), `tests/stub-runner.ts` (`cannedGh`)
 - `skills/spec/tools/board/inputs.ts`, `joins.ts`, `attention.ts` (new), `render.ts`
-- `skills/spec/tools/tests/fixtures/gh-pr-list-open.json`, `gh-pr-list-all.json`, `gh-pr-checks-566.json`, `session-busy.json` (new)
+- `skills/spec/tools/tests/fixtures/gh-pr-list-open.json`, `gh-pr-list-all.json`, `gh-pr-checks-by-pr.json`, `session-busy.json` (new)
 - tests: new `pr-gh-lists.test.ts`, `pr-rollup.test.ts`, `sessions-live.test.ts`, `board-joins.test.ts`, `board-attention.test.ts`; `board-cells.test.ts`, `board-render.test.ts`, `board-command.test.ts` (stub gh, temp `claudeHome`)
 
 ## Implementation guidance
@@ -47,11 +48,11 @@ StatusContext items.
 
 ## Deliverables
 
-- [ ] `rollupToChecks`: parity test against gh's `bucket` + latest run per name and workflow; `toPrRows` from fixtures
-- [ ] `ghLists` `openPrs` / `recentPrs` with timeout; gh failure → `prs: { ok: false }`, footer reason, `?` cells; `--local` skips gh
-- [ ] `loadLiveSessions`: parse, pid alive with matching `procStart`, stale-file fixture dropped, duplicate `sessionId` → newest, epoch-or-ISO `updatedAt`, unreadable dir → `Result` failure → `unknown` cells
-- [ ] Joins: session by path-segment prefix (`/crm/foo` ≠ `/crm/foo-bar`); PR by branch and by `pr-opening.md` links; a linked PR not in either list → `?`
-- [ ] `needsYou`: merge (≥ 1 check, all pass, not draft), fix CI, joined PRs only
+- [x] `rollupToChecks`: parity test against gh's `bucket` + latest run per name and workflow; `toPrRows` from fixtures
+- [x] `ghLists` `openPrs` / `recentPrs` with timeout; gh failure → `prs: { ok: false }`, footer reason, `?` cells; `--local` skips gh
+- [x] `loadLiveSessions`: parse, pid alive with matching `procStart`, stale-file fixture dropped, duplicate `sessionId` → newest, epoch-or-ISO `updatedAt`, unreadable dir → `Result` failure → `unknown` cells
+- [x] Joins: session by path-segment prefix (`/crm/foo` ≠ `/crm/foo-bar`); PR by branch and by `pr-opening.md` links; a linked PR not in either list → `?`
+- [x] `needsYou`: merge (≥ 1 check, all pass, not draft), fix CI, joined PRs only
 
 ## Phase-local notes
 
