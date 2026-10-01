@@ -120,6 +120,17 @@ describe("contextPack", () => {
 
   afterAll(() => rmSync(project, { recursive: true, force: true }));
 
+  test("packs carry a Settings line only when the project has settings.md", () => {
+    expect(contextPack(project, { mode: "resume", name: "checkout" })).not.toContain("Settings:");
+    const settings = join(project, "docs", "specs", "_playbook", "settings.md");
+    mkdirSync(join(settings, ".."), { recursive: true });
+    writeFileSync(settings, "---\npr:\n  draft: false\n---\n");
+    const line = "Settings: docs on branch · PRs ready · merge: ask the user";
+    expect(contextPack(project, { mode: "resume", name: "checkout" }).split("\n\n")[1]).toBe(line);
+    expect(contextPack(project, { mode: "execute", name: "checkout" })).toContain(`(first ready phase)\n\n${line}`);
+    rmSync(settings);
+  });
+
   test("resume pack carries the status table and the next chunk", () => {
     const pack = contextPack(project, { mode: "resume", name: "checkout" });
     expect(pack).toContain('<spec-pack spec="checkout" mode="resume">');
