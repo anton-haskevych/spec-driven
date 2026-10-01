@@ -41,8 +41,21 @@ export function ago(then: Date, now: Date): string {
   return minutes > 0 ? DURATION.format({ minutes }) : "<1m";
 }
 
-export function workspaceCell(workspace: string | undefined): string {
-  return workspace ? basename(workspace) : EMPTY;
+export interface Checkouts {
+  here: string;
+  mainCheckout?: string;
+}
+
+const MAIN_CHECKOUT = "main checkout";
+const HERE = " ◀ here";
+
+export function workspaceName(workspace: string, checkouts: Checkouts): string {
+  return workspace === checkouts.mainCheckout ? MAIN_CHECKOUT : basename(workspace);
+}
+
+export function workspaceCell(workspace: string | undefined, checkouts: Checkouts): string {
+  if (!workspace) return EMPTY;
+  return workspaceName(workspace, checkouts) + (workspace === checkouts.here ? HERE : "");
 }
 
 export function sessionCell(session: SessionCell | undefined, now: Date): string {

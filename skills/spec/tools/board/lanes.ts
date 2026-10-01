@@ -9,7 +9,7 @@ import { flightRows, isOnBoard, readyInWorkspaces } from "./flight";
 import type { BaseRef, BoardInputs, SpecStage, WorkspaceView } from "./inputs";
 import { BOARD_VERSION, type Board, type BlockedRow, type ReadyRow } from "./model";
 import { rowKey } from "./phase-keys";
-import { rankReady, unblockCounts } from "./rank";
+import { markSafe, rankReady, unblockCounts } from "./rank";
 
 const FETCH_LOCK_FAILURE = /cannot lock ref/;
 
@@ -50,7 +50,7 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
     base: baseHeader(inputs.base),
     lanes: {
       inFlight,
-      ready: rankReady(lanes.flatMap((spec) => spec.ready)),
+      ready: rankReady(markSafe(lanes.flatMap((spec) => spec.ready), inFlight, withBranchOnlyNodes(inputs), inputs.states)),
       blocked: lanes.flatMap((spec) => spec.blocked),
       needsYou: needsYou(active, inputs, today),
     },
@@ -128,6 +128,13 @@ function phaseRow(node: SpecNode, phase: PhaseState, { today, unblocks }: Placem
     unblocks: unblocks.get(rowKey({ spec: name, phase: phase.id })) ?? 0,
     safe: origin === undefined,
   };
+}
+
+// Overlap only: a branch-only spec in flight still edits the files its code map names.
+function withBranchOnlyNodes(inputs: BoardInputs): Map<string, SpecNode> {
+  const nodes = new Map(inputs.nodes);
+  for (const workspace of inputs.workspaces) for (const [name, node] of workspace.branchOnly) if (!nodes.has(name)) nodes.set(name, node);
+  return nodes;
 }
 
 function mainCheckout(workspaces: readonly WorkspaceView[]): Pick<Board, "mainCheckout"> {

@@ -1,9 +1,10 @@
 import { compareSchedule } from "../core/schedule";
 import type { SpecState } from "../core/spec-state";
 import { isFinished, type SpecNode } from "../graph/nodes";
+import { inFlightOverlaps } from "../graph/overlap";
 import { phaseNeeds } from "../ready/ready-set";
-import type { ReadyRow } from "./model";
-import { resolvedPhaseKeys } from "./phase-keys";
+import type { FlightRow, ReadyRow } from "./model";
+import { resolvedPhaseKeys, rowKey } from "./phase-keys";
 
 export function rankReady(rows: readonly ReadyRow[]): ReadyRow[] {
   return rows.toSorted(
@@ -29,4 +30,23 @@ export function unblockCounts(states: ReadonlyMap<string, SpecState>, nodes: Rea
     });
   }
   return counts;
+}
+
+// ★ = this row can start now without touching files that work in flight is changing.
+export function markSafe(rows: readonly ReadyRow[], inFlight: readonly FlightRow[], nodes: ReadonlyMap<string, SpecNode>, states: ReadonlyMap<string, SpecState>): ReadyRow[] {
+  const flyingSpecs = new Set(inFlight.map((row) => row.spec));
+  const flyingKeys = new Set(inFlight.map(rowKey));
+  return rows.map((row) => {
+    if (!row.safe) return row;
+    const sharesWith = inFlightOverlaps(nodes, row.spec, flyingSpecs).map((overlap) => overlap.other);
+    if (sharesWith.length === 0 && !hasSameFilesSiblingInFlight(row, states.get(row.spec), flyingKeys)) return row;
+    return { ...row, safe: false, ...(sharesWith.length > 0 ? { sharesWith } : {}) };
+  });
+}
+
+function hasSameFilesSiblingInFlight(row: ReadyRow, state: SpecState | undefined, flyingKeys: ReadonlySet<string>): boolean {
+  const phase = state?.phases.find((candidate) => candidate.id === row.phase);
+  if (!state || !phase) return false;
+  const siblings = state.phases.filter((other) => phase.edges.sameFilesAs.includes(other.id) || other.edges.sameFilesAs.includes(phase.id));
+  return siblings.some((sibling) => flyingKeys.has(rowKey({ spec: row.spec, phase: sibling.id })));
 }

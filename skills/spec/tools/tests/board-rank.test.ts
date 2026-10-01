@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { buildBoard } from "../board/lanes";
 import { rankReady, unblockCounts } from "../board/rank";
 import { phaseEdges, phaseState } from "./factories";
-import { boardInputs, NOW, readyRow, specFixture } from "./board-factories";
+import { boardInputs, NOW, readyRow, specFixture, workspaceView } from "./board-factories";
 
 const phase = (id: string, needs?: string[], overrides = {}) =>
   phaseState({ id, edges: needs ? phaseEdges({ declared: true, needs }) : phaseEdges(), ...overrides });
@@ -54,6 +54,36 @@ describe("buildBoard ranking", () => {
     expect(ready.map((row) => [row.spec, row.phase, row.unblocks])).toEqual([
       ["beta", undefined, 0],
       ["alpha", "1", 1],
+    ]);
+  });
+});
+
+describe("★ (shares no files with anything in flight)", () => {
+  const ticked = (id: string, extra = {}) => phase(id, [], { done: true, ...extra });
+
+  test("a ready row loses ★ when its spec shares code-map files with a spec in flight, related or not", () => {
+    const busy = specFixture("busy", { phases: [phase("1", [])], codeMapPaths: ["src/a.ts"] });
+    const near = specFixture("near", { phases: [phase("1", [])], codeMapPaths: ["src/a.ts"], relations: [{ type: "related", target: "busy" }] });
+    const far = specFixture("far", { phases: [phase("1", [])], codeMapPaths: ["src/z.ts"] });
+    const busyTicked = specFixture("busy", { phases: [ticked("1")] });
+    const ready = buildBoard(boardInputs([busy, near, far], { workspaces: [workspaceView("/wt/busy", [busyTicked])] }), NOW).lanes.ready;
+
+    expect(ready.map((row) => [row.spec, row.safe, row.sharesWith])).toEqual([
+      ["far", true, undefined],
+      ["near", false, ["busy"]],
+    ]);
+  });
+
+  test("a ready row loses ★ when a same-files-as sibling is in flight", () => {
+    const sibling = (id: string, sameFilesAs: string[]) => phase(id, [], { edges: phaseEdges({ declared: true, sameFilesAs }) });
+    const base = specFixture("alpha", { phases: [sibling("1", []), sibling("2", ["1"]), sibling("3", [])] });
+    const started = { ...sibling("2", ["1"]), summary: { deliverables: { checked: 1, unchecked: 1 }, nextRun: [] } };
+    const branch = specFixture("alpha", { phases: [sibling("1", []), started, sibling("3", [])] });
+    const ready = buildBoard(boardInputs([base], { workspaces: [workspaceView("/wt/a", [branch])] }), NOW).lanes.ready;
+
+    expect(ready.map((row) => [row.phase, row.safe])).toEqual([
+      ["1", false],
+      ["3", true],
     ]);
   });
 });

@@ -19,6 +19,7 @@ export interface SpecFixtureOptions {
   status?: string;
   stage?: SpecStage;
   relations?: SpecNode["relations"];
+  codeMapPaths?: string[];
 }
 
 export function specFixture(name: string, options: SpecFixtureOptions = {}): SpecFixture {
@@ -30,6 +31,7 @@ export function specFixture(name: string, options: SpecFixtureOptions = {}): Spe
       status: options.status ?? "active",
       phases: phases.map(({ id, done, deployed }) => ({ id, done, deployed })),
       relations: options.relations ?? [],
+      codeMapPaths: options.codeMapPaths ?? [],
       meta: specMeta(options.meta),
     }),
     state: { spec, hasProgress: options.stage === undefined, phases },

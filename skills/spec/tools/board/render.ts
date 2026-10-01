@@ -1,5 +1,5 @@
-import { alignColumns, clock, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell } from "./cells";
-import type { AttentionRow, Board, ReadyRow } from "./model";
+import { alignColumns, clock, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
+import type { AttentionRow, Board, FlightRow, ReadyRow } from "./model";
 
 export type Lane = "flight" | "ready" | "blocked" | "you";
 export const LANES: readonly Lane[] = ["flight", "ready", "blocked", "you"];
@@ -47,7 +47,13 @@ function capped(rows: ReadonlyArray<readonly string[]>, cap: number, name: Lane,
 }
 
 function flightCells(board: Board, now: Date): string[][] {
-  return board.lanes.inFlight.map((row) => [rowName(row), workspaceCell(row.workspace), sessionCell(row.session, now), prCell(row.pr), row.next]);
+  return board.lanes.inFlight.map((row) => [rowName(row), workspaceCell(row.workspace, board), sessionCell(row.session, now), prCell(row.pr), flightNext(row, board)]);
+}
+
+function flightNext(row: FlightRow, board: Board): string {
+  if (!row.workspace || !row.alsoIn) return row.next;
+  const names = [row.workspace, ...row.alsoIn].map((workspace) => workspaceName(workspace, board));
+  return `ticked in ${names.length} worktrees: ${names.join(", ")}`;
 }
 
 function readyCells(board: Board): string[][] {
@@ -57,8 +63,15 @@ function readyCells(board: Board): string[][] {
     NEXT_COMMAND[row.next],
     row.priority ?? "",
     row.overdue ? "⚠ overdue" : row.due ? monthDay(row.due) : "",
-    row.unblocks > 0 ? `unblocks ${row.unblocks}` : "",
+    readyNote(row, board),
   ]);
+}
+
+function readyNote(row: ReadyRow, board: Board): string {
+  if (row.readyIn) return `in ${workspaceName(row.readyIn.workspace, board)} (needs ${row.readyIn.needs.join(", ")}, ticked there)`;
+  if (row.onlyOn) return `only on ${row.onlyOn}`;
+  if (row.sharesWith) return `shares files with ${row.sharesWith.join(", ")}`;
+  return row.unblocks > 0 ? `unblocks ${row.unblocks}` : "";
 }
 
 function blockedCells(board: Board): string[][] {

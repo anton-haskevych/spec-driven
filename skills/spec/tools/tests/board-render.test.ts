@@ -100,6 +100,44 @@ describe("renderBoard", () => {
     expect(output).toContain("  alpha · 2         —           —        #12 ?           ticked on branch, not merged");
   });
 
+  test("names the main checkout, marks the current workspace and lists every worktree a phase is ticked in", () => {
+    const output = renderBoard(
+      board({
+        here: "/w/alpha-pr-b",
+        mainCheckout: "/repo",
+        lanes: lanes({
+          inFlight: [
+            flightRow({ phase: "1", workspace: "/repo" }),
+            flightRow({ phase: "2", workspace: "/w/alpha-pr-b", alsoIn: ["/w/alpha-pr-c"], next: "ticked on branch, not merged" }),
+          ],
+        }),
+      }),
+    );
+
+    expect(output).toContain("  alpha · 1  main checkout      —  —  executing");
+    expect(output).toContain("  alpha · 2  alpha-pr-b ◀ here  —  —  ticked in 2 worktrees: alpha-pr-b, alpha-pr-c");
+  });
+
+  test("ready notes: in a workspace, only on a branch, shared files, then unblocks", () => {
+    const output = renderBoard(
+      board({
+        lanes: lanes({
+          ready: [
+            readyRow({ phase: "5", safe: false, readyIn: { workspace: "/w/alpha-pr-b", needs: ["4"] }, unblocks: 1 }),
+            readyRow({ spec: "fresh", safe: false, onlyOn: "feat/fresh" }),
+            readyRow({ spec: "near", safe: false, sharesWith: ["busy", "other"] }),
+            readyRow({ spec: "far", unblocks: 2 }),
+          ],
+        }),
+      }),
+    );
+
+    expect(output).toContain("1    alpha · 5  /spec execute      in alpha-pr-b (needs 4, ticked there)");
+    expect(output).toContain("2    fresh · 1  /spec execute      only on feat/fresh");
+    expect(output).toContain("3    near · 1   /spec execute      shares files with busy, other");
+    expect(output).toContain("4 ★  far · 1    /spec execute      unblocks 2");
+  });
+
   test("the footer lists worktree counts, duplicates and unavailable sources", () => {
     const footer = { merged: 43, unknownBase: 4, unreadable: 1, paused: 0, backlog: 0, duplicates: ["twin"], prs: "gh not installed", sessions: "no sessions dir" };
     const output = renderBoard(board({ footer }));
