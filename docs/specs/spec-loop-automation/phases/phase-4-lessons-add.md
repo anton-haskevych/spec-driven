@@ -28,6 +28,6 @@ pr: B
 
 - [x] `core/ledger-index.ts` parse + `insertRow` + formatters for all three row kinds; round-trip tests; `ledger-scope.ts` migrated
 - [x] `setFrontmatterLine` extracted; `addSeenIn` tests still green
-- [ ] `lessons add` bookkeeping on an existing entry: `created`, `seen-in`, project row, pointer row; one plan
-- [ ] `lessons add` prints close `similar` matches without refusing
+- [x] `lessons add` bookkeeping on an existing entry: `created`, `seen-in`, project row, pointer row; one plan
+- [x] `lessons add` prints close `similar` matches without refusing
 - [ ] SKILL.md write path rewritten (write the entry → `lessons add`; no-Bun fallback kept)
