@@ -12,6 +12,8 @@ export interface SpecFileLocation {
 
 const SPEC_ROOT_PATTERNS = ["docs/specs/*/CLAUDE.md", "*/docs/specs/*/CLAUDE.md"];
 const SPEC_FILE_PATTERN = /^(.*\/docs\/specs\/)([^/]+)\/(.+)$/;
+// Same two roots as SPEC_ROOT_PATTERNS, for repo-relative paths as git prints them.
+const SPEC_DOC_PATH = /^(?:[^/]+\/)?docs\/specs\/./;
 const RESERVED_PREFIX = "_";
 
 export function listSpecs(projectDir: string): SpecFolder[] {
@@ -44,4 +46,8 @@ export function locateSpecFile(filePath: string): SpecFileLocation | undefined {
   const [, rootWithSlash, name, pathInSpec] = match;
   if (!rootWithSlash || !name || !pathInSpec || name.startsWith(RESERVED_PREFIX)) return undefined;
   return { spec: { name, dir: rootWithSlash + name }, pathInSpec };
+}
+
+export function isSpecDocPath(repoRelative: string): boolean {
+  return SPEC_DOC_PATH.test(repoRelative);
 }
