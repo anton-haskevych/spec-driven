@@ -1,4 +1,4 @@
-import type { RunResult, Runner } from "../core/run";
+import type { AsyncRunner, RunResult, Runner } from "../core/run";
 
 export type CannedRuns = ReadonlyArray<readonly [argvPrefix: readonly string[], result: Partial<RunResult>]>;
 
@@ -12,6 +12,23 @@ export function stubRunner(canned: CannedRuns): Runner & { calls: string[][] } {
       calls.push([...argv]);
       const match = canned.find(([prefix]) => prefix.every((part, index) => argv[index] === part));
       return match ? { code: 0, stdout: "", stderr: "", ...match[1] } : FAILED;
+    },
+  };
+}
+
+export interface AsyncCall {
+  argv: string[];
+  cwd?: string;
+}
+
+export function asyncStubRunner(canned: CannedRuns): AsyncRunner & { calls: AsyncCall[] } {
+  const sync = stubRunner(canned);
+  const calls: AsyncCall[] = [];
+  return {
+    calls,
+    async run(argv, options = {}) {
+      calls.push(options.cwd === undefined ? { argv: [...argv] } : { argv: [...argv], cwd: options.cwd });
+      return sync.run(argv, options);
     },
   };
 }

@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 
 export interface SpecFolder {
@@ -10,7 +11,9 @@ export interface SpecFileLocation {
   pathInSpec: string;
 }
 
-const SPEC_ROOT_PATTERNS = ["docs/specs/*/CLAUDE.md", "*/docs/specs/*/CLAUDE.md"];
+const TOP_SPEC_ROOT = "docs/specs";
+const NESTED_SPEC_ROOT = "*/docs/specs";
+const SPEC_ROOT_PATTERNS = [`${TOP_SPEC_ROOT}/*/CLAUDE.md`, `${NESTED_SPEC_ROOT}/*/CLAUDE.md`];
 const SPEC_FILE_PATTERN = /^(.*\/docs\/specs\/)([^/]+)\/(.+)$/;
 // Same two roots as SPEC_ROOT_PATTERNS, for repo-relative paths as git prints them.
 const SPEC_DOC_PATH = /^(?:[^/]+\/)?docs\/specs\/./;
@@ -26,6 +29,14 @@ export function listSpecs(projectDir: string): SpecFolder[] {
     }
   }
   return found.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// The spec roots present on disk, repo-relative. Literal pathspecs keep `git status` from walking every
+// untracked directory the way a `*/docs/specs/**` glob does (0.36 s vs 0.03 s per CRM worktree).
+export function specRoots(projectDir: string): string[] {
+  if (!existsSync(projectDir)) return [];
+  const nested = [...new Bun.Glob(NESTED_SPEC_ROOT).scanSync({ cwd: projectDir, onlyFiles: false })].sort();
+  return existsSync(join(projectDir, TOP_SPEC_ROOT)) ? [TOP_SPEC_ROOT, ...nested] : nested;
 }
 
 export function findSpecs(projectDir: string, name: string): SpecFolder[] {

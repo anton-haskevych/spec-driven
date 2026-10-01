@@ -8,15 +8,28 @@ export interface Overlap {
 const HUB_LIMIT = 5;
 
 export function undeclaredOverlaps(nodes: ReadonlyMap<string, SpecNode>, name: string): Overlap[] {
+  return overlapsWith(nodes, name, (node, other) => !linked(node, other));
+}
+
+// Declared relations count here: a related spec in flight still touches the same files.
+export function inFlightOverlaps(nodes: ReadonlyMap<string, SpecNode>, name: string, inFlight: ReadonlySet<string>): Overlap[] {
+  return overlapsWith(nodes, name, (_, other) => inFlight.has(other.spec.name));
+}
+
+// A path listed by more than HUB_LIMIT open specs (a router, a shared config) says nothing about conflict.
+export function sharedPaths(node: SpecNode, other: SpecNode, usage: ReadonlyMap<string, number>): string[] {
+  const own = new Set(node.codeMapPaths);
+  return other.codeMapPaths.filter((path) => own.has(path) && (usage.get(path) ?? 0) <= HUB_LIMIT);
+}
+
+function overlapsWith(nodes: ReadonlyMap<string, SpecNode>, name: string, considered: (node: SpecNode, other: SpecNode) => boolean): Overlap[] {
   const node = nodes.get(name);
   if (!node || isFinished(node)) return [];
   const open = [...nodes.values()].filter((other) => !isFinished(other));
   const usage = pathUsage(open);
-  const own = new Set(node.codeMapPaths);
-
   return open.flatMap((other) => {
-    if (other.spec.name === name || linked(node, other)) return [];
-    const shared = other.codeMapPaths.filter((path) => own.has(path) && (usage.get(path) ?? 0) <= HUB_LIMIT);
+    if (other.spec.name === name || !considered(node, other)) return [];
+    const shared = sharedPaths(node, other, usage);
     return shared.length > 0 ? [{ other: other.spec.name, shared }] : [];
   });
 }

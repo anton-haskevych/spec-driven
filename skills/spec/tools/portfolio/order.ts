@@ -1,27 +1,19 @@
 import type { BacklogItem } from "../backlog/items";
-import { priorityRank } from "../core/schedule";
+import { compareSchedule } from "../core/schedule";
 import type { SpecRow } from "./rows";
-
-const NO_DUE = "9999-99-99";
 
 export function orderSpecs(rows: readonly SpecRow[]): SpecRow[] {
   return [...rows].sort(
     (a, b) =>
       Number(a.finished) - Number(b.finished) ||
-      priorityRank(a.priority) - priorityRank(b.priority) ||
-      (a.due ?? NO_DUE).localeCompare(b.due ?? NO_DUE) ||
+      compareSchedule(a, b) ||
       (b.updated ?? "").localeCompare(a.updated ?? "") ||
       a.name.localeCompare(b.name),
   );
 }
 
 export function orderBacklog(items: readonly BacklogItem[]): BacklogItem[] {
-  return [...items].sort(
-    (a, b) =>
-      priorityRank(a.priority) - priorityRank(b.priority) ||
-      (a.due ?? NO_DUE).localeCompare(b.due ?? NO_DUE) ||
-      a.slug.localeCompare(b.slug),
-  );
+  return [...items].sort((a, b) => compareSchedule(a, b) || a.slug.localeCompare(b.slug));
 }
 
 export function matchesSpec(row: SpecRow, filter: string): boolean {

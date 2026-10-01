@@ -11,6 +11,7 @@ export interface Schedule {
 
 const CALENDAR_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const UNPRIORITIZED_RANK = PRIORITIES.length + 1;
+const NO_DUE = "9999-99-99";
 
 export function readSchedule(data: FrontmatterData): Schedule {
   const schedule: Schedule = { problems: [] };
@@ -63,4 +64,8 @@ function twoDigits(value: number): string {
 
 export function priorityRank(priority: Priority | undefined): number {
   return priority ? PRIORITIES.indexOf(priority) + 1 : UNPRIORITIZED_RANK;
+}
+
+export function compareSchedule(a: Pick<Schedule, "priority" | "due">, b: Pick<Schedule, "priority" | "due">): number {
+  return priorityRank(a.priority) - priorityRank(b.priority) || (a.due ?? NO_DUE).localeCompare(b.due ?? NO_DUE);
 }
