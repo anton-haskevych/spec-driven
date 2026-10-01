@@ -23,7 +23,7 @@ Template line right under **Goal:** — `**Outcome:** <plain words: what changes
 
 ## Deliverables
 
-- [ ] create.md template gains the `**Outcome:**` line, pinned to `phases/template.ts` by the wiring test
+- [x] create.md template gains the `**Outcome:**` line, pinned to `phases/template.ts` by the wiring test
 - [x] `phase-entry.ts` extracts Outcome; test with and without the line
 - [x] Status table Delivers = Outcome's first sentence, else Goal; status.md documents it
 - [ ] execute §10: PR body starts with the shipped phases' Outcomes
