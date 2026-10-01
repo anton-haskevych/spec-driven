@@ -32,7 +32,7 @@ handoff §3: commit → `spec.ts publish-docs <spec>` when `docs: main` (it push
 ## Deliverables
 
 - [x] `publish/snapshot.ts`: pinned main, snapshot base, `isSpecDocPath` + `--no-renames` file list, HEAD blobs
-- [ ] `publish-docs` happy path: merge-tree → commit-tree → push → merge X back; probe rows as tests
+- [x] `publish-docs` happy path: merge-tree → commit-tree → push → merge X back; probe rows as tests
 - [ ] `publish-docs` guards: conflict refusal ($150 case), moved ref, one non-ff rebuild, other rejections stop, `docs: branch` / default branch → no-op message
 - [ ] `push` with explicit refspec, upstream creation, detached refusal, default-branch refusal
 - [ ] handoff/update prose + `Remote:` line
