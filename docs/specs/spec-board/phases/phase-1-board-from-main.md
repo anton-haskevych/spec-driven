@@ -50,7 +50,7 @@ else → table.
 ## Deliverables
 
 - [x] `RunOptions.timeoutMs` passed to `spawnSync`'s `timeout`; `compareSchedule` shared by `orderSpecs` / `orderBacklog` (existing portfolio tests pass)
-- [ ] `baseCache`: read-set pathspec for both spec roots; extract into a temp dir, then rename (a concurrent extract of the same sha is safe); keep the newest 2. One `repoWithOrigin` real-git test: both roots, a pointer outside `phases/`, `pr-opening.md` present, `research/` absent
+- [x] `baseCache`: read-set pathspec for both spec roots; extract into a temp dir, then rename (a concurrent extract of the same sha is safe); keep the newest 2. One `repoWithOrigin` real-git test: both roots, a pointer outside `phases/`, `pr-opening.md` present, `research/` absent
 - [ ] `loadMainline`: `pinDefault` with timeout; offline / busy / local fall back to the local ref; no origin ref → board unavailable
 - [ ] `Board` model + `BOARD_VERSION` + `board-factories.ts`; `buildBoard` ready / blocked / prep- and create-stage specs / finished and paused specs left out / needs-you overdue and deploy
 - [ ] `rankReady` (overdue, priority, due, unblocks, updated, name)
