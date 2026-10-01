@@ -3,6 +3,7 @@ import { doctorReport } from "../commands/doctor";
 import { checkSettings } from "../doctor/settings";
 import { hookResponse } from "../hooks/spec-file-check";
 import { SETTINGS_FILE } from "../playbook/settings";
+import { stubRunner } from "./stub-runner";
 import { createTree, type Tree } from "./tree";
 
 const GATES = new Map([["merge-main", ["bun install"]]]);
@@ -43,6 +44,15 @@ describe("settings in the doctor and the spec-file hook", () => {
     expect(lines.slice(1, -1).every((line) => line.includes("docs/specs/alpha/"))).toBe(true);
     expect(lines).toContainEqual(expect.stringContaining("alpha/ledger/INDEX.md: lists gotcha-x.md"));
     expect(lines.at(-1)).toContain("settings.md: names gates (setup) but docs/specs/_playbook/gates.md does not exist");
+  });
+
+  test("the union-merge check runs only in projects with settings.md", () => {
+    tree = createTree();
+    tree.spec("alpha", {});
+    const notUnion = stubRunner([[["git", "check-attr"], { stdout: "a: merge: unspecified\nb: merge: unspecified\n" }]]);
+    expect(doctorReport(tree.root, "alpha", notUnion)).not.toContain(".gitattributes");
+    tree.write(SETTINGS_FILE, "---\ndocs: branch\n---\n");
+    expect(doctorReport(tree.root, "alpha", notUnion).split("\n").at(-1)).toContain(".gitattributes: spec INDEX.md files don't merge with union");
   });
 
   test("writing settings.md with an unknown gate blocks", () => {
