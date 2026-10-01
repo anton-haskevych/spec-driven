@@ -15,6 +15,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 ## Domain
 
 - `domain-writer-building-blocks.md` — [phase 3, 4, 5] — findPhase, locate, newIssues, ledger-index, tree.spec
+- `domain-gh-actions-shapes.md` — [phase 6] — job log tail is cleanup; workflow names repeat; link holds job id
 
 ## Decisions
 - `decision-publish-docs-snapshot-merge.md` — [phase 7, load-bearing] — snapshot commit + merge-tree + merge-back (probe-verified)
