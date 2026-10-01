@@ -28,8 +28,10 @@ portfolio/order.ts     orderSpecs / orderBacklog use compareSchedule
 commands/list.ts       no args → board; filters / `table` → portfolioTable (sync, unchanged output)
 commands/board.ts      new  board [<lane>] [--json] [--local]
 pr/
-  gh.ts                + openPrs(), recentPrs() on GhClient (fields fixed inside)
-  gh-records.ts        + toPrRows, rollupToChecks (gh's bucket mapping + latest run per name)
+  gh-lists.ts          new  ghLists(cwd, asyncRunner, timeoutMs) → openPrs(), recentPrs() (async, beside
+                         the sync GhClient)
+  rollup.ts            new  checkBucket, rollupToChecks (gh's bucket mapping + latest run per name and
+                         workflow), toPrRows
   types.ts             + PrRow
 workspaces/            new domain
   list.ts              parseWorktreeList (porcelain), loadWorkspaces(git)
@@ -39,6 +41,7 @@ workspaces/            new domain
                          locateSpecFile
 sessions/              new domain
   live.ts              parseSessionFile, loadLiveSessions(claudeHome, procStarts) → Result<LiveSession[]>
+  proc-starts.ts       psProcStarts(runner): one `TZ=UTC ps -o pid=,lstart=` call
 claims/                new domain
   store.ts             claimsDir(git), takeClaim(dir, claim, isStale), releaseClaim, loadClaims
   rules.ts             claimStatus(claim, sessions, workspaces, baseDone) — pure
@@ -192,7 +195,8 @@ No prep claims.
 - `rollupToChecks`:
   - Maps CheckRun `status`/`conclusion` and StatusContext `state` to the same bucket gh's `pr checks`
     would report.
-  - Keeps only the latest run per check name, so a failed-then-passed re-run is green.
+  - Keeps only the latest run per check name and workflow (gh's own key), so a failed-then-passed re-run
+    is green.
   - Name is `name ‖ context`, link is `detailsUrl ‖ targetUrl`.
   - A parity test feeds the `state` values in `tests/fixtures/gh-pr-checks.json` through it and expects
     gh's `bucket` for each.
