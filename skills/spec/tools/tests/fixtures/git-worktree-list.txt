@@ -1,0 +1,47 @@
+worktree /Users/dev/crm
+HEAD eb00cbcfbc9625f8475d66e49f9d1a7284369c90
+branch refs/heads/main
+
+worktree /Users/dev/.codex/worktrees/09a8/crm
+HEAD bbc490fa33d87b0c707933c0a1187523c4805e37
+detached
+
+worktree /Users/dev/.codex/worktrees/c0b4/crm
+HEAD 091a2036fbcda0122a2d36d64daa003fd4d510a1
+branch refs/heads/codex/homepage-focused-refresh
+
+worktree /Users/dev/claude-worktrees/crm/alert-noise-cleanup-pr-a
+HEAD a291d728462336e4add2332b4daaeada8f53dd0a
+branch refs/heads/feat/alert-noise-cleanup-pr-a
+
+worktree /Users/dev/claude-worktrees/crm/analytics-reporting-foundation
+HEAD 60608ceb7f24ddc0c587fc9954220e830284ca0a
+branch refs/heads/feat/analytics-reporting-foundation
+
+worktree /Users/dev/claude-worktrees/crm/audience-routing-specs
+HEAD 083fe9cddbf8a34369fee8b980e3535bad80b48c
+branch refs/heads/docs/audience-intent-routing-specs
+
+worktree /Users/dev/claude-worktrees/crm/ballroom-page-v1
+HEAD cfef6a7f739c5a11686405ce8f8ee35389da2da3
+branch refs/heads/feat/ballroom-page-v1
+
+worktree /Users/dev/claude-worktrees/crm/e2e-code-quality-review
+HEAD 6d1c0e3b7f2a9c4d5e8f1a2b3c4d5e6f7a8b9c0d
+branch refs/heads/chore/e2e-code-quality-review
+
+worktree /Users/dev/claude-worktrees/crm/locked-no-reason
+HEAD 5678abc5678abc5678abc5678abc5678abc5678c
+branch refs/heads/locked-no-reason
+locked
+
+worktree /Users/dev/claude-worktrees/crm/locked-with-reason
+HEAD 1234abc1234abc1234abc1234abc1234abc1234a
+branch refs/heads/locked-with-reason
+locked reason why is locked
+
+worktree /Users/dev/claude-worktrees/crm/gone
+HEAD 1233def1234def1234def1234def1234def1234b
+detached
+prunable gitdir file points to non-existent location
+
