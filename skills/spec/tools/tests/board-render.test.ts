@@ -55,6 +55,11 @@ describe("renderBoard", () => {
     expect(header("local")).toBe("spec board · crm · local, origin/main as of e43d948 10-01 20:40");
   });
 
+  test("the header shows a short sha; the model keeps the full one for agents", () => {
+    const sha = "42cf166df5be485d453f9579646647137c58a8b6";
+    expect(renderBoard(board({ base: { ...board().base, sha } })).split("\n")[0]).toBe("spec board · crm · origin/main 42cf166 · fetched 20:00");
+  });
+
   test("caps ready and blocked, pointing at the full lane", () => {
     const ready = Array.from({ length: 10 }, (_, index) => readyRow({ spec: `s${index}` }));
     const blocked = Array.from({ length: 7 }, (_, index) => ({ spec: `b${index}`, reasons: ["needs x"] }));

@@ -4,11 +4,18 @@ import type { Result } from "../core/result";
 import { defaultBranch, type Runner } from "../core/run";
 import { loadMainline } from "../mainline/load";
 import type { BoardInputs } from "./inputs";
+import { buildBoard } from "./lanes";
+import type { Board } from "./model";
 
 export const FETCH_TIMEOUT_MS = 10_000;
 
 export interface BoardRequest {
   local: boolean;
+}
+
+export async function loadBoard(projectDir: string, request: BoardRequest, runner: Runner, now: Date): Promise<Result<Board>> {
+  const inputs = await loadBoardInputs(projectDir, request, runner);
+  return inputs.ok ? { ok: true, value: buildBoard(inputs.value, now) } : inputs;
 }
 
 export async function loadBoardInputs(projectDir: string, request: BoardRequest, runner: Runner): Promise<Result<BoardInputs>> {

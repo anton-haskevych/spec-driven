@@ -1,18 +1,30 @@
 import { relative } from "node:path";
 import { loadBacklog, type BacklogItem } from "../backlog/items";
-import { isOverdue } from "../core/schedule";
+import { loadBoard } from "../board/load";
+import { renderBoard } from "../board/render";
+import { isOverdue, isoDay } from "../core/schedule";
 import { loadNodes } from "../graph/nodes";
 import { matchesItem, matchesSpec, orderBacklog, orderSpecs } from "../portfolio/order";
 import { renderPortfolio } from "../portfolio/render";
 import { specRow } from "../portfolio/rows";
+import { fenced, type BoardDeps } from "./board";
 
 const ALL = "all";
+const TABLE = "table";
 const JSON_FLAG = "--json";
 const DEFAULT_SPEC_LIMIT = 30;
 
+export async function listCommand(projectDir: string, args: readonly string[], deps: BoardDeps): Promise<string> {
+  const today = isoDay(deps.now);
+  if (args.length > 0) return portfolioTable(projectDir, args, today);
+  const board = await loadBoard(projectDir, { local: false }, deps.runner, deps.now);
+  if (board.ok) return fenced(renderBoard(board.value));
+  return `${portfolioTable(projectDir, args, today)}\n\nboard unavailable: ${board.reason}`;
+}
+
 export function portfolioTable(projectDir: string, args: readonly string[], today: string): string {
   const showFinished = args.includes(ALL);
-  const filter = args.filter((arg) => arg !== ALL && arg !== JSON_FLAG).join(" ").trim();
+  const filter = args.filter((arg) => arg !== ALL && arg !== JSON_FLAG && arg !== TABLE).join(" ").trim();
 
   const rows = [...loadNodes(projectDir).values()].map((node) => specRow(node, projectDir, today));
   const matching = rows.filter((row) => !filter || matchesSpec(row, filter));

@@ -7,6 +7,7 @@ export const LANES: readonly Lane[] = ["flight", "ready", "blocked", "you"];
 export const READY_CAP = 8;
 export const BLOCKED_CAP = 5;
 
+const SHORT_SHA = 7;
 const NEXT_COMMAND: Record<ReadyRow["next"], string> = { prep: "/spec prep", create: "/spec create", execute: "/spec execute" };
 const STALE_BASE: Record<Exclude<Board["base"]["mode"], "fetched">, string> = {
   offline: "offline",
@@ -27,7 +28,8 @@ export function renderBoard(board: Board, options: { lane?: Lane } = {}): string
 }
 
 function header(board: Board, now: Date): string {
-  const { branch, sha, date, mode } = board.base;
+  const { branch, date, mode } = board.base;
+  const sha = board.base.sha.slice(0, SHORT_SHA);
   const freshness =
     mode === "fetched" ? `origin/${branch} ${sha} · fetched ${clock(now)}` : `${STALE_BASE[mode]}, origin/${branch} as of ${sha} ${stamp(new Date(date))}`;
   const { inFlight, ready, blocked, needsYou } = board.lanes;

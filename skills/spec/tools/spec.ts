@@ -6,7 +6,8 @@ import { GATES_USAGE, gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
 import { LAUNCH_USAGE, launchReport } from "./commands/launch";
 import { lessonsCommand } from "./commands/lessons";
-import { portfolioTable } from "./commands/list";
+import { BOARD_USAGE, boardCommand, systemBoardDeps } from "./commands/board";
+import { listCommand } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
 import { PR_STATUS_USAGE, prStatusReport } from "./commands/pr-status";
@@ -14,7 +15,6 @@ import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
 import { PUSH_USAGE, pushReport } from "./commands/push";
 import { readyReport } from "./commands/ready";
 import { settingsReport } from "./commands/settings";
-import { isoDay } from "./core/schedule";
 import { findSpecs } from "./core/spec-folders";
 
 export interface Command {
@@ -32,7 +32,8 @@ export const COMMANDS: Record<string, Command> = {
   graph: { usage: "graph …", run: graphCommand },
   ready: { usage: "ready <spec-name>", run: (dir, args) => readyReport(dir, args[0]) },
   gates: { usage: GATES_USAGE, run: gatesReport },
-  list: { usage: "list [all] [filter] [--json]", run: (dir, args) => portfolioTable(dir, args, isoDay(new Date())) },
+  list: { usage: "list [table] [all] [filter] [--json]", run: (dir, args) => listCommand(dir, args, systemBoardDeps()) },
+  board: { usage: BOARD_USAGE, run: (dir, args) => boardCommand(dir, args) },
   playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
   phase: { usage: PHASE_USAGE, run: phaseCommand },
   settings: { usage: "settings", run: (dir) => settingsReport(dir) },
