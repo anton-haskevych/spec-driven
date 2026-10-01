@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { gitattributesIssues, UNION_RULES } from "../doctor/gitattributes";
 import { repoWithOrigin, type TestRepo } from "./git-repo";
@@ -38,4 +39,10 @@ describe("gitattributesIssues against real git", () => {
     repo.write(".gitattributes", `${UNION_RULES.join("\n")}\n`);
     expect(gitattributesIssues(repo.dir)).toEqual([]);
   });
+});
+
+test("create.md scaffolds exactly the union rules the doctor checks", () => {
+  const create = readFileSync(join(import.meta.dir, "..", "..", "create.md"), "utf8");
+  const block = /#### `\.gitattributes`[\s\S]*?```gitattributes\n([\s\S]*?)```/.exec(create)?.[1] ?? "";
+  expect(block.trim().split("\n")).toEqual(UNION_RULES);
 });

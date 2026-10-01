@@ -341,6 +341,17 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 
 Section headings are free-form — add new ones (e.g., `## Research findings`) as new kinds of entries emerge during execution.
 
+#### `.gitattributes` (repo root)
+
+Parallel branches append rows to the same ledger `INDEX.md` files, and a plain merge conflicts on them. Union merge keeps both sides. If the repo root's `.gitattributes` lacks either line below, append it (create the file if needed) and commit it with the spec. Leave every other line alone.
+
+```gitattributes
+docs/specs/**/INDEX.md merge=union
+*/docs/specs/**/INDEX.md merge=union
+```
+
+The second line covers specs under a subproject (`landing/docs/specs/`). Union merge can duplicate a row both sides edited; the doctor flags duplicate and dangling rows.
+
 ## Files NOT scaffolded at birth
 
 These appear on-demand later:
