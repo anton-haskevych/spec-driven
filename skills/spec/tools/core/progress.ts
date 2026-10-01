@@ -31,6 +31,14 @@ export function parsePhaseLines(progress: string): PhaseLine[] {
   });
 }
 
+const PHASE_TITLE = /^Phase\s/i;
+
+export function indentedPhaseLines(progress: string): string[] {
+  return outlineMarkdown(progress)
+    .tasks.filter((task) => task.depth > TOP_LEVEL && PHASE_TITLE.test(task.text) && PHASE_POINTER.test(task.text))
+    .map((task) => task.text);
+}
+
 export function countCheckboxes(markdown: string): CheckboxCount {
   const { tasks } = outlineMarkdown(markdown);
   const checked = tasks.filter((task) => task.checked).length;

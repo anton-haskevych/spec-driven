@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { checkLedgerEntry, checkLedgerIndex } from "../doctor/ledger";
-import { checkInFlight, checkPhases } from "../doctor/phases";
+import { checkIndentedPhaseLines, checkInFlight, checkPhases } from "../doctor/phases";
 import { checkSpecMeta } from "../doctor/spec-meta";
 import { phaseLine } from "./factories";
 
@@ -81,5 +81,23 @@ describe("checkInFlight", () => {
     expect(checkInFlight("in-flight.md", "# In flight\n\nhalf-wired thing", true)).toHaveLength(1);
     expect(checkInFlight("in-flight.md", "# In flight\n", true)).toEqual([]);
     expect(checkInFlight("in-flight.md", "# In flight\n\nnotes", false)).toEqual([]);
+  });
+});
+
+describe("checkIndentedPhaseLines", () => {
+  test("warns about a nested phase line that parsePhaseLines drops, and nothing else", () => {
+    const progress = [
+      "- [ ] Phase 1 — One → `phases/p1.md`",
+      "  - [ ] Phase 1a — Sub → `phases/p1a.md`",
+      "  - [ ] see `phases/p1/fixtures.md`",
+      "",
+    ].join("\n");
+    expect(checkIndentedPhaseLines("progress.md", progress)).toEqual([
+      {
+        file: "progress.md",
+        severity: "warning",
+        problem: "indented phase line is invisible to the tools: Phase 1a — Sub → phases/p1a.md",
+      },
+    ]);
   });
 });
