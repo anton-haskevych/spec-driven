@@ -1,5 +1,6 @@
 import { actionsJob, prState, summarizeChecks, type CheckSummary, type PrState } from "./checks";
-import type { GhClient, GhResult } from "./gh";
+import type { Result } from "../core/result";
+import type { GhClient } from "./gh";
 import { failureTail } from "./log-tail";
 import { compareOnMain, type MainComparison } from "./main-compare";
 import type { Check, PrView } from "./types";
@@ -8,7 +9,7 @@ export interface FailedCheckReport {
   check: Check;
   job: { runId: number; jobId: number } | undefined;
   main?: MainComparison;
-  tail?: GhResult<string[]>;
+  tail?: Result<string[]>;
 }
 
 export interface PrReport {
@@ -59,7 +60,7 @@ function failedCheck(gh: GhClient, check: Check, defaultBranch: string | undefin
 }
 
 // Each job log is a full download (often over 1 MB), so only the first few failures get one.
-function jobTail(gh: GhClient, jobId: number): GhResult<string[]> {
+function jobTail(gh: GhClient, jobId: number): Result<string[]> {
   const log = gh.jobLog(jobId);
   return log.ok ? { ok: true, value: failureTail(log.value) } : log;
 }

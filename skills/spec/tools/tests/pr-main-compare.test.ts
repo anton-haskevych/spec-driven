@@ -1,13 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import type { GhClient, GhResult } from "../pr/gh";
+import type { Result } from "../core/result";
+import type { GhClient } from "../pr/gh";
 import { compareOnMain, MAIN_RUNS_PER_JOB } from "../pr/main-compare";
 import type { Job, WorkflowRun } from "../pr/types";
 
-const unused = (): GhResult<never> => {
+const unused = (): Result<never> => {
   throw new Error("not used by compareOnMain");
 };
 
-function fakeGh(runs: WorkflowRun[], jobsByRun: Record<number, Job[]>, workflowId: GhResult<number> = { ok: true, value: 7 }) {
+function fakeGh(runs: WorkflowRun[], jobsByRun: Record<number, Job[]>, workflowId: Result<number> = { ok: true, value: 7 }) {
   const calls: string[] = [];
   const gh: GhClient = {
     prView: unused,

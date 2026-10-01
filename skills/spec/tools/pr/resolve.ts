@@ -1,7 +1,8 @@
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { findSpecs } from "../core/spec-folders";
-import type { GhClient, GhResult } from "./gh";
+import type { Result } from "../core/result";
+import type { GhClient } from "./gh";
 import type { PrView } from "./types";
 
 export interface ResolvedPr {
@@ -19,7 +20,7 @@ export function specPrNumbers(prOpening: string): number[] {
   return [...new Set(numbers)];
 }
 
-export function resolvePr(gh: GhClient, projectDir: string, target: string | undefined): GhResult<ResolvedPr> {
+export function resolvePr(gh: GhClient, projectDir: string, target: string | undefined): Result<ResolvedPr> {
   if (target === undefined) return withoutOthers(gh.prView());
   const number = PR_NUMBER.exec(target)?.[1];
   if (number) return withoutOthers(gh.prView(Number(number)));
@@ -32,8 +33,8 @@ export function resolvePr(gh: GhClient, projectDir: string, target: string | und
 }
 
 // A spec often lists several PRs; the newest open one is the one being worked on.
-function latestOpenPr(gh: GhClient, numbers: readonly number[]): GhResult<ResolvedPr> {
-  let fallback: GhResult<PrView> = { ok: false, reason: `none of ${numbers.map((n) => `#${n}`).join(", ")} could be read` };
+function latestOpenPr(gh: GhClient, numbers: readonly number[]): Result<ResolvedPr> {
+  let fallback: Result<PrView> = { ok: false, reason: `none of ${numbers.map((n) => `#${n}`).join(", ")} could be read` };
   for (const number of [...numbers].reverse()) {
     const view = gh.prView(number);
     if (view.ok && view.value.state === "OPEN") return withOthers(view.value, numbers);
@@ -42,10 +43,10 @@ function latestOpenPr(gh: GhClient, numbers: readonly number[]): GhResult<Resolv
   return fallback.ok ? withOthers(fallback.value, numbers) : fallback;
 }
 
-function withOthers(view: PrView, numbers: readonly number[]): GhResult<ResolvedPr> {
+function withOthers(view: PrView, numbers: readonly number[]): Result<ResolvedPr> {
   return { ok: true, value: { view, otherPrs: numbers.filter((number) => number !== view.number) } };
 }
 
-function withoutOthers(view: GhResult<PrView>): GhResult<ResolvedPr> {
+function withoutOthers(view: Result<PrView>): Result<ResolvedPr> {
   return view.ok ? { ok: true, value: { view: view.value, otherPrs: [] } } : view;
 }

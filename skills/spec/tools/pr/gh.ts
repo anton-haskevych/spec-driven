@@ -1,16 +1,16 @@
+import type { Result } from "../core/result";
 import type { Runner } from "../core/run";
 import { parseJson, toChecks, toJobs, toPrView, toWorkflowId, toWorkflowRuns } from "./gh-records";
 import type { Check, Job, PrView, WorkflowRun } from "./types";
 
-export type GhResult<T> = { ok: true; value: T } | { ok: false; reason: string };
 
 export interface GhClient {
-  prView(pr?: number): GhResult<PrView>;
-  prChecks(pr: number): GhResult<Check[]>;
-  runWorkflowId(runId: number): GhResult<number>;
-  runJobs(runId: number): GhResult<Job[]>;
-  jobLog(jobId: number): GhResult<string>;
-  branchRuns(branch: string, workflowId: number, limit: number): GhResult<WorkflowRun[]>;
+  prView(pr?: number): Result<PrView>;
+  prChecks(pr: number): Result<Check[]>;
+  runWorkflowId(runId: number): Result<number>;
+  runJobs(runId: number): Result<Job[]>;
+  jobLog(jobId: number): Result<string>;
+  branchRuns(branch: string, workflowId: number, limit: number): Result<WorkflowRun[]>;
 }
 
 export const GH_CALL_BUDGET = 30;
@@ -20,16 +20,16 @@ const RUN_FIELDS = "databaseId,conclusion,createdAt";
 
 export function ghClient(cwd: string, runner: Runner, budget = GH_CALL_BUDGET): GhClient {
   let callsLeft = budget;
-  const cache = new Map<string, GhResult<unknown>>();
+  const cache = new Map<string, Result<unknown>>();
 
-  function call<T>(argv: string[], parse: (stdout: string) => T | undefined, cached = false): GhResult<T> {
+  function call<T>(argv: string[], parse: (stdout: string) => T | undefined, cached = false): Result<T> {
     const key = argv.join(" ");
-    if (cached && cache.has(key)) return cache.get(key) as GhResult<T>;
+    if (cached && cache.has(key)) return cache.get(key) as Result<T>;
     if (callsLeft <= 0) return { ok: false, reason: `gh call budget (${budget}) spent` };
     callsLeft -= 1;
     const result = runner.run(["gh", ...argv], { cwd });
     const value = parse(result.stdout);
-    const outcome: GhResult<T> =
+    const outcome: Result<T> =
       value === undefined ? { ok: false, reason: firstLine(result.stderr) || `gh ${argv[0]} ${argv[1]} gave no usable output` } : { ok: true, value };
     if (cached) cache.set(key, outcome);
     return outcome;
