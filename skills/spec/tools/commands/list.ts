@@ -10,7 +10,7 @@ const ALL = "all";
 const JSON_FLAG = "--json";
 const DEFAULT_SPEC_LIMIT = 30;
 
-export function listCommand(projectDir: string, args: readonly string[], today: string): string {
+export function portfolioTable(projectDir: string, args: readonly string[], today: string): string {
   const showFinished = args.includes(ALL);
   const filter = args.filter((arg) => arg !== ALL && arg !== JSON_FLAG).join(" ").trim();
 

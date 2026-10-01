@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { listCommand } from "../commands/list";
+import { portfolioTable } from "../commands/list";
 import { matchesItem, matchesSpec, orderBacklog, orderSpecs } from "../portfolio/order";
 import { renderPortfolio } from "../portfolio/render";
 import { specRow } from "../portfolio/rows";
@@ -104,7 +104,7 @@ describe("renderPortfolio", () => {
   });
 });
 
-describe("listCommand", () => {
+describe("portfolioTable", () => {
   const project = mkdtempSync(join(tmpdir(), "spec-list-"));
   const write = (path: string, text: string) => {
     mkdirSync(join(project, path, ".."), { recursive: true });
@@ -117,25 +117,25 @@ describe("listCommand", () => {
   afterAll(() => rmSync(project, { recursive: true, force: true }));
 
   test("lists open specs and ideas, hiding finished specs unless asked", () => {
-    const output = listCommand(project, [], TODAY);
+    const output = portfolioTable(project, [], TODAY);
     expect(output).toContain("| checkout | active | p1 | — | — | billing | — | 1/2 |");
     expect(output).toContain("| organizer-accounts | — | — | growth | Organizer accounts |");
     expect(output).not.toContain("| old |");
-    expect(listCommand(project, ["all"], TODAY)).toContain("| old | done |");
+    expect(portfolioTable(project, ["all"], TODAY)).toContain("| old | done |");
   });
 
   test("shows the top 30 open specs by default, every match when filtered", () => {
     for (let index = 0; index < 31; index += 1) write(`docs/specs/bulk-${index}/CLAUDE.md`, "---\nstatus: active\ndomain: [bulk]\n---\n");
-    expect(listCommand(project, [], TODAY)).toContain("2 more open specs not shown");
-    expect(listCommand(project, ["bulk"], TODAY)).toContain("## Open specs (31)");
+    expect(portfolioTable(project, [], TODAY)).toContain("2 more open specs not shown");
+    expect(portfolioTable(project, ["bulk"], TODAY)).toContain("## Open specs (31)");
   });
 
   test("filters both tables and prints JSON for agents", () => {
-    expect(listCommand(project, ["growth"], TODAY)).not.toContain("checkout");
-    const json = JSON.parse(listCommand(project, ["billing", "--json"], TODAY));
+    expect(portfolioTable(project, ["growth"], TODAY)).not.toContain("checkout");
+    const json = JSON.parse(portfolioTable(project, ["billing", "--json"], TODAY));
     expect(json.specs.map((row: { name: string }) => row.name)).toEqual(["checkout"]);
     expect(json.backlog).toEqual([]);
-    const [idea] = JSON.parse(listCommand(project, ["growth", "--json"], TODAY)).backlog;
+    const [idea] = JSON.parse(portfolioTable(project, ["growth", "--json"], TODAY)).backlog;
     expect(idea).toMatchObject({ slug: "organizer-accounts", file: "docs/specs/_backlog/organizer-accounts.md", overdue: false });
     expect(json.today).toBe(TODAY);
   });

@@ -6,7 +6,7 @@ import { GATES_USAGE, gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
 import { LAUNCH_USAGE, launchReport } from "./commands/launch";
 import { lessonsCommand } from "./commands/lessons";
-import { listCommand } from "./commands/list";
+import { portfolioTable } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
 import { PR_STATUS_USAGE, prStatusReport } from "./commands/pr-status";
@@ -19,7 +19,7 @@ import { findSpecs } from "./core/spec-folders";
 
 export interface Command {
   usage: string;
-  run(projectDir: string, args: readonly string[]): string;
+  run(projectDir: string, args: readonly string[]): string | Promise<string>;
 }
 
 export const COMMANDS: Record<string, Command> = {
@@ -32,7 +32,7 @@ export const COMMANDS: Record<string, Command> = {
   graph: { usage: "graph …", run: graphCommand },
   ready: { usage: "ready <spec-name>", run: (dir, args) => readyReport(dir, args[0]) },
   gates: { usage: GATES_USAGE, run: gatesReport },
-  list: { usage: "list [all] [filter] [--json]", run: (dir, args) => listCommand(dir, args, isoDay(new Date())) },
+  list: { usage: "list [all] [filter] [--json]", run: (dir, args) => portfolioTable(dir, args, isoDay(new Date())) },
   playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
   phase: { usage: PHASE_USAGE, run: phaseCommand },
   settings: { usage: "settings", run: (dir) => settingsReport(dir) },
@@ -46,7 +46,7 @@ export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)
   .map((command) => command.usage)
   .join(" | ")}`;
 
-export function run(argv: readonly string[], projectDir: string): string {
+export async function run(argv: readonly string[], projectDir: string): Promise<string> {
   const [name, ...args] = argv;
   const command = name !== undefined && Object.hasOwn(COMMANDS, name) ? COMMANDS[name] : undefined;
   return command ? command.run(projectDir, args) : USAGE;
@@ -60,7 +60,7 @@ async function withStdinArgs(argv: readonly string[]): Promise<readonly string[]
 
 if (import.meta.main) {
   try {
-    console.log(run(await withStdinArgs(Bun.argv.slice(2)), process.cwd()));
+    console.log(await run(await withStdinArgs(Bun.argv.slice(2)), process.cwd()));
   } catch (cause) {
     console.log(`spec tools failed: ${cause instanceof Error ? cause.message : String(cause)}`);
   }
