@@ -28,6 +28,20 @@ describe("phaseStatuses", () => {
     expect(table).toContain("| 🟢 active · due 2026-10-01 |");
   });
 
+  test("Delivers shows the Outcome's first sentence, else the Goal", () => {
+    const summary = (extra: object) => ({ deliverables: { checked: 0, unchecked: 1 }, nextRun: [], goal: "`spec.ts push` refspec", ...extra });
+    const table = renderStatusTable({
+      spec: { name: "checkout", dir: "/specs/checkout" },
+      hasProgress: true,
+      phases: [
+        phaseState({ id: "1", summary: summary({ outcome: "Work never sits only on the laptop. Risk: pushing is outward-facing." }) }),
+        phaseState({ id: "2", summary: summary({}) }),
+      ],
+    });
+    expect(table).toContain("| Work never sits only on the laptop |");
+    expect(table).toContain("| `spec.ts push` refspec |");
+  });
+
   test("a WIP phase claims the focus, so a later untouched phase is pending", () => {
     expect(phaseStatuses([phase(false, 1, 1), phase(false, 0, 1)])).toEqual(["🟡 WIP (1/2)", "⬜ pending"]);
   });
