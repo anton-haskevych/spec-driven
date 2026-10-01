@@ -27,7 +27,7 @@ pr: B
 ## Deliverables
 
 - [x] `core/ledger-index.ts` parse + `insertRow` + formatters for all three row kinds; round-trip tests; `ledger-scope.ts` migrated
-- [ ] `setFrontmatterLine` extracted; `addSeenIn` tests still green
+- [x] `setFrontmatterLine` extracted; `addSeenIn` tests still green
 - [ ] `lessons add` bookkeeping on an existing entry: `created`, `seen-in`, project row, pointer row; one plan
 - [ ] `lessons add` prints close `similar` matches without refusing
 - [ ] SKILL.md write path rewritten (write the entry → `lessons add`; no-Bun fallback kept)
