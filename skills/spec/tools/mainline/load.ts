@@ -18,6 +18,7 @@ export interface MainlineOptions {
 
 export interface Mainline {
   base: BaseRef;
+  commonDir: string;
   nodes: Map<string, SpecNode>;
   states: Map<string, SpecState>;
   stages: Map<string, SpecStage>;
@@ -36,7 +37,7 @@ export async function loadMainline(git: Git, branch: string, options: MainlineOp
 
   const cache = await baseCache(git, sha, commonDir);
   if (!cache.ok) return cache;
-  return { ok: true, value: { base: { branch, sha, date, fetch }, ...loadSpecDocs(join(cache.value, prefix)) } };
+  return { ok: true, value: { base: { branch, sha, date, fetch }, commonDir, ...loadSpecDocs(join(cache.value, prefix)) } };
 }
 
 function repoFacts(git: Git, sha: string): Result<{ date: string; commonDir: string; prefix: string }> {
@@ -57,7 +58,7 @@ function pinBase(git: Git, branch: string, options: MainlineOptions): Result<{ s
   return { ok: true, value: { sha: local.value, fetch: pinned ?? "local" } };
 }
 
-function loadSpecDocs(projectDir: string): Omit<Mainline, "base"> {
+function loadSpecDocs(projectDir: string): Omit<Mainline, "base" | "commonDir"> {
   const specs = listSpecs(projectDir);
   const states = new Map<string, SpecState>();
   for (const spec of specs) if (!states.has(spec.name)) states.set(spec.name, loadSpecState(spec));
