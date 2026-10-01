@@ -17,8 +17,8 @@ core/
   git-status.ts        new  parsePorcelainZ (moved from context/infer-spec.ts)
   schedule.ts          + compareSchedule(a, b)
 mainline/              new domain
-  base-cache.ts        baseCache(git, sha, commonDir) → dir: git archive -o <tmp>.tar of the read set,
-                         tar -xf into <tmp>/, rename to base/<sha>/; keep the newest 2
+  base-cache.ts        baseCache(git, sha, commonDir) → dir (async): git archive -o <tmp>.tar of the
+                         matching read-set patterns, Bun.Archive extract, rename to base/<sha>/; keep 2
   load.ts              loadMainline(git, branch, { timeoutMs, local }) → { base, nodes, states, backlog,
                          settings } via pinDefault + baseCache + the unchanged disk loaders
 graph/
@@ -79,13 +79,18 @@ All adapters take their dependencies as parameters (`principles.md` §11): `Git`
 4. `baseCache(git, sha, commonDir)`. The read set is the pathspec
    `:(glob)docs/specs/*/*.md :(glob)docs/specs/*/phases/**/*.md :(glob)*/docs/specs/*/*.md
    :(glob)*/docs/specs/*/phases/**/*.md`.
-   - Run `git archive --format=tar -o <tmp>.tar <sha> -- <pathspec>`. Use `-o`, because `Runner`
+   - `git archive` exits 128 when any one pattern matches nothing (a single-root repo). List
+     `git ls-tree -r --name-only -z <sha>` and keep the patterns that match a path (`Bun.Glob`); none →
+     an empty base dir (preflight 2026-10-01).
+   - Run `git archive --format=tar -o <tmp>.tar <sha> -- <patterns>`. Use `-o`, because `Runner`
      decodes stdout and would corrupt the tar.
-   - Run `tar -xf <tmp>.tar -C <tmp>/`, then `rename` the folder to `base/<sha>/`. If two runs extract
-     the same sha, the loser's `rename` fails, so it removes its temp dir and uses the winner's.
-   - Keep the newest 2 sha folders.
+   - Extract with `Bun.Archive` into `<tmp>/`, then `rename` the folder to `base/<sha>/`. If two runs
+     extract the same sha, the loser's `rename` fails, so it removes its temp dir and uses the winner's.
+   - A cache hit touches the folder's mtime; keep the newest 2 sha folders by mtime.
+   - Loaders read `join(base, git rev-parse --show-prefix)`, so the base mirrors the cwd.
 5. Run `loadNodes(dir)`, `listSpecs(dir)` → `loadSpecState`, `loadBacklog(dir)` and `loadSettings(dir)`,
-   all unchanged. These are real paths, so every `spec.dir` reader (`pr/resolve.ts`, `portfolio/rows.ts`)
+   all unchanged. Specs without `progress.md` get a stage: `prep` (no `product-brief.md`, or a
+   `seed.md`) or `create`; `BoardInputs.stages` carries it. These are real paths, so every `spec.dir` reader (`pr/resolve.ts`, `portfolio/rows.ts`)
    works.
 
 ### workspaces
@@ -200,6 +205,7 @@ interface BoardInputs {
   base: { branch: string; sha: string; date: string; fetch: Result<void> | "local" };
   nodes: ReadonlyMap<string, SpecNode>;        // base cache, unchanged loaders
   states: ReadonlyMap<string, SpecState>;      // base cache
+  stages: ReadonlyMap<string, "prep" | "create">; // specs without progress.md
   workspaces: WorkspaceScan[];                 // live ones
   workspaceStates: ReadonlyMap<string, ReadonlyMap<string, SpecState>>; // workspace path → spec → state
   counts: { merged: number; unknownBase: number; unreadable: number; duplicates: string[] };

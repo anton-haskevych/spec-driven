@@ -26,10 +26,15 @@ risk: the default `list` output changes.
 
 See `technical.md` → *mainline*, *Lanes*, *Rank*, *Model*, *Commands*.
 
-**Base cache.** Run `git archive -o <tmp>.tar` with the read-set pathspec, then `tar -xf`, then rename
-the folder to `base/<sha>/` under the common dir. Never pipe the archive through `Runner`, which decodes
+**Base cache.** Run `git archive -o <tmp>.tar` with the read-set patterns that match a path (an empty
+pattern makes archive exit 128), extract with `Bun.Archive`, then rename the folder to `base/<sha>/`
+under the common dir. Never pipe the archive through `Runner`, which decodes
 stdout. The base dir is a project dir: `loadNodes`, `listSpecs` + `loadSpecState`, `loadBacklog` and
 `loadSettings` all run on it unchanged. The fetch reuses `pinDefault` with the new `timeoutMs`.
+
+**Preflight amendments** (`research/phase-1/2026-10-01-1-5-preflight.md`): `baseCache` / `loadMainline`
+are async; `loadMainline` returns prep/create `stages`; `phaseDependencies` is extracted from
+`ready/ready-set.ts` for "unblocks"; needs-you lives in `board/attention.ts`.
 
 **Lanes in this phase.** Only ready, blocked and needs-you (overdue, deploy waited on) are filled. The
 model and render already carry the in-flight lane and its fields, which Phase 3 fills. Rows carry

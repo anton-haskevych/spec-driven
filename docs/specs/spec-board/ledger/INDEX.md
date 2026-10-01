@@ -6,6 +6,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 ## Gotchas
 - `gotcha-claude-session-files-are-undocumented.md` — [phase 4+] — session files can vanish or drift; liveness fails to unknown
 - `docs/specs/_ledger/gotcha-runner-stdout-is-decoded-text.md` — [general] — Runner stdout is decoded text; byte-framed git output breaks
+- `docs/specs/_ledger/gotcha-git-archive-fails-on-any-unmatched-pathspec.md` — [general] — git archive exits 128 if any pathspec is empty; archive only matching ones
 
 ## Principles
 - `principle-claim-writes-are-single-atomic-ops.md` — [phase 5] — link to create, rename to take over; the board never writes
