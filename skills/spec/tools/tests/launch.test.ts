@@ -1,6 +1,35 @@
 import { describe, expect, test } from "bun:test";
 import { sessionLaunch, type SessionLaunch } from "../launch/command-line";
 import { launchArgv, pickTerminal } from "../launch/terminal";
+import { launchReport } from "../commands/launch";
+import { stubRunner } from "./stub-runner";
+
+describe("launchReport", () => {
+  const iTerm = { TERM_PROGRAM: "iTerm.app" };
+
+  test("opens the session and says where", () => {
+    const runner = stubRunner([[["osascript"], {}]]);
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], iTerm, runner)).toBe("Launched: iTerm — gift-cards prep");
+    expect(runner.calls).toHaveLength(1);
+  });
+
+  test("without a terminal it can drive, it prints the line to run", () => {
+    const runner = stubRunner([]);
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], {}, runner)).toBe(`launch: run this in a new terminal: ${giftCards.shellLine}`);
+    expect(runner.calls).toEqual([]);
+  });
+
+  test("a refused launch still hands over the line, with the reason", () => {
+    const runner = stubRunner([[["osascript"], { code: 1, stderr: "execution error: Not authorized to send Apple events to iTerm. (-1743)\n" }]]);
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], iTerm, runner)).toBe(
+      `launch: run this in a new terminal: ${giftCards.shellLine} (iTerm: execution error: Not authorized to send Apple events to iTerm. (-1743))`,
+    );
+  });
+
+  test("bad arguments come back as one launch line", () => {
+    expect(launchReport("/w", ["prep"], iTerm, stubRunner([]))).toBe("launch: usage: launch <sub-command> <spec-name>");
+  });
+});
 
 const giftCards: SessionLaunch = {
   title: "gift-cards prep",
