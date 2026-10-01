@@ -31,8 +31,8 @@ Doctor: when `progress.md` has an indented `- [ ] Phase …` line that `parsePha
 
 ## Deliverables
 
-- [ ] `phase add` next-integer path with file (incl. Outcome) + progress line; round-trip via `loadSpecState`
-- [ ] `phase add --after` letter suffix, collision check, insertion after the last `<id>*`
+- [x] `phase add` next-integer path with file (incl. Outcome) + progress line; round-trip via `loadSpecState`
+- [x] `phase add --after` letter suffix, collision check, insertion after the last `<id>*`
 - [ ] `phase split` keeps the original id; new lettered parts; `--items` moves; refuses folder-shape and done phases
 - [ ] `phase split` prints sibling `needs` and external `spec#<id>` refs for review
 - [ ] Doctor warning for indented phase lines
