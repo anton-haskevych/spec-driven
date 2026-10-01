@@ -1,8 +1,7 @@
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util";
 import { applyEdits } from "../core/apply-edits";
-import { findSpecs } from "../core/spec-folders";
+import { resolveSpec } from "../core/spec-folders";
 import { isoDay } from "../core/schedule";
-import type { SpecFolder } from "../core/spec-folders";
 import { loadNodes } from "../graph/nodes";
 import { planAdd } from "../phases/add";
 import { planDeployed } from "../phases/deployed";
@@ -124,14 +123,6 @@ function parseCodeFlag(raw: string | undefined): boolean | undefined | string {
 
 function idList(raw: string | undefined): string[] {
   return (raw ?? "").split(",").map((id) => id.trim()).filter(Boolean);
-}
-
-function resolveSpec(projectDir: string, name: string): SpecFolder | string {
-  const specs = findSpecs(projectDir, name);
-  const [spec] = specs;
-  if (!spec) return `no spec named ${name}`;
-  if (specs.length > 1) return `${specs.length} specs are named ${name}; run from the project that holds the one you mean`;
-  return spec;
 }
 
 function parseFlags<T extends ParseArgsOptionsConfig>(args: string[], options: T) {

@@ -30,6 +30,14 @@ export function findSpecs(projectDir: string, name: string): SpecFolder[] {
   return listSpecs(projectDir).filter((spec) => spec.name === name);
 }
 
+export function resolveSpec(projectDir: string, name: string): SpecFolder | string {
+  const specs = findSpecs(projectDir, name);
+  const [spec] = specs;
+  if (!spec) return `no spec named ${name}`;
+  if (specs.length > 1) return `${specs.length} specs are named ${name}; run from the project that holds the one you mean`;
+  return spec;
+}
+
 export function locateSpecFile(filePath: string): SpecFileLocation | undefined {
   const match = SPEC_FILE_PATTERN.exec(filePath);
   if (!match) return undefined;
