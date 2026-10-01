@@ -2,39 +2,52 @@
 import { contextPack } from "./commands/context";
 import { parseContextRequest } from "./context/request";
 import { doctorReport } from "./commands/doctor";
-import { gatesReport } from "./commands/gates";
+import { GATES_USAGE, gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
 import { lessonsCommand } from "./commands/lessons";
 import { listCommand } from "./commands/list";
+import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
+import { PR_STATUS_USAGE, prStatusReport } from "./commands/pr-status";
+import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
+import { PUSH_USAGE, pushReport } from "./commands/push";
 import { readyReport } from "./commands/ready";
+import { settingsReport } from "./commands/settings";
 import { isoDay } from "./core/schedule";
 import { findSpecs } from "./core/spec-folders";
 
-const USAGE = "usage: bun spec.ts doctor [<spec-name>] | context <sub-command> <spec-name> [hint] | lessons … | graph … | ready <spec-name> | gates <spec-name> | list [all] [filter] [--json] | playbooks <spec-name>";
+export interface Command {
+  usage: string;
+  run(projectDir: string, args: readonly string[]): string;
+}
 
-function run(argv: readonly string[], projectDir: string): string {
-  const [command, ...args] = argv;
-  switch (command) {
-    case "doctor":
-      return doctorReport(projectDir, args[0]);
-    case "context":
-      return contextPack(projectDir, parseContextRequest(args, (name) => findSpecs(projectDir, name).length > 0));
-    case "lessons":
-      return lessonsCommand(projectDir, args);
-    case "graph":
-      return graphCommand(projectDir, args);
-    case "ready":
-      return readyReport(projectDir, args[0]);
-    case "gates":
-      return gatesReport(projectDir, args[0]);
-    case "playbooks":
-      return playbooksReport(projectDir, args[0]);
-    case "list":
-      return listCommand(projectDir, args, isoDay(new Date()));
-    default:
-      return USAGE;
-  }
+export const COMMANDS: Record<string, Command> = {
+  doctor: { usage: "doctor [<spec-name>]", run: (dir, args) => doctorReport(dir, args[0]) },
+  context: {
+    usage: "context <sub-command> <spec-name> [hint]",
+    run: (dir, args) => contextPack(dir, parseContextRequest(args, (name) => findSpecs(dir, name).length > 0)),
+  },
+  lessons: { usage: "lessons …", run: lessonsCommand },
+  graph: { usage: "graph …", run: graphCommand },
+  ready: { usage: "ready <spec-name>", run: (dir, args) => readyReport(dir, args[0]) },
+  gates: { usage: GATES_USAGE, run: gatesReport },
+  list: { usage: "list [all] [filter] [--json]", run: (dir, args) => listCommand(dir, args, isoDay(new Date())) },
+  playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
+  phase: { usage: PHASE_USAGE, run: phaseCommand },
+  settings: { usage: "settings", run: (dir) => settingsReport(dir) },
+  "pr-status": { usage: PR_STATUS_USAGE, run: (dir, args) => prStatusReport(dir, args) },
+  push: { usage: PUSH_USAGE, run: (dir, args) => pushReport(dir, args) },
+  "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
+};
+
+export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)
+  .map((command) => command.usage)
+  .join(" | ")}`;
+
+export function run(argv: readonly string[], projectDir: string): string {
+  const [name, ...args] = argv;
+  const command = name !== undefined && Object.hasOwn(COMMANDS, name) ? COMMANDS[name] : undefined;
+  return command ? command.run(projectDir, args) : USAGE;
 }
 
 // `context -` reads its arguments from stdin, so SKILL.md can pass raw user text without shell quoting.

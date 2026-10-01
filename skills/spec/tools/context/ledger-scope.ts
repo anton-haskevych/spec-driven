@@ -1,3 +1,4 @@
+import { parseIndexRows } from "../core/ledger-index";
 import { comparePhaseIds, samePhase } from "../core/phase-title";
 
 export interface LedgerRow {
@@ -11,8 +12,7 @@ export interface ParsedIndex {
   unparsed: number;
 }
 
-const ROW = /^\s*[-*]\s+`([^`]+\.md)`\s*[—–-]+\s*\[([^\]]*)\]/;
-const ROW_START = /^\s*[-*]\s+`[^`]+\.md`/;
+const TAGS = /^[—–-]+\s*\[([^\]]*)\]/;
 const PHASE_TOKEN = /^(?:phase\s+)?(\S+?)(\+)?$/;
 const ALWAYS = new Set(["general", "load-bearing"]);
 const SUPERSEDED = /superseded/i;
@@ -20,13 +20,10 @@ const SUPERSEDED = /superseded/i;
 export function parseLedgerIndex(index: string): ParsedIndex {
   const rows: LedgerRow[] = [];
   let unparsed = 0;
-  for (const line of index.split("\n")) {
-    const match = ROW.exec(line);
-    if (match?.[1] && match[2] !== undefined) {
-      rows.push({ file: match[1], tags: match[2].split(",").map((tag) => tag.trim().toLowerCase()), line: line.trim() });
-    } else if (ROW_START.test(line)) {
-      unparsed += 1;
-    }
+  for (const row of parseIndexRows(index)) {
+    const tags = TAGS.exec(row.tail)?.[1];
+    if (tags === undefined) unparsed += 1;
+    else rows.push({ file: row.file, tags: tags.split(",").map((tag) => tag.trim().toLowerCase()), line: row.line });
   }
   return { rows, unparsed };
 }

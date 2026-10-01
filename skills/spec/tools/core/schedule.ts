@@ -28,7 +28,7 @@ export function readSchedule(data: FrontmatterData): Schedule {
   return schedule;
 }
 
-function isCalendarDay(value: string): boolean {
+export function isCalendarDay(value: string): boolean {
   if (!CALENDAR_DAY.test(value)) return false;
   const parsed = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(value);
@@ -42,6 +42,23 @@ export function isoDay(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${date.getFullYear()}-${month}-${day}`;
+}
+
+// Mirrors `spec-bump.sh --now`, which stays the no-Bun path; a test compares the two.
+export function isoTimestamp(date: Date): string {
+  const time = [date.getHours(), date.getMinutes(), date.getSeconds()].map(twoDigits).join(":");
+  return `${isoDay(date)}T${time}${utcOffset(date)}`;
+}
+
+function utcOffset(date: Date): string {
+  const minutesEast = -date.getTimezoneOffset();
+  const sign = minutesEast < 0 ? "-" : "+";
+  const absolute = Math.abs(minutesEast);
+  return `${sign}${twoDigits(Math.floor(absolute / 60))}:${twoDigits(absolute % 60)}`;
+}
+
+function twoDigits(value: number): string {
+  return String(value).padStart(2, "0");
 }
 
 export function priorityRank(priority: Priority | undefined): number {

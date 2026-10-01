@@ -239,14 +239,14 @@ Spec written, not yet implemented. <N> code-only phases planned. No branch/PR ye
 ## Pre-PR checks
 
 Scoped to the subprojects this spec touches (derive from `code-map.md`). Tick each
-before opening the **draft** PR — never straight to `main`.
+before opening the PR — never straight to `main`.
 
 - [ ] <check 1>
 - [ ] <check 2>
 - [ ] <check 3>
 ```
 
-Derive the checks from the build targets the spec touches. **If `docs/specs/_playbook/gates.md` exists**, reference its named blocks instead of copying them: `- [ ] gate: landing` (several: `gate: landing, backend`), then add only the checks specific to this feature. `spec.ts gates <name>` expands them at PR time, and the doctor flags unknown gate names. Otherwise, if the project defines canonical checks (a `.claude/` convention, a CI manifest), use those; otherwise default, per touched module, to — tests pass · lint + typecheck/compile · any feature-specific e2e. List the concrete checks; don't leave placeholders. When you find yourself writing the same block a second spec already has, move it into `gates.md`.
+Derive the checks from the build targets the spec touches. **If `docs/specs/_playbook/gates.md` exists**, reference its named blocks instead of copying them: `- [ ] gate: landing` (several: `gate: landing, backend`), then add only the checks specific to this feature. `spec.ts gates <spec-name>` expands them at PR time, and the doctor flags unknown gate names. Otherwise, if the project defines canonical checks (a `.claude/` convention, a CI manifest), use those; otherwise default, per touched module, to — tests pass · lint + typecheck/compile · any feature-specific e2e. List the concrete checks; don't leave placeholders. When you find yourself writing the same block a second spec already has, move it into `gates.md`.
 
 #### `docs/specs/$ARGUMENTS/code-map.md`
 
@@ -277,7 +277,7 @@ Tables are empty at spec birth. `update.md` fills them in as load-bearing files 
 
 #### `docs/specs/$ARGUMENTS/phases/phase-<N>-<slug>.md` (flat file shape)
 
-One file per phase that chose flat-file shape in *Plan — the phasing gate*. Content template:
+One file per phase that chose flat-file shape in *Plan — the phasing gate*. The **Outcome** line is for the user, not the engineer: what changes for them, then cost and risk, with no file names, commands or jargon. Its first sentence is what the status table shows. Content template:
 
 ```markdown
 ---
@@ -292,6 +292,8 @@ code: false   # only for a task phase; omit for code phases
 # Phase <N> — <Name>
 
 **Goal:** <one-sentence phase goal>
+
+**Outcome:** <plain words: what changes for the user · cost · risk>
 
 **Files to touch:**
 - <path/to/file>
@@ -340,6 +342,17 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 ```
 
 Section headings are free-form — add new ones (e.g., `## Research findings`) as new kinds of entries emerge during execution.
+
+#### `.gitattributes` (repo root)
+
+Parallel branches append rows to the same ledger `INDEX.md` files, and a plain merge conflicts on them. Union merge keeps both sides. If the repo root's `.gitattributes` lacks either line below, append it (create the file if needed) and commit it with the spec. Leave every other line alone.
+
+```gitattributes
+docs/specs/**/INDEX.md merge=union
+*/docs/specs/**/INDEX.md merge=union
+```
+
+The second line covers specs under a subproject (`landing/docs/specs/`). Union merge can duplicate a row both sides edited; the doctor flags duplicate and dangling rows.
 
 ## Files NOT scaffolded at birth
 

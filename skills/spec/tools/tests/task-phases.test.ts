@@ -1,25 +1,21 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { loadSpecState } from "../core/spec-state";
 import { taskPhaseIssues } from "../doctor/task-phases";
 import { renderPrGroups } from "../ready/render";
 import { phaseEdges, phaseState } from "./factories";
+import { createTree } from "./tree";
 
 describe("a phase's code flag", () => {
-  const dir = mkdtempSync(join(tmpdir(), "spec-task-"));
-  const write = (path: string, text: string) => {
-    mkdirSync(join(dir, path, ".."), { recursive: true });
-    writeFileSync(join(dir, path), text);
-  };
-  write("progress.md", "## Phases\n- [ ] Phase 1 — Page → `phases/phase-1-page.md`\n- [ ] Phase 2 — Record → `phases/phase-2-record.md`\n");
-  write("phases/phase-1-page.md", "---\nneeds: []\n---\n- [ ] build\n");
-  write("phases/phase-2-record.md", "---\nneeds: []\ncode: false\n---\n- [ ] record\n");
-  afterAll(() => rmSync(dir, { recursive: true, force: true }));
+  const tree = createTree("spec-task-");
+  const spec = tree.spec("ballroom", {
+    "progress.md": "## Phases\n- [ ] Phase 1 — Page → `phases/phase-1-page.md`\n- [ ] Phase 2 — Record → `phases/phase-2-record.md`\n",
+    "phases/phase-1-page.md": "---\nneeds: []\n---\n- [ ] build\n",
+    "phases/phase-2-record.md": "---\nneeds: []\ncode: false\n---\n- [ ] record\n",
+  });
+  afterAll(tree.cleanup);
 
   test("defaults to code and reads code: false as a task phase", () => {
-    const phases = loadSpecState({ name: "ballroom", dir }).phases;
+    const phases = loadSpecState(spec).phases;
     expect(phases.map((phase) => phase.code)).toEqual([true, false]);
   });
 });

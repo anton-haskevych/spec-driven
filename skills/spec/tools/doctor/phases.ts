@@ -1,4 +1,4 @@
-import { countCheckboxes, type PhaseLine } from "../core/progress";
+import { countCheckboxes, indentedPhaseLines, type PhaseLine } from "../core/progress";
 import { error, warning, type Issue } from "./issue";
 
 export type ReadPhaseEntry = (pointer: string) => string | undefined;
@@ -28,4 +28,8 @@ export function checkInFlight(file: string, text: string, everyPhaseDone: boolea
   if (!everyPhaseDone) return [];
   const pending = text.split("\n").some((line) => !HEADING_OR_BLANK.test(line));
   return pending ? [warning(file, "has pending notes but every phase is done; clear it or reopen a phase")] : [];
+}
+
+export function checkIndentedPhaseLines(progressFile: string, progress: string): Issue[] {
+  return indentedPhaseLines(progress).map((text) => warning(progressFile, `indented phase line is invisible to the tools: ${text}`));
 }

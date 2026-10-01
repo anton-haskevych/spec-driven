@@ -1,0 +1,55 @@
+﻿2026-10-01T00:35:16.4164631Z Current runner version: '2.337.0'
+2026-10-01T00:36:45.1336646Z ##[group]Run pnpm test:backend --all --workers 4
+2026-10-01T00:36:45.1337000Z [36;1mpnpm test:backend --all --workers 4[0m
+2026-10-01T00:36:45.1338000Z ##[endgroup]
+2026-10-01T00:40:00.0000000Z progress line 0
+2026-10-01T00:40:01.0000000Z progress line 1
+2026-10-01T00:40:02.0000000Z progress line 2
+2026-10-01T00:40:03.0000000Z progress line 3
+2026-10-01T00:40:04.0000000Z progress line 4
+2026-10-01T00:40:05.0000000Z progress line 5
+2026-10-01T00:40:06.0000000Z progress line 6
+2026-10-01T00:40:07.0000000Z progress line 7
+2026-10-01T00:40:08.0000000Z progress line 8
+2026-10-01T00:40:09.0000000Z progress line 9
+2026-10-01T00:40:10.0000000Z progress line 10
+2026-10-01T00:40:11.0000000Z progress line 11
+2026-10-01T00:40:12.0000000Z progress line 12
+2026-10-01T00:40:13.0000000Z progress line 13
+2026-10-01T00:40:14.0000000Z progress line 14
+2026-10-01T00:40:15.0000000Z progress line 15
+2026-10-01T00:40:16.0000000Z progress line 16
+2026-10-01T00:40:17.0000000Z progress line 17
+2026-10-01T00:40:18.0000000Z progress line 18
+2026-10-01T00:40:19.0000000Z progress line 19
+2026-10-01T00:40:20.0000000Z progress line 20
+2026-10-01T00:40:21.0000000Z progress line 21
+2026-10-01T00:40:22.0000000Z progress line 22
+2026-10-01T00:40:23.0000000Z progress line 23
+2026-10-01T00:40:24.0000000Z progress line 24
+2026-10-01T00:40:25.0000000Z progress line 25
+2026-10-01T00:40:26.0000000Z progress line 26
+2026-10-01T00:40:27.0000000Z progress line 27
+2026-10-01T00:40:28.0000000Z progress line 28
+2026-10-01T00:40:29.0000000Z progress line 29
+2026-10-01T00:40:30.0000000Z progress line 30
+2026-10-01T00:40:31.0000000Z progress line 31
+2026-10-01T00:40:32.0000000Z progress line 32
+2026-10-01T00:40:33.0000000Z progress line 33
+2026-10-01T00:40:34.0000000Z progress line 34
+2026-10-01T00:40:35.0000000Z progress line 35
+2026-10-01T00:40:36.0000000Z progress line 36
+2026-10-01T00:40:37.0000000Z progress line 37
+2026-10-01T00:40:38.0000000Z progress line 38
+2026-10-01T00:40:39.0000000Z progress line 39
+2026-10-01T00:43:17.8273664Z BUILD FAILED in 5m 28s
+2026-10-01T00:43:19.3762483Z FAILED TESTS:
+2026-10-01T00:43:19.3763333Z   EnrollSubscriptionHandlerIT > happy path
+2026-10-01T00:43:19.3779629Z RESULT status=failed reason=tests-failed failed=1
+2026-10-01T00:43:19.4282496Z  ELIFECYCLE  Command failed with exit code 1.
+2026-10-01T00:43:19.4497649Z ##[error]Process completed with exit code 1.
+2026-10-01T00:43:19.4542700Z ##[group]Run actions/upload-artifact@v4
+2026-10-01T00:43:29.1239652Z Post job cleanup.
+2026-10-01T00:43:29.7984561Z ##[group]Run '/home/runner/job-completed-hook.sh'
+2026-10-01T00:43:29.8115419Z Cleaning up orphan processes
+2026-10-01T00:43:29.8758045Z ##[warning]Node.js 20 is deprecated.

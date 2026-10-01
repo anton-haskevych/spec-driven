@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { SUB_COMMANDS } from "../context/request";
 import { isRecord, parseFrontmatter, stringField } from "../core/frontmatter";
+import { phaseFileText } from "../phases/template";
 
 const SKILL_DIR = join(import.meta.dir, "..", "..");
 const PLUGIN_ROOT = join(SKILL_DIR, "..", "..");
@@ -108,5 +109,14 @@ describe("sub-command wiring", () => {
       expect(parsed.body).toContain(`\`spec-driven:spec\` with args \`${command} $ARGUMENTS\``);
       expect(parsed.body).toContain("../spec/SKILL.md");
     }
+  });
+});
+
+describe("phase template wiring", () => {
+  test("create.md's phase template carries the same Goal and Outcome lines as phase add's", () => {
+    const generated = phaseFileText({ id: "1", title: "Any", edges: {} }).split("\n");
+    const label = (name: string) => generated.find((line) => line.startsWith(`**${name}:**`)) ?? "missing";
+    const create = readFileSync(join(SKILL_DIR, "create.md"), "utf8");
+    expect(create).toContain(`${label("Goal")}\n\n${label("Outcome")}\n`);
   });
 });

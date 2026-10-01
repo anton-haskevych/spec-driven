@@ -26,7 +26,6 @@ checks:
 gates:
   after-merge-main: merge-main   # gates.md section run after merging main
   bootstrap: bootstrap           # gates.md section run when a worktree is fresh
-nudge-at: 500000      # tokens; assumes 1M-window sessions; unset → no context nudge
 ---
 
 <prose: why these values; optional>
@@ -60,13 +59,13 @@ Commands take `runner: Runner = systemRunner` as their last param. Tests: stub r
 | `phase tick <spec> <phase> "<item prefix>"\|#N [--evidence <text>]` | ticks the unique matching open item (prefix on markdown-stripped text, or the Nth open item); task phases require `--evidence` that passes `EVIDENCE`; when the entry has no open box left (`countCheckboxes(entry).unchecked === 0`) flips the progress.md box and prints `Phase N complete — run update.md → Close the phase` | `commands/phase.ts`, `phases/tick.ts` |
 | `phase deployed <spec> <phase> [--date YYYY-MM-DD]` | inserts ` · deployed <date>` **immediately after the pointer** of a ticked progress line (trailing notes stay after it); refuses unticked; idempotent | `phases/deployed.ts` |
 | `phase add <spec> "<title>" [--after <id>] [--needs a,b] [--pr X] [--code false]` | new id = next integer, or `<after>` + first free letter; progress line inserted after the last existing `<after>*` line; phase file from the flat template (incl. `**Outcome:**`) | `phases/add.ts` |
-| `phase split <spec> <id> "<title b>" ["<title c>"…] [--items b:1,2 c:3]` | **`<id>` keeps its id, file and ticked items**; new parts take the next free letters (`7` → `7`, `7a`, `7b`; collisions via `samePhase`); listed open items move to the new parts; sibling `needs` on `<id>` are left alone (the original still exists) and reported for review; refuses folder-shape and done phases | `phases/split.ts` |
+| `phase split <spec> <id> "<title b>" ["<title c>"…] [--items "b:1,2 c:3"]` | **`<id>` keeps its id, file and ticked items**; new parts take the next free letters (`7` → `7`, `7a`, `7b`; collisions via `samePhase`); listed open items (`#N` positions; labels `b`, `c`… = titles in order; `--items` repeatable or space-separated, since `parseArgs` takes one value per flag) move to the new parts; parts copy the original's edges; a move that leaves the original fully ticked flips its box; sibling `needs` on `<id>` are left alone (the original still exists) and reported for review; refuses folder-shape and done phases | `phases/split.ts` |
 | `lessons add <entry.md> <spec>` | bookkeeping on a lesson the agent already wrote at its final `_ledger/` path (hook-validated): prints `lessons similar` close matches as a warning, sets `created:` if missing, sets `seen-in: [<spec>]`, appends the project INDEX row and the spec pointer row | `commands/lessons.ts`, `lessons/add.ts` |
 | `settings` | resolved settings | `commands/settings.ts` |
 | `gates --name <g…>` | see *Named gates* | `commands/gates.ts` |
 | `pr-status [<pr>\|<spec>]` | see design.md output and *pr-status* below | `commands/pr-status.ts`, `pr/*` |
 | `push` | `git push origin HEAD:refs/heads/<current>` (sets upstream when none); refuses detached HEAD; on the default branch refuses when unpushed commits touch paths outside `isSpecDocPath`; prints `Remote:` line | `commands/push.ts`, `publish/push.ts` |
-| `publish-docs [<spec>]` | only when `docs: main` and not on the default branch; algorithm below; `<spec>` only labels the commit | `commands/publish-docs.ts`, `publish/snapshot.ts`, `publish/publish.ts` |
+| `publish-docs [<spec>]` | only when `docs: main` and not on the default branch; pushes the branch first (same as `push`), then the algorithm below, then pushes the merge-back; prints one `Remote:` line; `<spec>` only labels the commit | `commands/publish-docs.ts`, `publish/snapshot.ts`, `publish/publish.ts` |
 
 ### Context parse (replaces `context.ts:24-31`)
 1. Tokenize; strip trailing `[.,;:!?]+` per token.
@@ -86,9 +85,9 @@ SKILL.md keeps its parse rules — they are the no-Bun fallback and the only par
 2. Base `P` = the last snapshot commit reachable from HEAD (`git log -1 --format=%H --grep '^docs(spec): snapshot' HEAD`), else `git merge-base HEAD M`.
 3. Files = `git diff --name-only --no-renames --diff-filter=AM P HEAD` filtered by `isSpecDocPath`. Deleted paths → reported "not published".
 4. Snapshot: temp `GIT_INDEX_FILE`; `read-tree P`; for each file `update-index --add --cacheinfo <mode>,<HEAD blob>,<path>` (HEAD blobs — never worktree content); `write-tree`; `X = commit-tree -p P -m "docs(spec): snapshot <spec>"`.
-5. `git merge-tree --write-tree M X`. Exit 1 (conflict) → stop, name the conflicting files ("diverged on main — merge main first"), push nothing. INDEX files union-merge through `.gitattributes`; no hand merge, no line guard.
+5. `git merge-tree --write-tree M X`. Exit 1 (conflict) → stop, name the conflicting files ("diverged on main — merge main first"), push nothing. Any other non-zero exit → stop with stderr (needs git ≥ 2.38). INDEX files union-merge through `.gitattributes`; no hand merge, no line guard.
 6. `D = commit-tree <tree> -p M -p X -m "docs(spec): publish <spec>"`; `push origin D:refs/heads/<default>`. Non-fast-forward → re-fetch, re-pin, rebuild once; then stop. Any other rejection (protection, pre-push hook) → stop with the error, no retry.
-7. `git merge --no-edit X` into the branch — a no-op diff that records the snapshot as an ancestor, so the next "merge main" and the next publish see only new changes.
+7. `git merge --no-edit X` into the branch — a no-op diff that records the snapshot as an ancestor, so the next "merge main" and the next publish see only new changes. If it fails, main keeps the publish; report it with `git merge <X>` to run by hand.
 8. Print `published N files to <default> (<sha>)` and skipped deletions.
 
 ### pr-status
@@ -96,10 +95,10 @@ SKILL.md keeps its parse rules — they are the no-Bun fallback and the only par
 2. `gh pr view <n> --json state,isDraft,mergeable,mergeStateStatus,headRefOid`; `mergeable == UNKNOWN` → one re-poll.
 3. Checks: `gh pr checks <n> --json name,state,bucket,workflow,link` (exit 1 on failures is data, not a crash). Names matching `settings.checks.external` are counted separately.
 4. `state:` precedence: `merged`/`closed` → `conflicting` → `draft` → `red` → `pending` → `green` → `unknown`.
-5. Failed jobs: run ids from `link`; `gh run view <run> --json jobs` (fetched once per run) for job ids; logs via `gh api repos/{owner}/{repo}/actions/jobs/<id>/logs` — `--log-failed` waits for the whole run (CRM lesson `workaround-read-a-failed-job-log-while-the-run-is-still-going.md`). Non-Actions checks have no job → name only. Strip BOM/ANSI/`<ISO>Z ` prefixes; last 30 lines.
-6. Main comparison per failed job: `gh run list --branch <default> --workflow <file> --json databaseId,conclusion,createdAt` (map name→file via `gh workflow list --json`), walk back past runs where the job was skipped/cancelled/absent; cap 15 runs per job and 30 gh calls per invocation; else "not run in the last N runs".
+5. Failed jobs: run ids from `link`; `gh run view <run> --json jobs` (fetched once per run) for job ids; logs via `gh api repos/{owner}/{repo}/actions/jobs/<id>/logs` — `--log-failed` waits for the whole run (CRM lesson `workaround-read-a-failed-job-log-while-the-run-is-still-going.md`). Non-Actions checks have no job → name only. Strip BOM/ANSI/`<ISO>Z ` prefixes; the 30 lines ending at the first `##[error]` line (the log's tail is post-job cleanup), else the last 30. Tails for the first 3 failing jobs only (`decision-pr-status-tails-first-three.md`).
+6. Main comparison per failed job: workflow id from `gh run view <run> --json workflowDatabaseId` (names repeat, e.g. two "E2E Tests"), then `gh run list --branch <default> --workflow <id> --json databaseId,conclusion,createdAt`, walk back past runs where the job was skipped/cancelled/absent; cap 15 runs per job and 30 gh calls per invocation; else "not run in the last N runs".
 
-Modules: `pr/checks.ts` (pure normalisation + state precedence), `pr/main-compare.ts` (runner walk-back), `pr/log-tail.ts` (pure), `pr/render.ts`.
+Modules: `pr/gh.ts` (the only gh caller: typed records + 30-call budget), `pr/checks.ts` (pure counts + state precedence), `pr/main-compare.ts` (walk-back), `pr/log-tail.ts` (pure), `pr/report.ts` (orchestration), `pr/render.ts`.
 
 ## Doctor additions
 - `checkLedgerIndex` (`doctor/ledger.ts:29`) counts rows instead of collecting a Set → duplicate rows become warnings. The project `_ledger/INDEX.md` gets the same check (missing files, duplicates) plus spec pointer rows whose `docs/specs/_ledger/…` target is missing. No new `index-rows.ts`.
@@ -108,14 +107,11 @@ Modules: `pr/checks.ts` (pure normalisation + state precedence), `pr/main-compar
 - `create.md` adds both union rules (`docs/specs/**/INDEX.md`, `*/docs/specs/**/INDEX.md`) to `.gitattributes` when missing.
 
 ## Hooks
-- Shared input: `tools/hooks/hook-input.ts` — `readPayload()`, `writtenPaths(payload)` for Write/Edit/MultiEdit, the fail-open `main()` wrapper, and `sessionMemory(prefix)` moved from `lesson-recall.ts:37-52` (`RecallMemory` → `SessionMemory`; no session id → no memory writes).
-- `bash-guard.ts` (new, **PreToolUse**, matcher `Bash`, `if:` pre-spawn filter on commands mentioning `docs/specs`): when the command matches a write signal (the ~8 regexes of CRM `ops/src/hooks/pre-tool-use/protect-generated.ts:13-22`, copied — zero deps) and `git mv|rm|add|commit|checkout|restore|merge` is not the verb, deny with "Use `spec.ts phase tick|deployed|add|split` / `lessons add`, or the Write/Edit tools". Replaces the PostToolUse mtime sweep.
 - `spec-file-check.ts`: unchanged matcher (`Write|Edit|MultiEdit`); `_playbook/settings.md` routed to the settings check.
-- `context-nudge.ts`: PostToolUse, matcher `Bash|Write|Edit|MultiEdit|Agent`; reads the transcript tail (last 256 KB), skips the first partial line and `isSidechain`/`<synthetic>` entries, last assistant `usage` → `input + cache_read + cache_creation`; ≥ `nudge-at` and not yet nudged → `additionalContext`: "Context ≈ N tokens (nudge-at M). Finish the current TDD cycle, then /spec handoff at the next clean boundary." Silent otherwise.
-- `skill-wiring.test.ts:32-34` hook count 2 → 4.
+- No new hooks: no Bash write guard (`decision-no-bash-guard.md`), no context nudge (`decision-no-context-nudge.md`).
 
 ## Mode-file changes
-- SKILL.md: parse rules (`:36-49`) rewritten to match *Context parse* 1–3 (kept, not dropped); `:74` reworded (names or changed paths, never branches); `:78`, `execute.md:107` reworded for the nudge (auto-compact may be off — the nudge, not compaction, is the stop signal); `:86` hook coverage; draft wording `:401` → settings; grouped Tools bullets.
+- SKILL.md: parse rules (`:36-49`) rewritten to match *Context parse* 1–3 (kept, not dropped); `:74` reworded (names or changed paths, never branches); `:86` hook coverage; draft wording `:401` → settings; grouped Tools bullets.
 - `execute.md`: `:97,147-149` → `phase tick`; `:134` gates wording; `:137` → `settings.pr.draft`; `:150` → `phase add`; after merging main → `gates --name <after-merge-main>`; PR body leads with phase Outcomes; `pr-status` at the gate.
 - `update.md`: `:36-49` → `phase tick`/`phase deployed`; §9 → push.
 - `handoff.md` §3: after commit → `spec.ts push`, then `publish-docs` when `docs: main`; §4 prints the `Remote:` line.

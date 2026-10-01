@@ -34,6 +34,8 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 
 **Task phase?** If the picked phase has `code: false` (the execute pack says so under `Picked:`), skip to *Task phases* below; §1–§7 are for code.
 
+**Fresh worktree?** When project settings name `gates.bootstrap` (the pack's `Settings:` line says `fresh worktree: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do the steps whose condition holds; the gate text defines "fresh". No `Settings:` line means no bootstrap step. Without Bun, read `gates.bootstrap` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
+
 Read [principles.md](principles.md) once at the start of execution. These rules govern every code change you produce.
 
 ## 2. Recon the phase seam — before any decomposition
@@ -94,7 +96,7 @@ For each unit:
 3. **Green.** Run the unit test → green. Run the broader test suite → still green.
 4. **Refactor (if warranted).** Improve names, split functions that grew too large, eliminate duplication that just appeared. Tests stay green throughout.
 5. **Commit.** One logical change per commit. Commit message states the *why*, not just the *what*. Body explains anything non-obvious about the approach.
-6. **Update progress.** Tick the corresponding sub-checkbox in the phase entry (`phases/phase-<N>-<slug>.md` or the folder's `plan.md`). If this completes all sub-checkboxes for the phase, flip the top-level box in `progress.md` and refresh the **Spec state** in `pr-opening.md` (phases done / left).
+6. **Update progress.** Tick the matching sub-checkbox with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"` (or `#N` for the Nth open item, which keeps backticks out of the shell). When it ticks the last open item it also flips the `progress.md` box and says `Phase N complete`. Then refresh the **Spec state** in `pr-opening.md` (phases done / left). Without Bun, edit the boxes by hand: the entry's sub-checkbox, and the `progress.md` box only when every sub-checkbox is ticked.
 
 ## 7. Capture durable learnings as you go
 
@@ -131,10 +133,18 @@ If the chunk completes a phase, run `update.md` → *Close the phase* — it cap
 
 When the code phases this PR covers are all done, opening the PR is gated by `pr-opening.md` — it is **not** a phase:
 
-1. Run the **pre-PR checks** in `pr-opening.md`, scoped to the subprojects this PR touches. Lines like `gate: landing` point at named blocks in `docs/specs/_playbook/gates.md`; `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates <name>` expands them.
+1. Run the **pre-PR checks** in `pr-opening.md`, scoped to the subprojects this PR touches. Lines like `gate: landing` point at named blocks in `docs/specs/_playbook/gates.md`; `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates <spec-name>` expands the ones this spec references (`gates --name <gate…>` expands any named section). Without Bun, read those sections in `gates.md`.
 2. Tick each check only when it actually passes; paste the failing output instead if it doesn't.
 3. Refresh the **Spec state** (phases done, branch, PR link once it exists).
-4. Open the PR as a **draft, off a feature branch — never to `main`**, following the PR split recorded in `pr-opening.md`.
+4. Open the PR **off a feature branch — never to `main`**, following the PR split recorded in `pr-opening.md`. It is a draft unless project settings say `pr.draft: false` (the pack's `Settings:` line reads `PRs ready`); no `Settings:` line means draft. The PR body opens with the **Outcome** line of each phase it ships, one bullet per phase, before any technical detail.
+
+**Checking on the PR.** Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts pr-status [<pr>|<spec>]` (no argument: the current branch's PR). It prints the `state:` line (`merged`, `closed`, `conflicting`, `draft`, `red`, `pending`, `green`, `unknown`), the check counts, and for each failing job the failure's tail and whether it fails on main too. It never waits: run it again later rather than looping on `gh`. Without Bun: `gh pr view <n> --json state,isDraft,mergeable`, `gh pr checks <n>`, and for a failed job `gh api repos/{owner}/{repo}/actions/jobs/<job id>/logs` (`gh run view --log-failed` waits for the whole run).
+
+**After merging main into the branch**, when settings name `gates.after-merge-main` (`after merging main: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and work through it before pushing.
+
+**Merging the PR** is the user's call; never merge on your own. When they say merge, use the method in `pr.merge` (`merge squash|merge|rebase`); unset → ask which. From a worktree, `gh pr merge` fails trying to check out the default branch, so merge with `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=<method>`.
+
+Without Bun, read `docs/specs/_playbook/settings.md` for these keys and `gates.md` for the named section. No settings file → draft PRs, no after-merge gate, ask for the merge method.
 
 Never invent a "verification" or "open PR" phase to hold this — that's what `pr-opening.md` is for.
 
@@ -146,8 +156,8 @@ A task phase (`code: false`) delivers work outside the repo. No recon waves, no 
 2. **Split the open items by who can do them.**
    - **Items you can do here** (draft the copy, write the brief, prepare the run of show, build a shareable page): do them, save the result where the project keeps it, and tick each with that file or link.
    - **Items a person must do** (record, meet, send, publish from their account): tell the user what each needs from them, in one short list. Tick an item only when they report it done, with the evidence they give.
-3. **Tick with evidence**, always: `- [x] <item> — <link, date or file>`. The doctor warns about ticks with nothing after them.
-4. **Found code work?** It doesn't belong in a task phase. Add a code phase through `update` and link it with `needs`.
+3. **Tick with evidence**, always: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>" --evidence "<link, date or file>"` writes `- [x] <item> — <evidence>` and refuses anything that isn't evidence. Without Bun, write that line by hand. The doctor warns about ticks with nothing after them.
+4. **Found code work?** It doesn't belong in a task phase. Add a code phase with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase add <spec> "<title>"` (update.md → *New work → add or split a phase*) and link the two with `needs`.
 5. The stopping rule (§8), end-of-chunk (§9) and handoff apply as for code phases.
 
 ## Notes

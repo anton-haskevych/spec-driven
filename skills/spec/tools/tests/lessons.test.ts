@@ -6,7 +6,7 @@ import { lessonsCommand } from "../commands/lessons";
 import { checkProjectLesson } from "../doctor/project-lesson";
 import { recallResponse, type RecallMemory } from "../hooks/lesson-recall";
 import { hookResponse } from "../hooks/spec-file-check";
-import { loadProjectLessons } from "../lessons/project-ledger";
+import { lessonFileName, loadProjectLessons } from "../lessons/project-ledger";
 import { lessonsForFiles } from "../lessons/recall";
 import { addSeenIn } from "../lessons/seen-in";
 import { similarLessons } from "../lessons/similar";
@@ -112,5 +112,13 @@ describe("project lesson checks", () => {
     writeFileSync(file, "# no frontmatter\n");
     const response = hookResponse({ tool_name: "Write", tool_input: { file_path: file }, cwd: project }, project);
     expect(response).toContain("project lesson has no frontmatter");
+  });
+});
+
+describe("lessonFileName", () => {
+  test("accepts a slug, a file name or a path", () => {
+    expect(lessonFileName("gotcha-x")).toBe("gotcha-x.md");
+    expect(lessonFileName("gotcha-x.md")).toBe("gotcha-x.md");
+    expect(lessonFileName("docs/specs/_ledger/gotcha-x.md")).toBe("gotcha-x.md");
   });
 });
