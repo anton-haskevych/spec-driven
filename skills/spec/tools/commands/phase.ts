@@ -7,7 +7,9 @@ import { loadNodes } from "../graph/nodes";
 import { planAdd } from "../phases/add";
 import { planDeployed } from "../phases/deployed";
 import { parseItemAssignments } from "../phases/move-items";
+import { refsToPhase } from "../phases/review-refs";
 import { planSplit } from "../phases/split";
+import { loadSpecState } from "../core/spec-state";
 import { planTick } from "../phases/tick";
 
 interface PhaseAction {
@@ -102,11 +104,15 @@ function split(projectDir: string, args: string[]): string {
   const items = parseItemAssignments(parsed.values.items ?? [], titles.length);
   if (typeof items === "string") return `phase split: ${items}`;
 
-  const result = planSplit(spec, { id, titles, items }, loadNodes(projectDir));
-  if (result.plan.kind !== "ok") return `phase split: ${result.plan.reason}`;
+  const nodes = loadNodes(projectDir);
+  const result = planSplit(spec, { id, titles, items }, nodes);
+  if (result.kind === "invalid") return `phase split: ${result.reason}`;
   applyEdits(result.plan);
+  const kept = result.original.id;
   const added = result.parts.map((part) => `${part.id} — ${part.title} → ${part.pointer}`).join(", ");
-  return `split Phase ${result.original?.id}: kept ${result.original?.id}, added ${added}`;
+  const refs = refsToPhase(loadSpecState(spec), kept, nodes);
+  const review = refs.length === 0 ? "" : `\nThese still point at Phase ${kept}; keep them, or retarget to a new part:\n${refs.map((ref) => `- ${ref}`).join("\n")}`;
+  return `split Phase ${kept}: kept ${kept}, added ${added}${review}`;
 }
 
 const CODE_FLAG_VALUES: Record<string, boolean> = { true: true, false: false };

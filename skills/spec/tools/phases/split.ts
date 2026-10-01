@@ -23,11 +23,9 @@ export interface SplitPart {
   pointer: string;
 }
 
-export interface Split {
-  plan: EditPlan;
-  original?: PhaseState;
-  parts: SplitPart[];
-}
+export type Split =
+  | { kind: "ok"; plan: Extract<EditPlan, { kind: "ok" }>; original: PhaseState; parts: SplitPart[] }
+  | { kind: "invalid"; reason: string };
 
 const FOLDER_PLAN = /\/plan\.md$/;
 
@@ -68,7 +66,7 @@ export function planSplit(spec: SpecFolder, request: SplitRequest, nodes: Readon
   ];
   const introduced = issuesIntroducedBy(spec, edits, nodes);
   if (introduced.length > 0) return invalid(introduced.map((issue) => issue.problem).join("; "));
-  return { plan: { kind: "ok", edits }, original: phase, parts };
+  return { kind: "ok", plan: { kind: "ok", edits }, original: phase, parts };
 }
 
 function splitRefusal(phase: PhaseState): string | undefined {
@@ -88,5 +86,5 @@ function movedLines(items: readonly number[] | undefined, moved: ReadonlyMap<num
 }
 
 function invalid(reason: string): Split {
-  return { plan: { kind: "invalid", reason }, parts: [] };
+  return { kind: "invalid", reason };
 }
