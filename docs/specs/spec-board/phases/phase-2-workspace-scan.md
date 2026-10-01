@@ -52,12 +52,12 @@ and one `prunable` entry by hand from the git docs.
 
 ## Deliverables
 
-- [ ] `AsyncRunner` + `systemAsyncRunner` + `runAll` (order kept, concurrency capped, a failing job doesn't reject) with `asyncStubRunner`
-- [ ] `uncommittedPaths` (`context/infer-spec.ts`) moved to `core/git-status.ts` as `parsePorcelainZ` with pure tests (rename/copy pairs, untracked, empty); `specsInPlay` uses it
-- [ ] `parseWorktreeList` from the porcelain fixture: branch, detached, locked, prunable, main first
-- [ ] `parseAheadBehind` + `classifyWorkspaces` (merged, live, unknown-base, unreadable; detached via `rev-list`; `forceLive` overrides merged) from fixtures
-- [ ] `workspaceSpecChanges` with stubbed runner: committed via `diff <baseSha>...<head>`, uncommitted via `status -z` with `--no-optional-locks`, both scoped to spec docs; no committed query without commits ahead of base (so a main checkout on the default branch runs only the uncommitted one)
-- [ ] `addWorktree(name, branch)` + `isolatedAsyncRunner` in `tests/git-repo.ts` + one real-git `scanWorkspaces` test: two worktrees, one merged, one with an uncommitted spec-doc edit, paths compared after `realpathSync`
+- [x] `AsyncRunner` + `systemAsyncRunner` + `runAll` (order kept, concurrency capped, a failing job doesn't reject) with `asyncStubRunner`
+- [x] `uncommittedPaths` (`context/infer-spec.ts`) moved to `core/git-status.ts` as `parsePorcelainZ` with pure tests (rename/copy pairs, untracked, empty); `specsInPlay` uses it
+- [x] `parseWorktreeList` from the porcelain fixture: branch, detached, locked, prunable, main first
+- [x] `parseAheadBehind` + `classifyWorkspaces` (merged, live, unknown-base, unreadable; detached via `rev-list`; `forceLive` overrides merged) from fixtures
+- [x] `workspaceSpecChanges` with stubbed runner: committed via `diff <baseSha>...<head>`, uncommitted via `status -z` with `--no-optional-locks`, both scoped to spec docs; no committed query without commits ahead of base (so a main checkout on the default branch runs only the uncommitted one)
+- [x] `addWorktree(name, branch)` + `isolatedAsyncRunner` in `tests/git-repo.ts` + one real-git `scanWorkspaces` test: two worktrees, one merged, one with an uncommitted spec-doc edit, paths compared after `realpathSync`
 
 ## Phase-local notes
 

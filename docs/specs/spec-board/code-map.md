@@ -15,6 +15,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/board.ts` | `spec.ts board [<lane>] [--json] [--local]` — agent feed | 1 |
 | `skills/spec/tools/workspaces/classify.ts` | merged / live / unknown-base / unreadable | 2 |
 | `skills/spec/tools/workspaces/changes.ts` | `workspaceSpecChanges` per live worktree | 2 |
+| `skills/spec/tools/workspaces/scan.ts` | `scanWorkspaces` — the one call `board/load.ts` makes | 2 |
 | `skills/spec/tools/board/activity.ts` | `tickedIn` / `wipIn` — base is never patched | 3 |
 | `skills/spec/tools/sessions/live.ts` | Only reader of `~/.claude/sessions/*.json` | 4 |
 | `skills/spec/tools/claims/store.ts` | Atomic claim create / takeover / release | 5 |

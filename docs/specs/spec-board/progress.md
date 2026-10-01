@@ -14,7 +14,7 @@
 ## Phases
 
 - [x] Phase 1 — Board from main → `phases/phase-1-board-from-main.md`
-- [ ] Phase 2 — Workspace scan → `phases/phase-2-workspace-scan.md`
+- [x] Phase 2 — Workspace scan → `phases/phase-2-workspace-scan.md`
 - [ ] Phase 3 — In-flight overlay → `phases/phase-3-in-flight-overlay.md`
 - [ ] Phase 4 — PRs and sessions → `phases/phase-4-prs-and-sessions.md`
 - [ ] Phase 5 — Phase claims → `phases/phase-5-phase-claims.md`
