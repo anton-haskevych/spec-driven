@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Phases 1–3 done: PR A's code is complete (board from origin + worktree overlay; CRM 1.5 s warm, same board from main and a worktree). Next: PR A's pre-PR checks. Phases 4–6 open; 4 is ready. Branch `feat/spec-board`, no PR yet (PR A after phase 3).
+Phases 1–3 done: PR A's code is complete (board from origin + worktree overlay; CRM 1.5 s warm, same board from main and a worktree). PR A: https://github.com/anton-haskevych/spec-driven/pull/8 (draft: cold timing 3.3 s vs 3 s target). Phases 4–6 open; 4 is ready. Branch `feat/spec-board`, no PR yet (PR A after phase 3).
 Split (value first):
 - **PR A: phases 1–3.** Board from main, workspace scan, in-flight overlay. Phases 1 and 2 can run in parallel. Release 2.35.0.
 - **PR B: phases 4–6.** PRs and sessions, claims, loop wiring. Release 2.36.0.
