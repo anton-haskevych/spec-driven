@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { loadBacklog, type BacklogItem } from "../backlog/items";
+import type { BaseRef, SpecStage } from "../board/inputs";
 import type { Git } from "../core/git";
 import type { Result } from "../core/result";
 import { listSpecs, type SpecFolder } from "../core/spec-folders";
@@ -14,15 +15,6 @@ export interface MainlineOptions {
   timeoutMs: number;
   local: boolean;
 }
-
-export interface BaseRef {
-  branch: string;
-  sha: string;
-  date: string;
-  fetch: Result<void> | "local";
-}
-
-export type SpecStage = "prep" | "create";
 
 export interface Mainline {
   base: BaseRef;
