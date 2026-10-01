@@ -7,6 +7,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `gotcha-locate-spec-file-needs-absolute-paths.md` — [phase 1, 7, 8] — git prints relative paths; join onto repo root first
 - `gotcha-deployed-marker-goes-after-the-pointer.md` — [phase 2] — reader only sees `· deployed` right after the pointer
 - `docs/specs/_ledger/gotcha-bun-test-runs-in-utc-but-spawned-children-do-not.md` — [general] — bun test is UTC; spawned children aren't
+- `docs/specs/_ledger/gotcha-execute-section-0-is-skipped-on-the-resume-path.md` — [general] — A step every execute session must run goes in execute.md §1, not §0
 
 ## Principles
 - `principle-writers-plan-validate-then-apply.md` — [phase 2+] — whole EditPlan, checked in-process, one applier

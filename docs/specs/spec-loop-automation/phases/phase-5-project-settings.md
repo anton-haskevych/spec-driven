@@ -40,7 +40,7 @@ Schema and defaults in `technical.md` → *Project settings*. `parseSettings` us
 - [x] `checkLedgerIndex` duplicates + project INDEX + pointer rows
 - [x] Pack `Settings:` line
 - [x] Draft / after-merge / bootstrap / merge-method prose reads settings (execute, SKILL.md, create, review)
-- [ ] `create.md` adds both union rules to `.gitattributes` when missing
+- [x] `create.md` adds both union rules to `.gitattributes` when missing
 
 ## Phase-local notes
 
