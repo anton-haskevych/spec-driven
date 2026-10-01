@@ -24,7 +24,7 @@ export function doctorReport(projectDir: string, specName?: string, runner: Runn
   const nodes = loadNodes(projectDir);
   const gates = loadGates(projectDir);
   const playbooks = new Set(loadPlaybooks(projectDir).map((playbook) => playbook.name));
-  const context = { statuses, nodes, gates, today: isoDay(new Date()), playbooks };
+  const context = { projectDir, statuses, nodes, gates, today: isoDay(new Date()), playbooks };
   const specIssues = specs.flatMap((spec) => runDoctor(spec, context));
   const repo = repoIssues(projectDir, gates, runner);
   const projectIssues = [...projectLedgerIssues(projectDir), ...backlogIssues(projectDir), ...playbookIssues(projectDir)];

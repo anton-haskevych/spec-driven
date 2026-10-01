@@ -17,6 +17,7 @@ import { checkIndentedPhaseLines, checkInFlight, checkPhases } from "./phases";
 import { checkSpecMeta } from "./spec-meta";
 
 export interface DoctorContext {
+  projectDir: string;
   statuses: readonly string[];
   nodes: ReadonlyMap<string, SpecNode>;
   gates?: ReadonlyMap<string, string[]>;
@@ -37,7 +38,7 @@ export function runDoctor(spec: SpecFolder, context: DoctorContext): Issue[] {
   const tasks = [...taskPhaseIssues(state), ...phasePlaybookIssues(state, context.playbooks)];
   const prOpeningFile = join(spec.dir, "pr-opening.md");
   const gates = gateIssues(prOpeningFile, readTextIfExists(prOpeningFile) ?? "", context.gates);
-  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec), ...progressIssues(spec), ...edges, ...schedule, ...tasks, ...gates];
+  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec, context.projectDir), ...progressIssues(spec), ...edges, ...schedule, ...tasks, ...gates];
 }
 
 function metaIssues(spec: SpecFolder, context: DoctorContext): Issue[] {
@@ -46,7 +47,7 @@ function metaIssues(spec: SpecFolder, context: DoctorContext): Issue[] {
   return text === undefined ? [] : checkSpecMeta(file, text, context.statuses);
 }
 
-function ledgerIssues(spec: SpecFolder): Issue[] {
+function ledgerIssues(spec: SpecFolder, projectDir: string): Issue[] {
   const ledgerDir = join(spec.dir, "ledger");
   const entries = markdownFilesIn(ledgerDir).filter((name) => name !== LEDGER_INDEX);
   const entryExists = (name: string) => existsSync(join(ledgerDir, name));
@@ -57,7 +58,7 @@ function ledgerIssues(spec: SpecFolder): Issue[] {
 
   const indexFile = join(ledgerDir, LEDGER_INDEX);
   const indexText = readTextIfExists(indexFile);
-  const indexIssues = indexText === undefined ? [] : checkLedgerIndex(indexFile, indexText, entries);
+  const indexIssues = indexText === undefined ? [] : checkLedgerIndex(indexFile, indexText, entries, (path) => existsSync(join(projectDir, path)));
   return [...entryIssues, ...indexIssues];
 }
 

@@ -53,6 +53,23 @@ describe("checkLedgerIndex", () => {
     const problems = checkLedgerIndex("INDEX.md", index, ["gotcha-a.md", "gotcha-b.md"]).map((i) => i.problem);
     expect(problems).toEqual(["lists gotcha-gone.md, which does not exist", "has no row for gotcha-b.md"]);
   });
+
+  test("warns about a row listed twice, the trace a union merge leaves", () => {
+    const index = "- `gotcha-a.md` — [general] — old\n- `gotcha-a.md` — [general] — edited\n";
+    expect(checkLedgerIndex("INDEX.md", index, ["gotcha-a.md"])).toEqual([
+      { file: "INDEX.md", severity: "warning", problem: "lists gotcha-a.md 2 times; keep one row" },
+    ]);
+  });
+
+  test("checks pointer rows against the repo, and never counts them as local entries", () => {
+    const index =
+      "- `docs/specs/_ledger/gotcha-here.md` — [general] — x\n- `docs/specs/_ledger/gotcha-gone.md` — [general] — y\n- `other-spec/ledger/gotcha-z.md` — [phase 2] — another spec's entry, not checked\n";
+    const exists = (path: string) => path === "docs/specs/_ledger/gotcha-here.md";
+    expect(checkLedgerIndex("INDEX.md", index, [], exists).map((issue) => [issue.severity, issue.problem])).toEqual([
+      ["error", "points at docs/specs/_ledger/gotcha-gone.md, which does not exist"],
+    ]);
+    expect(checkLedgerIndex("INDEX.md", index, [])).toEqual([]);
+  });
 });
 
 describe("checkPhases", () => {

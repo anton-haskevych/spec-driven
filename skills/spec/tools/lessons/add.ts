@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { EditPlan, FileEdit } from "../core/apply-edits";
 import { markdownFilesIn, readTextIfExists } from "../core/files";
@@ -93,7 +94,7 @@ function ledgerIssues(files: LedgerFiles, texts: LedgerFiles, projectDir: string
   return [
     ...checkProjectLesson(files.entry, texts.entry),
     ...checkLedgerIndex(files.projectIndex, texts.projectIndex, lessons),
-    ...checkLedgerIndex(files.specIndex, texts.specIndex, specEntries),
+    ...checkLedgerIndex(files.specIndex, texts.specIndex, specEntries, (path) => existsSync(join(projectDir, path))),
   ];
 }
 

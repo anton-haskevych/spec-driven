@@ -6,6 +6,7 @@ import { parseIndexRows } from "../core/ledger-index";
 import { isoTimestamp } from "../core/schedule";
 import type { SpecFolder } from "../core/spec-folders";
 import { projectLedgerIssues } from "../doctor/project-ledger";
+import { doctorReport } from "../commands/doctor";
 import { lessonsCommand } from "../commands/lessons";
 import { planLessonAdd } from "../lessons/add";
 import { createTree, type Tree } from "./tree";
@@ -122,5 +123,16 @@ describe("lessonsCommand add", () => {
     expect(lessonsCommand(tree.root, ["add", "gotcha-nope", "alpha"])).toBe("lessons add: no lesson at docs/specs/_ledger/gotcha-nope.md; write it with the Write tool first");
     expect(lessonsCommand(tree.root, ["add", "gotcha-retries-double-charge", "zeta"])).toBe("lessons add: no spec named zeta");
     expect(lessonsCommand(tree.root, ["add", "only-one-arg"])).toStartWith("usage: lessons");
+  });
+});
+
+describe("doctor on INDEX rows", () => {
+  test("flags a pointer row whose project lesson is gone and a duplicated project row", () => {
+    setup("# Project Ledger Index\n\n- `gotcha-old.md` — `x/**` — old\n- `gotcha-old.md` — `x/**` — old, edited\n");
+    tree.write("docs/specs/alpha/ledger/INDEX.md", `${SPEC_INDEX}- \`docs/specs/_ledger/gotcha-gone.md\` — [general] — gone\n`);
+    const report = doctorReport(tree.root);
+    expect(report).toContain("alpha/ledger/INDEX.md: points at docs/specs/_ledger/gotcha-gone.md, which does not exist");
+    expect(report).toContain("_ledger/INDEX.md: lists gotcha-old.md 2 times; keep one row");
+    expect(report).toContain("_ledger/INDEX.md: has no row for gotcha-retries-double-charge.md");
   });
 });
