@@ -87,7 +87,8 @@ describe("renderBoard", () => {
           inFlight: [
             flightRow({ phase: "8", prGroup: "D", workspace: "/w/alpha-pr-d", session: { status: "busy", since: "2026-10-01T19:58:00Z" } }),
             flightRow({ phase: "4", workspace: "/w/alpha-pr-b", session: { status: "idle", since: "2026-10-01T17:00:00Z" }, pr: { number: 881, listed: true, draft: true, failing: 2 }, next: "fix CI" }),
-            flightRow({ phase: "3", session: { status: "closed" }, pr: { number: 861, listed: true, failing: 0, pending: 0 }, next: "merge" }),
+            flightRow({ phase: "3", session: { status: "closed" }, pr: { number: 861, listed: true, failing: 0, pending: 0, passing: 3 }, next: "merge" }),
+            flightRow({ phase: "1", session: { status: "unknown" }, pr: "unknown" }),
             flightRow({ phase: "2", pr: { number: 12, listed: false }, next: "ticked on branch, not merged" }),
           ],
         }),
@@ -98,6 +99,21 @@ describe("renderBoard", () => {
     expect(output).toContain("  alpha · 4         alpha-pr-b  idle 3h  #881 draft ✗ 2  fix CI");
     expect(output).toContain("  alpha · 3         —           closed   #861 ✓          merge");
     expect(output).toContain("  alpha · 2         —           —        #12 ?           ticked on branch, not merged");
+    expect(output).toContain("  alpha · 1         —           unknown  ?               executing");
+  });
+
+  test("needs you lists joined PRs to merge or fix before the rest", () => {
+    const needsYou: Board["lanes"]["needsYou"] = [
+      { kind: "merge", spec: "double-charge", phase: "4", pr: 861 },
+      { kind: "fix", spec: "alert-noise-cleanup", phase: "4", prGroup: "B", pr: 881, failing: 2 },
+      { kind: "fix", spec: "gamma", pr: 9, failing: 1 },
+    ];
+    expect(renderBoard(board({ lanes: lanes({ needsYou }) }), { lane: "you" }).split("\n").slice(3)).toEqual([
+      "NEEDS YOU",
+      "  #861 checks pass → merge     double-charge · 4",
+      "  #881 2 checks failing → fix  alert-noise-cleanup · 4 (PR B)",
+      "  #9 1 check failing → fix     gamma",
+    ]);
   });
 
   test("names the main checkout, marks the current workspace and lists every worktree a phase is ticked in", () => {

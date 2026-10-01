@@ -19,11 +19,18 @@ describe("ago", () => {
 
 describe("prCell", () => {
   test("marks failing, pending, passing, unknown checks and PRs missing from the lists", () => {
-    expect(prCell({ number: 1, listed: true, failing: 2, pending: 1 })).toBe("#1 ✗ 2");
-    expect(prCell({ number: 1, listed: true, failing: 0, pending: 3 })).toBe("#1 … 3");
-    expect(prCell({ number: 1, listed: true, draft: true, failing: 0, pending: 0 })).toBe("#1 draft ✓");
+    expect(prCell({ number: 1, listed: true, failing: 2, pending: 1, passing: 4 })).toBe("#1 ✗ 2");
+    expect(prCell({ number: 1, listed: true, failing: 0, pending: 3, passing: 4 })).toBe("#1 … 3");
+    expect(prCell({ number: 1, listed: true, draft: true, failing: 0, pending: 0, passing: 4 })).toBe("#1 draft ✓");
+    expect(prCell({ number: 1, listed: true, failing: 0, pending: 0, passing: 0 })).toBe("#1");
     expect(prCell({ number: 1, listed: true })).toBe("#1");
     expect(prCell({ number: 1, listed: false })).toBe("#1 ?");
     expect(prCell(undefined)).toBe("—");
+  });
+
+  test("says merged or closed instead of checks, and ? when gh couldn't list PRs", () => {
+    expect(prCell({ number: 8, listed: true, state: "merged" })).toBe("#8 merged");
+    expect(prCell({ number: 3, listed: true, state: "closed" })).toBe("#3 closed");
+    expect(prCell("unknown")).toBe("?");
   });
 });

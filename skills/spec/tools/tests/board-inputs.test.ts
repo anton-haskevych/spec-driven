@@ -1,11 +1,15 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { loadBoard, loadBoardInputs, repoName, type BoardRunners } from "../board/load";
 import { renderBoard } from "../board/render";
 import { NOW } from "./board-factories";
+import type { RunOptions } from "../core/run";
 import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
+import { cannedGh } from "./stub-runner";
+import { createTree } from "./tree";
 
-const runners: BoardRunners = { runner: isolatedRunner, asyncRunner: isolatedAsyncRunner };
+const runners: BoardRunners = { runner: isolatedRunner, asyncRunner: isolatedAsyncRunner, claudeHome: "/no/claude/home" };
 
 describe("loadBoardInputs (real git)", () => {
   let repo: TestRepo;
@@ -87,6 +91,38 @@ describe("loadBoard with worktrees (real git)", () => {
     expect(fromMain).toMatch(/alpha · 2 +alpha-2 +— +— +ticked on branch, not merged/);
     expect(fromMain).toMatch(/alpha · 3 +\/spec execute +in alpha-2 \(needs 2, ticked there\)/);
     expect(fromMain).toMatch(/fresh · 1 +\/spec execute +only on feat\/fresh/);
+  });
+
+  test("joins the worktree's PR and live session onto its in-flight row", async () => {
+    const claude = createTree("spec-board-claude-");
+    const cwd = join(repo.root, "alpha-2", "skills");
+    mkdirSync(cwd, { recursive: true });
+    const session = { pid: process.pid, sessionId: "s1", cwd, procStart: "start", status: "idle", updatedAt: NOW.getTime() - 3 * 3_600_000 };
+    claude.write(`sessions/${process.pid}.json`, JSON.stringify(session));
+    const openPr = { number: 881, headRefName: "feat/alpha-2", isDraft: false, url: "u", statusCheckRollup: [{ __typename: "CheckRun", name: "ci", status: "COMPLETED", conclusion: "FAILURE", startedAt: "t" }] };
+    const asyncRunner = cannedGh(isolatedAsyncRunner, [
+      [["gh", "pr", "list", "--state", "open"], { stdout: JSON.stringify([openPr]) }],
+      [["gh", "pr", "list", "--state", "all"], { stdout: "[]" }],
+    ]);
+    const runner = { run: (argv: readonly string[], options?: RunOptions) => (argv[0] === "ps" ? { code: 0, stdout: `${process.pid} start\n`, stderr: "" } : isolatedRunner.run(argv, options)) };
+    try {
+      const board = await loadBoard(repo.dir, { local: false }, { runner, asyncRunner, claudeHome: claude.root }, NOW);
+      if (!board.ok) throw new Error(board.reason);
+      expect(renderBoard(board.value)).toMatch(/alpha · 2 +alpha-2 +idle 3h +#881 ✗ 1 +fix CI/);
+      expect(board.value.lanes.needsYou[0]).toEqual({ kind: "fix", spec: "alpha", phase: "2", pr: 881, failing: 1 });
+    } finally {
+      claude.cleanup();
+    }
+  });
+
+  test("gh and session failures leave ? and unknown cells and say why in the footer", async () => {
+    const asyncRunner = cannedGh(isolatedAsyncRunner, [[["gh"], { code: 1, stderr: "gh: not logged in" }]]);
+    const board = await loadBoard(repo.dir, { local: false }, { runner: isolatedRunner, asyncRunner, claudeHome: "/no/claude/home" }, NOW);
+    if (!board.ok) throw new Error(board.reason);
+    const output = renderBoard(board.value);
+    expect(output).toMatch(/alpha · 2 +alpha-2 +unknown +\? +ticked on branch, not merged/);
+    expect(output).toContain("PRs unavailable: gh: not logged in");
+    expect(output).toContain("sessions unavailable: no /no/claude/home/sessions");
   });
 
   test("prints the same board from the main checkout and from a worktree, except ◀ here", () => {

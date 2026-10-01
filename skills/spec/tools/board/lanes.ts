@@ -6,6 +6,7 @@ import { readySet } from "../ready/ready-set";
 import { phaseActivity, type PhaseActivity } from "./activity";
 import { needsYou } from "./attention";
 import { flightRows, isOnBoard, readyInWorkspaces } from "./flight";
+import { joinFlightRows } from "./joins";
 import type { BaseRef, BoardInputs, SpecStage, WorkspaceView } from "./inputs";
 import { BOARD_VERSION, type Board, type BlockedRow, type ReadyRow } from "./model";
 import { rowKey } from "./phase-keys";
@@ -37,7 +38,7 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
   const open = [...inputs.nodes.values()].filter((node) => !isFinished(node));
   const active = open.filter((node) => node.status !== "paused");
   const activity = phaseActivity(inputs.states, inputs.workspaces);
-  const inFlight = flightRows(activity, inputs);
+  const inFlight = joinFlightRows(flightRows(activity, inputs), inputs);
   const placement: Placement = { inputs, today, unblocks: unblockCounts(inputs.states, inputs.nodes), activity, inFlight: new Set(inFlight.map(rowKey)) };
   const lanes = [...active.map((node) => specLanes(node, placement)), ...branchOnlyLanes(inputs.workspaces, placement)];
   const { duplicates, ...counts } = inputs.counts;
@@ -52,10 +53,14 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
       inFlight,
       ready: rankReady(markSafe(lanes.flatMap((spec) => spec.ready), inFlight, withBranchOnlyNodes(inputs), inputs.states)),
       blocked: lanes.flatMap((spec) => spec.blocked),
-      needsYou: needsYou(active, inputs, today),
+      needsYou: needsYou(active, inputs, today, inFlight),
     },
-    footer: { ...counts, paused: open.length - active.length, backlog: inputs.backlogCount, duplicates },
+    footer: { ...counts, paused: open.length - active.length, backlog: inputs.backlogCount, duplicates, ...unavailable(inputs) },
   };
+}
+
+function unavailable({ prs, sessions }: BoardInputs): Pick<Board["footer"], "prs" | "sessions"> {
+  return { ...(prs !== "local" && !prs.ok ? { prs: prs.reason } : {}), ...(sessions !== "local" && !sessions.ok ? { sessions: sessions.reason } : {}) };
 }
 
 function specLanes(node: SpecNode, placement: Placement): SpecLanes {

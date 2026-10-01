@@ -1,3 +1,5 @@
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { loadBoard, type BoardRunners } from "../board/load";
 import { LANES, renderBoard, type Lane } from "../board/render";
@@ -10,7 +12,7 @@ export interface BoardDeps extends BoardRunners {
 }
 
 export function systemBoardDeps(): BoardDeps {
-  return { runner: systemRunner, asyncRunner: systemAsyncRunner, now: new Date() };
+  return { runner: systemRunner, asyncRunner: systemAsyncRunner, claudeHome: process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude"), now: new Date() };
 }
 
 export async function boardCommand(projectDir: string, args: readonly string[], deps: BoardDeps = systemBoardDeps()): Promise<string> {

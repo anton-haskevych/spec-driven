@@ -18,6 +18,8 @@ export interface PrCell {
   draft?: boolean;
   failing?: number;
   pending?: number;
+  passing?: number;
+  state?: "merged" | "closed";
 }
 
 export type FlightNext = "executing" | "fix CI" | "merge" | "ticked on branch, not merged" | "uncommitted";
@@ -28,7 +30,8 @@ export interface FlightRow extends RowBase {
   // Further worktrees where the same phase is ticked.
   alsoIn?: string[];
   session?: SessionCell;
-  pr?: PrCell;
+  // "unknown": gh couldn't list PRs.
+  pr?: PrCell | "unknown";
   next: FlightNext;
 }
 
@@ -56,7 +59,9 @@ export interface BlockedRow extends RowBase {
 
 export type AttentionRow =
   | { kind: "overdue"; spec: string; phase?: string; due: string }
-  | { kind: "deploy"; spec: string; phase: string; waiting: string[] };
+  | { kind: "deploy"; spec: string; phase: string; waiting: string[] }
+  | { kind: "merge"; spec: string; phase?: string; prGroup?: string; pr: number }
+  | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number };
 
 export type BaseMode = "fetched" | "offline" | "busy" | "local";
 

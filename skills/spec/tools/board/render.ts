@@ -79,6 +79,8 @@ function blockedCells(board: Board): string[][] {
 }
 
 function attentionCells(row: AttentionRow): string[] {
+  if (row.kind === "merge") return [`#${row.pr} checks pass → merge`, rowName(row)];
+  if (row.kind === "fix") return [`#${row.pr} ${row.failing} ${row.failing === 1 ? "check" : "checks"} failing → fix`, rowName(row)];
   if (row.kind === "overdue") return [`⚠ overdue (due ${monthDay(row.due)})`, rowName(row)];
   return ["not deployed → deploy", rowName(row), `needed by ${row.waiting.join(", ")}`];
 }

@@ -6,11 +6,14 @@ import { boardCommand, type BoardDeps } from "../commands/board";
 import { listCommand } from "../commands/list";
 import { NOW } from "./board-factories";
 import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
-import { asyncStubRunner, stubRunner } from "./stub-runner";
+import { asyncStubRunner, cannedGh, stubRunner } from "./stub-runner";
 
 describe("board and list commands (real git)", () => {
   let repo: TestRepo;
-  const deps: BoardDeps = { runner: isolatedRunner, asyncRunner: isolatedAsyncRunner, now: NOW };
+  const claudeHome = mkdtempSync(join(tmpdir(), "spec-board-claude-"));
+  mkdirSync(join(claudeHome, "sessions"));
+  const asyncRunner = cannedGh(isolatedAsyncRunner, [[["gh", "pr", "list"], { stdout: "[]" }]]);
+  const deps: BoardDeps = { runner: isolatedRunner, asyncRunner, claudeHome, now: NOW };
 
   beforeAll(() => {
     repo = repoWithOrigin("spec-board-command-");
@@ -22,7 +25,10 @@ describe("board and list commands (real git)", () => {
     repo.git("push", "-q", "origin", "main");
   });
 
-  afterAll(() => repo.cleanup());
+  afterAll(() => {
+    repo.cleanup();
+    rmSync(claudeHome, { recursive: true, force: true });
+  });
 
   test("board --json prints the versioned model for agents", async () => {
     const { board } = JSON.parse(await boardCommand(repo.dir, ["--json", "--local"], deps));
@@ -50,6 +56,7 @@ describe("board and list commands (real git)", () => {
     expect(board).toStartWith("```\nspec board · work · origin/main ");
     expect(board).toContain("fetched");
     expect(board).toContain("NEEDS YOU");
+    expect(board).not.toContain("unavailable");
     expect(await listCommand(repo.dir, ["p1"], deps)).toContain("## Open specs (1)");
     expect(await listCommand(repo.dir, ["table"], deps)).toContain("| a | active | p1 |");
   });
@@ -59,7 +66,7 @@ describe("when the board can't be built", () => {
   const project = mkdtempSync(join(tmpdir(), "spec-board-nogit-"));
   mkdirSync(join(project, "docs/specs/a"), { recursive: true });
   writeFileSync(join(project, "docs/specs/a/CLAUDE.md"), "---\nstatus: active\n---\n");
-  const deps: BoardDeps = { runner: stubRunner([]), asyncRunner: asyncStubRunner([]), now: NOW };
+  const deps: BoardDeps = { runner: stubRunner([]), asyncRunner: asyncStubRunner([]), claudeHome: project, now: NOW };
   afterAll(() => rmSync(project, { recursive: true, force: true }));
 
   test("board --json says why, with a null board", async () => {

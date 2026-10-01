@@ -1,4 +1,6 @@
 import type { Result } from "../core/result";
+import type { PrRow } from "../pr/rollup";
+import type { LiveSession } from "../sessions/live";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 
@@ -30,4 +32,9 @@ export interface BoardInputs {
   workspaces: readonly WorkspaceView[];
   counts: { merged: number; unknownBase: number; unreadable: number; duplicates: string[] };
   backlogCount: number;
+  // "local": --local skipped the source.
+  sessions: Result<LiveSession[]> | "local";
+  prs: Result<PrRow[]> | "local";
+  // Spec → PR numbers its pr-opening.md links, oldest first.
+  prLinks: ReadonlyMap<string, readonly number[]>;
 }
