@@ -107,10 +107,8 @@ Modules: `pr/gh.ts` (the only gh caller: typed records + 30-call budget), `pr/ch
 - `create.md` adds both union rules (`docs/specs/**/INDEX.md`, `*/docs/specs/**/INDEX.md`) to `.gitattributes` when missing.
 
 ## Hooks
-- Shared input: `tools/hooks/hook-input.ts` — `readPayload()`, `writtenPaths(payload)` for Write/Edit/MultiEdit, and the fail-open `main()` wrapper. `RecallMemory` stays in `lesson-recall.ts` (one user).
-- `bash-guard.ts` (new, **PreToolUse**, matcher `Bash`, `if:` pre-spawn filter on commands mentioning `docs/specs`): when the command matches a write signal (the ~8 regexes of CRM `ops/src/hooks/pre-tool-use/protect-generated.ts:13-22`, copied — zero deps) and `git mv|rm|add|commit|checkout|restore|merge` is not the verb, deny with "Use `spec.ts phase tick|deployed|add|split` / `lessons add`, or the Write/Edit tools". Replaces the PostToolUse mtime sweep.
 - `spec-file-check.ts`: unchanged matcher (`Write|Edit|MultiEdit`); `_playbook/settings.md` routed to the settings check.
-- `skill-wiring.test.ts:32-34` hook count 2 → 3. No context nudge (`decision-no-context-nudge.md`).
+- No new hooks: no Bash write guard (`decision-no-bash-guard.md`), no context nudge (`decision-no-context-nudge.md`).
 
 ## Mode-file changes
 - SKILL.md: parse rules (`:36-49`) rewritten to match *Context parse* 1–3 (kept, not dropped); `:74` reworded (names or changed paths, never branches); `:86` hook coverage; draft wording `:401` → settings; grouped Tools bullets.

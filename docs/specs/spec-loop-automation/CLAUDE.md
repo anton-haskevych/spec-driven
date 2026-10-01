@@ -1,6 +1,6 @@
 ---
 created: 2026-09-30T14:26:45-07:00
-updated: 2026-09-30T18:17:44-07:00
+updated: 2026-09-30T20:34:24-07:00
 status: active
 area: [tools, hooks, sub-commands]
 domain: [spec-workflow]
