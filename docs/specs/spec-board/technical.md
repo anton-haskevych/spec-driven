@@ -184,6 +184,27 @@ whose session is live is never removed. The board never writes.
 
 No prep claims.
 
+#### Remote layer (phase 5a)
+
+Local claims only guard one clone. Across machines, each claim is mirrored as a ref on origin:
+`refs/spec-claims/<spec>/<phase>`.
+
+- **Payload:** `git commit-tree <empty tree> -m <claim JSON + holder>`, where holder =
+  `{ user: git user.name, host }`. A commit (not a blob), so any host accepts the ref.
+- **Take:** `git push origin --force-with-lease=<ref>: <sha>:<ref>`. The empty lease means the ref must
+  not exist, and the server checks the old value atomically. If the push is rejected, fetch the existing
+  ref and refuse with `claimed by <user>@<host> (<sessionName>) <age> ago`.
+- **Same holder:** the existing ref's payload has the caller's `sessionId` → ok (idempotent).
+- **Take over:** only with `--take-over`: `--force-with-lease=<ref>:<old sha>`. It is never automatic,
+  because liveness can't be checked on another machine.
+- **Release:** `git push origin --force-with-lease=<ref>:<own sha> :<ref>`.
+- **Read:** `git fetch origin '+refs/spec-claims/*:refs/spec-claims-remote/*'` is part of the board's
+  existing fetch. Payloads are read with `git log -1 --format=%B`.
+- **Offline / push error:** keep the local claim and print
+  `claim: origin unreachable; claimed locally only`. Exit 0.
+- **Board:** a remote claim whose `host` differs from this machine shows in flight with its holder and
+  age. Older than `REMOTE_CLAIM_STALE_DAYS` → listed under needs you. `--local` skips it.
+
 ### prs
 
 - `openPrs()`: `gh pr list --state open --limit 100 --json number,headRefName,isDraft,url,statusCheckRollup`.
@@ -320,7 +341,8 @@ later view read only `Board`.
 ## Constants
 
 `READY_CAP = 8`, `BLOCKED_CAP = 5`, `FETCH_TIMEOUT_MS = 10_000`, `GH_TIMEOUT_MS = 10_000`,
-`SCAN_CONCURRENCY = 8`, `UNKNOWN_BASE_AHEAD = 1000`, `PR_LIST_LIMIT = 100`, `BASE_CACHE_KEEP = 2`.
+`SCAN_CONCURRENCY = 8`, `UNKNOWN_BASE_AHEAD = 1000`, `PR_LIST_LIMIT = 100`, `BASE_CACHE_KEEP = 2`,
+`REMOTE_CLAIM_STALE_DAYS = 3`.
 
 ## Integration points
 
