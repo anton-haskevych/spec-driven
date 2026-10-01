@@ -1,6 +1,6 @@
 ---
 needs: []
-pr: A
+pr: C
 ---
 
 # Phase 9 — Plain-words outcome
@@ -10,23 +10,24 @@ pr: A
 **Outcome:** Anton reads what each phase and PR changes for him without asking "what does this actually do?". No cost; no risk (prose + rendering).
 
 **Files to touch:**
-- `skills/spec/create.md` (flat/folder phase templates)
+- `skills/spec/create.md` (the phase template, `:294`)
 - `skills/spec/tools/core/phase-entry.ts` (read `**Outcome:**` line)
-- `skills/spec/tools/context/packs.ts` or the status renderer (show it next to the phase)
+- `skills/spec/tools/context/status-table.ts` (Delivers cell)
+- `skills/spec/tools/tests/skill-wiring.test.ts` (create.md and `phases/template.ts` carry the same Outcome line)
 - `skills/spec/execute.md` (§10 PR body leads with the Outcome lines of the phases it ships)
 - `skills/spec/status.md` (column/line description)
 
 ## Implementation guidance
 
-Template line right under **Goal:** — `**Outcome:** <plain words: what changes for the user · cost · risk>`. No engineering vocabulary (same rule as the product brief). `summarizePhaseEntry` extracts it; the status table/pack shows it for open phases (truncate ~100 chars). Missing line → nothing rendered (existing specs are not backfilled). Doctor: no check — keep it a nudge, not a gate.
+Template line right under **Goal:** — `**Outcome:** <plain words: what changes for the user · cost · risk>`. No engineering vocabulary (same rule as the product brief). `summarizePhaseEntry` extracts it; the status table's **Delivers** cell shows its first sentence, falling back to the Goal, then the phase name (no new column — `status.md` fixes the header). Missing line → nothing rendered (existing specs are not backfilled). Doctor: no check — keep it a nudge, not a gate.
 
 ## Deliverables
 
-- [ ] create.md templates gain the `**Outcome:**` line
+- [ ] create.md template gains the `**Outcome:**` line, pinned to `phases/template.ts` by the wiring test
 - [ ] `phase-entry.ts` extracts Outcome; test with and without the line
-- [ ] Status/pack renders Outcome for open phases
+- [ ] Status table Delivers = Outcome's first sentence, else Goal; status.md documents it
 - [ ] execute §10: PR body starts with the shipped phases' Outcomes
 
 ## Phase-local notes
 
-Phase 5 also edits `context/packs.ts` and execute §10. If both run in parallel worktrees, land one and rebase the other. `phase add` (phase 3) carries its own copy of the Outcome line in the TS template.
+Built on `feat/project-settings` (PR C) after phase 5, so the shared `context/` and execute §10 edits don't need a rebase. `phase add` (phase 3) carries its own copy of the Outcome line in the TS template.

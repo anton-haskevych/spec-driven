@@ -2,14 +2,14 @@
 
 ## Spec state
 
-Reviewed (`reviews/2026-09-30-pre-execution-collegium.md`). Done: phases 1–7. Left: 9 (code), 10 (task). Phase 8 dropped (`decision-no-bash-guard.md`). Branches (local, not pushed; both also carry the spec/review commits that sit only on local `main`): `feat/context-pack-loads` = PR A (phase 1; phase 9 goes here). `feat/phase-writers` = PR B (phases 2, 3, 4 — complete), branched from PR A's branch, so rebase it onto `main` after A merges. `feat/project-settings` = PR C (phases 5, 6, 7 — complete), branched from PR B's branch. No PR yet.
+Reviewed (`reviews/2026-09-30-pre-execution-collegium.md`). Done: phases 1–7. Left: 9 (code), 10 (task). Phase 8 dropped (`decision-no-bash-guard.md`). Branches (local, not pushed; both also carry the spec/review commits that sit only on local `main`): `feat/context-pack-loads` = PR A (phase 1). `feat/phase-writers` = PR B (phases 2, 3, 4 — complete), branched from PR A's branch, so rebase it onto `main` after A merges. `feat/project-settings` = PR C (phases 5, 6, 7 — complete), branched from PR B's branch. No PR yet.
 
 Suggested PR split (from phase `pr:` fields):
-- **A** — phases 1, 9 (pack parse fix, outcome line)
+- **A** — phase 1 (pack parse fix)
 - **B** — phases 2, 3, 4 (spec-file writers)
-- **C** — phases 5, 6, 7 (settings, pr-status, publish + push)
+- **C** — phases 5, 6, 7, 9 (settings, pr-status, publish + push, outcome line)
 
-Order after review: A and B first (independent); C needs phase 4 from B. Phases 5 and 9 both touch `commands/context.ts` and execute §10 — rebase whichever lands second. Each PR ships with a patch/minor version bump via `plugin-publish` so installed copies (Anton, Taras) pick it up. Phase 10 runs in CRM after A and C are released.
+Order after review: A and B first (independent); C needs phase 4 from B. Each PR ships with a patch/minor version bump via `plugin-publish` so installed copies (Anton, Taras) pick it up. Phase 10 runs in CRM after A and C are released.
 
 ## Pre-PR checks
 
