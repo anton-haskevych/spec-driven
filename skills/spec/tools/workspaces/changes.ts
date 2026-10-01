@@ -3,7 +3,7 @@ import { firstLine } from "../core/git";
 import { parsePorcelainZ } from "../core/git-status";
 import type { Result } from "../core/result";
 import { runAll, type AsyncRunner, type RunJob, type RunResult } from "../core/run";
-import { isSpecDocPath, locateSpecFile } from "../core/spec-folders";
+import { isSpecDocPath, locateSpecFile, specRoots } from "../core/spec-folders";
 import type { ClassifiedWorkspace } from "./classify";
 import type { Workspace } from "./list";
 
@@ -14,7 +14,7 @@ export interface WorkspaceSpecChanges {
 
 export const SCAN_CONCURRENCY = 8;
 
-const SPEC_DOC_PATHSPECS = ["docs/specs", ":(glob)*/docs/specs/**"];
+const COMMITTED_SPEC_DOC_PATHSPECS = ["docs/specs", ":(glob)*/docs/specs/**"];
 
 interface Query {
   command: "diff" | "status";
@@ -32,13 +32,15 @@ export async function workspaceSpecChanges(runner: AsyncRunner, live: readonly C
   });
 }
 
-// The committed diff only finds something when the worktree has commits that are not on base.
+// The committed diff only finds something when the worktree has commits that are not on base. The
+// uncommitted query names the roots on disk: a glob pathspec makes status walk every untracked dir.
 function specDocQueries({ workspace, aheadOfBase }: ClassifiedWorkspace, baseSha: string): Query[] {
-  const git = (...args: string[]): RunJob => ({ argv: ["git", "--no-optional-locks", ...args, "--", ...SPEC_DOC_PATHSPECS], options: { cwd: workspace.path } });
-  const uncommitted: Query = { command: "status", job: git("status", "--porcelain", "-z", "--untracked-files=all"), paths: parsePorcelainZ };
-  if (!aheadOfBase) return [uncommitted];
-  const committed: Query = { command: "diff", job: git("diff", "--name-only", "-z", `${baseSha}...${workspace.head}`), paths: splitZ };
-  return [committed, uncommitted];
+  const git = (args: string[], pathspecs: string[]): RunJob => ({ argv: ["git", "--no-optional-locks", ...args, "--", ...pathspecs], options: { cwd: workspace.path } });
+  const roots = specRoots(workspace.path);
+  const uncommitted: Query[] = roots.length === 0 ? [] : [{ command: "status", job: git(["status", "--porcelain", "-z", "--untracked-files=all"], roots), paths: parsePorcelainZ }];
+  if (!aheadOfBase) return uncommitted;
+  const committed: Query = { command: "diff", job: git(["diff", "--name-only", "-z", `${baseSha}...${workspace.head}`], COMMITTED_SPEC_DOC_PATHSPECS), paths: splitZ };
+  return [committed, ...uncommitted];
 }
 
 function specNames(root: string, answered: ReadonlyArray<{ query: Query; result: RunResult }>): Result<string[]> {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { isSpecDocPath, resolveSpec } from "../core/spec-folders";
+import { isSpecDocPath, resolveSpec, specRoots } from "../core/spec-folders";
 import { createTree, type Tree } from "./tree";
 
 let tree: Tree;
@@ -32,5 +32,28 @@ describe("isSpecDocPath", () => {
     for (const path of ["src/docs/specs.ts", "docs/README.md", "docs/specs", "a/b/docs/specs/x/progress.md", "/abs/docs/specs/a/x.md"]) {
       expect(isSpecDocPath(path)).toBe(false);
     }
+  });
+});
+
+describe("specRoots", () => {
+  test("lists the spec roots that exist, top-level first, as repo-relative paths", () => {
+    tree = createTree();
+    tree.write("web/docs/specs/a/CLAUDE.md", "");
+    tree.write("api/docs/specs/.keep", "");
+    tree.write("docs/specs/b/CLAUDE.md", "");
+    tree.write("docs/readme.md", "");
+    tree.write(".hidden/docs/specs/c/CLAUDE.md", "");
+    expect(specRoots(tree.root)).toEqual(["docs/specs", "api/docs/specs", "web/docs/specs"]);
+  });
+
+  test("returns nothing where no spec root exists", () => {
+    tree = createTree();
+    tree.write("src/index.ts", "");
+    expect(specRoots(tree.root)).toEqual([]);
+  });
+
+  test("returns nothing for a directory that is gone, such as a deleted worktree", () => {
+    tree = createTree();
+    expect(specRoots(`${tree.root}/deleted`)).toEqual([]);
   });
 });
