@@ -14,9 +14,10 @@ the main checkout and any worktree except `◀ here` · ~2 s per run including t
 pure layer only adds.
 
 **Files to touch:**
-- `skills/spec/tools/board/activity.ts`, `joins.ts` (new), `board/inputs.ts`, `lanes.ts`, `rank.ts`, `render.ts`
+- `skills/spec/tools/board/activity.ts`, `flight.ts` (new), `board/inputs.ts`, `model.ts`, `lanes.ts`, `rank.ts`, `render.ts`, `load.ts`
+- `skills/spec/tools/workspaces/views.ts` (new: workspace spec states), `commands/board.ts` (`AsyncRunner` in deps)
 - `skills/spec/tools/graph/overlap.ts` (`sharedPaths`, `inFlightOverlaps`)
-- tests: new `board-activity.test.ts`, `board-joins.test.ts`, `graph-overlap.test.ts`; `board-lanes.test.ts`, `board-rank.test.ts`, `board-render.test.ts`, `board-inputs.test.ts`
+- tests: new `board-activity.test.ts`, `board-flight.test.ts`, `graph-overlap.test.ts`, `workspaces-views.test.ts`; `board-lanes.test.ts`, `board-rank.test.ts`, `board-render.test.ts`, `board-inputs.test.ts`
 
 ## Implementation guidance
 
@@ -27,7 +28,13 @@ See `technical.md` → *Activity*, *Lanes*, *Joins*, *Rank*.
 base only.
 
 **Ready in a workspace.** A waiting phase whose only reasons are `needs` on phases ticked in exactly one
-workspace is ready in that workspace. That row gets no ★, and its `target` is that workspace.
+workspace is ready in that workspace. That row gets no ★, and its `target` is that workspace. Computed
+by rerunning `readySet` on a copy of the base state with that workspace's ticks marked done (reasons
+are strings); same-spec needs only (preflight 2026-10-01).
+
+**In flight** comes from the activity keys, not from base phases, so phases that exist only on a branch
+show too. `joins.ts` moves to phase 4, where sessions and PRs give it something to join. A wip row's
+next is `executing` until phase 4 refines it.
 
 **★ overlap.** `sharedPaths` is extracted from `undeclaredOverlaps`. `inFlightOverlaps` uses it with
 usage counted over all open specs, and `> HUB_LIMIT` is ignored, as in the existing code.
