@@ -1,5 +1,5 @@
 import type { BaseRef, BoardInputs, SpecStage } from "../board/inputs";
-import type { ReadyRow } from "../board/model";
+import { BOARD_VERSION, type Board, type FlightRow, type ReadyRow } from "../board/model";
 import type { SpecMeta } from "../core/spec-meta";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
@@ -56,4 +56,20 @@ export function boardInputs(specs: readonly SpecFixture[], overrides: Partial<Bo
 
 export function readyRow(overrides: Partial<ReadyRow> = {}): ReadyRow {
   return { spec: "alpha", phase: "1", next: "execute", overdue: false, unblocks: 0, safe: true, target: { newWorktree: "alpha-1" }, ...overrides };
+}
+
+export function flightRow(overrides: Partial<FlightRow> = {}): FlightRow {
+  return { spec: "alpha", phase: "1", next: "executing", ...overrides };
+}
+
+export function board(overrides: Partial<Board> = {}): Board {
+  return {
+    version: BOARD_VERSION,
+    repo: "crm",
+    generatedAt: NOW.toISOString(),
+    base: { branch: "main", sha: "e43d948", date: "2026-10-01T13:40:00-07:00", mode: "fetched" },
+    lanes: { inFlight: [], ready: [], blocked: [], needsYou: [] },
+    footer: { merged: 0, unknownBase: 0, unreadable: 0, paused: 0, backlog: 0, duplicates: [] },
+    ...overrides,
+  };
 }
