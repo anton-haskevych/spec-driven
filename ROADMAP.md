@@ -52,15 +52,17 @@ Plan: https://claude.ai/artifact/MuwvKTZM6Tnnxqvjsqijbi. The plugin stays develo
 
 Next, outside the plugin: CRM adds a `growth` domain, `docs/specs/_playbook/growth.md`, and points `/growth` at specs instead of Linear.
 
-## Next: loop automation (2.31 → 2.33)
+## Loop automation (2.31 → 2.33)
+
+Shipped together as 2.33.0 on 2026-10-01 (PRs #3, #6).
 
 Spec: `docs/specs/spec-loop-automation/`. A read of 52 CRM sessions found the loop's routine chores rebuilt by hand in session after session. These releases move them into the plugin. Each command is named in the one mode step that uses it, and hand edits stay allowed: a command earns its place only by removing a repeated, observed failure.
 
 | Version | Change | Status |
 |---|---|---|
-| 2.31.0 | **Context pack always loads.** `execute`, `execute phase15`, `my-spec.` and `x phase 2 execute` parse the same in the tool and in SKILL.md; an unnamed `execute`/`resume`/`status` uses the one spec the branch's changed files belong to | PR A |
-| 2.32.0 | **Spec-file writers.** `spec.ts phase tick\|deployed\|add\|split` and `lessons add`, each validated before it writes | PR B |
-| 2.33.0 | **Project settings and remote.** `_playbook/settings.md` (docs home, draft or ready, merge method, external checks, after-merge and bootstrap gates), `.gitattributes` union for INDEX files, `pr-status`, handoff runs `push` / `publish-docs`, and a plain-words Outcome line per phase | PR C |
+| 2.31.0 | **Context pack always loads.** `execute`, `execute phase15`, `my-spec.` and `x phase 2 execute` parse the same in the tool and in SKILL.md; an unnamed `execute`/`resume`/`status` uses the one spec the branch's changed files belong to | shipped (in 2.33.0) |
+| 2.32.0 | **Spec-file writers.** `spec.ts phase tick\|deployed\|add\|split` and `lessons add`, each validated before it writes | shipped (in 2.33.0) |
+| 2.33.0 | **Project settings and remote.** `_playbook/settings.md` (docs home, draft or ready, merge method, external checks, after-merge and bootstrap gates), `.gitattributes` union for INDEX files, `pr-status`, handoff runs `push` / `publish-docs`, and a plain-words Outcome line per phase | shipped |
 
 Then CRM adopts it: settings, gates, `.gitattributes` (spec phase 10).
 
