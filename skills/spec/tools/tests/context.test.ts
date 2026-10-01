@@ -56,6 +56,7 @@ describe("summarizePhaseEntry", () => {
     ].join("\n");
     expect(summarizePhaseEntry(entry)).toEqual({
       goal: "Ship the harness.",
+      outcome: undefined,
       work: "Wrap the HTTP client",
       deliverables: { checked: 1, unchecked: 2 },
       nextRun: ["replayer", "race harness"],
@@ -65,6 +66,11 @@ describe("summarizePhaseEntry", () => {
   test("reads a goal that wraps across lines and stops at the next label", () => {
     const entry = "**Goal:** One pure policy decides\nwhether a user can be deleted.\n**Depends on:** none\n";
     expect(summarizePhaseEntry(entry).goal).toBe("One pure policy decides\nwhether a user can be deleted.");
+  });
+
+  test("reads the plain-words Outcome paragraph under the Goal", () => {
+    const entry = "**Goal:** `spec.ts push` refspec.\n\n**Outcome:** Work never sits only on the laptop. Risk: pushing is outward-facing.\n\n**Files to touch:**\n- a.ts\n";
+    expect(summarizePhaseEntry(entry).outcome).toBe("Work never sits only on the laptop. Risk: pushing is outward-facing.");
   });
 });
 
