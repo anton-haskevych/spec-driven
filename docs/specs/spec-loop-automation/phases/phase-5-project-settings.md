@@ -34,7 +34,7 @@ Schema and defaults in `technical.md` → *Project settings*. `parseSettings` us
 ## Deliverables
 
 - [x] `parseSettings`/`loadSettings` with defaults + frontmatter field helpers; `spec.ts settings`
-- [ ] `gates --name` form; wording fixed in execute.md and SKILL.md
+- [x] `gates --name` form; wording fixed in execute.md and SKILL.md
 - [ ] `doctor/settings.ts` (types, unknown keys, gate names); settings.md checked on write by the spec-file hook
 - [ ] `doctor/gitattributes.ts` via `git check-attr`, only with settings.md; repo lines after spec lines; exact-output tests updated
 - [ ] `checkLedgerIndex` duplicates + project INDEX + pointer rows
