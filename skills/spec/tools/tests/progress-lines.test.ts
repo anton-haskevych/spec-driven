@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { insertAfterPhases } from "../phases/progress-insert";
+import { insertAfterPhases, tickPhaseLine } from "../phases/progress-lines";
 
 const progress = "## Phases\n\n- [ ] Phase 1 — A → `phases/a.md`\n- [ ] Phase 2 — B → `phases/b.md`\n\n## Notes\n";
 
@@ -12,5 +12,12 @@ describe("insertAfterPhases", () => {
 
   test("with no located pointer, appends after the last non-blank line", () => {
     expect(insertAfterPhases("## Phases\n\n", [], ["NEW", "TWO"])).toBe("## Phases\nNEW\nTWO\n\n");
+  });
+});
+
+describe("tickPhaseLine", () => {
+  test("ticks only the line holding the pointer, and leaves text without it alone", () => {
+    expect(tickPhaseLine(progress, "phases/b.md")).toContain("- [ ] Phase 1 — A → `phases/a.md`\n- [x] Phase 2 — B");
+    expect(tickPhaseLine(progress, "phases/zzz.md")).toBe(progress);
   });
 });

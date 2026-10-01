@@ -5,7 +5,8 @@ import { countCheckboxes } from "../core/progress";
 import type { SpecFolder } from "../core/spec-folders";
 import { diskReader, loadSpecState, type PhaseState } from "../core/spec-state";
 import { findPhase } from "./find-phase";
-import { locateOpenItem, locatePhaseLine } from "./locate";
+import { locateOpenItem } from "./locate";
+import { tickPhaseLine } from "./progress-lines";
 import { issuesIntroducedBy } from "./validate";
 
 export interface TickRequest {
@@ -20,9 +21,6 @@ export interface Tick {
   item?: string;
   phaseComplete: boolean;
 }
-
-const OPEN_BOX = "[ ]";
-const TICKED_BOX = "[x]";
 
 export function planTick(spec: SpecFolder, request: TickRequest): Tick {
   const state = loadSpecState(spec);
@@ -57,12 +55,9 @@ function checkEvidence(phase: PhaseState, evidence: string | undefined): string 
 }
 
 function progressFlip(spec: SpecFolder, phase: PhaseState): FileEdit[] {
+  if (phase.done) return [];
   const progress = diskReader(spec.dir)("progress.md") ?? "";
-  const lineIndex = locatePhaseLine(progress, phase.pointer);
-  if (lineIndex === undefined || phase.done) return [];
-  const lines = progress.split("\n");
-  lines[lineIndex] = (lines[lineIndex] ?? "").replace(OPEN_BOX, TICKED_BOX);
-  return [{ file: join(spec.dir, "progress.md"), text: lines.join("\n") }];
+  return [{ file: join(spec.dir, "progress.md"), text: tickPhaseLine(progress, phase.pointer) }];
 }
 
 function invalid(reason: string): Tick {

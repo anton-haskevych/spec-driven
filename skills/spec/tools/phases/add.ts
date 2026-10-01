@@ -5,7 +5,7 @@ import { diskReader, loadSpecState, type PhaseState, type SpecState } from "../c
 import type { SpecNode } from "../graph/nodes";
 import { findPhase } from "./find-phase";
 import { familyOf, nextIntegerId, nextLetterIds } from "./ids";
-import { insertAfterPhases } from "./progress-insert";
+import { insertAfterPhases } from "./progress-lines";
 import { phaseFileText, phasePointer, progressLine, type PhaseFileEdges } from "./template";
 import { issuesIntroducedBy } from "./validate";
 
