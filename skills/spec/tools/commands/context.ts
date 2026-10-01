@@ -11,6 +11,7 @@ import { readySet } from "../ready/ready-set";
 import { loadProjectLessons } from "../lessons/project-ledger";
 import { doctorReport } from "./doctor";
 import { playbooksForSpec } from "../playbook/playbooks";
+import { describeSettings, loadSettings } from "../playbook/settings";
 import { normalizePhaseHint, type ContextRequest } from "../context/request";
 import { specsInPlay } from "../context/infer-spec";
 import { systemRunner, type Runner } from "../core/run";
@@ -47,9 +48,10 @@ function specPack(projectDir: string, request: ContextRequest, name: string, inf
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir);
   const ready = readySet(state, nodes);
   const playbooks = playbooksForSpec(projectDir, state.spec);
+  const settings = settingsLine(projectDir);
   const body = mode === "execute"
-    ? executeBody(projectDir, { state, doctor, relations, ready, playbooks, lessons: loadProjectLessons(projectDir) }, request.hint)
-    : resumePack({ state, doctor, relations, ready, playbooks, lessons: [] });
+    ? executeBody(projectDir, { state, doctor, relations, ready, playbooks, settings, lessons: loadProjectLessons(projectDir) }, request.hint)
+    : resumePack({ state, doctor, relations, ready, playbooks, settings, lessons: [] });
   const header = `<spec-pack spec="${state.spec.name}" mode="${mode}"${inferred ? ' inferred="true"' : ""}>`;
   return `${header}\n${inferred ? `${INFERRED_NOTE}\n\n` : ""}${body}\n</spec-pack>`;
 }
@@ -63,6 +65,11 @@ function executeBody(projectDir: string, input: PackInput, hint: string | undefi
   const note = hinted ? `from your hint "${hint}"` : hint ? `hint "${hint}" matched no phase; ${fallback}` : fallback;
   const playbooks = phase.playbook ? playbooksForSpec(projectDir, state.spec, phase.playbook) : input.playbooks;
   return executePack({ ...input, playbooks }, phase, note);
+}
+
+function settingsLine(projectDir: string): string | undefined {
+  const settings = loadSettings(projectDir);
+  return settings.file ? `Settings: ${describeSettings(settings)}` : undefined;
 }
 
 function noPhaseReady(input: PackInput): string {

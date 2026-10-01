@@ -28,6 +28,20 @@ describe("phaseStatuses", () => {
     expect(table).toContain("| 🟢 active · due 2026-10-01 |");
   });
 
+  test("Delivers shows the Outcome's first sentence, else the Goal", () => {
+    const summary = (extra: object) => ({ deliverables: { checked: 0, unchecked: 1 }, nextRun: [], goal: "`spec.ts push` refspec", ...extra });
+    const table = renderStatusTable({
+      spec: { name: "checkout", dir: "/specs/checkout" },
+      hasProgress: true,
+      phases: [
+        phaseState({ id: "1", summary: summary({ outcome: "Work never sits only on the laptop. Risk: pushing is outward-facing." }) }),
+        phaseState({ id: "2", summary: summary({}) }),
+      ],
+    });
+    expect(table).toContain("| Work never sits only on the laptop |");
+    expect(table).toContain("| `spec.ts push` refspec |");
+  });
+
   test("a WIP phase claims the focus, so a later untouched phase is pending", () => {
     expect(phaseStatuses([phase(false, 1, 1), phase(false, 0, 1)])).toEqual(["🟡 WIP (1/2)", "⬜ pending"]);
   });
@@ -56,6 +70,7 @@ describe("summarizePhaseEntry", () => {
     ].join("\n");
     expect(summarizePhaseEntry(entry)).toEqual({
       goal: "Ship the harness.",
+      outcome: undefined,
       work: "Wrap the HTTP client",
       deliverables: { checked: 1, unchecked: 2 },
       nextRun: ["replayer", "race harness"],
@@ -65,6 +80,11 @@ describe("summarizePhaseEntry", () => {
   test("reads a goal that wraps across lines and stops at the next label", () => {
     const entry = "**Goal:** One pure policy decides\nwhether a user can be deleted.\n**Depends on:** none\n";
     expect(summarizePhaseEntry(entry).goal).toBe("One pure policy decides\nwhether a user can be deleted.");
+  });
+
+  test("reads the plain-words Outcome paragraph under the Goal", () => {
+    const entry = "**Goal:** `spec.ts push` refspec.\n\n**Outcome:** Work never sits only on the laptop. Risk: pushing is outward-facing.\n\n**Files to touch:**\n- a.ts\n";
+    expect(summarizePhaseEntry(entry).outcome).toBe("Work never sits only on the laptop. Risk: pushing is outward-facing.");
   });
 });
 
@@ -119,6 +139,17 @@ describe("contextPack", () => {
   });
 
   afterAll(() => rmSync(project, { recursive: true, force: true }));
+
+  test("packs carry a Settings line only when the project has settings.md", () => {
+    expect(contextPack(project, { mode: "resume", name: "checkout" })).not.toContain("Settings:");
+    const settings = join(project, "docs", "specs", "_playbook", "settings.md");
+    mkdirSync(join(settings, ".."), { recursive: true });
+    writeFileSync(settings, "---\npr:\n  draft: false\n---\n");
+    const line = "Settings: docs on branch · PRs ready · merge: ask the user";
+    expect(contextPack(project, { mode: "resume", name: "checkout" }).split("\n\n")[1]).toBe(line);
+    expect(contextPack(project, { mode: "execute", name: "checkout" })).toContain(`(first ready phase)\n\n${line}`);
+    rmSync(settings);
+  });
 
   test("resume pack carries the status table and the next chunk", () => {
     const pack = contextPack(project, { mode: "resume", name: "checkout" });

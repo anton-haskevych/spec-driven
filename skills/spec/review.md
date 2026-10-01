@@ -332,7 +332,7 @@ git status  # verify ONLY the spec folder is staged
 git commit -m "[review] <spec-name>: <slug> — <N> findings (<X> spec edits, <Y> ledger entries)"
 ```
 
-Never sweep unrelated working-tree changes into the review commit — stage only the spec folder. Commit; do not push unless the project's conventions say otherwise.
+Never sweep unrelated working-tree changes into the review commit — stage only the spec folder. Commit; do not push. Pushing belongs to handoff, which also publishes the spec docs to the default branch when project settings say `docs: main` (`spec.ts settings`, or `docs/specs/_playbook/settings.md`).
 
 ## 7. Report and stop
 

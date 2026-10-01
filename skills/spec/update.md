@@ -170,9 +170,9 @@ You have uncommitted changes — consider committing the implementation + spec u
 
 If the top-level phase checkbox in `progress.md` just flipped to `[x]` (all sub-items in the phase entry are done), **do not just report it** — close the phase so the spec is resumable at the boundary and phase N's durable learnings reach the ledger:
 
-1. Read [handoff.md](handoff.md) and run its *Reflect and redirect* and *Commit* sections. Skip *Signal completion* — the session is **not** ending.
+1. Read [handoff.md](handoff.md) and run its *Reflect and redirect* and *Commit* sections; *Commit* also pushes, and in `docs: main` projects publishes the spec docs. Skip *Signal completion* — the session is **not** ending.
 2. Refresh the **Spec state** in `pr-opening.md` (phases done / left).
-3. Print one line: `Phase <N> complete — Phase <N+1> ready.` (or `All phases complete — see pr-opening.md for the PR gate.`), then continue with whatever the session was doing.
+3. Print the `Remote:` line, then one line: `Phase <N> complete — Phase <N+1> ready.` (or `All phases complete — see pr-opening.md for the PR gate.`), then continue with whatever the session was doing.
 
 Ending the session is a separate decision — `/spec handoff`, or execute mode's stopping rule.
 

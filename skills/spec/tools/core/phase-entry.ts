@@ -3,12 +3,12 @@ import type { CheckboxCount } from "./progress";
 
 export interface PhaseEntrySummary {
   goal?: string;
+  outcome?: string;
   work?: string;
   deliverables: CheckboxCount;
   nextRun: string[];
 }
 
-const GOAL = /^Goal:\s*([\s\S]+?)(?=\n[A-Z][\w ]{2,30}:\s|$)/;
 const DELIVERABLES = /^deliverables\b/i;
 const IMPLEMENTATION = /^implementation guidance\b/i;
 const SENTENCE_END = /\.\s+(?=[A-Z])/;
@@ -17,22 +17,33 @@ const WORK_FALLBACK_ITEMS = 3;
 
 export function summarizePhaseEntry(text: string): PhaseEntrySummary {
   const { tasks, paragraphs } = outlineMarkdown(text);
-  const goal = paragraphs.map((p) => GOAL.exec(p.text)?.[1]).find((match) => match !== undefined);
+  const labelled = (label: string) => paragraphs.map((p) => labelledText(p.text, label)).find((match) => match !== undefined);
   const deliverableTasks = tasks.some((t) => DELIVERABLES.test(t.section))
     ? tasks.filter((t) => DELIVERABLES.test(t.section))
     : tasks;
 
   return {
-    goal: goal?.trim(),
+    goal: labelled("Goal"),
+    outcome: labelled("Outcome"),
     work: workSummary(paragraphs.filter((p) => IMPLEMENTATION.test(p.section)).map((p) => p.text), deliverableTasks),
     deliverables: count(deliverableTasks),
     nextRun: firstOpenRun(tasks),
   };
 }
 
+export function firstSentence(text: string): string | undefined {
+  return text.split(SENTENCE_END)[0]?.replace(/[.\s]+$/, "");
+}
+
+// A label paragraph ("Goal: …") runs until the next "Label:" line, e.g. "Depends on:".
+function labelledText(paragraph: string, label: string): string | undefined {
+  const match = new RegExp(`^${label}:\\s*([\\s\\S]+?)(?=\\n[A-Z][\\w ]{2,30}:\\s|$)`).exec(paragraph);
+  return match?.[1]?.trim();
+}
+
 function workSummary(guidance: string[], deliverables: TaskItem[]): string | undefined {
   const firstParagraph = guidance.find((text) => text.length > 0);
-  if (firstParagraph) return firstParagraph.split(SENTENCE_END)[0]?.replace(/[.\s]+$/, "");
+  if (firstParagraph) return firstSentence(firstParagraph);
   const titles = deliverables.slice(0, WORK_FALLBACK_ITEMS).map((t) => t.text);
   return titles.length > 0 ? titles.join("; ") : undefined;
 }

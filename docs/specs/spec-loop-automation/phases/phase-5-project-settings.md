@@ -15,7 +15,7 @@ pr: C
 - `skills/spec/tools/commands/gates.ts` (`--name` form) + `tests/playbook.test.ts`
 - `skills/spec/tools/doctor/settings.ts`, `doctor/gitattributes.ts` (new); `doctor/ledger.ts` (duplicates; project INDEX); `commands/doctor.ts` (:25-26)
 - `skills/spec/tools/hooks/spec-file-check.ts` (:27,41 — route `_playbook/settings.md` to the settings check)
-- `skills/spec/tools/context/packs.ts` (one-line `Settings:` summary)
+- `skills/spec/tools/commands/context.ts` (one-line `Settings:` summary)
 - `skills/spec/execute.md` (:134 gates wording, :137, after-merge step), `SKILL.md` (:89, :401, *Tools*, *Playbook*), `create.md` (:241-242, `.gitattributes` scaffold), `review.md` (:335)
 - `skills/spec/tools/tests/hook.test.ts` (:33 exact doctor output)
 
@@ -33,14 +33,14 @@ Schema and defaults in `technical.md` → *Project settings*. `parseSettings` us
 
 ## Deliverables
 
-- [ ] `parseSettings`/`loadSettings` with defaults + frontmatter field helpers; `spec.ts settings`
-- [ ] `gates --name` form; wording fixed in execute.md and SKILL.md
-- [ ] `doctor/settings.ts` (types, unknown keys, gate names); settings.md checked on write by the spec-file hook
-- [ ] `doctor/gitattributes.ts` via `git check-attr`, only with settings.md; repo lines after spec lines; exact-output tests updated
-- [ ] `checkLedgerIndex` duplicates + project INDEX + pointer rows
-- [ ] Pack `Settings:` line
-- [ ] Draft / after-merge / bootstrap / merge-method prose reads settings (execute, SKILL.md, create, review)
-- [ ] `create.md` adds both union rules to `.gitattributes` when missing
+- [x] `parseSettings`/`loadSettings` with defaults + frontmatter field helpers; `spec.ts settings`
+- [x] `gates --name` form; wording fixed in execute.md and SKILL.md
+- [x] `doctor/settings.ts` (types, unknown keys, gate names); settings.md checked on write by the spec-file hook
+- [x] `doctor/gitattributes.ts` via `git check-attr`, only with settings.md; repo lines after spec lines; exact-output tests updated
+- [x] `checkLedgerIndex` duplicates + project INDEX + pointer rows
+- [x] Pack `Settings:` line
+- [x] Draft / after-merge / bootstrap / merge-method prose reads settings (execute, SKILL.md, create, review)
+- [x] `create.md` adds both union rules to `.gitattributes` when missing
 
 ## Phase-local notes
 
