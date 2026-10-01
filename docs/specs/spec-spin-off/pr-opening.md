@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Done: phase 1. Left: 2, 3. One PR (A): phases 1–3, branch `spec-spin-off`. Release as a minor bump after merge.
+Done: phases 1, 2. Left: 3. One PR (A): phases 1–3, branch `spec-spin-off`. Release as a minor bump after merge.
 
 ## Pre-PR checks
 

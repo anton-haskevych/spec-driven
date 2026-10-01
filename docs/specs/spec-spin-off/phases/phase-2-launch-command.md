@@ -21,6 +21,6 @@ pr: A
 
 ## Deliverables
 
-- [ ] Command line: prompt, session name, shell line with single-quote escaping; refuses an unknown sub-command or a bad name
-- [ ] Terminal pick + argv: tmux, iTerm (tab, or window when none), Terminal.app, none → print; AppleScript escaping
-- [ ] `launchReport` with `stubRunner`: launched line; failed osascript → print fallback; command table + SKILL.md *Tools* + README
+- [x] Command line: prompt, session name, shell line with single-quote escaping; refuses an unknown sub-command or a bad name
+- [x] Terminal pick + argv: tmux, iTerm (tab, or window when none), Terminal.app, none → print; AppleScript escaping
+- [x] `launchReport` with `stubRunner`: launched line; failed osascript → print fallback; command table + SKILL.md *Tools* + README
