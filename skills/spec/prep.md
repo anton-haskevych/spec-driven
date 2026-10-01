@@ -287,7 +287,7 @@ Then offer the handoff — a soft offer, not a gate: *"Ready to write the spec? 
 
 A session works one spec (SKILL.md → *Session lifecycle*). When it needs a new spec B (prep asked for B here, `create` needs a spec that doesn't exist, or execute/update finds work that is its own spec), it hands B to a fresh session instead of prepping it on a full context. Work that can wait goes to `/spec idea`; spin off what should be prepped now.
 
-1. **Name and check.** Kebab-case name for the intent (Stage 2.1). Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list <key words>`; if an open spec or idea already covers it, point there instead.
+1. **Name and check.** Kebab-case name for the intent (Stage 2.1). Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list <key words>`; if an open spec or idea already covers it, point there instead. Without Bun, list `docs/specs/` and `docs/specs/_backlog/`.
 2. **Stub.** `mkdir -p docs/specs/<B>` and write the Stage 2.1 stub `CLAUDE.md`, with the body line `Seeded from <A>: see seed.md. /spec prep <B> continues.` and a `related:` entry `- <A>: <what A needs from it>`. Carry `priority`; add `due:` only when A's date really binds B.
 3. **Seed.** Write `docs/specs/<B>/seed.md` from the template below, at most 60 lines. It carries what a fresh session can't recover: quote the user, don't paraphrase; name rejected options; point at files, not memories.
 4. **Wave 0.** If this session's agents already ran recon that bears on B, write it as `research/<YYYY-MM-DD>-wave-0-<slug>.md`: the Stage 4.1 format with `wave: 0`, `lens: inherited`, `from: <A>`, keeping `file:line` refs and noting what you spot-checked or corrected. Findings only, never the transcript.
