@@ -57,6 +57,23 @@ describe("pushBranch (real git)", () => {
     expect(push()).toEqual({ ok: true, value: { branch: "feat", commits: 0, behind: 2 } });
   });
 
+  test("counts the branch's own commits: a merge of main is one, not everything it brought in", () => {
+    repo.git("checkout", "-q", "-b", "feat");
+    repo.write("src/a.ts", "a\n");
+    repo.commitAll("mine");
+    expect(push().ok).toBe(true);
+    const other = repo.clone("other");
+    for (const name of ["x", "y", "z"]) {
+      other.write(`src/${name}.ts`, `${name}\n`);
+      other.commitAll(name);
+    }
+    other.git("push", "-q", "origin", "main");
+    repo.git("fetch", "-q", "origin");
+    repo.git("merge", "-q", "--no-edit", "origin/main");
+
+    expect(push()).toEqual({ ok: true, value: { branch: "feat", commits: 1, behind: 0 } });
+  });
+
   test("refuses a detached HEAD", () => {
     repo.git("checkout", "-q", "--detach");
     expect(push()).toEqual({ ok: false, reason: "detached HEAD — check out a branch before pushing" });

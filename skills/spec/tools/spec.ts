@@ -9,6 +9,8 @@ import { listCommand } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
 import { PR_STATUS_USAGE, prStatusReport } from "./commands/pr-status";
+import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
+import { PUSH_USAGE, pushReport } from "./commands/push";
 import { readyReport } from "./commands/ready";
 import { settingsReport } from "./commands/settings";
 import { isoDay } from "./core/schedule";
@@ -34,6 +36,8 @@ export const COMMANDS: Record<string, Command> = {
   phase: { usage: PHASE_USAGE, run: phaseCommand },
   settings: { usage: "settings", run: (dir) => settingsReport(dir) },
   "pr-status": { usage: PR_STATUS_USAGE, run: (dir, args) => prStatusReport(dir, args) },
+  push: { usage: PUSH_USAGE, run: (dir, args) => pushReport(dir, args) },
+  "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)

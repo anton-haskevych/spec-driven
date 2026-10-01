@@ -29,12 +29,12 @@ export function pushBranch(git: Git, defaultBranch: string): Result<Pushed> {
     if (refusal) return { ok: false, reason: refusal };
   }
 
-  const commits = countCommits(git, unpushed);
+  const commits = countCommits(git, ["--first-parent", unpushed]);
   const upstream = git.out(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"]);
   const setUpstream = !upstream.ok || upstream.value !== `origin/${branch.value}`;
   const pushed = git.out(["push", "-q", ...(setUpstream ? ["-u"] : []), "origin", `HEAD:refs/heads/${branch.value}`]);
   if (!pushed.ok) return pushed;
-  return { ok: true, value: { branch: branch.value, commits, behind: countCommits(git, `HEAD..${remoteDefault}`) } };
+  return { ok: true, value: { branch: branch.value, commits, behind: countCommits(git, [`HEAD..${remoteDefault}`]) } };
 }
 
 function codeOnDefaultBranch(git: Git, defaultBranch: string, unpushed: string): string | undefined {
@@ -45,7 +45,7 @@ function codeOnDefaultBranch(git: Git, defaultBranch: string, unpushed: string):
   return `${defaultBranch} has unpushed changes outside docs/specs (${preview}) — not pushing code to ${defaultBranch}; ask the user`;
 }
 
-function countCommits(git: Git, range: string): number {
-  const counted = git.out(["rev-list", "--count", range]);
+function countCommits(git: Git, range: readonly string[]): number {
+  const counted = git.out(["rev-list", "--count", ...range]);
   return counted.ok ? Number(counted.value) : 0;
 }
