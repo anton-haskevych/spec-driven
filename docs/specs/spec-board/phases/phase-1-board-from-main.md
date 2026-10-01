@@ -53,7 +53,7 @@ else → table.
 - [x] `baseCache`: read-set pathspec for both spec roots; extract into a temp dir, then rename (a concurrent extract of the same sha is safe); keep the newest 2. One `repoWithOrigin` real-git test: both roots, a pointer outside `phases/`, `pr-opening.md` present, `research/` absent
 - [x] `loadMainline`: `pinDefault` with timeout; offline / busy / local fall back to the local ref; no origin ref → board unavailable
 - [x] `Board` model + `BOARD_VERSION` + `board-factories.ts`; `buildBoard` ready / blocked / prep- and create-stage specs / finished and paused specs left out / needs-you overdue and deploy
-- [ ] `rankReady` (overdue, priority, due, unblocks, updated, name)
+- [x] `rankReady` (overdue, priority, due, unblocks, updated, name)
 - [ ] `renderBoard`: header modes, lanes with caps and `+N more`, empty lanes, footer counts; `ago` via `Intl.DurationFormat` narrow
 - [ ] `list` (no args → board, in a code fence; filters and `table` → `portfolioTable`; failure → table + reason), `board [<lane>] [--json] [--local]`; `Command.run` async
 - [ ] `list.md` §1 (board; filters → table; lane words → `board <lane>`), SKILL.md *Tools* → List + Board, README
