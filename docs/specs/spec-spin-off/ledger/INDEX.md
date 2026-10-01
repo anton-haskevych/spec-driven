@@ -8,6 +8,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 ## Principles
 
 ## Domain
+- `domain-verifying-a-terminal-launch.md` — [general] — osacompile the AppleScript, then a live `launch status` smoke
 
 ## Decisions
 

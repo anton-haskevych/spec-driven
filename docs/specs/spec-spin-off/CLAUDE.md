@@ -1,7 +1,7 @@
 ---
 created: 2026-10-01T12:23:20-07:00
-updated: 2026-10-01T12:31:33-07:00
-status: active
+updated: 2026-10-01T13:08:36-07:00
+status: done
 priority: p1
 area: [tools, sub-commands]
 domain: [spec-workflow]

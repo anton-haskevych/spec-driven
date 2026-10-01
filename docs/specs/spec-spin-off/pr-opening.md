@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Done: phases 1–3. Branch `spec-spin-off`, PR #7 https://github.com/anton-haskevych/spec-driven/pull/7. One PR (A): phases 1–3, branch `spec-spin-off`. Release as a minor bump after merge.
+Done: phases 1–3. Merged (squash 6c99e72) and released as 2.34.0 on 2026-10-01. Was branch `spec-spin-off`, PR #7 https://github.com/anton-haskevych/spec-driven/pull/7. One PR (A): phases 1–3, branch `spec-spin-off`. Release as a minor bump after merge.
 
 ## Pre-PR checks
 
