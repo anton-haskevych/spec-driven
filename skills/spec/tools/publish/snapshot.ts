@@ -21,10 +21,14 @@ export interface SnapshotRequest {
   spec?: string;
 }
 
-export function pinDefault(git: Git, branch: string): Result<string> {
-  const fetched = git.out(["fetch", "-q", "origin", branch]);
+export function pinDefault(git: Git, branch: string, options: { timeoutMs?: number } = {}): Result<string> {
+  const fetched = git.out(["fetch", "-q", "origin", branch], options);
   if (!fetched.ok) return fetched;
-  return git.out(["rev-parse", "--verify", `refs/remotes/origin/${branch}^{commit}`]);
+  return originTip(git, branch);
+}
+
+export function originTip(git: Git, branch: string): Result<string> {
+  return git.out(["rev-parse", "--verify", "--quiet", `refs/remotes/origin/${branch}^{commit}`]);
 }
 
 export function specDocChanges(nameStatusZ: string): SpecDocChanges {
