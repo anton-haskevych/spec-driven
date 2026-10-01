@@ -23,6 +23,6 @@
 - [x] Phase 5 — Project settings → `phases/phase-5-project-settings.md`
 - [x] Phase 6 — PR status → `phases/phase-6-pr-status.md`
 - [x] Phase 7 — Publish and push → `phases/phase-7-publish-and-push.md`
-- [ ] Phase 8 — Hooks: Bash write guard and context nudge → `phases/phase-8-hooks.md`
+- [ ] Phase 8 — Hooks: Bash write guard → `phases/phase-8-hooks.md`
 - [ ] Phase 9 — Plain-words outcome → `phases/phase-9-plain-words-outcome.md`
 - [ ] Phase 10 — CRM adoption → `phases/phase-10-crm-adoption.md`

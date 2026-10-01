@@ -14,7 +14,6 @@ export interface ProjectSettings {
   pr: { draft: boolean; merge?: MergeMethod };
   checks: { external: string[] };
   gates: { afterMergeMain?: string; bootstrap?: string };
-  nudgeAt?: number;
 }
 
 export interface ParsedSettings {
@@ -29,7 +28,7 @@ const SECTION_KEYS: Record<string, readonly string[]> = {
   checks: ["external"],
   gates: ["after-merge-main", "bootstrap"],
 };
-const TOP_KEYS = new Set(["docs", "nudge-at", ...Object.keys(SECTION_KEYS)]);
+const TOP_KEYS = new Set(["docs", ...Object.keys(SECTION_KEYS)]);
 
 export function loadSettings(projectDir: string): ProjectSettings {
   const file = join(projectDir, SETTINGS_FILE);
@@ -56,14 +55,13 @@ export function parseSettings(text: string): ParsedSettings {
       ...optional("afterMergeMain", gateName(gates["after-merge-main"], "gates.after-merge-main", problems)),
       ...optional("bootstrap", gateName(gates.bootstrap, "gates.bootstrap", problems)),
     },
-    ...optional("nudgeAt", positiveNumber(data["nudge-at"], problems)),
   };
   problems.push(...Object.keys(data).filter((key) => !TOP_KEYS.has(key)).map((key) => `unknown key: ${key}`));
   return { settings, problems };
 }
 
 export function describeSettings(settings: ProjectSettings): string {
-  const { pr, checks, gates, nudgeAt } = settings;
+  const { pr, checks, gates } = settings;
   return [
     `docs on ${settings.docs}`,
     `PRs ${pr.draft ? "draft" : "ready"}`,
@@ -71,7 +69,6 @@ export function describeSettings(settings: ProjectSettings): string {
     ...(checks.external.length > 0 ? [`external checks ${checks.external.join(", ")}`] : []),
     ...(gates.afterMergeMain ? [`after merging main: gate ${gates.afterMergeMain}`] : []),
     ...(gates.bootstrap ? [`fresh worktree: gate ${gates.bootstrap}`] : []),
-    ...(nudgeAt ? [`nudge at ${nudgeAt} tokens`] : []),
   ].join(" · ");
 }
 
@@ -113,13 +110,6 @@ function gateName(value: unknown, key: string, problems: string[]): string | und
   if (value === undefined) return undefined;
   if (typeof value === "string" && value.trim()) return value.trim();
   problems.push(`${key} must name a gates.md section`);
-  return undefined;
-}
-
-function positiveNumber(value: unknown, problems: string[]): number | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
-  problems.push("nudge-at must be a positive number of tokens");
   return undefined;
 }
 

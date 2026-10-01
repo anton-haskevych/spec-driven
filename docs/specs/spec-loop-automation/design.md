@@ -17,7 +17,6 @@ Builds on `product-brief.md`. A read of 52 CRM sessions (2026-09-26 → 09-30) s
 | Handoff doesn't push | repeated "is this on the remote?" | handoff pushes + `Remote:` line |
 | Draft rule contradicts projects whose drafts run no CI | 8 sessions re-argued it | `pr.draft` setting |
 | After merging main, regen steps rediscovered | ~10 sessions | `gates.after-merge-main` → `spec.ts gates --name <section>` |
-| Anton says "you're running out of context" | 3 times | once-per-session context nudge |
 | "What does this phase do for me?" | 6+ times | plain-words **Outcome** line per phase |
 
 ## Key decisions
@@ -40,7 +39,7 @@ Builds on `product-brief.md`. A read of 52 CRM sessions (2026-09-26 → 09-30) s
 | Bash writes to spec files | PreToolUse deny when a command mentioning `docs/specs` carries a write signal (CRM `protect-generated.ts` pattern), pointing at the `spec.ts` writers | PostToolUse mtime sweep; parsing target paths | Prevents the python/sed habit instead of checking it afterwards; no stamps; never blocks on files the session didn't write |
 | Unnamed `execute`/`resume` | Infer from paths in the branch's own commits since the merge-base + uncommitted (joined to the repo root); exactly one spec → use it and say so, else list candidates | Branch name; newest `in-flight.md`; content diff vs merge-base (loses the spec once published docs are merged back) | Anton's rule: key on names or paths, never branches |
 | Sub-command parse | `context.ts` implements it; SKILL.md keeps the rules, aligned with the tool; the pack's `spec=` wins when present | Drop the SKILL.md rules | The prose is the no-Bun fallback and the only parse for pack-less modes (prep, create, review, update, handoff, list, idea) |
-| Context nudge | PostToolUse hook, once per session, threshold `nudge-at` from settings, reads transcript usage | `once: true`; UserPromptSubmit; statusline `used_percentage` | `once: true` drops the hook even below threshold; PostToolUse fires mid-work; the statusline is user-local, not reachable from the plugin |
+| Context nudge | None — dropped 2026-09-30 | PostToolUse hook reading transcript usage against a `nudge-at` setting | Anton: unnecessary (`decision-no-context-nudge.md`) |
 | `lessons add` shape | Agent writes the entry at its final path (hook-validated); `lessons add <entry.md> <spec>` does the bookkeeping, warning on close matches | Flags + body file; refusing on a strong `similar` score | Same shape as `lessons seen`; the similarity score is fuzzy (shared stems ÷ smaller set), so it informs, never blocks |
 | CRM adoption | Final task phase in this spec | A separate CRM spec | Small config; keeps the adoption tied to the release it needs |
 | pr-status data | `gh pr checks --json bucket,…`; job logs via the jobs API | Hand-normalising `statusCheckRollup`; `gh run view --log-failed` | gh already buckets both check kinds; `--log-failed` waits for the whole run (CRM lesson) |
@@ -83,7 +82,7 @@ FAIL Landing Tests › Unit tests (run 36775362173, job 110039001343)
 
 ## Edge cases
 
-- **No Bun / Codex / cloud:** every command has a prose fallback line; hooks fail open. Settings absent → plugin defaults (draft PRs, docs on branch, no nudge).
+- **No Bun / Codex / cloud:** every command has a prose fallback line; hooks fail open. Settings absent → plugin defaults (draft PRs, docs on branch).
 - **Branch cut before `.gitattributes`:** merging main into it still conflicts once; `pr-status`/doctor note it, never auto-resolve.
 - **publish-docs race:** non-fast-forward → re-fetch, re-pin, rebuild once, then stop. Other rejections (branch protection, pre-push hook) stop immediately.
 - **publish-docs vs an edit made on main** (the $150 case): `merge-tree` conflicts → nothing pushed; the output names the file and says "merge main first".
@@ -95,7 +94,6 @@ FAIL Landing Tests › Unit tests (run 36775362173, job 110039001343)
 - **Mergeability UNKNOWN:** one re-poll, then report `unknown`.
 - **Push on the default branch** with non-docs commits: `spec.ts push` refuses and says why; the agent asks the user.
 - **Tick on a task phase without evidence:** `invalid` — the doctor's evidence rule applies.
-- **Nudge in a 200k-window session:** threshold is absolute tokens from settings (documented as assuming 1M windows). Auto-compact may be off (it is for Anton), so the nudge is the stop signal, not compaction.
 - **Inferred spec is wrong:** the agent states the inferred spec in its first line; the user can redirect.
 - **Progress line with trailing notes** (`→ phases/x.md (closed 2026-09-08)`): `deployed` inserts right after the pointer, where the reader looks.
 

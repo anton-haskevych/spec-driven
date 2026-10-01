@@ -27,5 +27,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-parse-settings-returns-problems.md` — [phase 5+] — one schema walk: defaults + problems; settings.file marks presence
 - `decision-pr-status-tails-first-three.md` — [phase 6, 10] — tails for 3 failures only; each log is ~1 MB
 - `decision-publish-docs-pushes-first.md` — [phase 7, 10] — publish-docs pushes, publishes, merges back; handoff makes one call
+- `decision-no-context-nudge.md` — [phase 8, 10] — context nudge dropped (Anton); `nudge-at` setting removed
 
 ## Workarounds

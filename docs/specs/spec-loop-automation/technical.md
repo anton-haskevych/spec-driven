@@ -26,7 +26,6 @@ checks:
 gates:
   after-merge-main: merge-main   # gates.md section run after merging main
   bootstrap: bootstrap           # gates.md section run when a worktree is fresh
-nudge-at: 500000      # tokens; assumes 1M-window sessions; unset → no context nudge
 ---
 
 <prose: why these values; optional>
@@ -108,14 +107,13 @@ Modules: `pr/gh.ts` (the only gh caller: typed records + 30-call budget), `pr/ch
 - `create.md` adds both union rules (`docs/specs/**/INDEX.md`, `*/docs/specs/**/INDEX.md`) to `.gitattributes` when missing.
 
 ## Hooks
-- Shared input: `tools/hooks/hook-input.ts` — `readPayload()`, `writtenPaths(payload)` for Write/Edit/MultiEdit, the fail-open `main()` wrapper, and `sessionMemory(prefix)` moved from `lesson-recall.ts:37-52` (`RecallMemory` → `SessionMemory`; no session id → no memory writes).
+- Shared input: `tools/hooks/hook-input.ts` — `readPayload()`, `writtenPaths(payload)` for Write/Edit/MultiEdit, and the fail-open `main()` wrapper. `RecallMemory` stays in `lesson-recall.ts` (one user).
 - `bash-guard.ts` (new, **PreToolUse**, matcher `Bash`, `if:` pre-spawn filter on commands mentioning `docs/specs`): when the command matches a write signal (the ~8 regexes of CRM `ops/src/hooks/pre-tool-use/protect-generated.ts:13-22`, copied — zero deps) and `git mv|rm|add|commit|checkout|restore|merge` is not the verb, deny with "Use `spec.ts phase tick|deployed|add|split` / `lessons add`, or the Write/Edit tools". Replaces the PostToolUse mtime sweep.
 - `spec-file-check.ts`: unchanged matcher (`Write|Edit|MultiEdit`); `_playbook/settings.md` routed to the settings check.
-- `context-nudge.ts`: PostToolUse, matcher `Bash|Write|Edit|MultiEdit|Agent`; reads the transcript tail (last 256 KB), skips the first partial line and `isSidechain`/`<synthetic>` entries, last assistant `usage` → `input + cache_read + cache_creation`; ≥ `nudge-at` and not yet nudged → `additionalContext`: "Context ≈ N tokens (nudge-at M). Finish the current TDD cycle, then /spec handoff at the next clean boundary." Silent otherwise.
-- `skill-wiring.test.ts:32-34` hook count 2 → 4.
+- `skill-wiring.test.ts:32-34` hook count 2 → 3. No context nudge (`decision-no-context-nudge.md`).
 
 ## Mode-file changes
-- SKILL.md: parse rules (`:36-49`) rewritten to match *Context parse* 1–3 (kept, not dropped); `:74` reworded (names or changed paths, never branches); `:78`, `execute.md:107` reworded for the nudge (auto-compact may be off — the nudge, not compaction, is the stop signal); `:86` hook coverage; draft wording `:401` → settings; grouped Tools bullets.
+- SKILL.md: parse rules (`:36-49`) rewritten to match *Context parse* 1–3 (kept, not dropped); `:74` reworded (names or changed paths, never branches); `:86` hook coverage; draft wording `:401` → settings; grouped Tools bullets.
 - `execute.md`: `:97,147-149` → `phase tick`; `:134` gates wording; `:137` → `settings.pr.draft`; `:150` → `phase add`; after merging main → `gates --name <after-merge-main>`; PR body leads with phase Outcomes; `pr-status` at the gate.
 - `update.md`: `:36-49` → `phase tick`/`phase deployed`; §9 → push.
 - `handoff.md` §3: after commit → `spec.ts push`, then `publish-docs` when `docs: main`; §4 prints the `Remote:` line.

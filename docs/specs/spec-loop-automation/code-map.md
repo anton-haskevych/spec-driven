@@ -26,7 +26,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/core/git.ts`, `core/result.ts` | The one git wrapper (cwd bound, failures as values); `Result<T>` shared with `pr/` | 7 |
 | `skills/spec/tools/commands/push.ts`, `commands/publish-docs.ts` | `spec.ts push` / `publish-docs` adapters; publish-docs pushes first | `decision-publish-docs-pushes-first.md` |
 | `skills/spec/tools/hooks/hook-input.ts` | Shared hook payload/memory/fail-open wrapper | 8 |
-| `skills/spec/tools/hooks/bash-guard.ts`, `hooks/context-nudge.ts` | PreToolUse spec-write deny; PostToolUse context nudge | 8 |
+| `skills/spec/tools/hooks/bash-guard.ts` | PreToolUse spec-write deny | 8 |
 
 ## Existing files touched
 
@@ -48,5 +48,4 @@ needs to know exist to navigate the code — not every file that's touched.
 - `~/IdeaProjects/crm/docs/specs/_ledger/workaround-push-spec-docs-to-main-from-a-worktree.md` — origin of the publish-docs problem (the algorithm is now the snapshot merge)
 - `~/IdeaProjects/crm/docs/specs/_ledger/workaround-read-a-failed-job-log-while-the-run-is-still-going.md` — why pr-status uses the jobs-log API
 - `~/IdeaProjects/crm/ops/src/hooks/pre-tool-use/protect-generated.ts` — write-signal regexes the Bash guard copies
-- `~/IdeaProjects/crm/ops/src/hooks/post-tool-use/checkpoint-reminder.ts` — existing CRM nudge to reconcile in phase 10
 - `~/.claude/hooks/REFERENCE.md` — hook events, payloads, `if:` filter

@@ -14,12 +14,11 @@ code: false
 - `docs/specs/_playbook/settings.md` (new)
 - `docs/specs/_playbook/gates.md` (new)
 - `.claude/rules/git-workflow.md` (reconcile with settings)
-- `ops/src/hooks/post-tool-use/checkpoint-reminder.ts` (reconcile with the context nudge)
 - `docs/specs/_ledger/workaround-push-spec-docs-to-main-from-a-worktree.md` (`enforced-by:`)
 
 ## Implementation guidance
 
-Settings (Anton's decisions, 2026-09-30): `docs: main`, `pr.draft: false`, `pr.merge: squash`, `checks.external: ["Vercel*"]`, `gates.after-merge-main: merge-main`, `gates.bootstrap: bootstrap`, `nudge-at: 500000`.
+Settings (Anton's decisions, 2026-09-30): `docs: main`, `pr.draft: false`, `pr.merge: squash`, `checks.external: ["Vercel*"]`, `gates.after-merge-main: merge-main`, `gates.bootstrap: bootstrap`.
 
 `.gitattributes`: `docs/specs/**/INDEX.md merge=union` **and** `*/docs/specs/**/INDEX.md merge=union` — CRM has 16 `landing/docs/specs` specs (11 with ledgers). Verify with `git check-attr merge` on one of each.
 
@@ -30,8 +29,6 @@ Settings (Anton's decisions, 2026-09-30): `docs: main`, `pr.draft: false`, `pr.m
 
 `git-workflow.md`: ready PRs (CI runs), merge is Anton's call via squash, CI checked on request, spec docs to main through publish-docs (a feature branch gains a no-op `docs(spec): snapshot` merge per publish — expected). Don't bulk-migrate existing specs or lessons.
 
-`checkpoint-reminder.ts` already nudges every 20 tool calls (PostToolUse). Decide with the nudge live: drop its spec-progress line (the loop now owns spec state) or leave it for journals only — don't run two context nags.
-
 `enforced-by:` must resolve inside CRM (`doctor/project-lesson.ts:25-28` resolves against the project), so point it at `docs/specs/_playbook/settings.md` (its `docs: main` key), not the plugin's code.
 
 The `_playbook/page.md` tag playbook from the draft is out of this spec's scope — capture it with `/spec idea` in CRM instead.
@@ -41,5 +38,5 @@ The `_playbook/page.md` tag playbook from the draft is out of this spec's scope 
 - [ ] `.gitattributes` union rules committed (evidence: commit sha; `git check-attr` output)
 - [ ] `_playbook/settings.md` with the decided values (evidence: sha; `spec.ts settings` output)
 - [ ] `_playbook/gates.md` targets + merge-main + bootstrap (evidence: sha; `spec.ts doctor` clean on settings)
-- [ ] `git-workflow.md` and `checkpoint-reminder.ts` reconciled (evidence: sha)
+- [ ] `git-workflow.md` reconciled (evidence: sha)
 - [ ] Workaround lesson `enforced-by: docs/specs/_playbook/settings.md` (evidence: sha; doctor clean)

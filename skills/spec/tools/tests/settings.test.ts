@@ -14,7 +14,6 @@ checks:
 gates:
   after-merge-main: merge-main
   bootstrap: bootstrap
-nudge-at: 500000
 ---
 
 Why: CRM drafts run no CI.
@@ -28,7 +27,6 @@ describe("parseSettings", () => {
         pr: { draft: false, merge: "squash" },
         checks: { external: ["Vercel*"] },
         gates: { afterMergeMain: "merge-main", bootstrap: "bootstrap" },
-        nudgeAt: 500000,
       },
       problems: [],
     });
@@ -49,7 +47,7 @@ describe("parseSettings", () => {
       'pr.merge must be squash, merge or rebase, not "fast"',
       "pr has an unknown key: label",
       "gates must be a map, e.g. gates: { after-merge-main: <value> }",
-      "nudge-at must be a positive number of tokens",
+      "unknown key: nudge-at",
       "unknown key: color",
     ].toSorted());
   });
@@ -68,7 +66,7 @@ describe("loadSettings", () => {
     tree = createTree();
     expect(loadSettings(tree.root)).toEqual(DEFAULT_SETTINGS);
     const file = tree.write(SETTINGS_FILE, CRM);
-    expect(loadSettings(tree.root)).toMatchObject({ file, docs: "main", nudgeAt: 500000 });
+    expect(loadSettings(tree.root)).toMatchObject({ file, docs: "main" });
     expect(file).toBe(join(tree.root, "docs/specs/_playbook/settings.md"));
   });
 });
@@ -76,7 +74,7 @@ describe("loadSettings", () => {
 describe("describeSettings", () => {
   test("one line, unset parts left out", () => {
     expect(describeSettings(parseSettings(CRM).settings)).toBe(
-      "docs on main · PRs ready · merge squash · external checks Vercel* · after merging main: gate merge-main · fresh worktree: gate bootstrap · nudge at 500000 tokens",
+      "docs on main · PRs ready · merge squash · external checks Vercel* · after merging main: gate merge-main · fresh worktree: gate bootstrap",
     );
     expect(describeSettings(DEFAULT_SETTINGS)).toBe("docs on branch · PRs draft · merge: ask the user");
   });
