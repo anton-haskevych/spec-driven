@@ -29,7 +29,7 @@ Always exits 0; the first line after the header is `state: …` so an agent (or 
 
 ## Deliverables
 
-- [ ] `pr/checks.ts`: bucket counts + external filter from `gh pr checks` fixtures; state precedence incl. merged/closed, conflicting, draft, UNKNOWN re-poll
-- [ ] `pr/log-tail.ts`: jobs-API log fetch + cleaner (BOM, ANSI, ISO prefix) from a captured sample; missing-job guard
+- [x] `pr/checks.ts`: bucket counts + external filter from `gh pr checks` fixtures; state precedence incl. merged/closed, conflicting, draft, UNKNOWN re-poll
+- [x] `pr/log-tail.ts`: jobs-API log fetch + cleaner (BOM, ANSI, ISO prefix) from a captured sample; missing-job guard
 - [x] `pr/main-compare.ts`: walk-back with per-job and per-invocation caps and "not run" message
-- [ ] PR resolution: arg → current branch → spec's links (multi-PR fixture); command + render; execute §10 prose
+- [x] PR resolution: arg → current branch → spec's links (multi-PR fixture); command + render; execute §10 prose

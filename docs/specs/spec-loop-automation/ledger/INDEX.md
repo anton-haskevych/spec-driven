@@ -24,5 +24,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-bash-writes-denied-not-swept.md` — [phase 8] — PreToolUse deny on write signals, no mtime sweep
 - `decision-index-pointer-check-scope.md` — [phase 5, 10] — only docs/specs/_ledger rows resolve; CRM cross-spec rows have no base
 - `decision-parse-settings-returns-problems.md` — [phase 5+] — one schema walk: defaults + problems; settings.file marks presence
+- `decision-pr-status-tails-first-three.md` — [phase 6, 10] — tails for 3 failures only; each log is ~1 MB
 
 ## Workarounds
