@@ -195,9 +195,17 @@ Local claims only guard one clone. Across machines, each claim is mirrored as a 
   not exist, and the server checks the old value atomically. If the push is rejected, fetch the existing
   ref and refuse with `claimed by <user>@<host> (<sessionName>) <age> ago`.
 - **Same holder:** the existing ref's payload has the caller's `sessionId` → ok (idempotent).
-- **Take over:** only with `--take-over`: `--force-with-lease=<ref>:<old sha>`. It is never automatic,
-  because liveness can't be checked on another machine.
-- **Release:** `git push origin --force-with-lease=<ref>:<own sha> :<ref>`.
+- **Take over (escape hatch):** `claim take --take-over`. It works on any claim, remote or local, live or
+  not, and only runs when the user says so. It is never automatic, because liveness can't be checked on
+  another machine.
+  - The refusal ends with `say "take it over" to take it anyway`. Claude runs `--take-over` only on that
+    word in conversation. No flag to type.
+  - Remote: `--force-with-lease=<ref>:<old sha>`. The new payload carries `takenFrom: <old holder>`.
+  - Prints the old holder's branch and whether it is on origin, so the new session can build on their
+    commits instead of starting over.
+- **Release:** `git push origin --force-with-lease=<ref>:<own sha> :<ref>`. If the lease fails, the claim was
+  taken over: print `phase <id> was taken over by <user>@<host> <age> ago; your work is on <branch>`, delete
+  nothing, and exit 0. Handoff shows that line, so the old holder learns about it the next time they hand off.
 - **Read:** `git fetch origin '+refs/spec-claims/*:refs/spec-claims-remote/*'` is part of the board's
   existing fetch. Payloads are read with `git log -1 --format=%B`.
 - **Offline / push error:** keep the local claim and print

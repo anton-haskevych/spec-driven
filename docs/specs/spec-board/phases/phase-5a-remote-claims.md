@@ -28,8 +28,11 @@ See `technical.md` → *claims* → *Remote layer*.
   across machines.
 - `take` order: take the local claim, then push the remote ref. If the push is refused, release the local
   claim and refuse with the remote holder's name.
-- Liveness can't be checked across machines, so a remote claim is never taken over automatically. It can
-  be taken over with `claim take --take-over`, which pushes with a lease on the old sha.
+- Liveness can't be checked across machines, so a remote claim is never taken over automatically.
+- **Escape hatch:** there is always one. The refusal ends with `say "take it over" to take it anyway`, and
+  on that word Claude runs `claim take --take-over`. It works on remote and local claims, live or not.
+  Takeover prints the old holder's branch so the new session builds on their commits. The old holder's
+  next release finds the lease changed and says who took it over.
 - Network failure doesn't block: keep the local claim and print
   `claim: origin unreachable; claimed locally only`.
 
@@ -37,9 +40,10 @@ See `technical.md` → *claims* → *Remote layer*.
 
 - [ ] Probe: GitHub accepts pushing and deleting `refs/spec-claims/*` with a create-only lease; confirm `gh`/`git fetch` read them back. Record the result in the ledger
 - [ ] `remote.ts`: `pushClaim` (commit-tree payload, `--force-with-lease=<ref>:` create-only), `deleteClaim` (lease on own sha), `fetchClaims`; race test, two pushers on one bare origin, exactly one wins
-- [ ] `claim take` pushes after the local take and rolls back the local claim on refusal; `--take-over` with lease; offline → local only + one line; `release` deletes the own ref
+- [ ] `claim take` pushes after the local take and rolls back the local claim on refusal; offline → local only + one line; `release` deletes the own ref
+- [ ] `--take-over` escape hatch: any claim, remote or local, live included; lease on the old sha; payload `takenFrom`; prints the old holder's branch; the old holder's `release` reports `taken over by …` and exits 0
 - [ ] Board: remote claims from other machines in flight with holder + age; older than `REMOTE_CLAIM_STALE_DAYS` under needs you; `--local` skips the remote
-- [ ] `execute.md` §1 remote refusal names the holder and suggests `--take-over` only on Anton's say-so; SKILL.md *Tools* Claims bullet mentions the remote ref
+- [ ] `execute.md` §1: a refusal shows the holder and offers "take it over"; run `--take-over` only on the user's word; handoff shows a taken-over line; SKILL.md *Tools* Claims bullet mentions the remote ref and the hatch
 
 ## Phase-local notes
 
