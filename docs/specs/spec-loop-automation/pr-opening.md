@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Reviewed (`reviews/2026-09-30-pre-execution-collegium.md`). Done: phases 1–7, 9 (all code phases). Left: 10 (task, in CRM, needs the release). Phase 8 dropped (`decision-no-bash-guard.md`). Branches pushed 2026-09-30, stacked: `feat/context-pack-loads` = PR A #3 (https://github.com/anton-haskevych/spec-driven/pull/3; phase 1, plus the spec/review commits and ROADMAP rows). `feat/phase-writers` = PR B #4 (https://github.com/anton-haskevych/spec-driven/pull/4; phases 2, 3, 4), based on A; retarget to `main` after A merges. `feat/project-settings` = PR C #5 (https://github.com/anton-haskevych/spec-driven/pull/5; phases 5, 6, 7, 9), based on B.
+Reviewed (`reviews/2026-09-30-pre-execution-collegium.md`). Done: phases 1–7, 9 (all code phases). Left: 10 (task, in CRM, needs the release). Phase 8 dropped (`decision-no-bash-guard.md`). #3 merged to `main` 2026-10-01; #4 and #5 merged into their stacked bases instead (`gotcha-stacked-prs-merge-into-their-base.md`), so **#6** (https://github.com/anton-haskevych/spec-driven/pull/6, `feat/loop-automation-rest`) carries B+C to `main`. Original stack: `feat/context-pack-loads` = PR A #3 (https://github.com/anton-haskevych/spec-driven/pull/3; phase 1, plus the spec/review commits and ROADMAP rows). `feat/phase-writers` = PR B #4 (https://github.com/anton-haskevych/spec-driven/pull/4; phases 2, 3, 4), based on A; retarget to `main` after A merges. `feat/project-settings` = PR C #5 (https://github.com/anton-haskevych/spec-driven/pull/5; phases 5, 6, 7, 9), based on B.
 
 Suggested PR split (from phase `pr:` fields):
 - **A** — phase 1 (pack parse fix)
