@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { systemRunner } from "../core/run";
+import { systemRunner, type Runner } from "../core/run";
 
 // CI has no git identity, and a developer's global config (hooks, signing) must not leak into tests.
 const ISOLATED_GIT_ENV = {
@@ -11,6 +11,11 @@ const ISOLATED_GIT_ENV = {
   GIT_COMMITTER_EMAIL: "spec-tests@example.com",
   GIT_CONFIG_GLOBAL: "/dev/null",
   GIT_CONFIG_NOSYSTEM: "1",
+};
+
+// Code under test spawns its own git; route it through the same isolated identity.
+export const isolatedRunner: Runner = {
+  run: (argv, options = {}) => systemRunner.run(argv, { ...options, env: { ...ISOLATED_GIT_ENV, ...options.env } }),
 };
 
 export interface TestRepo {
@@ -26,7 +31,7 @@ export function repoWithOrigin(prefix: string, branch = "main"): TestRepo {
   const root = mkdtempSync(join(tmpdir(), prefix));
   const dir = join(root, "work");
   const git = (cwd: string, args: string[]) => {
-    const result = systemRunner.run(["git", ...args], { cwd, env: ISOLATED_GIT_ENV });
+    const result = isolatedRunner.run(["git", ...args], { cwd });
     if (result.code !== 0) throw new Error(`git ${args.join(" ")} failed: ${result.stderr}`);
     return result.stdout.trim();
   };
