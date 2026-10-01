@@ -10,7 +10,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/core/run.ts` | `Runner` seam (argv spawn) + default-branch resolution | 1 |
 | `skills/spec/tools/context/request.ts` | Pure `/spec` argument parse: sub-command, name, hint, chunk references | 1 |
 | `skills/spec/tools/context/infer-spec.ts` | `specsInPlay`: unnamed execute/resume/status → specs the branch's changes belong to | 1 |
-| `skills/spec/tools/tests/git-repo.ts`, `tests/stub-runner.ts` | Real throwaway repos (bare origin + worktree) and canned gh output | 1 |
+| `skills/spec/tools/tests/git-repo.ts`, `tests/stub-runner.ts` | Real throwaway repos (bare origin + clones, `isolatedRunner` for code under test) and canned gh output | 1, 7 |
 | `skills/spec/tools/tests/tree.ts` | Temp project/spec builder for writer tests | 2 |
 | `skills/spec/tools/core/apply-edits.ts` | `EditPlan` + the only place writers touch disk | 2 |
 | `skills/spec/tools/core/checkbox.ts` | Checkbox/evidence patterns shared by writers and doctor | 2 |
@@ -22,7 +22,9 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/playbook/settings.ts` | `_playbook/settings.md` parse + defaults | 5 |
 | `skills/spec/tools/doctor/settings.ts`, `doctor/gitattributes.ts` | Settings and union-rule checks (only when settings.md exists) | 5 |
 | `skills/spec/tools/pr/` | `checks`, `main-compare`, `log-tail`, `render` | 6 |
-| `skills/spec/tools/publish/` | `snapshot`, `publish`, `push` | 7 |
+| `skills/spec/tools/publish/` | `snapshot` (docs snapshot commit), `publish` (merge-tree → main, one non-ff rebuild, merge-back), `push` (branch to its own name), `render` (`Remote:` line) | 7 |
+| `skills/spec/tools/core/git.ts`, `core/result.ts` | The one git wrapper (cwd bound, failures as values); `Result<T>` shared with `pr/` | 7 |
+| `skills/spec/tools/commands/push.ts`, `commands/publish-docs.ts` | `spec.ts push` / `publish-docs` adapters; publish-docs pushes first | `decision-publish-docs-pushes-first.md` |
 | `skills/spec/tools/hooks/hook-input.ts` | Shared hook payload/memory/fail-open wrapper | 8 |
 | `skills/spec/tools/hooks/bash-guard.ts`, `hooks/context-nudge.ts` | PreToolUse spec-write deny; PostToolUse context nudge | 8 |
 
