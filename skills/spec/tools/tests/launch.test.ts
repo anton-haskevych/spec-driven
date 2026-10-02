@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { sessionLaunch, type SessionLaunch } from "../launch/command-line";
 import { launchArgv, pickTerminal } from "../launch/terminal";
-import { launchReport } from "../commands/launch";
+import { launchCommand, launchReport } from "../commands/launch";
+import type { Placement } from "../trees/place";
 import { stubRunner } from "./stub-runner";
 
 describe("launchReport", () => {
@@ -27,7 +28,7 @@ describe("launchReport", () => {
   });
 
   test("bad arguments come back as one launch line", () => {
-    expect(launchReport("/w", ["prep"], iTerm, stubRunner([]))).toBe("launch: usage: launch <sub-command> <spec-name>");
+    expect(launchReport("/w", ["prep"], iTerm, stubRunner([]))).toBe("launch: usage: launch <sub-command> <spec-name> [<phase>]");
   });
 });
 
@@ -93,6 +94,54 @@ describe("sessionLaunch", () => {
   test("refuses an unknown sub-command or a spec name that isn't kebab-case", () => {
     expect(sessionLaunch("/w", ["deploy", "billing"])).toEqual({ ok: false, reason: "unknown sub-command deploy (prep, create, resume, execute, review, update, handoff, status, list, idea)" });
     expect(sessionLaunch("/w", ["prep", "Gift Cards"])).toEqual({ ok: false, reason: "spec name must be kebab-case: Gift Cards" });
-    expect(sessionLaunch("/w", ["prep"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name>" });
+    expect(sessionLaunch("/w", ["prep"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase>]" });
+  });
+});
+
+describe("sessionLaunch with a phase", () => {
+  test("execute carries the phase in the prompt and the title", () => {
+    const launch = sessionLaunch("/trees/spec-board-pr-b", ["execute", "spec-board", "phase-6"]);
+    expect(launch.ok && launch.value.title).toBe("spec-board execute 6");
+    expect(launch.ok && launch.value.command).toBe("claude -n 'spec-board execute 6' '/spec-driven:spec execute spec-board 6'");
+  });
+
+  test("refuses a bad phase id, a phase on another sub-command, and extra words", () => {
+    expect(sessionLaunch("/w", ["execute", "spec-board", "six"])).toEqual({ ok: false, reason: "not a phase id: six" });
+    expect(sessionLaunch("/w", ["prep", "spec-board", "6"])).toEqual({ ok: false, reason: "a phase only goes with execute" });
+    expect(sessionLaunch("/w", ["execute", "spec-board", "6", "now"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase>]" });
+  });
+});
+
+describe("launchCommand", () => {
+  const added: Placement = { kind: "added", path: "/trees/spec-board-pr-b", branch: "feat/spec-board-pr-b", how: "created", setup: { copied: [] } };
+
+  test("execute with a phase places the tree, then launches in it", async () => {
+    const runner = stubRunner([]);
+    const places: string[] = [];
+    const report = await launchCommand("/work/repo", ["execute", "spec-board", "6"], async (spec, phase) => {
+      places.push(`${spec} ${phase}`);
+      return { ok: true, value: added };
+    }, {}, runner);
+    expect(places).toEqual(["spec-board 6"]);
+    expect(report).toBe([
+      "Tree: /trees/spec-board-pr-b · feat/spec-board-pr-b · new branch from origin",
+      "launch: run this in a new terminal: cd '/trees/spec-board-pr-b' && claude -n 'spec-board execute 6' '/spec-driven:spec execute spec-board 6'",
+    ].join("\n"));
+  });
+
+  test("a busy tree is reported and nothing launches", async () => {
+    const runner = stubRunner([]);
+    const report = await launchCommand("/w", ["execute", "spec-board", "6"], async () => ({
+      ok: true,
+      value: { kind: "busy", branch: "feat/spec-board-pr-b", path: "/trees/spec-board-pr-b", holder: "after spec-board 5b (s-1)" },
+    }), { TERM_PROGRAM: "iTerm.app" }, runner);
+    expect(report).toBe("launch: /trees/spec-board-pr-b is busy, after spec-board 5b (s-1); not launched");
+    expect(runner.calls).toEqual([]);
+  });
+
+  test("bad arguments never place a tree; without a phase it launches where it is", async () => {
+    const place = async () => { throw new Error("must not place"); };
+    expect(await launchCommand("/w", ["execute", "spec-board", "six"], place, {}, stubRunner([]))).toBe("launch: not a phase id: six");
+    expect(await launchCommand("/w", ["prep", "gift-cards"], place, {}, stubRunner([]))).toStartWith("launch: run this in a new terminal: cd '/w' && ");
   });
 });

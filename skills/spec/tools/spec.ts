@@ -4,7 +4,7 @@ import { parseContextRequest } from "./context/request";
 import { doctorReport } from "./commands/doctor";
 import { GATES_USAGE, gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
-import { LAUNCH_USAGE, launchReport } from "./commands/launch";
+import { LAUNCH_USAGE, launchCommand } from "./commands/launch";
 import { lessonsCommand } from "./commands/lessons";
 import { BOARD_USAGE, boardCommand, systemBoardDeps } from "./commands/board";
 import { CLAIM_USAGE, claimCommand } from "./commands/claim";
@@ -43,7 +43,7 @@ export const COMMANDS: Record<string, Command> = {
   push: { usage: PUSH_USAGE, run: (dir, args) => pushReport(dir, args) },
   "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
   claim: { usage: CLAIM_USAGE, run: (dir, args) => claimCommand(dir, args) },
-  launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchReport(dir, args) },
+  launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },
   trees: { usage: TREES_USAGE, run: (dir, args) => treesCommand(dir, args) },
 };
 

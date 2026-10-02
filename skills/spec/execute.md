@@ -35,7 +35,7 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 **Place the session in its tree first**, since the claim records the tree it's taken in: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts trees place <spec> <phase>` (*Tools* → Trees).
 - `Tree: <path> · … · existing`, where `<path>` is the session's working directory: stay here.
 - Any other `Tree: <path> …`: switch with `EnterWorktree` and `{ path: "<path>" }`, then carry on with §1 there. Pass on, in one line each, a `Trees:` line (the tree root it just detected for this person) and a `Setup failed:` line.
-- `EnterWorktree` refuses (a session already inside another worktree can only switch into `.claude/worktrees/`): run `cd <path> && bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch execute <spec>`, give the user its line, and stop here.
+- `EnterWorktree` refuses (a session already inside another worktree can only switch into `.claude/worktrees/`): run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch execute <spec> <phase>`, which opens a session in that tree. Pass on its last line and stop here.
 - `trees: <path> is busy, after <spec> <phase> (<session>)`: never share a tree. Tell the user which session holds it and stop.
 - Any other `trees:` refusal (no origin, no default branch): work where the session is, and say so in one line.
 - Without Bun, skip this step.
