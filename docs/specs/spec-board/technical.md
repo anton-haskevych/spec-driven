@@ -343,8 +343,8 @@ later view read only `Board`.
   - Builds the prompt `/spec-driven:spec execute <spec> <phase>` and the title `<spec> execute <phase>`.
   - Always `cd <tree> && claude …`, with the tree from `trees place`. `claude -w` is not used.
 - **`spec.ts trees place <spec> <phase> [--json]`** · **`trees prune [--apply]`**: find-or-create the
-  spec PR group's tree (`feat/<spec>-<pr>` from fresh `origin/<default>`), refuse a busy one, set it up;
-  prune merged, pushed, clean, idle trees. Rules and personal settings: `phases/phase-5b-tree-placement.md`.
+  spec PR group's tree (`feat/<spec>-<pr>` from fresh `origin/<default>`), refuse one another session works in
+  (`treeHolder`), set it up; prune merged, pushed trees nobody is open in (`treeOccupant`). Rules and personal settings: `phases/phase-5b-tree-placement.md`.
 - `Command.run` returns `string | Promise<string>`. `run()` in `spec.ts` becomes async, and
   `tests/commands-table.test.ts` awaits it.
 

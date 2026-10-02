@@ -49,11 +49,13 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/launch/command-line.ts`, `commands/launch.ts` | phase in prompt + title; `launch execute <spec> <phase>` places the tree, then `cd <tree> && claude` | `decision-trees-placed-by-spec-driven.md` |
 | `skills/spec/tools/context/claims-here.ts` | claims taken in this worktree; no-spec context reads them before changed files | |
 | `skills/spec/tools/trees/place.ts` | `placeTree` — find, busy, add, setup for a spec PR group | `decision-trees-placed-by-spec-driven.md` |
-| `skills/spec/tools/trees/find.ts` | `findTree` (branch, then claims/activity), `busyHolder` — shared with the board | |
+| `skills/spec/tools/trees/find.ts` | `findTree` (branch, then claims/activity); `treeHolder` (place, launch, board) and `treeOccupant` (prune) | `decision-tree-held-by-work.md` |
+| `skills/spec/tools/trees/uncommitted.ts` | `hasUncommittedChanges` — one status on one tree, for placement | `decision-tree-held-by-work.md` |
+| `skills/spec/tools/sessions/own.ts`, `core/env.ts` | `ownSessionId(env)`, the one reader of `CLAUDE_CODE_SESSION_ID`; `Env` | |
 | `skills/spec/tools/trees/acquire.ts` | `addTree` — local branch, origin's branch, or fresh origin/<default> | |
 | `skills/spec/tools/trees/local-settings.ts` | personal `worktrees.root` in `<git-common-dir>/spec-driven/local.md` | |
 | `skills/spec/tools/trees/prune.ts`, `prune-rules.ts` | merged by ancestry or merged PR head; remove refuses edits | `docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md` |
-| `skills/spec/tools/board/tree-target.ts` | ready row target = PR group's tree; busy note | |
+| `skills/spec/tools/board/tree-target.ts` | ready row target = PR group's tree; busy note from `treeHolder`, caller excluded, no uncommitted check | `decision-tree-held-by-work.md` |
 | `skills/spec/execute.md` | §1 opens with `trees place` (+ `EnterWorktree`), then `claim take` | `decision-trees-placed-by-spec-driven.md` |
 | `skills/spec/handoff.md` | release, then SKILL.md *Next sessions* | |
 | `skills/spec/list.md` | board, filters → table, lanes → `board` | |

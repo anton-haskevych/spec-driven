@@ -54,11 +54,11 @@ relaxes only the sessions-in-tree clause.
 
 ## Deliverables
 
-- [ ] `ownSessionId(env)` replaces the four hand reads; `Env` moves to `core/env.ts`
-- [ ] `treeHolder`: an idle, claim-free session in a clean tree no longer holds it; mid-turn sessions and uncommitted changes still do; the refusal names which. `treeOccupant` keeps prune's presence rule, and unreadable sessions keep a tree
-- [ ] Place and launch apply `treeHolder` with one status call on the found tree; prune applies `treeOccupant`
-- [ ] Board: knows its caller (`BoardRequest.ownSessionId`), never marks its own tree busy, applies `treeHolder` without the uncommitted check (advisory; place is the gate)
-- [ ] `execute.md` §1, SKILL.md *Tools* → Trees, README, design row 18 and the trees decision state the rule as "held by work"
+- [x] `ownSessionId(env)` replaces the four hand reads; `Env` moves to `core/env.ts`
+- [x] `treeHolder`: an idle, claim-free session in a clean tree no longer holds it; mid-turn sessions and uncommitted changes still do; the refusal names which. `treeOccupant` keeps prune's presence rule, and unreadable sessions keep a tree
+- [x] Place and launch apply `treeHolder` with one status call on the found tree; prune applies `treeOccupant`
+- [x] Board: knows its caller (`BoardRequest.ownSessionId`), never marks its own tree busy, applies `treeHolder` without the uncommitted check (advisory; place is the gate)
+- [x] `execute.md` §1, SKILL.md *Tools* → Trees, README, design row 18 and the trees decision state the rule as "held by work"
 
 Preflight 2026-10-02 (`research/phase-7/2026-10-02-tree-holder-preflight.md`) split the old "every caller gets
 the same answer": prune decides whether a folder may be deleted, so any open tab still keeps it.

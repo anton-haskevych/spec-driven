@@ -33,11 +33,11 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 
 ## 1. Load the principles
 
-**Place the session in its tree first**, since the claim records the tree it's taken in: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts trees place <spec> <phase>` (*Tools* → Trees).
+**Place the session in its tree first**, since the claim records the tree it's taken in: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts trees place <spec> <phase>` (*Tools* → Trees). Run it as a command of its own, never chained with `claim take`: its answer decides whether to claim at all.
 - `Tree: <path> · … · existing`, where `<path>` is the session's working directory: stay here.
 - Any other `Tree: <path> …`: switch with `EnterWorktree` and `{ path: "<path>" }`, then carry on with §1 there. Pass on, in one line each, a `Trees:` line (the tree root it just detected for this person) and a `Setup failed:` line.
 - `EnterWorktree` refuses (a session already inside another worktree can only switch into `.claude/worktrees/`): run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch execute <spec> <phase>`, which opens a session in that tree. Pass on its last line and stop here.
-- `trees: <path> is busy, after <spec> <phase> (<session>)`: never share a tree. Tell the user which session holds it and stop.
+- `trees: <path> is busy, <reason>`: another session is working there: it holds a claim (`after <spec> <phase> (<session>)`), is mid-task, or sits idle with uncommitted changes. Never share a tree, and don't claim. Tell the user which session and why, and stop. A session left open after its handoff, idle in a clean tree, doesn't hold it, so the tab you launched from never blocks you.
 - Any other `trees:` refusal (no origin, no default branch): work where the session is, and say so in one line.
 - Without Bun, skip this step.
 
