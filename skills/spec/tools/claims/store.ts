@@ -4,7 +4,7 @@ import { isRecord, stringField } from "../core/frontmatter";
 import { gitCommonDir, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { parseJson } from "../pr/gh-records";
-import { createExclusive, displaceIfUnchanged, readIfPresent, sweepLeftovers } from "./atomic-file";
+import { createExclusive, readIfPresent, removeIfUnchanged, sweepLeftovers } from "./atomic-file";
 
 export interface Claim {
   spec: string;
@@ -52,7 +52,7 @@ export function takeClaim(dir: string, claim: Claim, isStale: IsStale): TakeOutc
     if (existing.sessionId === claim.sessionId) return { kind: "already-yours" };
     if (!isStale(existing)) return { kind: "held", by: existing };
     const takeover = JSON.stringify({ ...claim, takenFrom: existing.sessionId });
-    if (displaceIfUnchanged(file, existingText, claim.sessionId) && createExclusive(file, takeover, claim.sessionId)) {
+    if (removeIfUnchanged(file, existingText) && createExclusive(file, takeover, claim.sessionId)) {
       return { kind: "took-over", from: existing };
     }
   }
@@ -73,7 +73,7 @@ export function pruneClaims(dir: string, sessionId: string, removable: (claim: C
 function removeClaims(dir: string, sessionId: string, matches: (claim: Claim) => boolean): Claim[] {
   const removed: Claim[] = [];
   for (const { name, text, claim } of readClaimFiles(dir)) {
-    if (claim && matches(claim) && displaceIfUnchanged(join(dir, name), text, sessionId)) removed.push(claim);
+    if (claim && matches(claim) && removeIfUnchanged(join(dir, name), text)) removed.push(claim);
   }
   return removed;
 }
