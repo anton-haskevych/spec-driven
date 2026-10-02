@@ -347,7 +347,7 @@ Section headings are free-form — add new ones (e.g., `## Research findings`) a
 
 #### `.gitattributes` (repo root)
 
-Parallel branches append rows to the same ledger `INDEX.md` files, and a plain merge conflicts on them. Union merge keeps both sides. If the repo root's `.gitattributes` lacks either line below, append it (create the file if needed) and commit it with the spec. Leave every other line alone.
+Parallel worktrees of one spec append rows to its ledger `INDEX.md`, and a plain merge conflicts on them. Union merge keeps both sides in local merges; GitHub's PR check ignores it, so a PR can still show a conflict there until main is merged in. If the repo root's `.gitattributes` lacks either line below, append it (create the file if needed) and commit it with the spec. Leave every other line alone.
 
 ```gitattributes
 docs/specs/**/INDEX.md merge=union

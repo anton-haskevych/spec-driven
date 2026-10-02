@@ -15,7 +15,7 @@ export function checkProjectLesson(file: string, text: string): Issue[] {
     if (value !== undefined && !Array.isArray(value)) issues.push(error(file, `${key} must be a list, e.g. ${key}: [a, b]`));
   }
   if (parsed.data.paths === undefined) {
-    issues.push(warning(file, "has no paths; recall can only surface it through the INDEX"));
+    issues.push(warning(file, "has no paths; recall never shows it, only lessons similar finds it"));
   }
   return issues;
 }

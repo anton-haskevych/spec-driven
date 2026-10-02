@@ -25,3 +25,4 @@
 - [x] Phase 7 — Publish and push → `phases/phase-7-publish-and-push.md`
 - [x] Phase 9 — Plain-words outcome → `phases/phase-9-plain-words-outcome.md`
 - [ ] Phase 10 — CRM adoption → `phases/phase-10-crm-adoption.md`
+- [x] Phase 11 — Derived project ledger index → `phases/phase-11-derived-project-ledger-index.md`

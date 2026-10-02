@@ -45,11 +45,6 @@ export function formatSpecRow(file: string, tags: readonly string[], summary: st
   return `- \`${file}\`${SEPARATOR}[${tags.join(", ")}]${SEPARATOR}${summary}`;
 }
 
-export function formatProjectRow(file: string, paths: readonly string[], summary: string): string {
-  const pathColumn = paths.length > 0 ? `\`${paths.join(", ")}\`${SEPARATOR}` : "";
-  return `- \`${file}\`${SEPARATOR}${pathColumn}${summary}`;
-}
-
 export function formatPointerRow(lessonPath: string, summary: string): string {
   return formatSpecRow(lessonPath, ["general"], summary);
 }

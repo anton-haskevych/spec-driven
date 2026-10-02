@@ -25,6 +25,8 @@ Determine which spec to review from conversation context. If ambiguous, ask the 
 
 Then run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts graph <name>` (skip without Bun). Pass its output to every reviewer, together with the `ledger/INDEX.md` paths of the `part-of` parent and every `needs` target. Decisions already made in a parent or dependency are settled context, not findings; flag a spec that contradicts one. Undeclared overlaps in the output are integration-architect material.
 
+Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons recall <every path in code-map.md>` and append its output to the prior-art reviewer's prompt as its project lessons (without Bun, grep `^paths:` in `docs/specs/_ledger/` instead).
+
 Also run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts playbooks <name>`. If it prints playbooks, pass them to every reviewer as house rules for this kind of work: a spec that breaks its playbook is a finding.
 
 Note the spec path — you'll pass it to each reviewer along with the list of files they should read.
@@ -159,7 +161,7 @@ Review the spec at [spec-path]. Read:
 - The current phase entry
 - ledger/INDEX.md and relevant ledger entries
 - code-map.md
-- docs/specs/_ledger/INDEX.md (project-wide lessons), if it exists: open entries whose paths touch this spec's files
+- The project lessons below (from `lessons recall`); open any that bear on a mechanism you review
 
 Your central question: "Does this system already know how to do this?"
 
