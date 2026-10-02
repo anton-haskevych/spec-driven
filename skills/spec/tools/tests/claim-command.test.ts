@@ -1,7 +1,9 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
 import { realpathSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { pushClaim } from "../claims/remote";
 import { claimCommand, type ClaimDeps } from "../commands/claim";
+import { gitAt } from "../core/git";
 import type { RunOptions } from "../core/run";
 import { NOW } from "./board-factories";
 import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
@@ -17,8 +19,10 @@ describe("claim command (real git)", () => {
     asyncRunner: isolatedAsyncRunner,
     claudeHome: claude.root,
     now: NOW,
+    host: "laptop",
     env: sessionId ? { CLAUDE_CODE_SESSION_ID: sessionId } : {},
   });
+  const originClaims = () => repo.git("--git-dir", repo.origin, "for-each-ref", "--format=%(refname) %(contents:subject)", "refs/spec-claims");
   const liveSession = (sessionId: string, name: string) =>
     claude.write(`sessions/${process.pid}.json`, JSON.stringify({ pid: process.pid, sessionId, cwd: main, procStart: "start", status: "busy", name, updatedAt: NOW.getTime() }));
 
@@ -38,6 +42,9 @@ describe("claim command (real git)", () => {
 
   afterEach(() => {
     rmSync(join(main, ".git", "spec-board", "claims"), { recursive: true, force: true });
+    for (const ref of repo.git("--git-dir", repo.origin, "for-each-ref", "--format=%(refname)", "refs/spec-claims").split("\n").filter(Boolean)) {
+      repo.git("--git-dir", repo.origin, "update-ref", "-d", ref);
+    }
     claude?.cleanup();
   });
   afterAll(() => repo.cleanup());
@@ -94,6 +101,55 @@ describe("claim command (real git)", () => {
     expect(await claimCommand(repo.dir, ["release", "a"], deps("s2"))).toBe("claim: nothing to release for a");
     expect(await claimCommand(repo.dir, ["release", "a"], deps("s1"))).toBe("claim: released a phase 1");
     expect(await claimCommand(repo.dir, ["list"], deps("s1"))).toBe("claim: no claims");
+  });
+
+  test("a take is mirrored on origin as the session's ref, and release deletes it", async () => {
+    claude = createTree("spec-claim-claude-");
+    liveSession("s1", "a execute 1");
+    await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"));
+    expect(originClaims()).toContain(`refs/spec-claims/a/1 {"spec":"a","phase":"1","sessionId":"s1"`);
+    expect(await claimCommand(repo.dir, ["release", "a"], deps("s1"))).toBe("claim: released a phase 1");
+    expect(originClaims()).toBe("");
+  });
+
+  test("a phase claimed from another machine is refused, and the local claim is rolled back", async () => {
+    claude = createTree("spec-claim-claude-");
+    const desktop = gitAt(repo.clone(`desktop-${Date.now()}`).dir, isolatedRunner);
+    const theirs = { spec: "a", phase: "1", sessionId: "t1", sessionName: "a execute 1", workspace: "/Users/taras/crm", claimedAt: NOW.toISOString() };
+    pushClaim(desktop, { claim: theirs, holder: { user: "spec-tests", host: "desktop" } }, { kind: "absent" });
+    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"))).toBe(
+      'claim refused: a phase 1 is claimed by spec-tests@desktop (a execute 1) <1m ago; say "take it over" to take it anyway',
+    );
+    expect(await claimCommand(repo.dir, ["list"], deps("s1"))).toBe("claim: no claims");
+  });
+
+  test("taking over a closed same-machine claim replaces its ref on origin too", async () => {
+    claude = createTree("spec-claim-claude-");
+    liveSession("s1", "a execute 1");
+    await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"));
+    rmSync(join(claude.root, "sessions", `${process.pid}.json`));
+    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s2"))).toBe("claim: took over a phase 1 from a execute 1 (closed)");
+    expect(originClaims()).toContain(`"sessionId":"s2"`);
+    expect(originClaims()).toContain(`"takenFrom":"s1"`);
+  });
+
+  test("release after another machine took the phase over says who, and exits clean", async () => {
+    claude = createTree("spec-claim-claude-");
+    await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"));
+    const sha = repo.git("--git-dir", repo.origin, "rev-parse", "refs/spec-claims/a/1");
+    const desktop = gitAt(repo.clone(`desktop-${Date.now()}`).dir, isolatedRunner);
+    const theirs = { spec: "a", phase: "1", sessionId: "t1", workspace: "/Users/taras/crm", claimedAt: NOW.toISOString(), takenFrom: "s1" };
+    pushClaim(desktop, { claim: theirs, holder: { user: "spec-tests", host: "desktop" } }, { kind: "at", sha });
+    expect(await claimCommand(repo.dir, ["release", "a"], deps("s1"))).toBe("claim: phase 1 was taken over by spec-tests@desktop <1m ago; your work is on main");
+    expect(originClaims()).toContain(`"sessionId":"t1"`);
+  });
+
+  test("an unreachable origin keeps the local claim and says so", async () => {
+    claude = createTree("spec-claim-claude-");
+    const stray = repo.clone(`stray-${Date.now()}`);
+    stray.git("remote", "set-url", "origin", join(repo.root, "missing.git"));
+    expect(await claimCommand(stray.dir, ["take", "a", "1"], deps("s1"))).toBe("claim: took a phase 1\nclaim: origin unreachable; claimed locally only");
+    expect(await claimCommand(stray.dir, ["release", "a"], deps("s1"))).toBe("claim: released a phase 1\nclaim: origin unreachable; released locally only");
   });
 
   test("bad arguments print the usage", async () => {

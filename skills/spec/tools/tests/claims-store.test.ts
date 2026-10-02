@@ -54,7 +54,7 @@ describe("takeClaim", () => {
     tree = createTree("spec-claims-");
     takeClaim(tree.root, claim(), never);
     expect(takeClaim(tree.root, claim({ sessionId: "s2" }), always)).toEqual({ kind: "took-over", from: claim() });
-    expect(loadClaims(tree.root).claims).toEqual([claim({ sessionId: "s2" })]);
+    expect(loadClaims(tree.root).claims).toEqual([claim({ sessionId: "s2", takenFrom: "s1" })]);
     expect(readdirSync(tree.root)).toEqual(["alpha#4.json"]);
   });
 

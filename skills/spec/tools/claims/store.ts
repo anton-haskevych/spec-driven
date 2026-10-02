@@ -14,6 +14,8 @@ export interface Claim {
   workspace: string;
   branch?: string;
   claimedAt: string;
+  // The session this claim was taken over from, so that session's release can say who took it.
+  takenFrom?: string;
 }
 
 export type TakeOutcome =
@@ -49,7 +51,8 @@ export function takeClaim(dir: string, claim: Claim, isStale: IsStale): TakeOutc
     if (!existing) return { kind: "held", by: "unreadable" };
     if (existing.sessionId === claim.sessionId) return { kind: "already-yours" };
     if (!isStale(existing)) return { kind: "held", by: existing };
-    if (displaceIfUnchanged(file, existingText, claim.sessionId) && createExclusive(file, text, claim.sessionId)) {
+    const takeover = JSON.stringify({ ...claim, takenFrom: existing.sessionId });
+    if (displaceIfUnchanged(file, existingText, claim.sessionId) && createExclusive(file, takeover, claim.sessionId)) {
       return { kind: "took-over", from: existing };
     }
   }
@@ -106,5 +109,6 @@ export function claimFromRecord(data: unknown): Claim | undefined {
   if (!spec || !phase || !sessionId || !workspace || !claimedAt) return undefined;
   const sessionName = stringField(data, "sessionName");
   const branch = stringField(data, "branch");
-  return { spec, phase, sessionId, ...(sessionName ? { sessionName } : {}), workspace, ...(branch ? { branch } : {}), claimedAt };
+  const takenFrom = stringField(data, "takenFrom");
+  return { spec, phase, sessionId, ...(sessionName ? { sessionName } : {}), workspace, ...(branch ? { branch } : {}), claimedAt, ...(takenFrom ? { takenFrom } : {}) };
 }
