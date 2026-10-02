@@ -4,7 +4,7 @@ import type { EditPlan, FileEdit } from "../core/apply-edits";
 import { markdownFilesIn, readTextIfExists } from "../core/files";
 import { parseFrontmatter } from "../core/frontmatter";
 import { setFrontmatterLine } from "../core/frontmatter-patch";
-import { formatPointerRow, formatProjectRow, insertRow, kindSection, parseIndexRows } from "../core/ledger-index";
+import { formatPointerRow, insertRow, kindSection, parseIndexRows } from "../core/ledger-index";
 import { isoTimestamp } from "../core/schedule";
 import type { SpecFolder } from "../core/spec-folders";
 import { newIssues, type Issue } from "../doctor/issue";
@@ -26,12 +26,10 @@ export interface LessonAddResult {
 
 interface LedgerFiles {
   entry: string;
-  projectIndex: string;
   specIndex: string;
 }
 
 const INDEX = "INDEX.md";
-const PROJECT_INDEX_HEADER = "# Project Ledger Index\n";
 const SUMMARY_LIMIT = 80;
 
 export function planLessonAdd(projectDir: string, spec: SpecFolder, request: LessonAddRequest): LessonAddResult {
@@ -39,7 +37,6 @@ export function planLessonAdd(projectDir: string, spec: SpecFolder, request: Les
   const lessonPath = join(PROJECT_LEDGER_DIR, name);
   const files: LedgerFiles = {
     entry: join(projectDir, lessonPath),
-    projectIndex: join(projectDir, PROJECT_LEDGER_DIR, INDEX),
     specIndex: join(spec.dir, "ledger", INDEX),
   };
   const entryText = readTextIfExists(files.entry);
@@ -53,15 +50,13 @@ export function planLessonAdd(projectDir: string, spec: SpecFolder, request: Les
   const stamped = stampEntry(entryText, spec.name, request.now);
   if (stamped.kind === "invalid") return refuse(`${lessonPath}: ${stamped.reason}`);
 
-  const before: LedgerFiles = { entry: entryText, projectIndex: readTextIfExists(files.projectIndex) ?? PROJECT_INDEX_HEADER, specIndex };
+  const before: LedgerFiles = { entry: entryText, specIndex };
   const after: LedgerFiles = {
     entry: stamped.text,
-    projectIndex: withRow(before.projectIndex, name, formatProjectRow(name, lesson.paths, summary)),
     specIndex: withRow(specIndex, lessonPath, formatPointerRow(lessonPath, summary), kindSection(lesson.kind)),
   };
   const changes = [
     ...stamped.changes,
-    ...(after.projectIndex === before.projectIndex ? [] : ["project INDEX row"]),
     ...(after.specIndex === before.specIndex ? [] : [`${spec.name} pointer row`]),
   ];
   if (changes.length === 0) return { plan: { kind: "unchanged", reason: `${name} is already recorded for ${spec.name}` }, changes };
@@ -89,17 +84,15 @@ function withRow(index: string, file: string, row: string, section?: string): st
 }
 
 function ledgerIssues(files: LedgerFiles, texts: LedgerFiles, projectDir: string, spec: SpecFolder): Issue[] {
-  const lessons = markdownFilesIn(join(projectDir, PROJECT_LEDGER_DIR)).filter((name) => name !== INDEX);
   const specEntries = markdownFilesIn(join(spec.dir, "ledger")).filter((name) => name !== INDEX);
   return [
     ...checkProjectLesson(files.entry, texts.entry),
-    ...checkLedgerIndex(files.projectIndex, texts.projectIndex, lessons),
     ...checkLedgerIndex(files.specIndex, texts.specIndex, specEntries, (path) => existsSync(join(projectDir, path))),
   ];
 }
 
 function changedFiles(files: LedgerFiles, before: LedgerFiles, after: LedgerFiles): FileEdit[] {
-  const keys = ["entry", "projectIndex", "specIndex"] as const;
+  const keys = ["entry", "specIndex"] as const;
   return keys.filter((key) => after[key] !== before[key]).map((key) => ({ file: files[key], text: after[key] }));
 }
 

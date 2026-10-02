@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { formatPointerRow, formatProjectRow, formatSpecRow, insertRow, kindSection, parseIndexRows } from "../core/ledger-index";
+import { formatPointerRow, formatSpecRow, insertRow, kindSection, parseIndexRows } from "../core/ledger-index";
 
 const SPEC_INDEX = `# Ledger Index (layout v1)
 
@@ -83,12 +83,6 @@ describe("row formatters round-trip through parseIndexRows", () => {
     const [row] = parseIndexRows(formatSpecRow("decision-d.md", ["phase 5+", "load-bearing"], "why"));
     expect(row?.file).toBe("decision-d.md");
     expect(row?.tail).toBe("— [phase 5+, load-bearing] — why");
-  });
-
-  test("project row, with and without paths", () => {
-    expect(formatProjectRow("gotcha-g.md", ["a/**", "b/*.ts"], "g")).toBe("- `gotcha-g.md` — `a/**, b/*.ts` — g");
-    expect(formatProjectRow("gotcha-g.md", [], "g")).toBe("- `gotcha-g.md` — g");
-    expect(parseIndexRows(formatProjectRow("gotcha-g.md", ["a/**"], "g"))[0]?.file).toBe("gotcha-g.md");
   });
 
   test("pointer row is a [general] spec row at the lesson's repo path", () => {

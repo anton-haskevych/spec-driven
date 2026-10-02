@@ -76,7 +76,7 @@ function add(projectDir: string, args: string[]): string {
   const close = closeMatches(projectDir, name);
   if (close.length === 0) return recorded;
   const lines = close.map(({ lesson, score }) => `${describeLesson(lesson)} [similarity ${score.toFixed(2)}]`);
-  return `Similar project lessons. If one says the same thing, fold this lesson into it, remove ${name} and its two INDEX rows, and run lessons add <that entry> ${spec.name} instead:\n${lines.join("\n")}\n${recorded}`;
+  return `Similar project lessons. If one says the same thing, fold this lesson into it, remove ${name} and its ${spec.name} pointer row, and run lessons add <that entry> ${spec.name} instead:\n${lines.join("\n")}\n${recorded}`;
 }
 
 function closeMatches(projectDir: string, name: string): ScoredLesson[] {
