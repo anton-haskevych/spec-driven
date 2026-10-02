@@ -31,3 +31,13 @@ export function remoteHeldClaims(git: Git, local: readonly HeldClaim[]): HeldCla
   const mirrored = new Set(local.map((held) => held.claim.sessionId));
   return fetched.value.filter((remote) => !mirrored.has(remote.claim.sessionId)).map(({ claim, holder }) => ({ claim, status: "remote", holder }));
 }
+
+// Origin is the arbiter: a ref naming another session for a phase this machine still has a file for
+// means that phase was taken over here, so the stale file stops counting until release removes it.
+export function withoutTakenOver(local: readonly HeldClaim[], remote: readonly HeldClaim[]): HeldClaim[] {
+  const remoteHolders = new Map(remote.map(({ claim }) => [`${claim.spec}#${claim.phase}`, claim.sessionId]));
+  return local.filter(({ claim }) => {
+    const holder = remoteHolders.get(`${claim.spec}#${claim.phase}`);
+    return holder === undefined || holder === claim.sessionId;
+  });
+}
