@@ -59,4 +59,4 @@ the path from `trees place`. `claude -w` is no longer used.
   2. The tree the session is in: a claim held there, or the one spec its branch's changed files belong to (today's `inferred`).
   3. Only then, offer the top ready row.
   Anton (2026-10-01): "unless we already opened the work tree and unless we resumed this spec previously, then yeah, having the default run command is reasonable, but it should definitely look into the context first."
-- [ ] `list.md` "start N" uses the same launch path; SKILL.md *Tools* → Launch, README *Session lifecycle and tools*, ROADMAP row
+- [x] `list.md` "start N" uses the same launch path; SKILL.md *Tools* → Launch, README *Session lifecycle and tools*, ROADMAP row

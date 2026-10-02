@@ -20,4 +20,4 @@
 - [x] Phase 5 — Phase claims → `phases/phase-5-phase-claims.md`
 - [x] Phase 5a — Remote claims → `phases/phase-5a-remote-claims.md`
 - [x] Phase 5b — Tree placement → `phases/phase-5b-tree-placement.md`
-- [ ] Phase 6 — Loop wiring → `phases/phase-6-loop-wiring.md`
+- [x] Phase 6 — Loop wiring → `phases/phase-6-loop-wiring.md`
