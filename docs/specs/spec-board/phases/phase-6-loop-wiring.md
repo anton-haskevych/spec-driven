@@ -8,7 +8,8 @@ pr: B
 **Goal:**
 - Every session that names next sessions ends the same way: handoff, review, create, a "next steps"
   answer. The rows come from the board, and Anton's approval launches them.
-- Execute with no spec named and none inferred offers the top ready row.
+- Execute with no spec named looks at the context first, and offers the top ready row only when that
+  names nothing (order below).
 - `launch execute <spec> <phase>` opens a session in the tree Phase 5b places.
 
 **Outcome:** "What next" arrives at the end of every session, and "start 1 and 2" (or just "yes") is one
@@ -52,5 +53,10 @@ the path from `trees place`. `claude -w` is no longer used.
 
 - [ ] `launch execute <spec> <phase>`: `cd <placed tree>`; title carries the phase; bad phase id refused
 - [ ] SKILL.md *Next sessions* rule; handoff, review and create end with it; approval launches rows through placement; line 172 amended
-- [ ] Nothing named and nothing inferred → offer the top ready row: `commands/context.ts` message, SKILL.md no-spec rule, `execute.md` §0.2
+- [ ] No spec named → context first, then the top ready row: `commands/context.ts` message, SKILL.md no-spec rule, `execute.md` §0.2.
+  Order:
+  1. A spec this conversation already resumed or executed.
+  2. The tree the session is in: a claim held there, or the one spec its branch's changed files belong to (today's `inferred`).
+  3. Only then, offer the top ready row.
+  Anton (2026-10-01): "unless we already opened the work tree and unless we resumed this spec previously, then yeah, having the default run command is reasonable, but it should definitely look into the context first."
 - [ ] `list.md` "start N" uses the same launch path; SKILL.md *Tools* → Launch, README *Session lifecycle and tools*, ROADMAP row
