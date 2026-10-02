@@ -32,7 +32,7 @@ The doctor's project-wide run warns while a leftover `_ledger/INDEX.md` exists (
 
 ## Deliverables
 
-- [ ] `lessons add` no longer writes or validates a project INDEX row; `formatProjectRow` removed
-- [ ] Doctor warns about a leftover project INDEX instead of checking its rows
-- [ ] Prose readers (SKILL.md, prep.md, review.md, create.md, README) point at lesson files / `lessons recall`
-- [ ] This repo's `docs/specs/_ledger/INDEX.md` deleted; `bun test` + `tsc` green
+- [x] `lessons add` no longer writes or validates a project INDEX row; `formatProjectRow` removed
+- [x] Doctor warns about a leftover project INDEX instead of checking its rows
+- [x] Prose readers (SKILL.md, prep.md, review.md, create.md, README) point at lesson files / `lessons recall`
+- [x] This repo's `docs/specs/_ledger/INDEX.md` deleted; `bun test` + `tsc` green

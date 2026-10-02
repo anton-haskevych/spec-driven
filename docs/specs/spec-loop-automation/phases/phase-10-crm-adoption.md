@@ -39,4 +39,5 @@ The `_playbook/page.md` tag playbook from the draft is out of this spec's scope 
 - [ ] `_playbook/settings.md` with the decided values (evidence: sha; `spec.ts settings` output)
 - [ ] `_playbook/gates.md` targets + merge-main + bootstrap (evidence: sha; `spec.ts doctor` clean on settings)
 - [ ] `git-workflow.md` reconciled (evidence: sha)
+- [ ] After 2.36.1 is installed, delete `docs/specs/_ledger/INDEX.md` (phase 11: nothing reads it; an older plugin would write it back) (evidence: sha)
 - [ ] Workaround lesson `enforced-by: docs/specs/_playbook/settings.md` (evidence: sha; doctor clean)
