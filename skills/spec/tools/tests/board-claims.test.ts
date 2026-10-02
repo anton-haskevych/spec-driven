@@ -49,6 +49,29 @@ describe("claims on the board", () => {
     expect(board.lanes.needsYou).toEqual([]);
   });
 
+  test("another machine's claim is in flight with user@host and its age, and leaves ready", () => {
+    const theirs = { ...held("2", "remote", { claimedAt: "2026-10-01T17:00:00.000Z" }), holder: { user: "Taras", host: "desktop" } };
+    const board = boardWith([theirs]);
+    expect(board.lanes.inFlight).toEqual([
+      { spec: "alpha", phase: "2", workspace: "", holder: "Taras@desktop (alpha execute 2)", session: { status: "remote", since: "2026-10-01T17:00:00.000Z" }, next: "executing" },
+    ]);
+    expect(board.lanes.ready.map((row) => row.phase)).toEqual(["3"]);
+    expect(board.lanes.needsYou).toEqual([]);
+    expect(renderBoard(board, { lane: "flight" }).split("\n").slice(3, 5)).toEqual(["IN FLIGHT", "  alpha · 2  Taras@desktop (alpha execute 2)  remote 3h  —  executing"]);
+  });
+
+  test("a remote claim older than REMOTE_CLAIM_STALE_DAYS needs you", () => {
+    const theirs = { ...held("2", "remote", { claimedAt: "2026-09-27T20:00:00.000Z" }), holder: { user: "Taras", host: "desktop" } };
+    const board = boardWith([theirs]);
+    expect(board.lanes.needsYou).toEqual([{ kind: "remote-claim", spec: "alpha", phase: "2", holder: "Taras@desktop (alpha execute 2)", since: "2026-09-27T20:00:00.000Z" }]);
+    expect(renderBoard(board, { lane: "you" }).split("\n").slice(3)).toEqual(["NEEDS YOU", "  remote claim 4d old  alpha · 2 → ask Taras@desktop (alpha execute 2) or take it over"]);
+  });
+
+  test("a remote claim keeps its cell when local sessions are unreadable", () => {
+    const theirs = { ...held("2", "remote", { claimedAt: "2026-10-01T17:00:00.000Z" }), holder: { user: "Taras", host: "desktop" } };
+    expect(boardWith([theirs], { ok: false, reason: "x" }).lanes.inFlight[0]?.session).toEqual({ status: "remote", since: "2026-10-01T17:00:00.000Z" });
+  });
+
   test("a claim on a phase already in progress adds its holder to that row", () => {
     const wip = specFixture("alpha", { phases: [open("1", { done: true }), open("2", { summary: { deliverables: { checked: 1, unchecked: 1 }, nextRun: [] } }), open("3")] });
     const board = buildBoard(boardInputs([ALPHA], { claims: [held("2", "unknown")], workspaces: [workspaceView("/wt/a", [wip])] }), NOW);

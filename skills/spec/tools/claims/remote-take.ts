@@ -68,7 +68,3 @@ export function mirrorRelease(port: RemotePort, spec: string, phase: string | un
   return { kind: "released", phases, takenOver: scoped.filter((remote) => remote.claim.takenFrom === sessionId) };
 }
 
-export function remoteHolderName(remote: RemoteClaim): string {
-  const who = `${remote.holder.user}@${remote.holder.host}`;
-  return remote.claim.sessionName ? `${who} (${remote.claim.sessionName})` : who;
-}

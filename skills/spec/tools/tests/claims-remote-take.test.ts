@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { RemoteClaim } from "../claims/remote";
 import type { Holder } from "../claims/remote-payload";
-import { mirrorRelease, mirrorTake, remoteHolderName, type RemotePort } from "../claims/remote-take";
+import { mirrorRelease, mirrorTake, type RemotePort } from "../claims/remote-take";
 import type { Claim } from "../claims/store";
 
 const claim = (sessionId: string, fields: Partial<Claim> = {}): Claim => ({ spec: "alpha", phase: "4", sessionId, workspace: `/work/${sessionId}`, claimedAt: "2026-10-01T20:00:00.000Z", ...fields });
@@ -91,12 +91,5 @@ describe("mirrorRelease", () => {
     const origin = fakeOrigin();
     origin.offline = true;
     expect(mirrorRelease(origin, "alpha", undefined, "s1")).toEqual({ kind: "offline", reason: "unreachable" });
-  });
-});
-
-describe("remoteHolderName", () => {
-  test("user@host, with the session name when there is one", () => {
-    expect(remoteHolderName({ claim: claim("s2", { sessionName: "alpha execute 4" }), holder: DESKTOP, sha: "x" })).toBe("Taras@desktop (alpha execute 4)");
-    expect(remoteHolderName({ claim: claim("s2"), holder: DESKTOP, sha: "x" })).toBe("Taras@desktop");
   });
 });

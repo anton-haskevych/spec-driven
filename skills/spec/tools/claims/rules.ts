@@ -3,13 +3,17 @@ import { rowKey } from "../board/phase-keys";
 import type { Result } from "../core/result";
 import type { SpecState } from "../core/spec-state";
 import type { LiveSession } from "../sessions/live";
+import { remoteHolderName, type Holder } from "./remote-payload";
 import type { Claim } from "./store";
 
-export type ClaimStatus = "unknown" | "live" | "done" | "gone" | "closed";
+// "remote": another machine's claim, read from origin. claimStatus never returns it: liveness can't be
+// checked across machines.
+export type ClaimStatus = "unknown" | "live" | "done" | "gone" | "closed" | "remote";
 
 export interface HeldClaim {
   claim: Claim;
   status: ClaimStatus;
+  holder?: Holder;
 }
 
 export interface ClaimContext {
@@ -46,6 +50,10 @@ export function takeRefusal(spec: string, phase: string, view: TakeView): string
   const activity = view.activity.get(rowKey({ spec, phase }));
   const elsewhere = [...(activity?.wipIn ?? []), ...(activity?.tickedIn ?? [])].find((path) => path !== view.currentPath);
   return elsewhere ? `phase ${phase} is in progress in ${elsewhere}` : undefined;
+}
+
+export function heldName(held: HeldClaim): string {
+  return held.holder ? remoteHolderName({ claim: held.claim, holder: held.holder }) : holderName(held.claim);
 }
 
 export function holderName(claim: Claim): string {

@@ -6,8 +6,8 @@ import { claimStatus, holderName, isStale, takeRefusal, type ClaimContext } from
 import { claimsDir, loadClaims, pruneClaims, releaseClaims, takeClaim, type Claim, type TakeOutcome } from "../claims/store";
 import { claimContext } from "../claims/held";
 import { readHolder, type RemoteClaim } from "../claims/remote";
-import type { Holder } from "../claims/remote-payload";
-import { gitRemotePort, mirrorRelease, mirrorTake, remoteHolderName, type RemotePort } from "../claims/remote-take";
+import { remoteHolderName, type Holder } from "../claims/remote-payload";
+import { gitRemotePort, mirrorRelease, mirrorTake, type RemotePort } from "../claims/remote-take";
 import { gitAt, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import type { SpecState } from "../core/spec-state";

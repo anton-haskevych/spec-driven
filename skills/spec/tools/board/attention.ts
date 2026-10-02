@@ -1,14 +1,18 @@
-import { isOverdue } from "../core/schedule";
+import { isOverdue, isoDay } from "../core/schedule";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
-import { holderName } from "../claims/rules";
+import { heldName, holderName } from "../claims/rules";
 import type { BoardInputs } from "./inputs";
 import type { AttentionRow, FlightRow } from "./model";
 import { resolvedPhaseKeys, rowKey } from "./phase-keys";
 
-export function needsYou(active: readonly SpecNode[], inputs: BoardInputs, today: string, inFlight: readonly FlightRow[]): AttentionRow[] {
+export const REMOTE_CLAIM_STALE_DAYS = 3;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export function needsYou(active: readonly SpecNode[], inputs: BoardInputs, now: Date, inFlight: readonly FlightRow[]): AttentionRow[] {
+  const today = isoDay(now);
   const states = active.flatMap((node) => inputs.states.get(node.spec.name) ?? []);
-  return [...prAttention(inFlight), ...closedClaims(inputs, inFlight), ...active.flatMap((node) => overdue(node, inputs.states.get(node.spec.name), today)), ...awaitingDeploy(states, inputs.nodes)];
+  return [...prAttention(inFlight), ...closedClaims(inputs, inFlight), ...oldRemoteClaims(inputs, inFlight, now), ...active.flatMap((node) => overdue(node, inputs.states.get(node.spec.name), today)), ...awaitingDeploy(states, inputs.nodes)];
 }
 
 export function prAttention(inFlight: readonly FlightRow[]): AttentionRow[] {
@@ -32,6 +36,15 @@ function closedClaims(inputs: BoardInputs, inFlight: readonly FlightRow[]): Atte
   return inputs.claims
     .filter((held) => held.status === "closed" && shown.has(rowKey(held.claim)))
     .map(({ claim }) => ({ kind: "claim", spec: claim.spec, phase: claim.phase, holder: holderName(claim) }));
+}
+
+// No liveness across machines, so age is the only signal that a remote holder went silent.
+function oldRemoteClaims(inputs: BoardInputs, inFlight: readonly FlightRow[], now: Date): AttentionRow[] {
+  const shown = new Set(inFlight.map(rowKey));
+  const cutoff = now.getTime() - REMOTE_CLAIM_STALE_DAYS * DAY_MS;
+  return inputs.claims
+    .filter((held) => held.status === "remote" && shown.has(rowKey(held.claim)) && new Date(held.claim.claimedAt).getTime() < cutoff)
+    .map((held) => ({ kind: "remote-claim", spec: held.claim.spec, phase: held.claim.phase, holder: heldName(held), since: held.claim.claimedAt }));
 }
 
 function overdue(node: SpecNode, state: SpecState | undefined, today: string): AttentionRow[] {

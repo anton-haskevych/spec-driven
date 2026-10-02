@@ -8,7 +8,7 @@ import { loadMainline } from "../mainline/load";
 import { fetchPrLists, type PrLists } from "../pr/gh-lists";
 import { specPrNumbers } from "../pr/resolve";
 import { toPrRows, type PrRow } from "../pr/rollup";
-import { heldClaims } from "../claims/held";
+import { heldClaims, remoteHeldClaims } from "../claims/held";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
 import { psProcStarts } from "../sessions/proc-starts";
 import { scanWorkspaces, type WorkspaceScanResult } from "../workspaces/scan";
@@ -47,8 +47,9 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
   if (!mainline.ok) return mainline;
   const { base, commonDir, nodes, states, stages, backlog, settings, duplicates } = mainline.value;
   const sessions = request.local ? "local" : loadLiveSessions(runners.claudeHome, psProcStarts(runners.runner));
-  const claims = heldClaims(git, sessions === "local" ? LOCAL_LIVENESS : sessions, states);
-  const scanned = await scanWorkspaces(git, runners.asyncRunner, base.sha, new Set(claims.map((held) => held.claim.workspace)));
+  const local = heldClaims(git, sessions === "local" ? LOCAL_LIVENESS : sessions, states);
+  const remote = request.local ? [] : remoteHeldClaims(git, local);
+  const scanned = await scanWorkspaces(git, runners.asyncRunner, base.sha, new Set(local.map((held) => held.claim.workspace)));
   const { scans, counts } = scanned.ok ? scanned.value : NO_SCAN;
   const workspaces = loadWorkspaceViews(scans, nodes);
   return {
@@ -64,7 +65,7 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       counts: { ...counts, duplicates },
       backlogCount: backlog.length,
       sessions,
-      claims,
+      claims: [...remote, ...local],
       prs: prLists ? prRows(await prLists, settings.checks.external) : "local",
       prLinks: prLinks(states, workspaces),
     },

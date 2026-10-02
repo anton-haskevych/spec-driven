@@ -2,7 +2,7 @@ import type { SpecState } from "../core/spec-state";
 import { isFinished, type SpecNode } from "../graph/nodes";
 import { phaseNeeds, readySet } from "../ready/ready-set";
 import type { PhaseActivity } from "./activity";
-import { holderName } from "../claims/rules";
+import { heldName } from "../claims/rules";
 import type { BoardInputs, HeldClaim } from "./inputs";
 import type { FlightRow } from "./model";
 import { resolvedPhaseKeys, rowKey } from "./phase-keys";
@@ -23,7 +23,7 @@ export function flightRows(activity: ReadonlyMap<string, PhaseActivity>, inputs:
     .filter(({ spec }) => isOnBoard(specNode(spec, inputs)))
     .toSorted((a, b) => KEY_ORDER.compare(rowKey(a), rowKey(b)))
     .map(({ spec, phase, tickedIn, wipIn, held }): FlightRow => {
-      const [workspace = held?.claim.workspace ?? "", ...alsoIn] = tickedIn.length > 0 ? tickedIn : wipIn;
+      const [workspace = held?.status === "remote" ? "" : (held?.claim.workspace ?? ""), ...alsoIn] = tickedIn.length > 0 ? tickedIn : wipIn;
       const prGroup = workspaceState(spec, workspace, inputs)?.phases.find((candidate) => candidate.id === phase)?.edges.pr;
       return {
         spec,
@@ -31,14 +31,15 @@ export function flightRows(activity: ReadonlyMap<string, PhaseActivity>, inputs:
         ...(prGroup ? { prGroup } : {}),
         workspace,
         ...(alsoIn.length > 0 && tickedIn.length > 0 ? { alsoIn } : {}),
-        ...(held ? { holder: holderName(held.claim) } : {}),
-        target: { workspace },
+        ...(held ? { holder: heldName(held) } : {}),
+        ...(workspace ? { target: { workspace } } : {}),
         next: tickedIn.length > 0 ? "ticked on branch, not merged" : "executing",
       };
     });
 }
 
-// Done claims are finished work and gone ones lost their worktree: neither is in flight.
+// Done claims are finished work and gone ones lost their worktree: neither is in flight. When a phase has
+// both, the local claim (listed last) wins over another machine's.
 export function claimsOnBoard(inputs: BoardInputs): Map<string, HeldClaim> {
   const shown = inputs.claims.filter((held) => held.status !== "done" && held.status !== "gone");
   return new Map(shown.map((held) => [rowKey(held.claim), held]));

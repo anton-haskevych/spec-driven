@@ -53,7 +53,7 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
       inFlight,
       ready: rankReady(markSafe(lanes.flatMap((spec) => spec.ready), inFlight, withBranchOnlyNodes(inputs), inputs.states)),
       blocked: lanes.flatMap((spec) => spec.blocked),
-      needsYou: needsYou(active, inputs, today, inFlight),
+      needsYou: needsYou(active, inputs, now, inFlight),
     },
     footer: { ...counts, paused: open.length - active.length, backlog: inputs.backlogCount, duplicates, ...unavailable(inputs) },
   };

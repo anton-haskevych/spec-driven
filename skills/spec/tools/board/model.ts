@@ -10,7 +10,8 @@ interface RowBase {
   target?: Target;
 }
 
-export type SessionCell = { status: "busy" | "idle"; since: string } | { status: "closed" | "unknown" };
+// "remote": another machine's claim; `since` is when it was claimed.
+export type SessionCell = { status: "busy" | "idle" | "remote"; since: string } | { status: "closed" | "unknown" };
 
 export interface PrCell {
   number: number;
@@ -64,7 +65,8 @@ export type AttentionRow =
   | { kind: "deploy"; spec: string; phase: string; waiting: string[] }
   | { kind: "merge"; spec: string; phase?: string; prGroup?: string; pr: number }
   | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number }
-  | { kind: "claim"; spec: string; phase: string; holder: string };
+  | { kind: "claim"; spec: string; phase: string; holder: string }
+  | { kind: "remote-claim"; spec: string; phase: string; holder: string; since: string };
 
 export type BaseMode = "fetched" | "offline" | "busy" | "local";
 

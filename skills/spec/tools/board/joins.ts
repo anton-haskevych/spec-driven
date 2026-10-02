@@ -13,11 +13,12 @@ export function joinFlightRows(rows: readonly FlightRow[], inputs: BoardInputs):
 export function attachSessions(rows: readonly FlightRow[], inputs: BoardInputs): FlightRow[] {
   const { sessions } = inputs;
   if (sessions === "local") return [...rows];
-  if (!sessions.ok) return rows.map((row) => ({ ...row, session: { status: "unknown" } }));
   const claims = claimsOnBoard(inputs);
-  const byWorkspace = sessionsByWorkspace(sessions.value, inputs.workspaces.map((workspace) => workspace.path));
+  const byWorkspace = sessions.ok ? sessionsByWorkspace(sessions.value, inputs.workspaces.map((workspace) => workspace.path)) : new Map<string, LiveSession[]>();
   return rows.map((row) => {
     const held = claims.get(rowKey(row));
+    if (held?.status === "remote") return { ...row, session: { status: "remote", since: held.claim.claimedAt } };
+    if (!sessions.ok) return { ...row, session: { status: "unknown" } };
     if (held?.status === "closed") return { ...row, session: { status: "closed" } };
     const claimant = held && sessions.value.find((session) => session.sessionId === held.claim.sessionId);
     const latest = claimant ?? (byWorkspace.get(row.workspace ?? "") ?? []).toSorted((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0];

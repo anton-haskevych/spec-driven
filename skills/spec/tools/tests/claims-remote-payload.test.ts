@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { claimRef, decodeRemotePayload, encodeRemotePayload, pushOutcome } from "../claims/remote-payload";
+import { claimRef, decodeRemotePayload, encodeRemotePayload, pushOutcome, remoteHolderName } from "../claims/remote-payload";
 import type { Claim } from "../claims/store";
 
 const CLAIM: Claim = { spec: "alpha", phase: "4a", sessionId: "s1", sessionName: "alpha execute 4a", workspace: "/work/crm", branch: "feat/alpha", claimedAt: "2026-10-01T20:00:00.000Z" };
@@ -51,5 +51,12 @@ describe("pushOutcome", () => {
 
   test("a line for another ref does not count", () => {
     expect(pushOutcome(result(0, `${to}*\tabc:refs/spec-claims/alpha/4\t[new reference]\n`), REF).kind).toBe("offline");
+  });
+});
+
+describe("remoteHolderName", () => {
+  test("user@host, with the session name when there is one", () => {
+    expect(remoteHolderName({ claim: CLAIM, holder: HOLDER })).toBe("Taras@taras-mbp (alpha execute 4a)");
+    expect(remoteHolderName({ claim: { ...CLAIM, sessionName: undefined }, holder: HOLDER })).toBe("Taras@taras-mbp");
   });
 });

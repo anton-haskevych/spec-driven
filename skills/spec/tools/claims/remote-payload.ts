@@ -22,6 +22,11 @@ export function claimRef(spec: string, phase: string): string {
   return `${CLAIM_REFS}/${spec}/${phase}`;
 }
 
+export function remoteHolderName(remote: RemotePayload): string {
+  const who = `${remote.holder.user}@${remote.holder.host}`;
+  return remote.claim.sessionName ? `${who} (${remote.claim.sessionName})` : who;
+}
+
 export function encodeRemotePayload(claim: Claim, holder: Holder): string {
   return JSON.stringify({ ...claim, holder });
 }
