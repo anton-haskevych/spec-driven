@@ -9,3 +9,5 @@
 - `gotcha-git-status-glob-pathspec-walks-untracked-dirs.md` — `skills/spec/tools/**` — glob pathspec makes git status walk untracked dirs; pass literal roots
 - `gotcha-bun-glob-scan-throws-on-missing-cwd.md` — `skills/spec/tools/**` — Bun.Glob scanSync throws ENOENT on a missing cwd; check existsSync
 - `workaround-squash-merge-leaves-local-main-diverged.md` — `docs/specs/**` — squash merge leaves local main diverged; verify tree, reset --keep
+- `gotcha-squash-merged-branch-is-not-an-ancestor.md` — `skills/spec/tools/trees/**, skills/spec/tools/workspaces/**, skills/spec/tools/board/**` — Squash-merged branches aren't ancestors of main; match the merged PR's head
+- `gotcha-clean-check-across-worktrees-stats-every-file.md` — `skills/spec/tools/trees/**, skills/spec/tools/workspaces/**` — git status in every worktree stats every file; let worktree remove refuse

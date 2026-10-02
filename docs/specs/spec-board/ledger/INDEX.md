@@ -12,6 +12,8 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `docs/specs/_ledger/gotcha-git-name-only-quotes-non-ascii-paths.md` — [general] — git quotes non-ASCII paths unless -z; spec-doc matching misses them
 - `docs/specs/_ledger/gotcha-git-status-glob-pathspec-walks-untracked-dirs.md` — [general] — glob pathspec makes git status walk untracked dirs; pass literal roots
 - `docs/specs/_ledger/gotcha-bun-glob-scan-throws-on-missing-cwd.md` — [general] — Bun.Glob scanSync throws ENOENT on a missing cwd; check existsSync
+- `docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md` — [general] — Squash-merged branches aren't ancestors of main; match the merged PR's head
+- `docs/specs/_ledger/gotcha-clean-check-across-worktrees-stats-every-file.md` — [general] — git status in every worktree stats every file; let worktree remove refuse
 
 ## Principles
 - `principle-claim-writes-are-single-atomic-ops.md` — [phase 5] — link to create, rename to take over or prune; the board never writes
