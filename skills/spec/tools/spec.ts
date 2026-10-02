@@ -16,6 +16,7 @@ import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
 import { PUSH_USAGE, pushReport } from "./commands/push";
 import { readyReport } from "./commands/ready";
 import { settingsReport } from "./commands/settings";
+import { TREES_USAGE, treesCommand } from "./commands/trees";
 import { findSpecs } from "./core/spec-folders";
 
 export interface Command {
@@ -43,6 +44,7 @@ export const COMMANDS: Record<string, Command> = {
   "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
   claim: { usage: CLAIM_USAGE, run: (dir, args) => claimCommand(dir, args) },
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchReport(dir, args) },
+  trees: { usage: TREES_USAGE, run: (dir, args) => treesCommand(dir, args) },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)
