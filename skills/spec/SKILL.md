@@ -144,6 +144,23 @@ Deterministic. Used by `resume` (to suggest) and `execute` (to pick when no chun
 4. **Nothing ready but phases still open** → the spec is blocked. Say what blocks it (the waiting reasons) and stop.
 5. **No unchecked phase left** → there is no chunk; the next step is the PR gate in `pr-opening.md`.
 
+## Next sessions
+
+Handoff, review and create end with this block, and so does any answer to "what's next". The user never types a `/spec execute` line.
+
+1. **Read the board:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board --json` (handoff runs it after *Commit*, so its fetch never races the push). Don't re-derive lanes.
+2. **Print up to 3 numbered rows** from the ready lane, then the board's `Needs you:` items, one line each:
+   ```
+   Next sessions:
+   1. <spec> <phase> — <title> · <tree: workspace name, or new <folder>>
+   2. …
+   Needs you: <item>; <item>
+   ```
+   The rows this session itself recommends come first: a review of spec X puts X's first ready phase at 1, and a handoff puts its own spec's next ready phase at 1. Mark a row whose tree is busy with its `after …` text, not as startable.
+3. **On approval** ("yes" = row 1, "start 1 and 2", "go"), launch each row: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch execute <spec> <phase>`, which places the tree first (*Tools* → Trees). Rows that share a tree launch once; the others wait and come back in that session's handoff. Report a refusal (busy tree, held claim) as is; don't retry it. Pass on a `launch: run this in a new terminal:` line unchanged.
+
+Without Bun, skip the block.
+
 # Spec layout reference (layout v1)
 
 All sub-modes follow the rules below. This reference is embedded in SKILL.md (not injected via `!cat`) so it always loads with the skill.

@@ -168,8 +168,9 @@ In-flight state: <"has pending work" | "clean boundary">
 <the claim: lines from Commit>
 
 Unblocked: <specs whose needs point at phases finished this session, from `spec.ts graph <spec-name>`; omit the line if none>
-Next agent should run: /spec resume <spec-name>
 ---
 ```
 
-Do not ask follow-up questions. Do not suggest further work. The session is ending.
+Then print SKILL.md → *Next sessions*, with this spec's next ready phase at 1 when it has one.
+
+Do not ask other follow-up questions or suggest work outside that block. When the user approves rows, launch them as the block says; otherwise the session is ending.
