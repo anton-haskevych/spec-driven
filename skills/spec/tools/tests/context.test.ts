@@ -236,6 +236,7 @@ describe("contextPack", () => {
   });
 
   describe("without a spec name", () => {
+    const noneHeld = () => new Map<string, string>();
     const changed = (...paths: string[]) =>
       stubRunner([
         [["git", "rev-parse", "--show-toplevel"], { stdout: `${project}\n` }],
@@ -257,10 +258,34 @@ describe("contextPack", () => {
       rmSync(join(project, "docs/specs/billing"), { recursive: true });
     });
 
-    test("says so when no changed file belongs to a spec", () => {
+    test("says so when nothing in this tree points at a spec", () => {
       expect(contextPack(project, { mode: "status" }, changed("src/app.ts"))).toBe(
-        "No spec named, and no changed file belongs to a spec. Infer it from the conversation.",
+        "No spec named, and nothing in this tree points at one (no claim here, no changed spec files). Infer it from the conversation.",
       );
+    });
+
+    test("execute with nothing to go on offers the top ready row, after the conversation", () => {
+      const pack = contextPack(project, { mode: "execute" }, changed("src/app.ts"));
+      expect(pack).toContain("If this conversation already resumed or executed a spec, use that one.");
+      expect(pack).toContain("board ready --json --local");
+    });
+
+    test("a claim taken in this tree names the spec and its phase, ahead of changed files", () => {
+      const claimsHere = () => [{ spec: "checkout", phase: "1" }];
+      const pack = contextPack(project, { mode: "execute" }, changed("docs/specs/billing/x.md"), noneHeld, claimsHere);
+      expect(pack).toStartWith('<spec-pack spec="checkout" mode="execute" inferred="true">');
+      expect(pack).toContain("inferred from this tree's claim on phase 1");
+      expect(pack).toContain("Picked: Phase 1 — Harness");
+    });
+
+    test("a named hint still wins over the claimed phase", () => {
+      const pack = contextPack(project, { mode: "execute", hint: "2" }, changed(), noneHeld, () => [{ spec: "checkout", phase: "1" }]);
+      expect(pack).toContain('Picked: Phase 2 — Aggregate (from your hint "2")');
+    });
+
+    test("every inferred pack tells the session that a spec from the conversation wins", () => {
+      const pack = contextPack(project, { mode: "resume" }, changed("docs/specs/checkout/progress.md"));
+      expect(pack).toContain("If this conversation already resumed or executed another spec, use that one instead");
     });
 
     test("stays silent outside git and for modes that never infer", () => {

@@ -18,30 +18,47 @@ import { systemRunner, type Runner } from "../core/run";
 import { heldByOthers, type HeldPhases } from "../claims/live";
 import { firstUnheld, specsInFlight } from "../context/held-phases";
 import { defaultClaudeHome } from "../sessions/live";
+import { systemClaimsHere, type ClaimsHereReader } from "../context/claims-here";
 
 const DOCTOR_LINES = 6;
 const PACK_MODES = new Set(["resume", "status", "execute", "route"]);
 const INFERRING_MODES = new Set(["resume", "status", "execute"]);
-const INFERRED_NOTE = "Spec inferred from changed files: say which spec you are working on in one line, then carry on.";
+const CONVERSATION_FIRST = "If this conversation already resumed or executed another spec, use that one instead (re-run `spec.ts context <mode> <that spec>`).";
+const NOTHING_HERE = "No spec named, and nothing in this tree points at one (no claim here, no changed spec files).";
+const OFFER_TOP_READY = "If this conversation already resumed or executed a spec, use that one. Otherwise run `spec.ts board ready --json --local`, offer its top row as `<spec> <phase> — <title>`, and start it on a yes.";
 
 export type HeldReader = (projectDir: string) => HeldPhases;
 
 const systemHeldReader: HeldReader = (projectDir) => heldByOthers(projectDir, { runner: systemRunner, claudeHome: defaultClaudeHome(), env: process.env });
 
-export function contextPack(projectDir: string, request: ContextRequest, runner: Runner = systemRunner, readHeld: HeldReader = systemHeldReader): string {
+// With no spec named: the conversation first (the session's call), then this tree's claim, then its
+// changed spec files, and only then the board's top ready row (execute).
+export function contextPack(
+  projectDir: string,
+  request: ContextRequest,
+  runner: Runner = systemRunner,
+  readHeld: HeldReader = systemHeldReader,
+  readClaimsHere: ClaimsHereReader = systemClaimsHere,
+): string {
   if (!PACK_MODES.has(request.mode)) return "";
-  if (request.name) return specPack(projectDir, request, request.name, false, readHeld);
+  if (request.name) return specPack(projectDir, request, request.name, undefined, readHeld);
   if (!INFERRING_MODES.has(request.mode)) return "";
+
+  const [claim, ...otherClaims] = readClaimsHere(projectDir);
+  if (claim && otherClaims.every(({ spec }) => spec === claim.spec)) {
+    const hinted = { ...request, hint: request.hint ?? claim.phase };
+    return specPack(projectDir, hinted, claim.spec, `this tree's claim on phase ${claim.phase}`, readHeld);
+  }
 
   const candidates = specsInPlay(projectDir, runner);
   if (candidates === undefined) return "";
   const [only] = candidates;
-  if (only !== undefined && candidates.length === 1) return specPack(projectDir, request, only, true, readHeld);
-  if (candidates.length === 0) return "No spec named, and no changed file belongs to a spec. Infer it from the conversation.";
+  if (only !== undefined && candidates.length === 1) return specPack(projectDir, request, only, "changed files", readHeld);
+  if (candidates.length === 0) return request.mode === "execute" ? `${NOTHING_HERE} ${OFFER_TOP_READY}` : `${NOTHING_HERE} Infer it from the conversation.`;
   return `No spec named; the changed files belong to ${candidates.join(", ")}. Ask which one.`;
 }
 
-function specPack(projectDir: string, request: ContextRequest, name: string, inferred: boolean, readHeld: HeldReader): string {
+function specPack(projectDir: string, request: ContextRequest, name: string, inferredFrom: string | undefined, readHeld: HeldReader): string {
   const specs = findSpecs(projectDir, name);
   if (specs.length !== 1 || !specs[0]) return "";
 
@@ -60,8 +77,9 @@ function specPack(projectDir: string, request: ContextRequest, name: string, inf
   const body = mode === "execute"
     ? executeBody(projectDir, { state, doctor, relations, ready, held, playbooks, settings, lessons: loadProjectLessons(projectDir) }, request.hint)
     : resumePack({ state, doctor, relations, ready, held, playbooks, settings, lessons: [] });
-  const header = `<spec-pack spec="${state.spec.name}" mode="${mode}"${inferred ? ' inferred="true"' : ""}>`;
-  return `${header}\n${inferred ? `${INFERRED_NOTE}\n\n` : ""}${body}\n</spec-pack>`;
+  const header = `<spec-pack spec="${state.spec.name}" mode="${mode}"${inferredFrom ? ' inferred="true"' : ""}>`;
+  const note = inferredFrom ? `Spec inferred from ${inferredFrom}. ${CONVERSATION_FIRST} Otherwise say which spec you are working on in one line, then carry on.\n\n` : "";
+  return `${header}\n${note}${body}\n</spec-pack>`;
 }
 
 function executeBody(projectDir: string, input: PackInput, hint: string | undefined): string {
