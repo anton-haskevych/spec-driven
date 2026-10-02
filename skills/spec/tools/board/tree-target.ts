@@ -1,5 +1,5 @@
 import type { SpecState } from "../core/spec-state";
-import { busyHolder, findTree } from "../trees/find";
+import { describeHolder, findTree, treeHolder } from "../trees/find";
 import { treeName } from "../trees/naming";
 import type { PhaseActivity } from "./activity";
 import type { BoardInputs } from "./inputs";
@@ -7,7 +7,7 @@ import type { Target } from "./model";
 
 export interface TreeTarget {
   target: Target;
-  // `after <spec> <phase> (<session>)`: another session works in the group's tree.
+  // describeHolder text: another session works in the group's tree.
   busy?: string;
 }
 
@@ -25,6 +25,6 @@ export function treeTarget(state: SpecState, phaseId: string, inputs: BoardInput
 
 export function workspaceTarget(path: string, inputs: BoardInputs): TreeTarget {
   const sessions = inputs.sessions === "local" ? NO_SESSIONS : inputs.sessions;
-  const busy = busyHolder(path, sessions, inputs.claims, inputs.workspaces.map((workspace) => workspace.path));
-  return { target: { workspace: path }, ...(busy ? { busy } : {}) };
+  const holder = treeHolder(path, { sessions, claims: inputs.claims, worktreePaths: inputs.workspaces.map((workspace) => workspace.path) });
+  return { target: { workspace: path }, ...(holder ? { busy: describeHolder(holder) } : {}) };
 }

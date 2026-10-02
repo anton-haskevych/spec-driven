@@ -36,13 +36,61 @@ export function findTree<T extends TreeRef>(name: TreeName, group: GroupPhases, 
   return holding.map((path) => candidates.find((worktree) => worktree.path === path)).find((worktree) => worktree !== undefined);
 }
 
-// One live session per tree. Unknown liveness counts as live, so a broken sessions source never shares one.
-export function busyHolder(tree: string, sessions: Result<LiveSession[]>, claims: readonly HeldClaim[], worktreePaths: readonly string[], ownSessionId?: string): string | undefined {
-  const claimed = claims.find(({ claim, status }) => BLOCKS_A_TREE.has(status) && claim.workspace === tree && claim.sessionId !== ownSessionId);
-  if (claimed) return `after ${claimed.claim.spec} ${claimed.claim.phase} (${holderName(claimed.claim)})`;
-  if (!sessions.ok) return undefined;
-  const inside = sessions.value.find((session) => session.sessionId !== ownSessionId && ownerOf(session.cwd, worktreePaths) === tree);
-  return inside && `after ${inside.name ?? `session ${inside.sessionId.slice(0, 8)}`}`;
+export interface TreeView {
+  sessions: Result<LiveSession[]>;
+  claims: readonly HeldClaim[];
+  worktreePaths: readonly string[];
+  ownSessionId?: string;
+}
+
+export type TreeHolder =
+  | { kind: "claim"; spec: string; phase: string; who: string }
+  | { kind: "mid-task"; who: string }
+  | { kind: "uncommitted"; who: string };
+
+// Held by work, not by an open tab: a session that handed off may stay open to launch the next phase.
+// Unreadable sessions leave it to claims, whose unknown liveness already blocks.
+export function treeHolder(tree: string, view: TreeView, hasUncommittedChanges?: () => boolean): TreeHolder | undefined {
+  const claimed = blockingClaim(tree, view);
+  if (claimed) return { kind: "claim", spec: claimed.claim.spec, phase: claimed.claim.phase, who: holderName(claimed.claim) };
+  const others = sessionsIn(tree, view);
+  const working = others.find((session) => session.status === "busy");
+  if (working) return { kind: "mid-task", who: sessionLabel(working) };
+  const idle = others[0];
+  return idle && hasUncommittedChanges?.() ? { kind: "uncommitted", who: sessionLabel(idle) } : undefined;
+}
+
+export function describeHolder(holder: TreeHolder): string {
+  switch (holder.kind) {
+    case "claim":
+      return `after ${holder.spec} ${holder.phase} (${holder.who})`;
+    case "mid-task":
+      return `${holder.who} is mid-task there`;
+    case "uncommitted":
+      return `${holder.who} left uncommitted changes there`;
+  }
+}
+
+// Prune deletes the folder, so anyone at all keeps it, and so does not being able to tell.
+export function treeOccupant(tree: string, view: TreeView): string | undefined {
+  const claimed = blockingClaim(tree, view);
+  if (claimed) return describeHolder({ kind: "claim", spec: claimed.claim.spec, phase: claimed.claim.phase, who: holderName(claimed.claim) });
+  if (!view.sessions.ok) return "sessions can't be read";
+  const inside = sessionsIn(tree, view)[0];
+  return inside && `${sessionLabel(inside)} is open there`;
+}
+
+function blockingClaim(tree: string, view: TreeView): HeldClaim | undefined {
+  return view.claims.find(({ claim, status }) => BLOCKS_A_TREE.has(status) && claim.workspace === tree && claim.sessionId !== view.ownSessionId);
+}
+
+function sessionsIn(tree: string, view: TreeView): LiveSession[] {
+  if (!view.sessions.ok) return [];
+  return view.sessions.value.filter((session) => session.sessionId !== view.ownSessionId && ownerOf(session.cwd, view.worktreePaths) === tree);
+}
+
+function sessionLabel(session: LiveSession): string {
+  return session.name ?? `session ${session.sessionId.slice(0, 8)}`;
 }
 
 function claimedPaths(group: GroupPhases, claims: readonly HeldClaim[]): string[] {

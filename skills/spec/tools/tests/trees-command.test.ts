@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { treesCommand } from "../commands/trees";
 import type { RunOptions } from "../core/run";
@@ -53,10 +53,25 @@ describe("trees place (real git)", () => {
     expect(await treesCommand(repo.dir, ["place", "a", "2"], deps())).toBe(`Tree: ${treePath()} · feat/a-pr-a · existing`);
   });
 
-  test("a live session in the tree makes it busy for everyone else", async () => {
-    claude.write(`sessions/${process.pid}.json`, JSON.stringify({ pid: process.pid, sessionId: "other", cwd: treePath(), procStart: "start", status: "busy", name: "a execute 1", updatedAt: Date.now() }));
-    expect(await treesCommand(repo.dir, ["place", "a", "2"], deps())).toBe(`trees: ${treePath()} is busy, after a execute 1; not placed`);
+  const sessionInTree = (status: "busy" | "idle") =>
+    claude.write(`sessions/${process.pid}.json`, JSON.stringify({ pid: process.pid, sessionId: "other", cwd: treePath(), procStart: "start", status, name: "a execute 1", updatedAt: Date.now() }));
+
+  test("a session mid-task in the tree makes it busy for everyone else", async () => {
+    sessionInTree("busy");
+    expect(await treesCommand(repo.dir, ["place", "a", "2"], deps())).toBe(`trees: ${treePath()} is busy, a execute 1 is mid-task there; not placed`);
     expect(await treesCommand(repo.dir, ["place", "a", "2"], deps("other"))).toBe(`Tree: ${treePath()} · feat/a-pr-a · existing`);
+  });
+
+  test("an idle session that left the tree clean doesn't hold it: it handed off and stayed open", async () => {
+    sessionInTree("idle");
+    expect(await treesCommand(repo.dir, ["place", "a", "2"], deps())).toBe(`Tree: ${treePath()} · feat/a-pr-a · existing`);
+  });
+
+  test("an idle session holds the tree while it has uncommitted changes", async () => {
+    sessionInTree("idle");
+    writeFileSync(join(treePath(), "half-done.md"), "not committed");
+    expect(await treesCommand(repo.dir, ["place", "a", "2"], deps())).toBe(`trees: ${treePath()} is busy, a execute 1 left uncommitted changes there; not placed`);
+    rmSync(join(treePath(), "half-done.md"));
   });
 
   test("--json carries the placement; unknown phases are refused", async () => {

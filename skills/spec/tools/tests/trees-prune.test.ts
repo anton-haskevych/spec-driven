@@ -45,7 +45,7 @@ describe("trees prune (real git, gh stubbed)", () => {
     repo.addWorktree("busy", "feat/busy");
     const claimed = repo.addWorktree("claimed", "feat/claimed");
     repo.write(".git/spec-board/claims/x#2.json", JSON.stringify({ spec: "x", phase: "2", sessionId: "gone-session", workspace: realpathSync(claimed.dir), claimedAt: new Date().toISOString() }));
-    claude.write(`sessions/${process.pid}.json`, JSON.stringify({ pid: process.pid, sessionId: "other", cwd: at("busy"), procStart: "start", status: "busy", name: "x execute 1", updatedAt: Date.now() }));
+    claude.write(`sessions/${process.pid}.json`, JSON.stringify({ pid: process.pid, sessionId: "other", cwd: at("busy"), procStart: "start", status: "idle", name: "x execute 1", updatedAt: Date.now() }));
   });
   afterAll(() => {
     repo.cleanup();
@@ -54,7 +54,7 @@ describe("trees prune (real git, gh stubbed)", () => {
 
   const merged = () => JSON.stringify([{ number: 8, headRefName: "feat/squashed", headRefOid: squashedHead }]);
 
-  test("lists merged, idle trees with their evidence; leaves out unpushed, busy and claimed ones", async () => {
+  test("lists merged trees nobody is in, with their evidence; leaves out unpushed ones, claimed ones, and one an idle tab is open in", async () => {
     expect((await treesCommand(repo.dir, ["prune"], deps(merged()))).split("\n")).toEqual([
       "prune 4 merged trees (idle, nothing unpushed; trees with edits are kept):",
       `  ${at("dirty")} · feat/dirty · in origin/main`,
@@ -73,6 +73,11 @@ describe("trees prune (real git, gh stubbed)", () => {
       `  ${at("scratch")} · feat/scratch · in origin/main`,
       "PR merges not checked (gh: not logged in); only trees already in base are listed.",
     ]);
+  });
+
+  test("unreadable sessions keep every tree, and it says why", async () => {
+    const output = await treesCommand(repo.dir, ["prune"], { ...deps(merged()), claudeHome: join(repo.root, "no-claude-home") });
+    expect(output.split("\n")).toEqual(["trees: nothing to prune", `Open sessions can't be read (no ${join(repo.root, "no-claude-home", "sessions")}), so every tree is kept.`]);
   });
 
   test("--apply removes the trees and their branches; git itself keeps edited ones", async () => {
