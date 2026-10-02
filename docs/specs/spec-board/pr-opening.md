@@ -22,10 +22,10 @@ PR A:
 - [x] `list.md` no-Bun fallback still describes the table; README + SKILL.md *Tools* updated; ROADMAP row
 
 PR B:
-- [ ] `bun test`, `bun run typecheck`, frozen lockfile, `version.py` as above
-- [ ] Smoke in CRM: PR and session cells match `gh pr list` and the open sessions; total < 5 s
-- [ ] Smoke: two sessions `claim take` the same phase — one wins, the other gets the holder's name; same for a takeover of a closed claim; handoff releases
-- [ ] Smoke on GitHub with two clones: the second clone's take is refused with `user@host`; `--take-over` wins and prints the branch; the first clone's release says `taken over by`; the board in each clone shows the other's claim as `remote <age>`
-- [ ] Smoke: with `~/.claude/sessions` made unreadable, session cells say `unknown` and no claim is taken over
+- [x] `bun test`, `bun run typecheck`, frozen lockfile, `version.py` as above — 724 pass, tsc clean, lockfile unchanged, 2.36.0 everywhere (2026-10-01)
+- [x] Smoke in CRM: PR and session cells match `gh pr list` and the open sessions; total < 5 s — 4.71 s; #848 draft matches gh; `page-seo-check` busy matches a live claude process there
+- [x] Smoke: two sessions `claim take` the same phase — one wins, the other gets the holder's name; same for a takeover of a closed claim; handoff releases — scratch clone with a bare local origin, spec-loop-automation 10
+- [x] Smoke on GitHub with two clones: the second clone's take is refused with `user@host`; `--take-over` wins and prints the branch; the first clone's release says `taken over by`; the board in each clone shows the other's claim as `remote <age>` — first run: clone 1 still showed its own stale file; fixed (`withoutTakenOver`), re-run green; refs cleaned
+- [x] Smoke: with `~/.claude/sessions` made unreadable, session cells say `unknown` and no claim is taken over — `CLAUDE_CONFIG_DIR` with a chmod 000 `sessions/`; dead claim refused, cell `unknown`
 - [ ] `launch execute <spec> <phase>` from iTerm: a row whose tree exists opens there; a fresh row gets a tree from `trees place` (fresh `origin/<default>`); both run execute on that phase and claim it
-- [ ] Every mode-file tool step touched has a no-Bun fallback line; README, SKILL.md, ROADMAP row
+- [x] Every mode-file tool step touched has a no-Bun fallback line; README, SKILL.md, ROADMAP row — added the missing ones to handoff's release and execute §0.2

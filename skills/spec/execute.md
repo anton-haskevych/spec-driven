@@ -19,7 +19,7 @@ Run SKILL.md → *Preconditions*. A prep-stage spec has nothing to execute — i
 
 - **Chunk hint given** (`phase 3a`, `3a`, `next`, or a phase named in the conversation) → that is the chunk.
 - **No hint** → apply SKILL.md → *Next-chunk rule*: the first phase in the ready set. If other phases are ready too, name them in the announcement line so the user can start them in parallel sessions.
-- **No spec named, and the pack says nothing in this tree points at one** (and the conversation names none) → run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board ready --json --local`, offer the top row in one line (`<spec> <phase> — <title>`) and stop. A yes starts it: run §0 again for that spec and phase.
+- **No spec named, and the pack says nothing in this tree points at one** (and the conversation names none) → run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board ready --json --local`, offer the top row in one line (`<spec> <phase> — <title>`) and stop. A yes starts it: run §0 again for that spec and phase. Without Bun, ask which spec instead.
 - **Nothing ready** → print the waiting phases with their reasons and stop.
 - **No unchecked phase left** → print `All phases complete — see pr-opening.md for the PR gate.` and stop.
 
