@@ -34,8 +34,11 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 
 **Claim the phase first**, so two sessions never start the same one: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim take <spec> <phase>`.
 - A `claim:` line means this session holds it. `took over <spec> phase <id> from <holder> (closed)` took a claim its session left behind; say so in one line.
+- `claim: their work is on <branch>` follows any take-over: build on that branch (merge or check it out) instead of starting the phase over.
+- `claim: origin unreachable; claimed locally only` still means held. Carry on, and mention it in one line: sessions on other machines can't see this claim until a later take reaches origin.
 - `claim refused:` with no phase named by the user (the pack picked it): re-run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context execute <spec>`. The new pack skips the held phase. Reload Stage B for its pick and claim that.
-- `claim refused:` for a phase the user named: stop and tell the user who holds it and in which worktree.
+- `claim refused:` for a phase the user named: stop and tell the user who holds it, where (a worktree, or `user@host` for another machine) and how long ago. If the line ends with `say "take it over" to take it anyway`, pass that offer on.
+- Run `claim take <spec> <phase> --take-over` only when the user says to take it over in this conversation. It takes any claim, including a live one or one from another machine, so it is never an automatic fix for a refusal.
 - Without Bun, skip this step.
 
 **Task phase?** If the picked phase has `code: false` (the execute pack says so under `Picked:`), skip to *Task phases* below; §1–§7 are for code.
