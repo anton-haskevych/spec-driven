@@ -394,17 +394,17 @@ enforced-by: <path to a check>             # optional; once set, recall stops sh
 <then why it bites, with evidence>
 ```
 
-`INDEX.md` holds one row per entry: ``- `gotcha-<slug>.md` — `<paths>` — <summary under 80 chars>``.
+There is no project `INDEX.md`. Every branch would append to it, and GitHub's PR check ignores `merge=union`, so it conflicted on every spec PR. The lesson files are the index: `grep '^paths:' docs/specs/_ledger/*.md` lists each one with its globs, and `lessons recall <file…>` gives the lessons for given files.
 
 ### Write path
 
 1. Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons similar <slug or title words>`.
 2. **A listed lesson says the same thing** → `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons add <that entry.md> <spec-name>`. Edit the lesson's body only if you learned something it lacks.
-3. **Nothing matches** → write the lesson with the Write tool at `docs/specs/_ledger/<kind>-<slug>.md` (`kind`, the narrowest `paths` you can defend, title, first paragraph), then run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons add <entry.md> <spec-name>`. Pass `--summary "<under 80 chars>"` when the title is longer.
+3. **Nothing matches** → write the lesson with the Write tool at `docs/specs/_ledger/<kind>-<slug>.md` (`kind`, the narrowest `paths` you can defend, title, first paragraph), then run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons add <entry.md> <spec-name>`. Pass `--summary "<under 80 chars>"` when the title is longer (it shortens the pointer row).
 
-`lessons add` does the bookkeeping in one validated write: `created:` when missing, the spec in `seen-in`, the project INDEX row, and the spec ledger's pointer row (``- `docs/specs/_ledger/<entry>.md` — [general] — <summary>``) under the kind's section. It lists close matches without refusing; if one says the same thing, fold the new lesson into it, remove the new file and its two rows, and run step 2. Don't copy the lesson into the spec ledger.
+`lessons add` does the bookkeeping in one validated write: `created:` when missing, the spec in `seen-in`, and the spec ledger's pointer row (``- `docs/specs/_ledger/<entry>.md` — [general] — <summary>``) under the kind's section. It lists close matches without refusing; if one says the same thing, fold the new lesson into it, remove the new file and its pointer row, and run step 2. Don't copy the lesson into the spec ledger.
 
-Without Bun, read `docs/specs/_ledger/INDEX.md` for step 1, then do the bookkeeping by hand: `created:` from `spec-bump.sh --now`, `seen-in`, the project row, the pointer row.
+Without Bun, list `docs/specs/_ledger/` for step 1 (file names are descriptive slugs), then do the bookkeeping by hand: `created:` from `spec-bump.sh --now`, `seen-in`, the pointer row.
 
 ### Graduation
 
@@ -416,7 +416,7 @@ Lessons reach a session in three ways. None of them needs anyone to ask.
 
 - **Before an edit (hook).** Registered by this skill's frontmatter. When Claude is about to Write or Edit a file outside `docs/specs/`, the hook matches the path against every lesson's `paths` and adds up to 3 matching lessons as context. Each lesson is shown once per session. The hook is silent when nothing matches and never blocks an edit.
 - **Execute pack.** Lists the lessons that match the files the picked phase names.
-- **Prep and review.** Recon agents and the prior-art reviewer get `docs/specs/_ledger/INDEX.md`.
+- **Prep and review.** Recon agents grep `^paths:` in `docs/specs/_ledger/`; the prior-art reviewer gets `lessons recall` output for the spec's code-map files.
 
 ## in-flight.md semantics
 
