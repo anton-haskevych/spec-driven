@@ -1,6 +1,6 @@
-import { sep } from "node:path";
 import type { PrRow } from "../pr/rollup";
 import type { LiveSession } from "../sessions/live";
+import { ownerOf } from "../workspaces/owner";
 import { claimsOnBoard } from "./flight";
 import type { BoardInputs } from "./inputs";
 import { rowKey } from "./phase-keys";
@@ -38,10 +38,9 @@ export function attachPrs(rows: readonly FlightRow[], inputs: BoardInputs): Flig
 }
 
 function sessionsByWorkspace(sessions: readonly LiveSession[], paths: readonly string[]): Map<string, LiveSession[]> {
-  const deepestFirst = paths.toSorted((a, b) => b.length - a.length);
   const owned = new Map<string, LiveSession[]>();
   for (const session of sessions) {
-    const owner = deepestFirst.find((path) => session.cwd === path || session.cwd.startsWith(path + sep));
+    const owner = ownerOf(session.cwd, paths);
     if (owner) owned.set(owner, [...(owned.get(owner) ?? []), session]);
   }
   return owned;
