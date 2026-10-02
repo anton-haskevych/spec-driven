@@ -2,7 +2,7 @@
 
 ## Spec state
 
-PR A (phases 1–3) merged as #8 and shipped in 2.35.0 on 2026-10-01 (cold timing 3.3 s accepted). PR B (phases 4–6) on branch `feat/spec-board-pr-b`: phase 4 done (CRM warm 2.3 s with gh and sessions); phase 5 done (claims: store, command, packs, board, execute/handoff wiring); 5a and 6 left, both ready.
+PR A (phases 1–3) merged as #8 and shipped in 2.35.0 on 2026-10-01 (cold timing 3.3 s accepted). PR B (phases 4–6) on branch `feat/spec-board-pr-b`: phase 4 done (CRM warm 2.3 s with gh and sessions); phase 5 done (claims: store, command, packs, board, execute/handoff wiring); 5a done (remote claims as refs on origin, `--take-over`, board); 6 left, ready.
 Split (value first):
 - **PR A: phases 1–3.** Board from main, workspace scan, in-flight overlay. Phases 1 and 2 can run in parallel. Release 2.35.0.
 - **PR B: phases 4–6.** PRs and sessions, claims (local + remote, 5a), loop wiring. Release 2.36.0.
@@ -25,6 +25,7 @@ PR B:
 - [ ] `bun test`, `bun run typecheck`, frozen lockfile, `version.py` as above
 - [ ] Smoke in CRM: PR and session cells match `gh pr list` and the open sessions; total < 5 s
 - [ ] Smoke: two sessions `claim take` the same phase — one wins, the other gets the holder's name; same for a takeover of a closed claim; handoff releases
+- [ ] Smoke on GitHub with two clones: the second clone's take is refused with `user@host`; `--take-over` wins and prints the branch; the first clone's release says `taken over by`; the board in each clone shows the other's claim as `remote <age>`
 - [ ] Smoke: with `~/.claude/sessions` made unreadable, session cells say `unknown` and no claim is taken over
 - [ ] `launch execute <spec> <phase>` from iTerm: a row with a workspace opens there; a fresh row opens in a new `claude -w` worktree; both run execute on that phase
 - [ ] Every mode-file tool step touched has a no-Bun fallback line; README, SKILL.md, ROADMAP row

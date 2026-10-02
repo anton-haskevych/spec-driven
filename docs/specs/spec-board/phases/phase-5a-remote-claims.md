@@ -43,7 +43,7 @@ See `technical.md` → *claims* → *Remote layer*.
 - [x] `claim take` pushes after the local take and rolls back the local claim on refusal; offline → local only + one line; `release` deletes the own ref
 - [x] `--take-over` escape hatch: any claim, remote or local, live included; lease on the old sha; payload `takenFrom`; prints the old holder's branch; the old holder's `release` reports `taken over by …` and exits 0
 - [x] Board: remote claims from other machines in flight with holder + age; older than `REMOTE_CLAIM_STALE_DAYS` under needs you; `--local` skips the remote
-- [ ] `execute.md` §1: a refusal shows the holder and offers "take it over"; run `--take-over` only on the user's word; handoff shows a taken-over line; SKILL.md *Tools* Claims bullet mentions the remote ref and the hatch
+- [x] `execute.md` §1: a refusal shows the holder and offers "take it over"; run `--take-over` only on the user's word; handoff shows a taken-over line; SKILL.md *Tools* Claims bullet mentions the remote ref and the hatch
 
 ## Phase-local notes
 
