@@ -25,6 +25,7 @@ export function treeTarget(state: SpecState, phaseId: string, inputs: BoardInput
 
 export function workspaceTarget(path: string, inputs: BoardInputs): TreeTarget {
   const sessions = inputs.sessions === "local" ? NO_SESSIONS : inputs.sessions;
-  const holder = treeHolder(path, { sessions, claims: inputs.claims, worktreePaths: inputs.workspaces.map((workspace) => workspace.path) });
+  const view = { sessions, claims: inputs.claims, worktreePaths: inputs.workspaces.map((workspace) => workspace.path), ownSessionId: inputs.ownSessionId };
+  const holder = treeHolder(path, view);
   return { target: { workspace: path }, ...(holder ? { busy: describeHolder(holder) } : {}) };
 }

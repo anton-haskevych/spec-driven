@@ -11,7 +11,6 @@ import { gitRemotePort, mirrorRelease, mirrorTake, type RemotePort } from "../cl
 import { gitAt, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import type { SpecState } from "../core/spec-state";
-import type { Env } from "../core/env";
 import { loadLiveSessions } from "../sessions/live";
 import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
@@ -26,12 +25,11 @@ const OFFLINE_RELEASE = "claim: origin unreachable; released locally only";
 export const CLAIM_USAGE = "claim take <spec> <phase> [--take-over] | claim release <spec> [<phase>] | claim list";
 
 export interface ClaimDeps extends BoardDeps {
-  env: Env;
   host: string;
 }
 
 export function systemClaimDeps(): ClaimDeps {
-  return { ...systemBoardDeps(), env: process.env, host: hostname() };
+  return { ...systemBoardDeps(), host: hostname() };
 }
 
 interface ClaimWorld {

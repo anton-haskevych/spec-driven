@@ -13,7 +13,7 @@ describe("board and list commands (real git)", () => {
   const claudeHome = mkdtempSync(join(tmpdir(), "spec-board-claude-"));
   mkdirSync(join(claudeHome, "sessions"));
   const asyncRunner = cannedGh(isolatedAsyncRunner, [[["gh", "pr", "list"], { stdout: "[]" }]]);
-  const deps: BoardDeps = { runner: isolatedRunner, asyncRunner, claudeHome, now: NOW };
+  const deps: BoardDeps = { runner: isolatedRunner, asyncRunner, claudeHome, now: NOW, env: {} };
 
   beforeAll(() => {
     repo = repoWithOrigin("spec-board-command-");
@@ -66,7 +66,7 @@ describe("when the board can't be built", () => {
   const project = mkdtempSync(join(tmpdir(), "spec-board-nogit-"));
   mkdirSync(join(project, "docs/specs/a"), { recursive: true });
   writeFileSync(join(project, "docs/specs/a/CLAUDE.md"), "---\nstatus: active\n---\n");
-  const deps: BoardDeps = { runner: stubRunner([]), asyncRunner: asyncStubRunner([]), claudeHome: project, now: NOW };
+  const deps: BoardDeps = { runner: stubRunner([]), asyncRunner: asyncStubRunner([]), claudeHome: project, now: NOW, env: {} };
   afterAll(() => rmSync(project, { recursive: true, force: true }));
 
   test("board --json says why, with a null board", async () => {
