@@ -97,7 +97,10 @@ function readClaimFiles(dir: string): { name: string; text: string; claim?: Clai
 }
 
 function parseClaim(text: string): Claim | undefined {
-  const data = parseJson(text);
+  return claimFromRecord(parseJson(text));
+}
+
+export function claimFromRecord(data: unknown): Claim | undefined {
   if (!isRecord(data)) return undefined;
   const [spec, phase, sessionId, workspace, claimedAt] = ["spec", "phase", "sessionId", "workspace", "claimedAt"].map((key) => stringField(data, key));
   if (!spec || !phase || !sessionId || !workspace || !claimedAt) return undefined;
