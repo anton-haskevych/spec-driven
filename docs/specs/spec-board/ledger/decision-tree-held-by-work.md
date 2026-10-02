@@ -16,6 +16,10 @@ Two rules, two functions in `trees/find.ts`:
 - **`treeOccupant`: may this tree be deleted?** (prune.) Any other live session in it, any live or unknown
   claim, or unreadable sessions keep it.
 
+**Accepted edge:** the session that ran `launch` is still mid-turn for a few seconds after it. Its successor
+needs ~10 s to boot and place, so it normally finds the launcher idle. If not, the refusal says "mid-task" and
+names it, so the cause is visible.
+
 **Why:** CRM 2026-10-02, teacher-credit-payroll `pr-b`: two handed-off sessions left open in one tree each
 refused to launch the next phase because of the other, for about 80 minutes. Anton keeps the tab he talks to
 open and launches the next phase from it; that has to work. A merged tree still running a local stack from an
