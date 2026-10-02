@@ -7,6 +7,8 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `gotcha-displace-put-back-can-drop-a-winner.md` — [phase 5a, 6] — stale-claim race can leave two winners offline; origin lease catches it
 - `gotcha-claude-session-files-are-undocumented.md` — [phase 4+] — session files can vanish or drift; liveness fails to unknown
 - `gotcha-board-workspaces-are-live-only.md` — [phase 5+] — "gone" checks every worktree, not the live board views
+- `gotcha-enter-worktree-path-only-from-the-launch-dir.md` — [phase 5b, 6] — EnterWorktree {path} only from the launch dir; else launch in the tree
+- `gotcha-prune-apply-is-slow-and-drops-ignored-files.md` — [phase 5b, 6] — prune --apply ~45 s/tree; worktree remove deletes ignored data
 - `docs/specs/_ledger/gotcha-runner-stdout-is-decoded-text.md` — [general] — Runner stdout is decoded text; byte-framed git output breaks
 - `docs/specs/_ledger/gotcha-git-archive-fails-on-any-unmatched-pathspec.md` — [general] — git archive exits 128 if any pathspec is empty; archive only matching ones
 - `docs/specs/_ledger/gotcha-git-name-only-quotes-non-ascii-paths.md` — [general] — git quotes non-ASCII paths unless -z; spec-doc matching misses them

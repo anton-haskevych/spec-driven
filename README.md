@@ -86,6 +86,16 @@ The `spec` skill ships an `engineering-principles` reference (`skills/spec/princ
 /plugin install spec-driven
 ```
 
+## Teammates
+
+A teammate, or a customer's team, needs nothing sent to them:
+
+- **Install** [Bun](https://bun.com) and this plugin. Nothing else.
+- **Shared rules arrive with `git pull`.** `docs/specs/_playbook/settings.md` holds the project's loop rules (where spec docs land, draft PRs, merge method, the setup gate for a fresh tree), and `gates.md` holds the checks.
+- **Personal settings are detected.** On their first `/spec execute`, the tree root is detected from where their worktrees already are (`~/claude-worktrees/<repo>` if they have none) and saved in `<git-common-dir>/spec-driven/local.md`. That file lives inside `.git`: per clone and per device, never committed. Claude prints one `Trees:` line saying what it picked. To change it, they ask ("put my trees in X") and Claude rewrites the file.
+- **Two people never start the same phase.** Claims are mirrored on origin, so a phase claimed on one machine is refused on another.
+- **The WorktreeCreate hook is optional.** Spec-driven creates trees itself; the hook only affects plain `claude -w`.
+
 ## Session lifecycle and tools
 
 One fresh session per chunk: `/spec resume <name>` (or `execute`) → work → `/spec handoff` → end the session. The `/spec` invocation ties the session to the spec; nothing is inferred from branches or worktrees.
@@ -105,6 +115,8 @@ The skill ships small Bun scripts in `skills/spec/tools/` that Claude and hooks 
 - **PR status:** `spec.ts pr-status [<pr>|<spec>]` answers "where is this PR?" in one call: merged, closed, conflicting, draft, red, pending or green; check counts with external checks (e.g. Vercel) set apart; for failing Actions jobs, the log lines that end at the failure and whether the same job fails on the default branch. Capped at 30 gh calls; it never polls.
 - **Spin-off:** when a session working one spec finds it needs another, it doesn't prep that spec inline. It writes a `seed.md` (the user's words, decisions, recon already done, what the current spec needs from it) and `spec.ts launch prep <name>` opens a fresh Claude session for it in a new iTerm tab (tmux window, Terminal.app window; elsewhere it prints the command). A phase can wait on the new spec with `needs: [<name>]` before that spec has phases.
 - **Push and publish:** handoff ends with the work on origin. `spec.ts push` pushes the branch to its own name (never a worktree branch's `origin/main` upstream). In `docs: main` projects, `spec.ts publish-docs` also lands the branch's committed spec docs on the default branch: a snapshot commit merged into main with `git merge-tree`, so ledger INDEX rows union and an edit someone made on main to the same lines refuses the publish instead of being overwritten. The snapshot is merged back, so later merges of main stay clean. One `Remote:` line reports it: `Remote: pushed feat/x (+3) · docs → main 1a2b3c4 · behind main 12`.
+- **Claims:** a session claims its phase before work starts, so two sessions never start the same one. Claims live in the git common dir, shared by every worktree, and are mirrored as refs on origin, so a session on another machine is refused too. Handoff releases the claim; a claim whose session closed is taken over.
+- **Trees:** execute starts each session in its spec PR group's worktree. `spec.ts trees place` finds the tree, or reuses the local branch, takes over the branch from origin, or cuts a new tree from a fresh `origin/<default>`. It copies the gitignored files `.worktreeinclude` lists and never puts two live sessions in one tree. `spec.ts trees prune` lists merged, pushed, idle trees; the board shows `prune N merged trees`, and Claude removes them when you say yes.
 - **Doctor:** a drift check that runs at handoff. It compares frontmatter against the taxonomy, the ledger against its INDEX, `progress.md` boxes against phase entries, and checks for stale `in-flight.md`.
 
 Development: `bun install`, `bun test`, `bun run typecheck`. See [ROADMAP.md](ROADMAP.md) for the planned releases.

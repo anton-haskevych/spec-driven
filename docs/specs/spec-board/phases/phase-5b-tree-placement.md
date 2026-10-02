@@ -37,7 +37,7 @@ branches and trees, though it never deletes unmerged work.
 - `skills/spec/tools/board/lanes.ts` (`phaseRow` target = PR-group tree; busy tree), `board/rank.ts` (★),
   `board/attention.ts` (prunable trees)
 - `skills/spec/tools/playbook/settings.ts` (`worktrees.branch` only if a project needs another pattern; see below)
-- `skills/spec/execute.md` (§0 placement before claim), `skills/spec/SKILL.md` (*Tools* → Trees), `README.md`
+- `skills/spec/execute.md` (§1 placement before claim), `skills/spec/SKILL.md` (*Tools* → Trees), `README.md`
   (*Teammates*)
 
 ## Implementation guidance
@@ -107,4 +107,4 @@ one PR.
 - [x] Personal layer: `<git-common-dir>/spec-driven/local.md`, root detected on first use, one-line notice
 - [x] Board: row target = PR-group tree; busy → no ★, `after …`; `Needs you: prune N merged trees`
 - [x] `trees prune [--apply]`: merged (ancestry or merged PR head) + pushed + no live session or pending claim; clean enforced by `worktree remove`
-- [ ] `execute.md` §0: when the session isn't already in the placed tree, place it and `EnterWorktree {path}`, then `claim take`; SKILL.md *Tools* → Trees; README *Teammates*
+- [x] `execute.md` §1 (not §0, which resume skips): when the session isn't already in the placed tree, place it and `EnterWorktree {path}`, then `claim take`; SKILL.md *Tools* → Trees; README *Teammates*

@@ -32,7 +32,15 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 
 ## 1. Load the principles
 
-**Claim the phase first**, so two sessions never start the same one: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim take <spec> <phase>`.
+**Place the session in its tree first**, since the claim records the tree it's taken in: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts trees place <spec> <phase>` (*Tools* → Trees).
+- `Tree: <path> · … · existing`, where `<path>` is the session's working directory: stay here.
+- Any other `Tree: <path> …`: switch with `EnterWorktree` and `{ path: "<path>" }`, then carry on with §1 there. Pass on, in one line each, a `Trees:` line (the tree root it just detected for this person) and a `Setup failed:` line.
+- `EnterWorktree` refuses (a session already inside another worktree can only switch into `.claude/worktrees/`): run `cd <path> && bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch execute <spec>`, give the user its line, and stop here.
+- `trees: <path> is busy, after <spec> <phase> (<session>)`: never share a tree. Tell the user which session holds it and stop.
+- Any other `trees:` refusal (no origin, no default branch): work where the session is, and say so in one line.
+- Without Bun, skip this step.
+
+**Claim the phase**, so two sessions never start the same one: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim take <spec> <phase>`.
 - A `claim:` line means this session holds it. `took over <spec> phase <id> from <holder> (closed)` took a claim its session left behind; say so in one line.
 - `claim: their work is on <branch>` follows any take-over: build on that branch (merge or check it out) instead of starting the phase over.
 - `claim: origin unreachable; claimed locally only` still means held. Carry on, and mention it in one line: sessions on other machines can't see this claim until a later take reaches origin.
@@ -43,7 +51,7 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 
 **Task phase?** If the picked phase has `code: false` (the execute pack says so under `Picked:`), skip to *Task phases* below; §1–§7 are for code.
 
-**Fresh worktree?** When project settings name `gates.bootstrap` (the pack's `Settings:` line says `fresh worktree: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do the steps whose condition holds; the gate text defines "fresh". No `Settings:` line means no bootstrap step. Without Bun, read `gates.bootstrap` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
+**Fresh worktree?** When project settings name `gates.bootstrap` (the pack's `Settings:` line says `fresh worktree: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do the steps whose condition holds; the gate text defines "fresh". Placement's `Fresh tree: work through gate <name>` line means the tree was just created. No `Settings:` line means no bootstrap step. Without Bun, read `gates.bootstrap` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
 
 Read [principles.md](principles.md) once at the start of execution. These rules govern every code change you produce.
 

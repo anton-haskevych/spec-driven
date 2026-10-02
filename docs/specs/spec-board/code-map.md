@@ -53,7 +53,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/trees/local-settings.ts` | personal `worktrees.root` in `<git-common-dir>/spec-driven/local.md` | |
 | `skills/spec/tools/trees/prune.ts`, `prune-rules.ts` | merged by ancestry or merged PR head; remove refuses edits | `docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md` |
 | `skills/spec/tools/board/tree-target.ts` | ready row target = PR group's tree; busy note | |
-| `skills/spec/execute.md` | §1 first line: `claim take` | |
+| `skills/spec/execute.md` | §1 opens with `trees place` (+ `EnterWorktree`), then `claim take` | `decision-trees-placed-by-spec-driven.md` |
 | `skills/spec/handoff.md` | release + `Ready next:` / `Needs you:` | |
 | `skills/spec/list.md` | board, filters → table, lanes → `board` | |
 
