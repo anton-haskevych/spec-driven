@@ -1,7 +1,8 @@
 import { gitAt } from "../core/git";
 import type { Runner } from "../core/run";
-import type { Env } from "../launch/terminal";
+import type { Env } from "../core/env";
 import { loadLiveSessions } from "../sessions/live";
+import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { holderName } from "./rules";
 import { claimsDir, loadClaims } from "./store";
@@ -19,8 +20,8 @@ export interface HeldReaderDeps {
 export function heldByOthers(projectDir: string, deps: HeldReaderDeps): HeldPhases {
   const dir = claimsDir(gitAt(projectDir, deps.runner));
   if (!dir.ok) return new Map();
-  const ownSessionId = deps.env.CLAUDE_CODE_SESSION_ID;
-  const others = loadClaims(dir.value).claims.filter((claim) => claim.sessionId !== ownSessionId);
+  const own = ownSessionId(deps.env);
+  const others = loadClaims(dir.value).claims.filter((claim) => claim.sessionId !== own);
   if (others.length === 0) return new Map();
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   const held = others.filter((claim) => !sessions.ok || sessions.value.some((session) => session.sessionId === claim.sessionId));

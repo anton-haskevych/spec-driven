@@ -8,9 +8,10 @@ import type { Result } from "../core/result";
 import { defaultBranch } from "../core/run";
 import { resolveSpec } from "../core/spec-folders";
 import { loadSpecState, type SpecState } from "../core/spec-state";
-import type { Env } from "../launch/terminal";
+import type { Env } from "../core/env";
 import { loadSettings } from "../playbook/settings";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
+import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { loadWorkspaces, type Workspace } from "../workspaces/list";
 import { addTree, type AddedTree } from "./acquire";
@@ -53,7 +54,7 @@ export async function placeTree(projectDir: string, spec: string, phase: string,
   const found = findTree(name, group.value, world.value);
   if (!found) return addPlacedTree(projectDir, name, world.value, deps);
   const paths = worktrees.map((worktree) => worktree.path);
-  const holder = busyHolder(found.path, sessions, claims, paths, deps.env.CLAUDE_CODE_SESSION_ID || undefined);
+  const holder = busyHolder(found.path, sessions, claims, paths, ownSessionId(deps.env));
   const branch = found.branch ?? name.branch;
   return { ok: true, value: holder ? { kind: "busy", branch, path: found.path, holder } : { kind: "found", branch, path: found.path } };
 }

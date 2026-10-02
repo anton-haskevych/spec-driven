@@ -8,6 +8,7 @@ import { GH_TIMEOUT_MS } from "../pr/gh-lists";
 import { parseJson } from "../pr/gh-records";
 import { originTip, pinDefault } from "../publish/snapshot";
 import { loadLiveSessions } from "../sessions/live";
+import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { canonicalPath, loadWorkspaces, type Workspace } from "../workspaces/list";
 import { ownerOf } from "../workspaces/owner";
@@ -63,11 +64,11 @@ async function treeFacts(git: Git, worktrees: readonly Workspace[], baseSha: str
   const results = await runAll(deps.asyncRunner, jobs, SCAN_CONCURRENCY);
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   const claims = heldClaims(git, sessions, new Map());
-  const ownSessionId = deps.env.CLAUDE_CODE_SESSION_ID || undefined;
+  const own = ownSessionId(deps.env);
   // A closed claim's phase is still pending in that tree; placement would hand it to the next session.
   const pending = new Map(claims.filter(({ status }) => status === "closed").map(({ claim }) => [claim.workspace, `pending ${claim.spec} ${claim.phase}`]));
   return eligible.map((worktree, index) => {
-    const busy = busyHolder(worktree.path, sessions, claims, paths, ownSessionId) ?? pending.get(worktree.path);
+    const busy = busyHolder(worktree.path, sessions, claims, paths, own) ?? pending.get(worktree.path);
     return { worktree, inBase: results[index]?.code === 0, ...(busy ? { busy } : {}) };
   });
 }

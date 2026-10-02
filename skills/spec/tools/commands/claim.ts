@@ -11,8 +11,9 @@ import { gitRemotePort, mirrorRelease, mirrorTake, type RemotePort } from "../cl
 import { gitAt, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import type { SpecState } from "../core/spec-state";
-import type { Env } from "../launch/terminal";
+import type { Env } from "../core/env";
 import { loadLiveSessions } from "../sessions/live";
+import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { loadWorkspaces } from "../workspaces/list";
 import { systemBoardDeps, type BoardDeps } from "./board";
@@ -48,7 +49,7 @@ interface ClaimWorld {
 export async function claimCommand(projectDir: string, args: readonly string[], deps: ClaimDeps = systemClaimDeps()): Promise<string> {
   const takeOver = args.includes(TAKE_OVER_FLAG);
   const [action, spec, phase, ...extra] = args.filter((arg) => arg !== TAKE_OVER_FLAG);
-  const sessionId = deps.env.CLAUDE_CODE_SESSION_ID || undefined;
+  const sessionId = ownSessionId(deps.env);
   if (action === "list" && !spec) return withWorld(projectDir, deps, listClaims);
   if (action === "take" && spec && phase && extra.length === 0) return withWorld(projectDir, deps, (world) => take(world, spec, phase, sessionId, takeOver));
   if (action === "release" && spec && extra.length === 0 && !takeOver) return withWorld(projectDir, deps, (world) => release(world, spec, phase, sessionId));
