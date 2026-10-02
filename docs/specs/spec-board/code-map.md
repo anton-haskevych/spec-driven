@@ -47,6 +47,12 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/context/packs.ts` | resume suggestion skips live-claimed phases | |
 | `skills/spec/tools/pr/resolve.ts` | `specPrNumbers` — pr-opening.md links, reused for `prLinks` | |
 | `skills/spec/tools/launch/command-line.ts` | phase hint, `cd <worktree>` or `claude -w` | `decision-launch-targets-row-workspace.md` |
+| `skills/spec/tools/trees/place.ts` | `placeTree` — find, busy, add, setup for a spec PR group | `decision-trees-placed-by-spec-driven.md` |
+| `skills/spec/tools/trees/find.ts` | `findTree` (branch, then claims/activity), `busyHolder` — shared with the board | |
+| `skills/spec/tools/trees/acquire.ts` | `addTree` — local branch, origin's branch, or fresh origin/<default> | |
+| `skills/spec/tools/trees/local-settings.ts` | personal `worktrees.root` in `<git-common-dir>/spec-driven/local.md` | |
+| `skills/spec/tools/trees/prune.ts`, `prune-rules.ts` | merged by ancestry or merged PR head; remove refuses edits | `docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md` |
+| `skills/spec/tools/board/tree-target.ts` | ready row target = PR group's tree; busy note | |
 | `skills/spec/execute.md` | §1 first line: `claim take` | |
 | `skills/spec/handoff.md` | release + `Ready next:` / `Needs you:` | |
 | `skills/spec/list.md` | board, filters → table, lanes → `board` | |

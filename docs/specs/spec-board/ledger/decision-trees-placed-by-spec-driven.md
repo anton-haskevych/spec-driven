@@ -17,7 +17,9 @@ created: 2026-10-01T20:03:50-07:00
 - **Shared rules live in the repo** (`_playbook/settings.md`). The only personal setting, `worktrees.root`,
   sits in `<git-common-dir>/spec-driven/local.md` and is detected from where that person's trees already
   are. A teammate or customer is onboarded by their first `/spec execute`; nobody sends a file.
-- **Launch is always `cd <tree> && claude`.**
+- **Launch is always `cd <tree> && claude`.** Board targets carry only the folder name for a tree that
+  doesn't exist yet (`newWorktree: <spec>-pr-<group>`): the root is personal IO, so launch resolves the
+  real path through `trees place`.
 
 **Why:**
 - Anton's words: "it shouldn't be spawning stuff on the same work tree" (2026-10-01).
