@@ -2,10 +2,11 @@
 
 ## Spec state
 
-PR A (phases 1–3) merged as #8 and shipped in 2.35.0 on 2026-10-01 (cold timing 3.3 s accepted). PR B (phases 4–6) merged as #9 and shipped in 2.36.0 on 2026-10-02: phase 4 done (CRM warm 2.3 s with gh and sessions); phase 5 done (claims: store, command, packs, board, execute/handoff wiring); 5a done (remote claims as refs on origin, `--take-over`, board); 5b done (`trees place`, setup, personal root, `trees prune`, board targets; execute §1 places before claiming); 6 done (`launch execute <spec> <phase>` via placement, *Next sessions* endings, context-first no-spec rule). All phases done: PR B gate next.
+PR A (phases 1–3) merged as #8 and shipped in 2.35.0 on 2026-10-01 (cold timing 3.3 s accepted). PR B (phases 4–6) merged as #9 and shipped in 2.36.0 on 2026-10-02: phase 4 done (CRM warm 2.3 s with gh and sessions); phase 5 done (claims: store, command, packs, board, execute/handoff wiring); 5a done (remote claims as refs on origin, `--take-over`, board); 5b done (`trees place`, setup, personal root, `trees prune`, board targets; execute §1 places before claiming); 6 done (`launch execute <spec> <phase>` via placement, *Next sessions* endings, context-first no-spec rule). PR C (phases 7–9, follow-ups from CRM 2026-10-02 handover failures): 7 handed-off sessions free the tree, 8 writes in a claimed tree need the claim, 9 launch keeps your place. Open.
 Split (value first):
 - **PR A: phases 1–3.** Board from main, workspace scan, in-flight overlay. Phases 1 and 2 can run in parallel. Release 2.35.0.
 - **PR B: phases 4–6.** PRs and sessions, claims (local + remote, 5a), loop wiring. Release 2.36.0.
+- **PR C: phases 7–9.** Session handover: a tree is held by work, not an open tab; controller sessions can't write in a claimed tree; launch keeps focus.
 
 ## Pre-PR checks
 
@@ -29,3 +30,8 @@ PR B:
 - [x] Smoke: with `~/.claude/sessions` made unreadable, session cells say `unknown` and no claim is taken over — `CLAUDE_CONFIG_DIR` with a chmod 000 `sessions/`; dead claim refused, cell `unknown`
 - [ ] `launch execute <spec> <phase>` from iTerm: a row whose tree exists opens there; a fresh row gets a tree from `trees place` (fresh `origin/<default>`); both run execute on that phase and claim it
 - [x] Every mode-file tool step touched has a no-Bun fallback line; README, SKILL.md, ROADMAP row — added the missing ones to handoff's release and execute §0.2
+
+PR C:
+- [ ] `bun test`, `bun run typecheck`, frozen lockfile, `version.py` as above
+- [ ] Smoke in CRM: a handed-off session left open in a tree; launching the next phase into that tree from it succeeds and the new session places and claims
+- [ ] Smoke in iTerm: two launches fired at once while typing in a third tab; each command lands in its own tab, focus never leaves the third
