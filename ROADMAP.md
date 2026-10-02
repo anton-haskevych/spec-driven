@@ -86,6 +86,7 @@ Spec: `docs/specs/spec-board/`. Parallel sessions across worktrees had no shared
 |---|---|---|
 | 2.35.0 | **Board.** `/spec list` shows lanes (in flight, ready, blocked, needs you) built from `origin/<default>` plus every worktree's unmerged spec docs; ready ranked, ★ when clear of work in flight, `in <worktree>` when a need is ticked only there; `spec.ts board [<lane>] [--json] [--local]` for agents | shipped |
 | 2.36.0 | **PRs, sessions, claims.** PR and session cells, needs-you actions (merge, fix CI), phase claims (local and on origin) so parallel sessions don't pick the same phase, tree placement and prune, `launch execute <spec> <phase>` into the placed tree, *Next sessions* endings | shipped |
+| 2.36.2 | **A tree is held by work, not an open tab.** A session left open after its handoff no longer blocks the next phase in its tree; refusals name the reason (claim, mid-task, uncommitted changes). Prune still keeps any tree with a tab open, and every tree when sessions can't be read. The board knows its caller. One winner on a stale claim (per-claim lock) | 2.36.1 |
 | 2.36.1 | **No project ledger INDEX.** `lessons add` stops writing `docs/specs/_ledger/INDEX.md`; prep, review and the doctor read the lesson files. GitHub's PR check ignores `merge=union`, so that one file made every spec PR conflict and skip CI | shipped |
 
 ## Adoption

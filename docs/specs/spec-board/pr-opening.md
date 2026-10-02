@@ -32,6 +32,6 @@ PR B:
 - [x] Every mode-file tool step touched has a no-Bun fallback line; README, SKILL.md, ROADMAP row — added the missing ones to handoff's release and execute §0.2
 
 PR C:
-- [ ] `bun test`, `bun run typecheck`, frozen lockfile, `version.py` as above
+- [x] `bun test`, `bun run typecheck`, frozen lockfile, `version.py` as above — 742 pass, tsc clean, lockfile unchanged, 2.36.2 everywhere (2026-10-02, phase 7 release)
 - [ ] Smoke in CRM: a handed-off session left open in a tree; launching the next phase into that tree from it succeeds and the new session places and claims
 - [ ] Smoke in iTerm: two launches fired at once while typing in a third tab; each command lands in its own tab, focus never leaves the third
