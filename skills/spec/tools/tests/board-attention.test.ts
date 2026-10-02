@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { prAttention } from "../board/attention";
-import { flightRow } from "./board-factories";
+import { needsYou, prAttention } from "../board/attention";
+import { boardInputs, flightRow, NOW } from "./board-factories";
 
 describe("prAttention", () => {
   test("joined PRs to merge or fix CI become needs-you rows", () => {
@@ -26,5 +26,13 @@ describe("prAttention", () => {
   test("two rows on one PR list it once", () => {
     const pr = { number: 7, listed: true, failing: 0, pending: 0, passing: 1 };
     expect(prAttention([flightRow({ phase: "1", next: "merge", pr }), flightRow({ phase: "2", next: "merge", pr })])).toEqual([{ kind: "merge", spec: "alpha", phase: "1", pr: 7 }]);
+  });
+});
+
+describe("needsYou: merged trees", () => {
+  test("merged trees become one prune row, last; none → no row", () => {
+    const inputs = (merged: number) => boardInputs([], { counts: { merged, unknownBase: 0, unreadable: 0, duplicates: [] } });
+    expect(needsYou([], inputs(43), NOW, [])).toEqual([{ kind: "prune", trees: 43 }]);
+    expect(needsYou([], inputs(0), NOW, [])).toEqual([]);
   });
 });

@@ -68,6 +68,7 @@ function readyCells(board: Board): string[][] {
 }
 
 function readyNote(row: ReadyRow, board: Board): string {
+  if (row.treeBusy) return row.treeBusy;
   if (row.readyIn) return `in ${workspaceName(row.readyIn.workspace, board)} (needs ${row.readyIn.needs.join(", ")}, ticked there)`;
   if (row.onlyOn) return `only on ${row.onlyOn}`;
   if (row.sharesWith) return `shares files with ${row.sharesWith.join(", ")}`;
@@ -83,14 +84,14 @@ function attentionCells(row: AttentionRow, now: Date): string[] {
   if (row.kind === "fix") return [`#${row.pr} ${row.failing} ${row.failing === 1 ? "check" : "checks"} failing → fix`, rowName(row)];
   if (row.kind === "overdue") return [`⚠ overdue (due ${monthDay(row.due)})`, rowName(row)];
   if (row.kind === "claim") return ["claim by a closed session", `${rowName(row)} → resume or release`];
+  if (row.kind === "prune") return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "say yes to remove them (trees prune --apply)"];
   if (row.kind === "remote-claim") return [`remote claim ${ago(new Date(row.since), now)} old`, `${rowName(row)} → ask ${row.holder} or take it over`];
   return ["not deployed → deploy", rowName(row), `needed by ${row.waiting.join(", ")}`];
 }
 
 function footer(board: Board): string {
-  const { merged, unknownBase, unreadable, paused, backlog, duplicates, prs, sessions } = board.footer;
+  const { unknownBase, unreadable, paused, backlog, duplicates, prs, sessions } = board.footer;
   const counts = [
-    [merged, "worktrees merged"],
     [unknownBase, "unknown base"],
     [unreadable, "unreadable"],
     [paused, "paused"],

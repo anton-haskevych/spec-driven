@@ -154,13 +154,18 @@ describe("renderBoard", () => {
     expect(output).toContain("4 ★  far · 1    /spec execute      unblocks 2");
   });
 
+  test("merged trees are one needs-you row with the action", () => {
+    const output = renderBoard(board({ lanes: lanes({ needsYou: [{ kind: "prune", trees: 43 }] }) }), { lane: "you" });
+    expect(output).toContain("  prune 43 merged trees  say yes to remove them (trees prune --apply)");
+  });
+
   test("the footer lists worktree counts, duplicates and unavailable sources", () => {
     const footer = { merged: 43, unknownBase: 4, unreadable: 1, paused: 0, backlog: 0, duplicates: ["twin"], prs: "gh not installed", sessions: "no sessions dir" };
     const output = renderBoard(board({ footer }));
 
     expect(output).toEndWith(
       [
-        "43 worktrees merged · 4 unknown base · 1 unreadable · 0 backlog ideas → /spec list table",
+        "4 unknown base · 1 unreadable · 0 backlog ideas → /spec list table",
         "duplicate spec names: twin",
         "PRs unavailable: gh not installed",
         "sessions unavailable: no sessions dir",

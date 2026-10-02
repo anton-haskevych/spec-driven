@@ -12,7 +12,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export function needsYou(active: readonly SpecNode[], inputs: BoardInputs, now: Date, inFlight: readonly FlightRow[]): AttentionRow[] {
   const today = isoDay(now);
   const states = active.flatMap((node) => inputs.states.get(node.spec.name) ?? []);
-  return [...prAttention(inFlight), ...closedClaims(inputs, inFlight), ...oldRemoteClaims(inputs, inFlight, now), ...active.flatMap((node) => overdue(node, inputs.states.get(node.spec.name), today)), ...awaitingDeploy(states, inputs.nodes)];
+  return [...prAttention(inFlight), ...closedClaims(inputs, inFlight), ...oldRemoteClaims(inputs, inFlight, now), ...active.flatMap((node) => overdue(node, inputs.states.get(node.spec.name), today)), ...awaitingDeploy(states, inputs.nodes), ...mergedTrees(inputs)];
 }
 
 export function prAttention(inFlight: readonly FlightRow[]): AttentionRow[] {
@@ -45,6 +45,10 @@ function oldRemoteClaims(inputs: BoardInputs, inFlight: readonly FlightRow[], no
   return inputs.claims
     .filter((held) => held.status === "remote" && shown.has(rowKey(held.claim)) && new Date(held.claim.claimedAt).getTime() < cutoff)
     .map((held) => ({ kind: "remote-claim", spec: held.claim.spec, phase: held.claim.phase, holder: heldName(held), since: held.claim.claimedAt }));
+}
+
+function mergedTrees(inputs: BoardInputs): AttentionRow[] {
+  return inputs.counts.merged > 0 ? [{ kind: "prune", trees: inputs.counts.merged }] : [];
 }
 
 function overdue(node: SpecNode, state: SpecState | undefined, today: string): AttentionRow[] {

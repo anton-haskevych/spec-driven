@@ -54,6 +54,8 @@ export interface ReadyRow extends RowBase {
   // The spec exists only on this branch.
   onlyOn?: string;
   sharesWith?: string[];
+  // `after <spec> <phase> (<session>)`: another session works in this row's tree.
+  treeBusy?: string;
 }
 
 export interface BlockedRow extends RowBase {
@@ -66,7 +68,9 @@ export type AttentionRow =
   | { kind: "merge"; spec: string; phase?: string; prGroup?: string; pr: number }
   | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number }
   | { kind: "claim"; spec: string; phase: string; holder: string }
-  | { kind: "remote-claim"; spec: string; phase: string; holder: string; since: string };
+  | { kind: "remote-claim"; spec: string; phase: string; holder: string; since: string }
+  // Merged worktrees by ancestry; `trees prune` also finds squash-merged ones by their PR's head.
+  | { kind: "prune"; trees: number };
 
 export type BaseMode = "fetched" | "offline" | "busy" | "local";
 

@@ -13,8 +13,11 @@ export interface GroupPhases {
   phases: readonly string[];
 }
 
-export interface FindInputs {
-  worktrees: readonly Workspace[];
+// A worktree as the board sees it (a live view) or as `git worktree list` does.
+export type TreeRef = Pick<Workspace, "path" | "branch"> & { prunable?: boolean };
+
+export interface FindInputs<T extends TreeRef = TreeRef> {
+  worktrees: readonly T[];
   claims: readonly HeldClaim[];
   activity: ReadonlyMap<string, PhaseActivity>;
   defaultBranch: string;
@@ -24,7 +27,7 @@ const HOLDS_A_TREE: ReadonlySet<HeldClaim["status"]> = new Set(["live", "unknown
 const BLOCKS_A_TREE: ReadonlySet<HeldClaim["status"]> = new Set(["live", "unknown"]);
 
 // By branch first. Trees cut before this rule (hook branches, renamed ones) are found by what they hold.
-export function findTree(name: TreeName, group: GroupPhases, inputs: FindInputs): Workspace | undefined {
+export function findTree<T extends TreeRef>(name: TreeName, group: GroupPhases, inputs: FindInputs<T>): T | undefined {
   const present = inputs.worktrees.filter((worktree) => !worktree.prunable);
   const byBranch = present.find((worktree) => worktree.branch === name.branch);
   if (byBranch) return byBranch;
