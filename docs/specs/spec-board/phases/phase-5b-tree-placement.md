@@ -42,27 +42,35 @@ branches and trees, though it never deletes unmerged work.
 
 ## Implementation guidance
 
-**Placement** (`spec.ts trees place <spec> <phase> [--json]` → a tree path, or a refusal with a reason):
+**Placement** (`spec.ts trees place <spec> <phase> [--json]` → a tree path, or a refusal with a reason).
+The branch is `feat/<spec>-pr-<group>` (the phase's `pr:` lowercased) in folder `<spec>-pr-<group>`; with no
+`pr:`, `feat/<spec>` in `<spec>`. That is the name in use (`feat/spec-board-pr-b`, CRM
+`feat/alert-noise-cleanup-pr-a`; preflight 2026-10-01).
 1. **Find.** Read `git worktree list --porcelain`, which covers every location: Codex, sibling clones,
-   in-repo. Match on branch `feat/<spec>-<pr>`. When no branch matches, use the Phase 2 scan: the tree
-   holding this spec's unmerged docs for the same PR group. The phase's `pr:` is lowercased; with no `pr:`,
-   the name is `feat/<spec>`.
+   in-repo. Match on the branch. When no branch matches, use the Phase 2 scan: a claim on one of this spec's
+   same-group phases names the tree; else the tree with activity (wip or ticked) on one of them.
 2. **Busy?** A live session's `cwd` in the tree (sessions source) or a live claim naming it → refuse with
-   `after <spec> <phase> (<session>)`. Never two sessions in one tree.
-3. **Take over.** No local tree, but `origin/feat/<spec>-<pr>` exists (Taras's branch, or another device) →
-   `git worktree add <root>/<spec>-<pr> feat/<spec>-<pr>` tracking it. A remote claim still refuses unless
-   it is stale (5a rules).
-4. **Create.** `git fetch origin <default>`, then `git worktree add -b feat/<spec>-<pr> <root>/<spec>-<pr>
+   `after <spec> <phase> (<session>)`. Never two sessions in one tree. Remote claims stay `claim take`'s
+   check (5a), not placement's.
+3. **Reuse a local branch.** The branch exists locally with no tree → add the tree on it (its unpushed
+   commits survive).
+4. **Take over.** No local branch, but `origin/<branch>` exists (Taras's branch, or another device) →
+   `git worktree add --track -b <branch> <root>/<folder> origin/<branch>`.
+5. **Create.** `git fetch origin <default>`, then `git worktree add -b <branch> <root>/<folder>
    origin/<default>`. This never goes through the WorktreeCreate hook, and never branches from local HEAD.
-5. **Set up.** Copy the gitignored files `.worktreeinclude` lists (Claude Code's own format; fall back to
-   `.env`, `.env.local`), then run the project's `gates.bootstrap` gate. On failure, keep the tree and
-   report which step failed; the session starts there and fixes it.
+   Offline → the last fetched `origin/<default>`, said in the output. A folder already taken by another tree
+   gets `-2`, `-3`.
+6. **Set up** (new trees only). Copy the gitignored files `.worktreeinclude` lists (Claude Code's own format;
+   git matches them: `ls-files -o -i --exclude-from` + `check-ignore`; fall back to `.env`, `.env.local`) from
+   the main checkout. A copy failure names the file and keeps the tree. Gates are checklists, not commands,
+   so `place` reports `fresh` and the `gates.bootstrap` name; the session works through the gate (execute
+   §1 *Fresh worktree?*).
 
 **Shared vs personal settings:**
 
 | Setting | Lives in | Default |
 |---|---|---|
-| Unit, base, branch `feat/<spec>-<pr>` | rule, not a setting | — |
+| Unit, base, branch `feat/<spec>-pr-<group>` | rule, not a setting | — |
 | Setup gate | shared `docs/specs/_playbook/settings.md` → `gates.bootstrap` (exists today) | none |
 | Tree root | personal `<git-common-dir>/spec-driven/local.md` (frontmatter `worktrees.root`) | detected |
 
@@ -87,15 +95,15 @@ hook is optional and only used by plain `claude -w`.
 commits, is clean, and has no live session. The board's *Needs you* shows `prune N merged trees`; Claude
 runs `trees prune --apply` after the user says yes. Anything unmerged, dirty or unpushed is never touched.
 
-**Board.** A row's target becomes its PR group's tree: an existing workspace, or `new: <root>/<spec>-<pr>`.
+**Board.** A row's target becomes its PR group's tree: an existing workspace, or `new: <root>/<spec>-pr-<group>`.
 A row whose tree is busy loses ★ and shows `after <spec> <phase>`. This fixes `board/lanes.ts:125`, which
 names one tree per phase. Academy 2, 8 and 9 (`pr: A`, `needs: []`) would otherwise become 3 branches for
 one PR.
 
 ## Deliverables
 
-- [ ] `trees place`: find by branch, then by scan; refuse a busy tree; take over a remote branch; create from fresh `origin/<default>`
-- [ ] Setup: `.worktreeinclude` copy (`.env*` fallback) + `gates.bootstrap`; a failure names the step and keeps the tree
+- [ ] `trees place`: find by branch, then by scan; refuse a busy tree; reuse a local branch; take over a remote branch; create from fresh `origin/<default>`
+- [ ] Setup: `.worktreeinclude` copy (`.env*` fallback); report `fresh` + the `gates.bootstrap` name; a failure names the step and keeps the tree
 - [ ] Personal layer: `<git-common-dir>/spec-driven/local.md`, root detected on first use, one-line notice
 - [ ] Board: row target = PR-group tree; busy → no ★, `after …`; `Needs you: prune N merged trees`
 - [ ] `trees prune [--apply]`: merged + pushed + clean + no live session only
