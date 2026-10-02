@@ -102,9 +102,9 @@ one PR.
 
 ## Deliverables
 
-- [ ] `trees place`: find by branch, then by scan; refuse a busy tree; reuse a local branch; take over a remote branch; create from fresh `origin/<default>`
-- [ ] Setup: `.worktreeinclude` copy (`.env*` fallback); report `fresh` + the `gates.bootstrap` name; a failure names the step and keeps the tree
-- [ ] Personal layer: `<git-common-dir>/spec-driven/local.md`, root detected on first use, one-line notice
+- [x] `trees place`: find by branch, then by scan; refuse a busy tree; reuse a local branch; take over a remote branch; create from fresh `origin/<default>`
+- [x] Setup: `.worktreeinclude` copy (`.env*` fallback); report `fresh` + the `gates.bootstrap` name; a failure names the step and keeps the tree
+- [x] Personal layer: `<git-common-dir>/spec-driven/local.md`, root detected on first use, one-line notice
 - [ ] Board: row target = PR-group tree; busy → no ★, `after …`; `Needs you: prune N merged trees`
 - [ ] `trees prune [--apply]`: merged + pushed + clean + no live session only
 - [ ] `execute.md` §0: when the session isn't already in the placed tree, place it and `EnterWorktree {path}`, then `claim take`; SKILL.md *Tools* → Trees; README *Teammates*
