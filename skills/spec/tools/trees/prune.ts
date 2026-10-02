@@ -7,11 +7,12 @@ import { defaultBranch, runAll, type AsyncRunner } from "../core/run";
 import { GH_TIMEOUT_MS } from "../pr/gh-lists";
 import { parseJson } from "../pr/gh-records";
 import { originTip, pinDefault } from "../publish/snapshot";
-import { loadLiveSessions } from "../sessions/live";
+import { loadLiveSessions, type LiveSession } from "../sessions/live";
+import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { canonicalPath, loadWorkspaces, type Workspace } from "../workspaces/list";
 import { ownerOf } from "../workspaces/owner";
-import { busyHolder } from "./find";
+import { treeOccupant } from "./find";
 import type { PlaceDeps } from "./place";
 import { PLACE_FETCH_TIMEOUT_MS } from "./place";
 import { pruneCandidates, type MergedHead, type PruneCandidate, type TreeFacts } from "./prune-rules";
@@ -22,6 +23,8 @@ export interface PruneReport {
   candidates: PruneCandidate[];
   // Why PR merges weren't checked; then only trees already in base are listed.
   prsUnchecked?: string;
+  // Why open sessions couldn't be read; then every tree is kept.
+  sessionsUnread?: string;
 }
 
 const SCAN_CONCURRENCY = 8;
@@ -38,10 +41,11 @@ export async function findPrunable(projectDir: string, deps: PruneDeps): Promise
   if (!base.ok || !base.value) return { ok: false, reason: `no origin/${branch} ref` };
 
   const merged = mergedHeads(projectDir, deps.asyncRunner);
-  const facts = await treeFacts(git, worktrees.value, base.value, projectDir, deps);
+  const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
+  const facts = await treeFacts(git, worktrees.value, base.value, projectDir, { sessions, deps });
   const prs = await merged;
   const candidates = pruneCandidates(facts, prs.ok ? prs.value : undefined, branch);
-  return { ok: true, value: { candidates, ...(prs.ok ? {} : { prsUnchecked: prs.reason }) } };
+  return { ok: true, value: { candidates, ...(prs.ok ? {} : { prsUnchecked: prs.reason }), ...(sessions.ok ? {} : { sessionsUnread: sessions.reason }) } };
 }
 
 // `worktree remove` without --force refuses a tree with edited or untracked files: that is the clean check.
@@ -55,19 +59,19 @@ export function applyPrune(git: Git, candidates: readonly PruneCandidate[]): str
   });
 }
 
-async function treeFacts(git: Git, worktrees: readonly Workspace[], baseSha: string, projectDir: string, deps: PruneDeps): Promise<TreeFacts[]> {
+async function treeFacts(git: Git, worktrees: readonly Workspace[], baseSha: string, projectDir: string, around: { sessions: Result<LiveSession[]>; deps: PruneDeps }): Promise<TreeFacts[]> {
+  const { sessions, deps } = around;
   const paths = worktrees.map((worktree) => worktree.path);
   const here = ownerOf(canonicalPath(projectDir), paths);
   const eligible = worktrees.filter((worktree) => !worktree.isMain && !worktree.prunable && worktree.path !== here && existsSync(worktree.path));
   const jobs = eligible.map((worktree) => ({ argv: ["git", "merge-base", "--is-ancestor", worktree.head, baseSha], options: { cwd: projectDir } }));
   const results = await runAll(deps.asyncRunner, jobs, SCAN_CONCURRENCY);
-  const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   const claims = heldClaims(git, sessions, new Map());
-  const ownSessionId = deps.env.CLAUDE_CODE_SESSION_ID || undefined;
+  const view = { sessions, claims, worktreePaths: paths, ownSessionId: ownSessionId(deps.env) };
   // A closed claim's phase is still pending in that tree; placement would hand it to the next session.
   const pending = new Map(claims.filter(({ status }) => status === "closed").map(({ claim }) => [claim.workspace, `pending ${claim.spec} ${claim.phase}`]));
   return eligible.map((worktree, index) => {
-    const busy = busyHolder(worktree.path, sessions, claims, paths, ownSessionId) ?? pending.get(worktree.path);
+    const busy = treeOccupant(worktree.path, view) ?? pending.get(worktree.path);
     return { worktree, inBase: results[index]?.code === 0, ...(busy ? { busy } : {}) };
   });
 }

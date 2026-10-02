@@ -22,6 +22,7 @@ export const FETCH_TIMEOUT_MS = 10_000;
 
 export interface BoardRequest {
   local: boolean;
+  ownSessionId?: string;
 }
 
 export interface BoardRunners {
@@ -69,6 +70,7 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       claims: [...remote, ...local],
       prs: prLists ? prRows(await prLists, settings.checks.external) : "local",
       prLinks: prLinks(states, workspaces),
+      ...(request.ownSessionId ? { ownSessionId: request.ownSessionId } : {}),
     },
   };
 }

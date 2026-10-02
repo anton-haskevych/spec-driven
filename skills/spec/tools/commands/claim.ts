@@ -11,8 +11,8 @@ import { gitRemotePort, mirrorRelease, mirrorTake, type RemotePort } from "../cl
 import { gitAt, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import type { SpecState } from "../core/spec-state";
-import type { Env } from "../launch/terminal";
 import { loadLiveSessions } from "../sessions/live";
+import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { loadWorkspaces } from "../workspaces/list";
 import { systemBoardDeps, type BoardDeps } from "./board";
@@ -25,12 +25,11 @@ const OFFLINE_RELEASE = "claim: origin unreachable; released locally only";
 export const CLAIM_USAGE = "claim take <spec> <phase> [--take-over] | claim release <spec> [<phase>] | claim list";
 
 export interface ClaimDeps extends BoardDeps {
-  env: Env;
   host: string;
 }
 
 export function systemClaimDeps(): ClaimDeps {
-  return { ...systemBoardDeps(), env: process.env, host: hostname() };
+  return { ...systemBoardDeps(), host: hostname() };
 }
 
 interface ClaimWorld {
@@ -48,7 +47,7 @@ interface ClaimWorld {
 export async function claimCommand(projectDir: string, args: readonly string[], deps: ClaimDeps = systemClaimDeps()): Promise<string> {
   const takeOver = args.includes(TAKE_OVER_FLAG);
   const [action, spec, phase, ...extra] = args.filter((arg) => arg !== TAKE_OVER_FLAG);
-  const sessionId = deps.env.CLAUDE_CODE_SESSION_ID || undefined;
+  const sessionId = ownSessionId(deps.env);
   if (action === "list" && !spec) return withWorld(projectDir, deps, listClaims);
   if (action === "take" && spec && phase && extra.length === 0) return withWorld(projectDir, deps, (world) => take(world, spec, phase, sessionId, takeOver));
   if (action === "release" && spec && extra.length === 0 && !takeOver) return withWorld(projectDir, deps, (world) => release(world, spec, phase, sessionId));

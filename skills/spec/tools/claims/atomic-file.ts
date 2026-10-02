@@ -1,7 +1,8 @@
-import { existsSync, linkSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const LEFTOVER = /\.json\.(tmp|stale)-/;
+const LOCK_SUFFIX = ".lock";
+const LEFTOVER = /\.json\.(tmp-|lock$)/;
 const LEFTOVER_AGE_MS = 60_000;
 
 // link, not open(wx): readers never see a half-written claim.
@@ -19,26 +20,28 @@ export function createExclusive(file: string, text: string, sessionId: string): 
   }
 }
 
-// Between judging and renaming, another session may have replaced the file; that newer file goes back.
-export function displaceIfUnchanged(file: string, judgedText: string, sessionId: string): boolean {
-  const moved = `${file}.stale-${sessionId}`;
+// Removal re-reads the file under a per-claim lock. Moving it away first and putting a changed one back
+// could delete a claim another session created in between, leaving two sessions sure they won.
+// A create never replaces a file, so under the lock the judged text can't change before the removal.
+export function removeIfUnchanged(file: string, judgedText: string): boolean {
+  const lock = `${file}${LOCK_SUFFIX}`;
+  if (!tryLock(lock)) return false;
   try {
-    renameSync(file, moved);
-  } catch (error) {
-    if (errorCode(error) === "ENOENT") return false;
-    throw error;
+    if (readIfPresent(file) !== judgedText) return false;
+    rmSync(file);
+    return true;
+  } finally {
+    rmSync(lock, { recursive: true, force: true });
   }
-  const unchanged = readFileSync(moved, "utf8") === judgedText;
-  if (!unchanged) putBack(moved, file);
-  rmSync(moved, { force: true });
-  return unchanged;
 }
 
-function putBack(moved: string, file: string): void {
+function tryLock(lock: string): boolean {
   try {
-    linkSync(moved, file);
+    mkdirSync(lock);
+    return true;
   } catch (error) {
-    if (errorCode(error) !== "EEXIST") throw error;
+    if (errorCode(error) === "EEXIST") return false;
+    throw error;
   }
 }
 
@@ -52,13 +55,13 @@ export function readIfPresent(file: string): string | undefined {
   }
 }
 
-// A young leftover may belong to a session still mid-take.
+// A young leftover may belong to a session still mid-take. An old lock is one a crashed session never released.
 export function sweepLeftovers(dir: string, now: Date): void {
   if (!existsSync(dir)) return;
   for (const name of readdirSync(dir)) {
     if (!LEFTOVER.test(name)) continue;
     const path = join(dir, name);
-    if (now.getTime() - statSync(path).mtimeMs > LEFTOVER_AGE_MS) rmSync(path, { force: true });
+    if (now.getTime() - statSync(path).mtimeMs > LEFTOVER_AGE_MS) rmSync(path, { recursive: true, force: true });
   }
 }
 

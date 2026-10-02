@@ -30,8 +30,11 @@ async function pruneCommand(projectDir: string, args: readonly string[], deps: P
   if (args.some((arg) => arg !== APPLY_FLAG)) return `usage: ${TREES_USAGE}`;
   const found = await findPrunable(projectDir, deps);
   if (!found.ok) return `trees: ${found.reason}`;
-  const { candidates, prsUnchecked } = found.value;
-  const unchecked = prsUnchecked ? [`PR merges not checked (${prsUnchecked}); only trees already in base are listed.`] : [];
+  const { candidates, prsUnchecked, sessionsUnread } = found.value;
+  const unchecked = [
+    ...(prsUnchecked ? [`PR merges not checked (${prsUnchecked}); only trees already in base are listed.`] : []),
+    ...(sessionsUnread ? [`Open sessions can't be read (${sessionsUnread}), so every tree is kept.`] : []),
+  ];
   if (candidates.length === 0) return ["trees: nothing to prune", ...unchecked].join("\n");
   if (apply) return [...applyPrune(gitAt(projectDir, deps.runner), candidates), ...unchecked].join("\n");
   const rows = candidates.map(({ path, branch, evidence }) => `  ${[path, branch, evidence].filter(Boolean).join(" · ")}`);

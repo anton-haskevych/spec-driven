@@ -4,7 +4,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 `[applies-to]` scope tag. See `SKILL.md` for entry format and filtering rules.
 
 ## Gotchas
-- `gotcha-displace-put-back-can-drop-a-winner.md` — [phase 5a, 6] — stale-claim race can leave two winners offline; origin lease catches it
+- `gotcha-displace-put-back-can-drop-a-winner.md` — [phase 5a, 6] — stale-claim race left two winners; fixed by a per-claim lock (phase 7)
 - `gotcha-claude-session-files-are-undocumented.md` — [phase 4+] — session files can vanish or drift; liveness fails to unknown
 - `gotcha-board-workspaces-are-live-only.md` — [phase 5+] — "gone" checks every worktree, not the live board views
 - `gotcha-enter-worktree-path-only-from-the-launch-dir.md` — [phase 5b, 6] — EnterWorktree {path} only from the launch dir; else launch in the tree
@@ -36,6 +36,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-prs-and-sessions-join-shape.md` — [phase 5+] — gh lists async, joins refine next, needs-you reads rows; tests stub gh
 - `decision-remote-claims-landing-shape.md` — [phase 6] — remote claims: files, take order, take-over, board shape; packs local only
 - `decision-claims-landing-shape.md` — [phase 5a, 6] — claim:/claim refused: lines, one status path, packs read heldByOthers
+- `decision-tree-held-by-work.md` — [phase 7+] — held = claim, mid-turn, or idle + uncommitted; prune keeps any occupant
 
 ## Workarounds
 - `docs/specs/_ledger/workaround-squash-merge-leaves-local-main-diverged.md` — [general] — squash merge leaves local main diverged; verify tree, reset --keep

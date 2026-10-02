@@ -1,8 +1,7 @@
+import type { Env } from "../core/env";
 import type { SessionLaunch } from "./command-line";
 
 export type Terminal = "tmux" | "iTerm" | "Terminal";
-
-export type Env = Readonly<Record<string, string | undefined>>;
 
 export function pickTerminal(env: Env): Terminal | undefined {
   if (env.TMUX) return "tmux";

@@ -41,4 +41,5 @@ export interface BoardInputs {
   prs: Result<PrRow[]> | "local";
   // Spec → PR numbers its pr-opening.md links, oldest first.
   prLinks: ReadonlyMap<string, readonly number[]>;
+  ownSessionId?: string;
 }

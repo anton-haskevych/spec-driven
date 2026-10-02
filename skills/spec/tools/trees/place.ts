@@ -8,16 +8,18 @@ import type { Result } from "../core/result";
 import { defaultBranch } from "../core/run";
 import { resolveSpec } from "../core/spec-folders";
 import { loadSpecState, type SpecState } from "../core/spec-state";
-import type { Env } from "../launch/terminal";
+import type { Env } from "../core/env";
 import { loadSettings } from "../playbook/settings";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
+import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { loadWorkspaces, type Workspace } from "../workspaces/list";
 import { addTree, type AddedTree } from "./acquire";
-import { busyHolder, findTree, type GroupPhases } from "./find";
+import { describeHolder, findTree, treeHolder, type GroupPhases } from "./find";
 import { treeRoot } from "./local-settings";
 import { treeName, type TreeName } from "./naming";
 import { copyIncludedFiles, type SetupReport } from "./setup";
+import { hasUncommittedChanges } from "./uncommitted";
 
 export const PLACE_FETCH_TIMEOUT_MS = 10_000;
 
@@ -52,10 +54,10 @@ export async function placeTree(projectDir: string, spec: string, phase: string,
   const name = treeName(spec, group.value.prGroup);
   const found = findTree(name, group.value, world.value);
   if (!found) return addPlacedTree(projectDir, name, world.value, deps);
-  const paths = worktrees.map((worktree) => worktree.path);
-  const holder = busyHolder(found.path, sessions, claims, paths, deps.env.CLAUDE_CODE_SESSION_ID || undefined);
+  const view = { sessions, claims, worktreePaths: worktrees.map((worktree) => worktree.path), ownSessionId: ownSessionId(deps.env) };
+  const holder = treeHolder(found.path, view, () => hasUncommittedChanges(found.path, deps.runner));
   const branch = found.branch ?? name.branch;
-  return { ok: true, value: holder ? { kind: "busy", branch, path: found.path, holder } : { kind: "found", branch, path: found.path } };
+  return { ok: true, value: holder ? { kind: "busy", branch, path: found.path, holder: describeHolder(holder) } : { kind: "found", branch, path: found.path } };
 }
 
 async function addPlacedTree(projectDir: string, name: TreeName, world: PlaceWorld, deps: PlaceDeps): Promise<Result<Placement>> {

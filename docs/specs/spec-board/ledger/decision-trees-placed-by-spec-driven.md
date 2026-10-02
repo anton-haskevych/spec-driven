@@ -11,7 +11,8 @@ created: 2026-10-01T20:03:50-07:00
   people already cut (preflight 2026-10-01).
 - **Found before created.** `git worktree list` by branch first, then the workspace scan, then a local
   branch with no tree. An `origin/<branch>` with no local branch is taken over, not recreated.
-- **One live session per tree.** A busy tree is refused, never shared.
+- **One working session per tree.** A busy tree is refused, never shared. Revised 2026-10-02: busy means
+  work (a claim, a session mid-task, or uncommitted changes), not an open tab; see `decision-tree-held-by-work.md`.
 - **Set up before the session opens:** `place` copies the `.worktreeinclude` files. `gates.bootstrap` is a
   checklist, so the new session works through it (execute §1), not the tool.
 - **Shared rules live in the repo** (`_playbook/settings.md`). The only personal setting, `worktrees.root`,

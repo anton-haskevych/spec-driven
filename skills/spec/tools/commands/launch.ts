@@ -1,7 +1,8 @@
 import type { Result } from "../core/result";
 import { systemRunner, type Runner } from "../core/run";
 import { sessionLaunch } from "../launch/command-line";
-import { launchArgv, pickTerminal, type Env } from "../launch/terminal";
+import type { Env } from "../core/env";
+import { launchArgv, pickTerminal } from "../launch/terminal";
 import { placeTree, type Placement } from "../trees/place";
 import { renderPlacement, systemPlaceDeps } from "./trees";
 
