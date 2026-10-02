@@ -1,4 +1,4 @@
-import { alignColumns, clock, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
+import { ago, alignColumns, clock, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
 import type { AttentionRow, Board, FlightRow, ReadyRow } from "./model";
 
 export type Lane = "flight" | "ready" | "blocked" | "you";
@@ -21,7 +21,7 @@ export function renderBoard(board: Board, options: { lane?: Lane } = {}): string
     flight: lane("IN FLIGHT", alignColumns(flightCells(board, now))),
     ready: lane("READY   ★ = shares no files with anything in flight", capped(readyCells(board), READY_CAP, "ready", options.lane)),
     blocked: lane("BLOCKED", capped(blockedCells(board), BLOCKED_CAP, "blocked", options.lane)),
-    you: lane("NEEDS YOU", alignColumns(board.lanes.needsYou.map(attentionCells))),
+    you: lane("NEEDS YOU", alignColumns(board.lanes.needsYou.map((row) => attentionCells(row, now)))),
   };
   const body = options.lane ? [sections[options.lane]] : [...LANES.map((name) => sections[name]), footer(board)];
   return [header(board, now), ...body].join("\n\n");
@@ -47,7 +47,7 @@ function capped(rows: ReadonlyArray<readonly string[]>, cap: number, name: Lane,
 }
 
 function flightCells(board: Board, now: Date): string[][] {
-  return board.lanes.inFlight.map((row) => [rowName(row), workspaceCell(row.workspace, board), sessionCell(row.session, now), prCell(row.pr), flightNext(row, board)]);
+  return board.lanes.inFlight.map((row) => [rowName(row), row.workspace ? workspaceCell(row.workspace, board) : (row.holder ?? workspaceCell(row.workspace, board)), sessionCell(row.session, now), prCell(row.pr), flightNext(row, board)]);
 }
 
 function flightNext(row: FlightRow, board: Board): string {
@@ -68,6 +68,7 @@ function readyCells(board: Board): string[][] {
 }
 
 function readyNote(row: ReadyRow, board: Board): string {
+  if (row.treeBusy) return row.treeBusy;
   if (row.readyIn) return `in ${workspaceName(row.readyIn.workspace, board)} (needs ${row.readyIn.needs.join(", ")}, ticked there)`;
   if (row.onlyOn) return `only on ${row.onlyOn}`;
   if (row.sharesWith) return `shares files with ${row.sharesWith.join(", ")}`;
@@ -78,15 +79,19 @@ function blockedCells(board: Board): string[][] {
   return board.lanes.blocked.map((row) => [rowName(row), row.reasons.join("; ")]);
 }
 
-function attentionCells(row: AttentionRow): string[] {
+function attentionCells(row: AttentionRow, now: Date): string[] {
+  if (row.kind === "merge") return [`#${row.pr} checks pass → merge`, rowName(row)];
+  if (row.kind === "fix") return [`#${row.pr} ${row.failing} ${row.failing === 1 ? "check" : "checks"} failing → fix`, rowName(row)];
   if (row.kind === "overdue") return [`⚠ overdue (due ${monthDay(row.due)})`, rowName(row)];
+  if (row.kind === "claim") return ["claim by a closed session", `${rowName(row)} → resume or release`];
+  if (row.kind === "prune") return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "say yes to remove them (trees prune --apply)"];
+  if (row.kind === "remote-claim") return [`remote claim ${ago(new Date(row.since), now)} old`, `${rowName(row)} → ask ${row.holder} or take it over`];
   return ["not deployed → deploy", rowName(row), `needed by ${row.waiting.join(", ")}`];
 }
 
 function footer(board: Board): string {
-  const { merged, unknownBase, unreadable, paused, backlog, duplicates, prs, sessions } = board.footer;
+  const { unknownBase, unreadable, paused, backlog, duplicates, prs, sessions } = board.footer;
   const counts = [
-    [merged, "worktrees merged"],
     [unknownBase, "unknown base"],
     [unreadable, "unreadable"],
     [paused, "paused"],

@@ -6,10 +6,12 @@ import { readySet } from "../ready/ready-set";
 import { phaseActivity, type PhaseActivity } from "./activity";
 import { needsYou } from "./attention";
 import { flightRows, isOnBoard, readyInWorkspaces } from "./flight";
+import { joinFlightRows } from "./joins";
 import type { BaseRef, BoardInputs, SpecStage, WorkspaceView } from "./inputs";
 import { BOARD_VERSION, type Board, type BlockedRow, type ReadyRow } from "./model";
 import { rowKey } from "./phase-keys";
 import { markSafe, rankReady, unblockCounts } from "./rank";
+import { treeTarget, workspaceTarget, type TreeTarget } from "./tree-target";
 
 const FETCH_LOCK_FAILURE = /cannot lock ref/;
 
@@ -37,7 +39,7 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
   const open = [...inputs.nodes.values()].filter((node) => !isFinished(node));
   const active = open.filter((node) => node.status !== "paused");
   const activity = phaseActivity(inputs.states, inputs.workspaces);
-  const inFlight = flightRows(activity, inputs);
+  const inFlight = joinFlightRows(flightRows(activity, inputs), inputs);
   const placement: Placement = { inputs, today, unblocks: unblockCounts(inputs.states, inputs.nodes), activity, inFlight: new Set(inFlight.map(rowKey)) };
   const lanes = [...active.map((node) => specLanes(node, placement)), ...branchOnlyLanes(inputs.workspaces, placement)];
   const { duplicates, ...counts } = inputs.counts;
@@ -52,10 +54,14 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
       inFlight,
       ready: rankReady(markSafe(lanes.flatMap((spec) => spec.ready), inFlight, withBranchOnlyNodes(inputs), inputs.states)),
       blocked: lanes.flatMap((spec) => spec.blocked),
-      needsYou: needsYou(active, inputs, today),
+      needsYou: needsYou(active, inputs, now, inFlight),
     },
-    footer: { ...counts, paused: open.length - active.length, backlog: inputs.backlogCount, duplicates },
+    footer: { ...counts, paused: open.length - active.length, backlog: inputs.backlogCount, duplicates, ...unavailable(inputs) },
   };
+}
+
+function unavailable({ prs, sessions }: BoardInputs): Pick<Board["footer"], "prs" | "sessions"> {
+  return { ...(prs !== "local" && !prs.ok ? { prs: prs.reason } : {}), ...(sessions !== "local" && !sessions.ok ? { sessions: sessions.reason } : {}) };
 }
 
 function specLanes(node: SpecNode, placement: Placement): SpecLanes {
@@ -70,13 +76,20 @@ function phaseLanes(node: SpecNode, state: SpecState, placement: Placement, orig
   const landed = (phase: PhaseState) => !placement.inFlight.has(rowKey({ spec: name, phase: phase.id }));
   const { ready, waiting } = readySet(state, placement.inputs.nodes);
   const readyIn = readyInWorkspaces(state, placement.activity, placement.inputs.nodes);
-  const lanes: SpecLanes = { ready: ready.filter(landed).map((phase) => phaseRow(node, phase, placement, origin)), blocked: [] };
+  const lanes: SpecLanes = { ready: ready.filter(landed).map((phase) => phaseRow(node, state, phase, placement, origin)), blocked: [] };
   for (const { phase, reasons } of waiting.filter(({ phase }) => landed(phase))) {
     const inWorkspace = readyIn.get(phase.id);
-    if (inWorkspace) lanes.ready.push({ ...phaseRow(node, phase, placement), target: { workspace: inWorkspace.workspace }, readyIn: inWorkspace, safe: false });
+    if (inWorkspace) lanes.ready.push(readyInRow(phaseRow(node, state, phase, placement), inWorkspace, placement.inputs));
     else lanes.blocked.push({ spec: name, phase: phase.id, ...(origin ? { target: { workspace: origin.workspace } } : {}), reasons });
   }
   return lanes;
+}
+
+// Ready only where its needs are ticked: that worktree is the target, busy or not.
+function readyInRow(row: ReadyRow, readyIn: NonNullable<ReadyRow["readyIn"]>, inputs: BoardInputs): ReadyRow {
+  const { treeBusy: _groupTree, ...rest } = row;
+  const { target, busy } = workspaceTarget(readyIn.workspace, inputs);
+  return { ...rest, target, readyIn, safe: false, ...(busy ? { treeBusy: busy } : {}) };
 }
 
 // The first worktree holding a branch-only spec stands in for its base (as in phaseActivity).
@@ -111,13 +124,15 @@ function stageLanes(node: SpecNode, stage: SpecStage, { inputs, today, unblocks 
   return { ready: [row], blocked: [] };
 }
 
-function phaseRow(node: SpecNode, phase: PhaseState, { today, unblocks }: Placement, origin?: BranchOrigin): ReadyRow {
+function phaseRow(node: SpecNode, state: SpecState, phase: PhaseState, { inputs, activity, today, unblocks }: Placement, origin?: BranchOrigin): ReadyRow {
   const name = node.spec.name;
   const due = phase.schedule.due ?? node.meta.due;
+  const tree: TreeTarget = origin ? { target: { workspace: origin.workspace } } : treeTarget(state, phase.id, inputs, activity);
   return {
     spec: name,
     phase: phase.id,
-    target: origin ? { workspace: origin.workspace } : { newWorktree: `${name}-${phase.id}` },
+    target: tree.target,
+    ...(tree.busy ? { treeBusy: tree.busy } : {}),
     ...(origin ? { onlyOn: origin.branch } : {}),
     next: "execute",
     prGroup: phase.edges.pr,
@@ -126,7 +141,7 @@ function phaseRow(node: SpecNode, phase: PhaseState, { today, unblocks }: Placem
     overdue: isOverdue(due, today),
     updated: node.meta.updated,
     unblocks: unblocks.get(rowKey({ spec: name, phase: phase.id })) ?? 0,
-    safe: origin === undefined,
+    safe: origin === undefined && tree.busy === undefined,
   };
 }
 

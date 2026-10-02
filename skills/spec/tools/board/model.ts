@@ -10,7 +10,8 @@ interface RowBase {
   target?: Target;
 }
 
-export type SessionCell = { status: "busy" | "idle"; since: string } | { status: "closed" | "unknown" };
+// "remote": another machine's claim; `since` is when it was claimed.
+export type SessionCell = { status: "busy" | "idle" | "remote"; since: string } | { status: "closed" | "unknown" };
 
 export interface PrCell {
   number: number;
@@ -18,6 +19,8 @@ export interface PrCell {
   draft?: boolean;
   failing?: number;
   pending?: number;
+  passing?: number;
+  state?: "merged" | "closed";
 }
 
 export type FlightNext = "executing" | "fix CI" | "merge" | "ticked on branch, not merged" | "uncommitted";
@@ -27,8 +30,11 @@ export interface FlightRow extends RowBase {
   workspace?: string;
   // Further worktrees where the same phase is ticked.
   alsoIn?: string[];
+  // The session name on the phase's claim.
+  holder?: string;
   session?: SessionCell;
-  pr?: PrCell;
+  // "unknown": gh couldn't list PRs.
+  pr?: PrCell | "unknown";
   next: FlightNext;
 }
 
@@ -48,6 +54,8 @@ export interface ReadyRow extends RowBase {
   // The spec exists only on this branch.
   onlyOn?: string;
   sharesWith?: string[];
+  // `after <spec> <phase> (<session>)`: another session works in this row's tree.
+  treeBusy?: string;
 }
 
 export interface BlockedRow extends RowBase {
@@ -56,7 +64,13 @@ export interface BlockedRow extends RowBase {
 
 export type AttentionRow =
   | { kind: "overdue"; spec: string; phase?: string; due: string }
-  | { kind: "deploy"; spec: string; phase: string; waiting: string[] };
+  | { kind: "deploy"; spec: string; phase: string; waiting: string[] }
+  | { kind: "merge"; spec: string; phase?: string; prGroup?: string; pr: number }
+  | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number }
+  | { kind: "claim"; spec: string; phase: string; holder: string }
+  | { kind: "remote-claim"; spec: string; phase: string; holder: string; since: string }
+  // Merged worktrees by ancestry; `trees prune` also finds squash-merged ones by their PR's head.
+  | { kind: "prune"; trees: number };
 
 export type BaseMode = "fetched" | "offline" | "busy" | "local";
 

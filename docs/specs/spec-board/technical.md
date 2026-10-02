@@ -28,8 +28,10 @@ portfolio/order.ts     orderSpecs / orderBacklog use compareSchedule
 commands/list.ts       no args → board; filters / `table` → portfolioTable (sync, unchanged output)
 commands/board.ts      new  board [<lane>] [--json] [--local]
 pr/
-  gh.ts                + openPrs(), recentPrs() on GhClient (fields fixed inside)
-  gh-records.ts        + toPrRows, rollupToChecks (gh's bucket mapping + latest run per name)
+  gh-lists.ts          new  ghLists(cwd, asyncRunner, timeoutMs) → openPrs(), recentPrs() (async, beside
+                         the sync GhClient)
+  rollup.ts            new  checkBucket, rollupToChecks (gh's bucket mapping + latest run per name and
+                         workflow), toPrRows
   types.ts             + PrRow
 workspaces/            new domain
   list.ts              parseWorktreeList (porcelain), loadWorkspaces(git)
@@ -39,6 +41,7 @@ workspaces/            new domain
                          locateSpecFile
 sessions/              new domain
   live.ts              parseSessionFile, loadLiveSessions(claudeHome, procStarts) → Result<LiveSession[]>
+  proc-starts.ts       psProcStarts(runner): one `TZ=UTC ps -o pid=,lstart=` call
 claims/                new domain
   store.ts             claimsDir(git), takeClaim(dir, claim, isStale), releaseClaim, loadClaims
   rules.ts             claimStatus(claim, sessions, workspaces, baseDone) — pure
@@ -181,6 +184,35 @@ whose session is live is never removed. The board never writes.
 
 No prep claims.
 
+#### Remote layer (phase 5a)
+
+Local claims only guard one clone. Across machines, each claim is mirrored as a ref on origin:
+`refs/spec-claims/<spec>/<phase>`.
+
+- **Payload:** `git commit-tree <empty tree> -m <claim JSON + holder>`, where holder =
+  `{ user: git user.name, host }`. A commit (not a blob), so any host accepts the ref.
+- **Take:** `git push origin --force-with-lease=<ref>: <sha>:<ref>`. The empty lease means the ref must
+  not exist, and the server checks the old value atomically. If the push is rejected, fetch the existing
+  ref and refuse with `claimed by <user>@<host> (<sessionName>) <age> ago`.
+- **Same holder:** the existing ref's payload has the caller's `sessionId` → ok (idempotent).
+- **Take over (escape hatch):** `claim take --take-over`. It works on any claim, remote or local, live or
+  not, and only runs when the user says so. It is never automatic, because liveness can't be checked on
+  another machine.
+  - The refusal ends with `say "take it over" to take it anyway`. Claude runs `--take-over` only on that
+    word in conversation. No flag to type.
+  - Remote: `--force-with-lease=<ref>:<old sha>`. The new payload carries `takenFrom: <old holder>`.
+  - Prints the old holder's branch and whether it is on origin, so the new session can build on their
+    commits instead of starting over.
+- **Release:** `git push origin --force-with-lease=<ref>:<own sha> :<ref>`. If the lease fails, the claim was
+  taken over: print `phase <id> was taken over by <user>@<host> <age> ago; your work is on <branch>`, delete
+  nothing, and exit 0. Handoff shows that line, so the old holder learns about it the next time they hand off.
+- **Read:** `git fetch origin '+refs/spec-claims/*:refs/spec-claims-remote/*'` is part of the board's
+  existing fetch. Payloads are read with `git log -1 --format=%B`.
+- **Offline / push error:** keep the local claim and print
+  `claim: origin unreachable; claimed locally only`. Exit 0.
+- **Board:** a remote claim whose `host` differs from this machine shows in flight with its holder and
+  age. Older than `REMOTE_CLAIM_STALE_DAYS` → listed under needs you. `--local` skips it.
+
 ### prs
 
 - `openPrs()`: `gh pr list --state open --limit 100 --json number,headRefName,isDraft,url,statusCheckRollup`.
@@ -192,7 +224,8 @@ No prep claims.
 - `rollupToChecks`:
   - Maps CheckRun `status`/`conclusion` and StatusContext `state` to the same bucket gh's `pr checks`
     would report.
-  - Keeps only the latest run per check name, so a failed-then-passed re-run is green.
+  - Keeps only the latest run per check name and workflow (gh's own key), so a failed-then-passed re-run
+    is green.
   - Name is `name ‖ context`, link is `detailsUrl ‖ targetUrl`.
   - A parity test feeds the `state` values in `tests/fixtures/gh-pr-checks.json` through it and expects
     gh's `bucket` for each.
@@ -308,15 +341,18 @@ later view read only `Board`.
     `claim: no session id; not claimed` and exits 0.
 - **`spec.ts launch execute <spec> [<phase>] [--in <workspace>]`**:
   - Builds the prompt `/spec-driven:spec execute <spec> <phase>` and the title `<spec> execute <phase>`.
-  - With `--in`, it uses `cd <workspace>`. Without it, it uses `claude -w <spec>-<phase>` from the
-    project dir.
+  - Always `cd <tree> && claude …`, with the tree from `trees place`. `claude -w` is not used.
+- **`spec.ts trees place <spec> <phase> [--json]`** · **`trees prune [--apply]`**: find-or-create the
+  spec PR group's tree (`feat/<spec>-<pr>` from fresh `origin/<default>`), refuse a busy one, set it up;
+  prune merged, pushed, clean, idle trees. Rules and personal settings: `phases/phase-5b-tree-placement.md`.
 - `Command.run` returns `string | Promise<string>`. `run()` in `spec.ts` becomes async, and
   `tests/commands-table.test.ts` awaits it.
 
 ## Constants
 
 `READY_CAP = 8`, `BLOCKED_CAP = 5`, `FETCH_TIMEOUT_MS = 10_000`, `GH_TIMEOUT_MS = 10_000`,
-`SCAN_CONCURRENCY = 8`, `UNKNOWN_BASE_AHEAD = 1000`, `PR_LIST_LIMIT = 100`, `BASE_CACHE_KEEP = 2`.
+`SCAN_CONCURRENCY = 8`, `UNKNOWN_BASE_AHEAD = 1000`, `PR_LIST_LIMIT = 100`, `BASE_CACHE_KEEP = 2`,
+`REMOTE_CLAIM_STALE_DAYS = 3`.
 
 ## Integration points
 

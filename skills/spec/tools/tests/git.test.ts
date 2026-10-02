@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { gitAt } from "../core/git";
+import { realpathSync } from "node:fs";
+import { join } from "node:path";
+import { gitAt, gitCommonDir } from "../core/git";
+import { isolatedRunner, repoWithOrigin } from "./git-repo";
 import { stubRunner } from "./stub-runner";
 
 describe("gitAt", () => {
@@ -12,5 +15,19 @@ describe("gitAt", () => {
   test("a failure names the git sub-command and the first stderr line", () => {
     const runner = stubRunner([[["git", "push"], { code: 1, stderr: "fatal: no remote\nhint: add one\n" }]]);
     expect(gitAt("/repo", runner).out(["push", "origin"])).toEqual({ ok: false, reason: "git push failed: fatal: no remote" });
+  });
+});
+
+describe("gitCommonDir", () => {
+  test("is shared by the main checkout and its linked worktrees", () => {
+    const repo = repoWithOrigin("spec-git-common-");
+    try {
+      const tree = repo.addWorktree("tree", "feat/tree");
+      const expected = realpathSync(join(repo.dir, ".git"));
+      expect(gitCommonDir(gitAt(repo.dir, isolatedRunner))).toEqual({ ok: true, value: expected });
+      expect(gitCommonDir(gitAt(tree.dir, isolatedRunner))).toEqual({ ok: true, value: expected });
+    } finally {
+      repo.cleanup();
+    }
   });
 });

@@ -4,9 +4,10 @@ import { parseContextRequest } from "./context/request";
 import { doctorReport } from "./commands/doctor";
 import { GATES_USAGE, gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
-import { LAUNCH_USAGE, launchReport } from "./commands/launch";
+import { LAUNCH_USAGE, launchCommand } from "./commands/launch";
 import { lessonsCommand } from "./commands/lessons";
 import { BOARD_USAGE, boardCommand, systemBoardDeps } from "./commands/board";
+import { CLAIM_USAGE, claimCommand } from "./commands/claim";
 import { listCommand } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
@@ -15,6 +16,7 @@ import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
 import { PUSH_USAGE, pushReport } from "./commands/push";
 import { readyReport } from "./commands/ready";
 import { settingsReport } from "./commands/settings";
+import { TREES_USAGE, treesCommand } from "./commands/trees";
 import { findSpecs } from "./core/spec-folders";
 
 export interface Command {
@@ -40,7 +42,9 @@ export const COMMANDS: Record<string, Command> = {
   "pr-status": { usage: PR_STATUS_USAGE, run: (dir, args) => prStatusReport(dir, args) },
   push: { usage: PUSH_USAGE, run: (dir, args) => pushReport(dir, args) },
   "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
-  launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchReport(dir, args) },
+  claim: { usage: CLAIM_USAGE, run: (dir, args) => claimCommand(dir, args) },
+  launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },
+  trees: { usage: TREES_USAGE, run: (dir, args) => treesCommand(dir, args) },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)

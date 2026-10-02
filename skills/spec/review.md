@@ -345,4 +345,4 @@ Findings: <N> total — <X> applied to spec, <Y> ledgered, <Z> review-file only,
 Forks: <K> answered by you (ledger slugs), <J> resolved by me, <L> left open
 ```
 
-Follow with 2–5 bullet highlights of the most consequential changes applied. Then stop — do not ask whether to address findings, do not propose next steps beyond the summary.
+Follow with 2–5 bullet highlights of the most consequential changes applied, then SKILL.md → *Next sessions*, with this spec's first ready phase at 1. Then stop: do not ask whether to address findings or propose anything outside that block.

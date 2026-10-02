@@ -16,6 +16,8 @@
 - [x] Phase 1 — Board from main → `phases/phase-1-board-from-main.md`
 - [x] Phase 2 — Workspace scan → `phases/phase-2-workspace-scan.md`
 - [x] Phase 3 — In-flight overlay → `phases/phase-3-in-flight-overlay.md`
-- [ ] Phase 4 — PRs and sessions → `phases/phase-4-prs-and-sessions.md`
-- [ ] Phase 5 — Phase claims → `phases/phase-5-phase-claims.md`
-- [ ] Phase 6 — Loop wiring → `phases/phase-6-loop-wiring.md`
+- [x] Phase 4 — PRs and sessions → `phases/phase-4-prs-and-sessions.md`
+- [x] Phase 5 — Phase claims → `phases/phase-5-phase-claims.md`
+- [x] Phase 5a — Remote claims → `phases/phase-5a-remote-claims.md`
+- [x] Phase 5b — Tree placement → `phases/phase-5b-tree-placement.md`
+- [x] Phase 6 — Loop wiring → `phases/phase-6-loop-wiring.md`

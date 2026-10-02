@@ -32,3 +32,9 @@ export function asyncStubRunner(canned: CannedRuns): AsyncRunner & { calls: Asyn
     },
   };
 }
+
+// Real processes for everything but gh, which answers from `canned`, so board tests never reach GitHub.
+export function cannedGh(runner: AsyncRunner, canned: CannedRuns): AsyncRunner {
+  const gh = asyncStubRunner(canned);
+  return { run: (argv, options) => (argv[0] === "gh" ? gh.run(argv, options) : runner.run(argv, options)) };
+}

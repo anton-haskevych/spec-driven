@@ -15,6 +15,8 @@ read, the claim system must not conclude that every session is gone. Otherwise e
 - A file counts only when its pid is alive **and** that process's start time (`ps -o lstart=`) equals
   the file's `procStart`. A file left behind by a crash or reboot, whose pid now belongs to something
   else, is dead.
+- `procStart` is written in **UTC** (`Thu Oct  1 22:53:33 2026`), but `ps -o lstart=` prints local time.
+  Run `ps` with `TZ=UTC` and compare with whitespace collapsed, or every session reads dead.
 - `sessions/live.ts` is the only reader. Fields seen on 2026-10-01 (CLI 2.1.287): `pid`, `sessionId`,
   `cwd`, `startedAt`, `procStart`, `kind`, `name`, `status` (busy|idle), `updatedAt`.
 - `cwd` is the start directory. Sessions that `EnterWorktree` keep main's path, so join sessions to rows

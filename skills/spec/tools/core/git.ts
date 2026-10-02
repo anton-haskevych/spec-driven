@@ -21,3 +21,8 @@ export function gitAt(cwd: string, runner: Runner): Git {
 export function firstLine(text: string): string {
   return text.trim().split("\n")[0] ?? "";
 }
+
+// Shared by the main checkout and every linked worktree: state kept here is per clone, never committed.
+export function gitCommonDir(git: Git): Result<string> {
+  return git.out(["rev-parse", "--path-format=absolute", "--git-common-dir"]);
+}

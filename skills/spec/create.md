@@ -373,7 +373,7 @@ Do not pre-create empty instances of these.
 Once the spec files are created:
 1. Confirm the user is happy with the output
 2. Offer to update relevant project docs if the feature touches existing subsystems
-3. Suggest next steps (e.g., "Ready to start Phase 1?")
+3. End with SKILL.md → *Next sessions*, with this spec's first ready phase at 1
 
 ## Style guide
 

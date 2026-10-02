@@ -2,6 +2,7 @@ import { basename } from "node:path";
 import type { PrCell, SessionCell } from "./model";
 
 export const EMPTY = "—";
+const UNKNOWN = "?";
 const COLUMN_GAP = "  ";
 const MINUTE_MS = 60_000;
 const DURATION = new Intl.DurationFormat("en", { style: "narrow" });
@@ -63,13 +64,15 @@ export function sessionCell(session: SessionCell | undefined, now: Date): string
   return "since" in session ? `${session.status} ${ago(new Date(session.since), now)}` : session.status;
 }
 
-export function prCell(pr: PrCell | undefined): string {
+export function prCell(pr: PrCell | "unknown" | undefined): string {
   if (!pr) return EMPTY;
+  if (pr === "unknown") return UNKNOWN;
   const number = `#${pr.number}${pr.draft ? " draft" : ""}`;
-  if (!pr.listed) return `${number} ?`;
+  if (!pr.listed) return `${number} ${UNKNOWN}`;
+  if (pr.state) return `${number} ${pr.state}`;
   if (pr.failing) return `${number} ✗ ${pr.failing}`;
   if (pr.pending) return `${number} … ${pr.pending}`;
-  return pr.failing === undefined && pr.pending === undefined ? number : `${number} ✓`;
+  return pr.passing ? `${number} ✓` : number;
 }
 
 function twoDigits(value: number): string {

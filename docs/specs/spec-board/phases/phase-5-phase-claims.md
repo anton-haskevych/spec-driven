@@ -53,12 +53,12 @@ enters at §1 (project ledger).
 
 ## Deliverables
 
-- [ ] `claimsDir` (absolute common dir) + `takeClaim` / `releaseClaim` / `loadClaims`: temp+link create, two-takers race on a fresh phase, two-takers race on a stale claim (one winner each), unparseable claim counts as live
-- [ ] `claimStatus`: unknown, live, done, gone, closed in that precedence; take-over of closed/gone/done reports the old holder; `unknown` is never taken over
-- [ ] `take` refusals: phase id not in the spec; phase wip/ticked in another workspace; held by a live session (names holder and worktree). Idempotent for the same session. No session id → refuses a held phase, else not claimed, exit 0
-- [ ] Packs: execute pick and resume suggestion skip live-claimed phases and say so; the resume overlap line appends `(in flight: <session>)` for a live-claimed spec
-- [ ] Board: claimed phases in flight with holder; `closed` claims under needs you; claim workspaces force a live scan; the board never deletes
-- [ ] `execute.md` §1 first-line claim step + both refusal paths; `handoff.md` release after Commit; SKILL.md *Tools* Claims bullet; *Next-chunk rule* notes claimed phases are skipped
+- [x] `claimsDir` (absolute common dir) + `takeClaim` / `releaseClaim` / `loadClaims`: temp+link create, two-takers race on a fresh phase, two-takers race on a stale claim (one winner each), unparseable claim counts as live
+- [x] `claimStatus`: unknown, live, done, gone, closed in that precedence; take-over of closed/gone/done reports the old holder; `unknown` and `live` are never taken over automatically (the explicit `--take-over` hatch lands in 5a)
+- [x] `take` refusals: phase id not in the spec; phase wip/ticked in another workspace; held by a live session (names holder and worktree). Idempotent for the same session. No session id → refuses a held phase, else not claimed, exit 0
+- [x] Packs: execute pick and resume suggestion skip live-claimed phases and say so; the resume overlap line appends `(in flight: <session>)` for a live-claimed spec
+- [x] Board: claimed phases in flight with holder; `closed` claims under needs you; claim workspaces force a live scan; the board never deletes
+- [x] `execute.md` §1 first-line claim step + both refusal paths; `handoff.md` release after Commit; SKILL.md *Tools* Claims bullet; *Next-chunk rule* notes claimed phases are skipped
 
 ## Phase-local notes
 

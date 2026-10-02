@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { loadBacklog, type BacklogItem } from "../backlog/items";
 import type { BaseRef, SpecStage } from "../board/inputs";
-import type { Git } from "../core/git";
+import { gitCommonDir, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { listSpecs, type SpecFolder } from "../core/spec-folders";
 import { loadSpecState, type SpecState } from "../core/spec-state";
@@ -43,7 +43,7 @@ export async function loadMainline(git: Git, branch: string, options: MainlineOp
 function repoFacts(git: Git, sha: string): Result<{ date: string; commonDir: string; prefix: string }> {
   const date = git.out(["log", "-1", "--format=%cI", sha]);
   if (!date.ok) return date;
-  const commonDir = git.out(["rev-parse", "--path-format=absolute", "--git-common-dir"]);
+  const commonDir = gitCommonDir(git);
   if (!commonDir.ok) return commonDir;
   const prefix = git.out(["rev-parse", "--show-prefix"]);
   if (!prefix.ok) return prefix;

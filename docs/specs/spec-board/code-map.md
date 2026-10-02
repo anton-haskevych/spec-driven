@@ -21,8 +21,17 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/board/flight.ts` | in-flight rows; `readyInWorkspaces` overlay | 3 |
 | `skills/spec/tools/workspaces/views.ts` | each worktree's changed spec states + branch-only nodes | 3 |
 | `skills/spec/tools/sessions/live.ts` | Only reader of `~/.claude/sessions/*.json` | 4 |
+| `skills/spec/tools/sessions/proc-starts.ts` | one `TZ=UTC ps` call: pid → start time | 4 |
+| `skills/spec/tools/pr/gh-lists.ts` | `fetchPrLists` — open + recent `gh pr list`, async | 4 |
+| `skills/spec/tools/pr/rollup.ts` | `rollupToChecks` must agree with gh's `bucket`; `toPrRows` | 4 |
+| `skills/spec/tools/board/joins.ts` | sessions and PRs onto in-flight rows; sets `fix CI` / `merge` | 4 |
 | `skills/spec/tools/claims/store.ts` | Atomic claim create / takeover / release | 5 |
-| `skills/spec/tools/claims/rules.ts` | `claimStatus` precedence | 5 |
+| `skills/spec/tools/claims/rules.ts` | `claimStatus` precedence; `takeRefusal`; `holderName`; `HeldClaim` | 5 |
+| `skills/spec/tools/claims/atomic-file.ts` | link-create, rename-verify-restore, ENOENT-safe read | 5 |
+| `skills/spec/tools/claims/held.ts` | `claimContext` + `heldClaims` — the board loader's and claim command's one IO path | 5 |
+| `skills/spec/tools/claims/live.ts` | `heldByOthers` — the only claim IO the packs do | 5 |
+| `skills/spec/tools/commands/claim.ts` | `spec.ts claim take\|release\|list`; `claim:` vs `claim refused:` lines | 5 |
+| `skills/spec/tools/context/held-phases.ts` | `firstUnheld`, `specsInFlight` for the packs | 5 |
 
 ## Existing files touched
 
@@ -36,10 +45,17 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/list.ts` | board default; `portfolioTable` keeps today's table | `decision-board-command-surface.md` |
 | `skills/spec/tools/commands/context.ts` | the pick skips live-claimed phases | |
 | `skills/spec/tools/context/packs.ts` | resume suggestion skips live-claimed phases | |
-| `skills/spec/tools/pr/gh-records.ts` | `rollupToChecks` must agree with gh's `bucket` | |
-| `skills/spec/tools/launch/command-line.ts` | phase hint, `cd <worktree>` or `claude -w` | `decision-launch-targets-row-workspace.md` |
-| `skills/spec/execute.md` | §1 first line: `claim take` | |
-| `skills/spec/handoff.md` | release + `Ready next:` / `Needs you:` | |
+| `skills/spec/tools/pr/resolve.ts` | `specPrNumbers` — pr-opening.md links, reused for `prLinks` | |
+| `skills/spec/tools/launch/command-line.ts`, `commands/launch.ts` | phase in prompt + title; `launch execute <spec> <phase>` places the tree, then `cd <tree> && claude` | `decision-trees-placed-by-spec-driven.md` |
+| `skills/spec/tools/context/claims-here.ts` | claims taken in this worktree; no-spec context reads them before changed files | |
+| `skills/spec/tools/trees/place.ts` | `placeTree` — find, busy, add, setup for a spec PR group | `decision-trees-placed-by-spec-driven.md` |
+| `skills/spec/tools/trees/find.ts` | `findTree` (branch, then claims/activity), `busyHolder` — shared with the board | |
+| `skills/spec/tools/trees/acquire.ts` | `addTree` — local branch, origin's branch, or fresh origin/<default> | |
+| `skills/spec/tools/trees/local-settings.ts` | personal `worktrees.root` in `<git-common-dir>/spec-driven/local.md` | |
+| `skills/spec/tools/trees/prune.ts`, `prune-rules.ts` | merged by ancestry or merged PR head; remove refuses edits | `docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md` |
+| `skills/spec/tools/board/tree-target.ts` | ready row target = PR group's tree; busy note | |
+| `skills/spec/execute.md` | §1 opens with `trees place` (+ `EnterWorktree`), then `claim take` | `decision-trees-placed-by-spec-driven.md` |
+| `skills/spec/handoff.md` | release, then SKILL.md *Next sessions* | |
 | `skills/spec/list.md` | board, filters → table, lanes → `board` | |
 
 ## External references

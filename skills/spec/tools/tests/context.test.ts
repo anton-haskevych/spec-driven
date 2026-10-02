@@ -8,6 +8,7 @@ import { parsePhaseTitle } from "../core/phase-title";
 import { parseLedgerIndex, rowsForPhase } from "../context/ledger-scope";
 import { phaseStatuses, renderStatusTable } from "../context/status-table";
 import { phaseState } from "./factories";
+import { systemRunner } from "../core/run";
 import { stubRunner } from "./stub-runner";
 
 const phase = (done: boolean, checked: number, unchecked: number) =>
@@ -167,6 +168,34 @@ describe("contextPack", () => {
     expect(pack).not.toContain("src/Other.java");
   });
 
+  test("packs skip a ready phase another session holds and say so", () => {
+    write("progress.md", "- [x] Phase 1 — Harness → `phases/phase-1.md`\n- [ ] Phase 2 — Aggregate → `phases/phase-2.md`\n- [ ] Phase 3 — Views → `phases/phase-3.md`\n");
+    write("phases/phase-2.md", "---\nneeds: [1]\n---\n**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+    write("phases/phase-3.md", "---\nneeds: [1]\n---\n**Goal:** Views.\n## Deliverables\n- [ ] render\n");
+    const held = () => new Map([["checkout#2", "checkout execute 2"]]);
+    try {
+      expect(contextPack(project, { mode: "execute", name: "checkout" }, systemRunner, held)).toContain(
+        "Picked: Phase 3 — Views (first ready phase; skipped 2 (in flight: checkout execute 2))",
+      );
+      expect(contextPack(project, { mode: "resume", name: "checkout" }, systemRunner, held)).toContain(
+        "### Next chunk: Phase 3 — Views\n- render\nSkipped: 2 (in flight: checkout execute 2)",
+      );
+      const allHeld = () => new Map([["checkout#2", "s2"], ["checkout#3", "s3"]]);
+      expect(contextPack(project, { mode: "execute", name: "checkout" }, systemRunner, allHeld)).toContain(
+        "Every ready phase is in flight in another session: 2 (in flight: s2), 3 (in flight: s3). Tell the user and stop.",
+      );
+    } finally {
+      write("progress.md", "- [x] Phase 1 — Harness → `phases/phase-1.md`\n- [ ] Phase 2 — Aggregate → `phases/phase-2.md`\n");
+      write("phases/phase-2.md", "**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+      rmSync(join(spec(), "phases/phase-3.md"));
+    }
+  });
+
+  test("a hinted phase is picked even when another session holds it; claim take guards it", () => {
+    const pack = contextPack(project, { mode: "execute", name: "checkout", hint: "2" }, systemRunner, () => new Map([["checkout#2", "s2"]]));
+    expect(pack).toContain('Picked: Phase 2 — Aggregate (from your hint "2")');
+  });
+
   test.each(["phase 1", "phase1", "phase-1", "1"])("execute pack honours the hint %p", (hint) => {
     const pack = contextPack(project, { mode: "execute", name: "checkout", hint });
     expect(pack).toContain(`Picked: Phase 1 — Harness (from your hint "${hint}")`);
@@ -207,6 +236,7 @@ describe("contextPack", () => {
   });
 
   describe("without a spec name", () => {
+    const noneHeld = () => new Map<string, string>();
     const changed = (...paths: string[]) =>
       stubRunner([
         [["git", "rev-parse", "--show-toplevel"], { stdout: `${project}\n` }],
@@ -228,10 +258,34 @@ describe("contextPack", () => {
       rmSync(join(project, "docs/specs/billing"), { recursive: true });
     });
 
-    test("says so when no changed file belongs to a spec", () => {
+    test("says so when nothing in this tree points at a spec", () => {
       expect(contextPack(project, { mode: "status" }, changed("src/app.ts"))).toBe(
-        "No spec named, and no changed file belongs to a spec. Infer it from the conversation.",
+        "No spec named, and nothing in this tree points at one (no claim here, no changed spec files). Infer it from the conversation.",
       );
+    });
+
+    test("execute with nothing to go on offers the top ready row, after the conversation", () => {
+      const pack = contextPack(project, { mode: "execute" }, changed("src/app.ts"));
+      expect(pack).toContain("If this conversation already resumed or executed a spec, use that one.");
+      expect(pack).toContain("board ready --json --local");
+    });
+
+    test("a claim taken in this tree names the spec and its phase, ahead of changed files", () => {
+      const claimsHere = () => [{ spec: "checkout", phase: "1" }];
+      const pack = contextPack(project, { mode: "execute" }, changed("docs/specs/billing/x.md"), noneHeld, claimsHere);
+      expect(pack).toStartWith('<spec-pack spec="checkout" mode="execute" inferred="true">');
+      expect(pack).toContain("inferred from this tree's claim on phase 1");
+      expect(pack).toContain("Picked: Phase 1 — Harness");
+    });
+
+    test("a named hint still wins over the claimed phase", () => {
+      const pack = contextPack(project, { mode: "execute", hint: "2" }, changed(), noneHeld, () => [{ spec: "checkout", phase: "1" }]);
+      expect(pack).toContain('Picked: Phase 2 — Aggregate (from your hint "2")');
+    });
+
+    test("every inferred pack tells the session that a spec from the conversation wins", () => {
+      const pack = contextPack(project, { mode: "resume" }, changed("docs/specs/checkout/progress.md"));
+      expect(pack).toContain("If this conversation already resumed or executed another spec, use that one instead");
     });
 
     test("stays silent outside git and for modes that never infer", () => {

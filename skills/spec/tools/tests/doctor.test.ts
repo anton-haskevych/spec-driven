@@ -97,6 +97,7 @@ describe("checkInFlight", () => {
   test("warns only when notes remain after every phase is done", () => {
     expect(checkInFlight("in-flight.md", "# In flight\n\nhalf-wired thing", true)).toHaveLength(1);
     expect(checkInFlight("in-flight.md", "# In flight\n", true)).toEqual([]);
+    expect(checkInFlight("in-flight.md", "# In-flight state\n\n*No pending work — clean boundary reached 2026-10-01.*\n", true)).toEqual([]);
     expect(checkInFlight("in-flight.md", "# In flight\n\nnotes", false)).toEqual([]);
   });
 });

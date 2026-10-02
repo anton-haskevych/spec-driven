@@ -55,6 +55,13 @@ describe("ready in a workspace", () => {
     expect(keys(board.lanes.blocked)).toEqual([]);
   });
 
+  test("its workspace busy with another session: the row says whom it waits for", () => {
+    const view = workspaceView("/wt/a", [alpha(done("1"), done("2", ["1"]), open("3", ["2"]), open("4", ["2"]))]);
+    const claim = { spec: "alpha", phase: "2", sessionId: "s1", sessionName: "alpha execute 2", workspace: "/wt/a", claimedAt: NOW.toISOString() };
+    const board = buildBoard(boardInputs([BASE], { workspaces: [view], claims: [{ claim, status: "live" }] }), NOW);
+    expect(board.lanes.ready.find((candidate) => candidate.phase === "3")).toMatchObject({ target: { workspace: "/wt/a" }, safe: false, treeBusy: "after alpha 2 (alpha execute 2)" });
+  });
+
   test("a dependent whose need is ticked in two worktrees stays blocked", () => {
     const ticked = alpha(done("1"), done("2", ["1"]), open("3", ["2"]), open("4", ["2"]));
     const board = boardOf([BASE], workspaceView("/wt/a", [ticked]), workspaceView("/wt/b", [ticked]));

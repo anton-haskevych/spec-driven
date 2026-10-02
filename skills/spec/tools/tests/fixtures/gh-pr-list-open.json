@@ -1,0 +1,712 @@
+[
+  {
+    "headRefName": "dependabot/docker/docker/base-images-942da21f21",
+    "isDraft": false,
+    "number": 879,
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T17:05:39Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36896484712/job/110484673588",
+        "name": "E2E Tests",
+        "startedAt": "2026-10-01T17:03:27Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T17:36:04Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://vercel.com/github",
+        "name": "Vercel Preview Comments",
+        "startedAt": "2026-10-01T17:36:04Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – allstars-academy",
+        "startedAt": "2026-10-01T17:28:42Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/allstars-academy/CjMxW2yYTeSZjLb2VLxf11rbYoQq"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – chevy-chase-ballroom",
+        "startedAt": "2026-10-01T17:23:27Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/chevy-chase-ballroom/GfsCsVoQMeU5umKAEBEjvunCmfrC"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – crm-dance-landing",
+        "startedAt": "2026-10-01T17:30:53Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/crm-dance-landing/BQ1n1DdBQVezB8yeN8A7FmyWY2Ad"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – dynasty-dance-clubs",
+        "startedAt": "2026-10-01T17:27:27Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/dynasty-dance-clubs/95dDE3DvvDahVtnFQxgtUS5dtY7V"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – dynasty-stars-foundation",
+        "startedAt": "2026-10-01T17:32:11Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/dynasty-stars-foundation/6pX9pBzkAPcS6TyTAE2eYqAThaMB"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – magic-of-dance",
+        "startedAt": "2026-10-01T17:24:40Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/magic-of-dance/5zCLpiD9RFc6Vv6nsgA8UNhW6atW"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – my-dance-hub",
+        "startedAt": "2026-10-01T17:34:49Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/my-dance-hub/2GLaJ7zNXuQ8qvuJqxF4Nc8VxNzW"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – s-style",
+        "startedAt": "2026-10-01T17:25:53Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/s-style/BHc3tuxEWExjtNoagdghWrff1eKo"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – test-studio-e2e",
+        "startedAt": "2026-10-01T17:33:35Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/test-studio-e2e/9tv6fu3BcJXBM7As5DkthpBxTiJs"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – travis-and-jaimee-tuft",
+        "startedAt": "2026-10-01T17:36:03Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/travis-and-jaimee-tuft/DEEFAH68xzwSnMJmPguTCZmDHuWQ"
+      }
+    ],
+    "url": "https://github.com/CRM-Dance/crm/pull/879"
+  },
+  {
+    "headRefName": "dependabot/github_actions/all-actions-e71a03c6fe",
+    "isDraft": false,
+    "number": 874,
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:06:57Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300987/job/110604356540",
+        "name": "E2E Tests",
+        "startedAt": "2026-10-01T22:00:31Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:00:43Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604356912",
+        "name": "Detect Changes",
+        "startedAt": "2026-10-01T22:00:38Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:38Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932301007/job/110604356279",
+        "name": "Seed the runner image clone",
+        "startedAt": "2026-10-01T22:00:36Z",
+        "status": "COMPLETED",
+        "workflowName": "Runner Image Seed"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:10:41Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649005",
+        "name": "Backend Tests",
+        "startedAt": "2026-10-01T22:01:16Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:00:44Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604651714",
+        "name": "Stripe Sandbox Tests",
+        "startedAt": "2026-10-01T22:00:44Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:35Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649428",
+        "name": "Frontend Tests (1/2)",
+        "startedAt": "2026-10-01T22:01:20Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:38Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649404",
+        "name": "Frontend Tests (2/2)",
+        "startedAt": "2026-10-01T22:01:21Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:00:44Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604650755",
+        "name": "Landing Tests",
+        "startedAt": "2026-10-01T22:00:44Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:42Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649010",
+        "name": "Landing Dev Boot Smoke",
+        "startedAt": "2026-10-01T22:01:20Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:37Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649238",
+        "name": "Landing Revalidate Contract Tests",
+        "startedAt": "2026-10-01T22:01:18Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:41Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649645",
+        "name": "Brand Tokens Tests",
+        "startedAt": "2026-10-01T22:01:21Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:55Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649674",
+        "name": "Video Tests",
+        "startedAt": "2026-10-01T22:01:27Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:50Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649536",
+        "name": "Analytics Contract Tests",
+        "startedAt": "2026-10-01T22:01:22Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:39Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649423",
+        "name": "Analytics SDK Tests",
+        "startedAt": "2026-10-01T22:01:21Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:44Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649660",
+        "name": "Websites Tests",
+        "startedAt": "2026-10-01T22:01:21Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:33Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649529",
+        "name": "Monorepo Production Build",
+        "startedAt": "2026-10-01T22:01:18Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:44Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649833",
+        "name": "API SDK / Orval",
+        "startedAt": "2026-10-01T22:01:23Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:44Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649811",
+        "name": "Frontend Lint",
+        "startedAt": "2026-10-01T22:01:23Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:44Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649549",
+        "name": "DB Schema & Tests",
+        "startedAt": "2026-10-01T22:01:22Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:01:35Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649690",
+        "name": "Infra Build & Test",
+        "startedAt": "2026-10-01T22:01:19Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:02:32Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649913",
+        "name": "Backend Source Lint",
+        "startedAt": "2026-10-01T22:02:12Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:04:29Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649603",
+        "name": "Ops Tests",
+        "startedAt": "2026-10-01T22:01:22Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:12:46Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604649886",
+        "name": "Hook Tests",
+        "startedAt": "2026-10-01T22:11:54Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:12:01Z",
+        "conclusion": "FAILURE",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/36932300996/job/110604967239",
+        "name": "Frontend Test Report",
+        "startedAt": "2026-10-01T22:11:54Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – allstars-academy",
+        "startedAt": "2026-10-01T21:59:59Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/allstars-academy/3NL4kQ1Aop3QhUwfDjPXm17YyGaM"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – chevy-chase-ballroom",
+        "startedAt": "2026-10-01T21:59:59Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/chevy-chase-ballroom/7Y61KDGJSf2uspdnByRKupEiLkRV"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – crm-dance-landing",
+        "startedAt": "2026-10-01T21:59:59Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/crm-dance-landing/FTaYw7qNFnwRQfpuFiw7NErAHGbt"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – dynasty-dance-clubs",
+        "startedAt": "2026-10-01T21:59:59Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/dynasty-dance-clubs/Ex1ANzKkPrHJjX4TMFoV9CjeCUMn"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – dynasty-stars-foundation",
+        "startedAt": "2026-10-01T22:00:01Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/dynasty-stars-foundation/FaACu9LfoAmkHPupSqVJSdy1wVsc"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – magic-of-dance",
+        "startedAt": "2026-10-01T21:59:59Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/magic-of-dance/J74zqVNSSAFdeM9xRjgHm32MDdwT"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – my-dance-hub",
+        "startedAt": "2026-10-01T21:59:59Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/my-dance-hub/DSYHzaCz14pLrcTXdpEvkVPmaDRy"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – s-style",
+        "startedAt": "2026-10-01T21:59:59Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/s-style/BgXPuiHXtFDuPjK7XzwWJ2oS8Fpg"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – test-studio-e2e",
+        "startedAt": "2026-10-01T21:59:59Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/test-studio-e2e/CbGeW9yxzKJyB5JEzasKTghBQx99"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – travis-and-jaimee-tuft",
+        "startedAt": "2026-10-01T21:59:59Z",
+        "state": "PENDING",
+        "targetUrl": "https://vercel.com/crm-dance/travis-and-jaimee-tuft/75tacAxTnh6YYxWuMBVRmkfrbVBj"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:10:34Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/runs/110607984809",
+        "name": "Backend Test Results",
+        "startedAt": "2026-10-01T22:10:34Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-01T22:00:03Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://vercel.com/github",
+        "name": "Vercel Preview Comments",
+        "startedAt": "2026-10-01T22:00:03Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "url": "https://github.com/CRM-Dance/crm/pull/874"
+  },
+  {
+    "headRefName": "ops-provisioning-dx",
+    "isDraft": true,
+    "number": 566,
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103711/job/93159928752",
+        "name": "Warm Shard Caches",
+        "startedAt": "2026-08-08T21:46:12Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159918493",
+        "name": "Detect Changes",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103711/job/93159918462",
+        "name": "Build Image & Start Fargate",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159918897",
+        "name": "Backend Tests",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103711/job/93159918729",
+        "name": "Failed-First Quick Check",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159930524",
+        "name": "Landing Tests",
+        "startedAt": "2026-08-08T21:46:13Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103711/job/93159918846",
+        "name": "Upload Buildx Log",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159927180",
+        "name": "API SDK / Orval",
+        "startedAt": "2026-08-08T21:46:11Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103711/job/93159918983",
+        "name": "E2E Tests (Shard ${{ matrix.shard }}/3)",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159918736",
+        "name": "Frontend Lint",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103711/job/93159919066",
+        "name": "Merge Playwright Reports",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159918641",
+        "name": "Timezone: Backend",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103711/job/93159919252",
+        "name": "Stop Fargate Task",
+        "startedAt": "2026-08-08T21:46:06Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159926480",
+        "name": "DB Schema Check",
+        "startedAt": "2026-08-08T21:46:10Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103711/job/93159919352",
+        "name": "Timing Summary",
+        "startedAt": "2026-08-08T21:46:06Z",
+        "status": "COMPLETED",
+        "workflowName": "E2E Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159930826",
+        "name": "DB Tests",
+        "startedAt": "2026-08-08T21:46:13Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159918615",
+        "name": "Infra Build & Test",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159918998",
+        "name": "Frontend Tests",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159918915",
+        "name": "Monorepo Production Build",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T21:46:05Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/CRM-Dance/crm/actions/runs/31280103705/job/93159919129",
+        "name": "Timing Summary",
+        "startedAt": "2026-08-08T21:46:05Z",
+        "status": "COMPLETED",
+        "workflowName": "Monorepo CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-08T22:03:31Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://vercel.com/github",
+        "name": "Vercel Preview Comments",
+        "startedAt": "2026-08-08T22:03:31Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – allstars-academy",
+        "startedAt": "2026-08-08T22:03:30Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/allstars-academy/4N2NGiu7PJTQgF3cQCXFjhxtXAFa"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – chevy-chase-ballroom",
+        "startedAt": "2026-08-08T22:02:06Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/chevy-chase-ballroom/33VRA3NF3BGe1m3PTn4inzkvu9vJ"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – crm-dance-landing",
+        "startedAt": "2026-08-08T21:53:06Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/crm-dance-landing/24iy7xQKZengnNBebHs8axMVGhtu"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – dynasty-dance-clubs",
+        "startedAt": "2026-08-08T21:56:18Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/dynasty-dance-clubs/4cfUmvq7aACFGwBzpkiF1RvcL2bL"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – dynasty-stars-foundation",
+        "startedAt": "2026-08-08T21:54:22Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/dynasty-stars-foundation/C7HiPVBAFQVdj1rYmUMdaRL4VZZ1"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – magic-of-dance",
+        "startedAt": "2026-08-08T21:57:39Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/magic-of-dance/Gn4uuco3DPSVVpYodcmGzb7qEVFC"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – s-style",
+        "startedAt": "2026-08-08T22:00:11Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/s-style/N7gp21yTXBnMNMNwbxoM1tWyCjJW"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel – test-studio-e2e",
+        "startedAt": "2026-08-08T21:58:58Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/crm-dance/test-studio-e2e/F7KnUUfWqQmCjt1Con1pxWt2aqgp"
+      }
+    ],
+    "url": "https://github.com/CRM-Dance/crm/pull/566"
+  }
+]

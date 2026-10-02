@@ -27,6 +27,11 @@ export function normalizePhaseHint(hint: string): string {
   return hint.replace(PHASE_PREFIX, "").trim();
 }
 
+// The chunk-hint rule for one token: `6`, `5b`, `9.10`, `phase6`, `phase-6`.
+export function isPhaseId(token: string): boolean {
+  return PHASE_ID.test(normalizePhaseHint(token));
+}
+
 function tokenize(argv: readonly string[]): string[] {
   return argv
     .flatMap((arg) => arg.split(/\s+/))

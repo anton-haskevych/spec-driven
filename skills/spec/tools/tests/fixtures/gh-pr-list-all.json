@@ -1,0 +1,37 @@
+[
+  {
+    "headRefName": "dependabot/docker/docker/base-images-942da21f21",
+    "mergedAt": null,
+    "number": 879,
+    "state": "OPEN",
+    "url": "https://github.com/CRM-Dance/crm/pull/879"
+  },
+  {
+    "headRefName": "dependabot/github_actions/all-actions-e71a03c6fe",
+    "mergedAt": null,
+    "number": 874,
+    "state": "OPEN",
+    "url": "https://github.com/CRM-Dance/crm/pull/874"
+  },
+  {
+    "headRefName": "feat/video-workspace-product-videos",
+    "mergedAt": "2026-10-01T21:54:12Z",
+    "number": 880,
+    "state": "MERGED",
+    "url": "https://github.com/CRM-Dance/crm/pull/880"
+  },
+  {
+    "headRefName": "spec/students-by-teacher-report",
+    "mergedAt": "2026-10-01T14:11:03Z",
+    "number": 878,
+    "state": "MERGED",
+    "url": "https://github.com/CRM-Dance/crm/pull/878"
+  },
+  {
+    "headRefName": "spec/transactional-templates",
+    "mergedAt": null,
+    "number": 869,
+    "state": "CLOSED",
+    "url": "https://github.com/CRM-Dance/crm/pull/869"
+  }
+]

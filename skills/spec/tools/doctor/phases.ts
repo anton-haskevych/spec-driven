@@ -5,6 +5,8 @@ export type ReadPhaseEntry = (pointer: string) => string | undefined;
 
 const TITLE_END = /\s*(→|->|phases\/).*$/;
 const HEADING_OR_BLANK = /^\s*(#.*)?$/;
+// The marker handoff writes when it clears the file at a clean boundary.
+const CLEAN_BOUNDARY = /^\s*\*No pending work\b.*\*\s*$/;
 
 export function checkPhases(progressFile: string, phases: readonly PhaseLine[], readEntry: ReadPhaseEntry): Issue[] {
   return phases.flatMap((phase) => checkPhase(progressFile, phase, readEntry(phase.pointer)));
@@ -26,7 +28,7 @@ function checkPhase(progressFile: string, phase: PhaseLine, entry: string | unde
 
 export function checkInFlight(file: string, text: string, everyPhaseDone: boolean): Issue[] {
   if (!everyPhaseDone) return [];
-  const pending = text.split("\n").some((line) => !HEADING_OR_BLANK.test(line));
+  const pending = text.split("\n").some((line) => !HEADING_OR_BLANK.test(line) && !CLEAN_BOUNDARY.test(line));
   return pending ? [warning(file, "has pending notes but every phase is done; clear it or reopen a phase")] : [];
 }
 

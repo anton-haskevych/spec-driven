@@ -12,6 +12,8 @@ import { codeMapForPhase } from "./code-map";
 import { parseLedgerIndex, rowsForPhase } from "./ledger-scope";
 import { renderStatusTable } from "./status-table";
 import { clip, kilobytes } from "./text";
+import type { HeldPhases } from "../claims/live";
+import { firstUnheld } from "./held-phases";
 
 export interface PackInput {
   state: SpecState;
@@ -19,6 +21,7 @@ export interface PackInput {
   lessons: readonly Lesson[];
   relations: string;
   ready: ReadySet;
+  held: HeldPhases;
   playbooks: readonly Playbook[];
   settings?: string;
 }
@@ -31,11 +34,12 @@ const PATH_LIKE = /^[\w@.{}-]+(\/[\w@.{}*-]+)+$/;
 const STABLE_REFERENCES = ["design.md", "technical.md"];
 const TASK_PHASE_NOTE = "Task phase (code: false): follow execute.md → Task phases. No recon, preflight or TDD; tick each item with its evidence.";
 
-export function resumePack({ state, doctor, relations, ready, playbooks, settings }: PackInput): string {
-  const next = ready.ready[0];
+export function resumePack({ state, doctor, relations, ready, held, playbooks, settings }: PackInput): string {
+  const { phase: next, skipped } = firstUnheld(state.spec.name, ready.ready, held);
+  const skippedLine = skipped.length > 0 ? `\nSkipped: ${skipped.join(", ")}` : "";
   const nextBlock = next
-    ? `### Next chunk: Phase ${next.id} — ${next.name}\n${(next.summary?.nextRun ?? []).map((item) => `- ${item}`).join("\n")}`
-    : `### Next chunk\n${ready.waiting.length > 0 ? "No phase is ready; see the ready set." : "All phases complete — see pr-opening.md for the PR gate."}`;
+    ? `### Next chunk: Phase ${next.id} — ${next.name}\n${(next.summary?.nextRun ?? []).map((item) => `- ${item}`).join("\n")}${skippedLine}`
+    : `### Next chunk\n${nextChunkAbsent(ready, skipped)}`;
   return [
     "Covers the Stage A reads (progress.md, phase entries, in-flight.md). Do not re-read those files.",
     ...optionalLine(settings),
@@ -69,6 +73,11 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
     inFlightBlock(state),
     `### Doctor\n${doctor}`,
   ].join("\n\n");
+}
+
+function nextChunkAbsent(ready: ReadySet, skipped: readonly string[]): string {
+  if (skipped.length > 0) return `Every ready phase is in flight in another session: ${skipped.join(", ")}.`;
+  return ready.waiting.length > 0 ? "No phase is ready; see the ready set." : "All phases complete — see pr-opening.md for the PR gate.";
 }
 
 function optionalLine(line: string | undefined): string[] {

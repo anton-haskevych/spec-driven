@@ -2,6 +2,7 @@ import { parseArgs } from "node:util";
 import { loadBoard, type BoardRunners } from "../board/load";
 import { LANES, renderBoard, type Lane } from "../board/render";
 import { systemAsyncRunner, systemRunner } from "../core/run";
+import { defaultClaudeHome } from "../sessions/live";
 
 export const BOARD_USAGE = "board [flight|ready|blocked|you] [--json] [--local]";
 
@@ -10,7 +11,7 @@ export interface BoardDeps extends BoardRunners {
 }
 
 export function systemBoardDeps(): BoardDeps {
-  return { runner: systemRunner, asyncRunner: systemAsyncRunner, now: new Date() };
+  return { runner: systemRunner, asyncRunner: systemAsyncRunner, claudeHome: defaultClaudeHome(), now: new Date() };
 }
 
 export async function boardCommand(projectDir: string, args: readonly string[], deps: BoardDeps = systemBoardDeps()): Promise<string> {

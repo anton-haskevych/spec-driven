@@ -54,6 +54,10 @@ export function boardInputs(specs: readonly SpecFixture[], overrides: Partial<Bo
     workspaces: [],
     counts: { merged: 0, unknownBase: 0, unreadable: 0, duplicates: [] },
     backlogCount: 0,
+    sessions: "local",
+    claims: [],
+    prs: "local",
+    prLinks: new Map(),
     ...overrides,
   };
 }
