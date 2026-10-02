@@ -22,6 +22,8 @@ Answers "what can I start next, what waits on what, and what's open": a board of
 
 Print the tool's output exactly as given, code fence included. Don't recast it as cards or bullets.
 
+**Starting rows.** When the user then says "start 1", "start 1 and 2" or "go" about board rows, launch them exactly as SKILL.md → *Next sessions* step 3 says: `launch execute <spec> <phase>` per row, which places each tree first.
+
 ## 2. Without Bun
 
 There is no board without Bun; print the table. Glob `docs/specs/*/CLAUDE.md` and `*/docs/specs/*/CLAUDE.md`, skipping folders that start with `_`. Read each file's frontmatter and its `progress.md` phase lines, then read `docs/specs/_backlog/*.md`. Render the same two tables:

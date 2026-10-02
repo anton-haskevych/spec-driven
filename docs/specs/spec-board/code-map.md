@@ -46,7 +46,8 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/context.ts` | the pick skips live-claimed phases | |
 | `skills/spec/tools/context/packs.ts` | resume suggestion skips live-claimed phases | |
 | `skills/spec/tools/pr/resolve.ts` | `specPrNumbers` — pr-opening.md links, reused for `prLinks` | |
-| `skills/spec/tools/launch/command-line.ts` | phase hint, `cd <worktree>` or `claude -w` | `decision-launch-targets-row-workspace.md` |
+| `skills/spec/tools/launch/command-line.ts`, `commands/launch.ts` | phase in prompt + title; `launch execute <spec> <phase>` places the tree, then `cd <tree> && claude` | `decision-trees-placed-by-spec-driven.md` |
+| `skills/spec/tools/context/claims-here.ts` | claims taken in this worktree; no-spec context reads them before changed files | |
 | `skills/spec/tools/trees/place.ts` | `placeTree` — find, busy, add, setup for a spec PR group | `decision-trees-placed-by-spec-driven.md` |
 | `skills/spec/tools/trees/find.ts` | `findTree` (branch, then claims/activity), `busyHolder` — shared with the board | |
 | `skills/spec/tools/trees/acquire.ts` | `addTree` — local branch, origin's branch, or fresh origin/<default> | |
@@ -54,7 +55,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/trees/prune.ts`, `prune-rules.ts` | merged by ancestry or merged PR head; remove refuses edits | `docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md` |
 | `skills/spec/tools/board/tree-target.ts` | ready row target = PR group's tree; busy note | |
 | `skills/spec/execute.md` | §1 opens with `trees place` (+ `EnterWorktree`), then `claim take` | `decision-trees-placed-by-spec-driven.md` |
-| `skills/spec/handoff.md` | release + `Ready next:` / `Needs you:` | |
+| `skills/spec/handoff.md` | release, then SKILL.md *Next sessions* | |
 | `skills/spec/list.md` | board, filters → table, lanes → `board` | |
 
 ## External references

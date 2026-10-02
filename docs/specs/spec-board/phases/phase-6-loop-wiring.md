@@ -51,9 +51,9 @@ the path from `trees place`. `claude -w` is no longer used.
 
 ## Deliverables
 
-- [ ] `launch execute <spec> <phase>`: `cd <placed tree>`; title carries the phase; bad phase id refused
-- [ ] SKILL.md *Next sessions* rule; handoff, review and create end with it; approval launches rows through placement; line 172 amended
-- [ ] No spec named → context first, then the top ready row: `commands/context.ts` message, SKILL.md no-spec rule, `execute.md` §0.2.
+- [x] `launch execute <spec> <phase>`: `cd <placed tree>`; title carries the phase; bad phase id refused
+- [x] SKILL.md *Next sessions* rule; handoff, review and create end with it; approval launches rows through placement; line 172 amended
+- [x] No spec named → context first, then the top ready row: `commands/context.ts` message, SKILL.md no-spec rule, `execute.md` §0.2.
   Order:
   1. A spec this conversation already resumed or executed.
   2. The tree the session is in: a claim held there, or the one spec its branch's changed files belong to (today's `inferred`).
