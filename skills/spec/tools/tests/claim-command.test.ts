@@ -61,7 +61,7 @@ describe("claim command (real git)", () => {
     claude = createTree("spec-claim-claude-");
     liveSession("s1", "a execute 1");
     await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"));
-    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s2"))).toBe(`claim refused: a phase 1 is claimed by a execute 1 in ${main}`);
+    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s2"))).toBe(`claim refused: a phase 1 is claimed by a execute 1 in ${main}; say "take it over" to take it anyway`);
   });
 
   test("takes over a claim whose session closed and names the old holder", async () => {
@@ -69,7 +69,7 @@ describe("claim command (real git)", () => {
     liveSession("s1", "a execute 1");
     await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"));
     rmSync(join(claude.root, "sessions", `${process.pid}.json`));
-    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s2"))).toBe("claim: took over a phase 1 from a execute 1 (closed)");
+    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s2"))).toBe("claim: took over a phase 1 from a execute 1 (closed)\nclaim: their work is on main (on origin)");
   });
 
   test("never takes over when liveness is unknown", async () => {
@@ -77,13 +77,13 @@ describe("claim command (real git)", () => {
     liveSession("s1", "a execute 1");
     await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"));
     rmSync(join(claude.root, "sessions"), { recursive: true });
-    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s2"))).toBe(`claim refused: a phase 1 is claimed by a execute 1 in ${main}`);
+    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s2"))).toBe(`claim refused: a phase 1 is claimed by a execute 1 in ${main}; say "take it over" to take it anyway`);
   });
 
   test("refuses an unknown phase and a phase in progress in another worktree", async () => {
     claude = createTree("spec-claim-claude-");
     expect(await claimCommand(repo.dir, ["take", "a", "9"], deps("s1"))).toBe("claim refused: phase 9 is not in a");
-    expect(await claimCommand(repo.dir, ["take", "a", "2"], deps("s1"))).toBe(`claim refused: phase 2 is in progress in ${realpathSync(join(repo.root, "busy"))}`);
+    expect(await claimCommand(repo.dir, ["take", "a", "2"], deps("s1"))).toBe(`claim refused: phase 2 is in progress in ${realpathSync(join(repo.root, "busy"))}; say "take it over" to take it anyway`);
   });
 
   test("without a session id: claims nothing, but still refuses a held phase", async () => {
@@ -91,7 +91,7 @@ describe("claim command (real git)", () => {
     expect(await claimCommand(repo.dir, ["take", "a", "1"], deps())).toBe("claim: no session id; not claimed");
     liveSession("s1", "a execute 1");
     await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"));
-    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps())).toBe(`claim refused: a phase 1 is claimed by a execute 1 in ${main}`);
+    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps())).toBe(`claim refused: a phase 1 is claimed by a execute 1 in ${main}; say "take it over" to take it anyway`);
   });
 
   test("release drops only the caller's claims", async () => {
@@ -128,7 +128,7 @@ describe("claim command (real git)", () => {
     liveSession("s1", "a execute 1");
     await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"));
     rmSync(join(claude.root, "sessions", `${process.pid}.json`));
-    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s2"))).toBe("claim: took over a phase 1 from a execute 1 (closed)");
+    expect(await claimCommand(repo.dir, ["take", "a", "1"], deps("s2"))).toBe("claim: took over a phase 1 from a execute 1 (closed)\nclaim: their work is on main (on origin)");
     expect(originClaims()).toContain(`"sessionId":"s2"`);
     expect(originClaims()).toContain(`"takenFrom":"s1"`);
   });
@@ -142,6 +142,31 @@ describe("claim command (real git)", () => {
     pushClaim(desktop, { claim: theirs, holder: { user: "spec-tests", host: "desktop" } }, { kind: "at", sha });
     expect(await claimCommand(repo.dir, ["release", "a"], deps("s1"))).toBe("claim: phase 1 was taken over by spec-tests@desktop <1m ago; your work is on main");
     expect(originClaims()).toContain(`"sessionId":"t1"`);
+  });
+
+  test("take-over takes a live local claim, names their branch, and their release says who took it", async () => {
+    claude = createTree("spec-claim-claude-");
+    liveSession("s1", "a execute 1");
+    await claimCommand(repo.dir, ["take", "a", "1"], deps("s1"));
+    expect(await claimCommand(repo.dir, ["take", "a", "1", "--take-over"], deps("s2"))).toBe("claim: took over a phase 1 from a execute 1 (live)\nclaim: their work is on main (on origin)");
+    expect(await claimCommand(repo.dir, ["release", "a"], deps("s1"))).toBe("claim: phase 1 was taken over by spec-tests@laptop <1m ago; your work is on main");
+  });
+
+  test("take-over takes another machine's claim and names their branch", async () => {
+    claude = createTree("spec-claim-claude-");
+    const desktop = gitAt(repo.clone(`desktop-${Date.now()}`).dir, isolatedRunner);
+    const theirs = { spec: "a", phase: "1", sessionId: "t1", sessionName: "a execute 1", workspace: "/Users/taras/crm", branch: "feat/taras", claimedAt: NOW.toISOString() };
+    pushClaim(desktop, { claim: theirs, holder: { user: "spec-tests", host: "desktop" } }, { kind: "absent" });
+    expect(await claimCommand(repo.dir, ["take", "a", "1", "--take-over"], deps("s1"))).toBe(
+      "claim: took over a phase 1 from spec-tests@desktop (a execute 1)\nclaim: their work is on feat/taras (not on origin)",
+    );
+    expect(originClaims()).toContain(`"takenFrom":"t1"`);
+  });
+
+  test("take-over takes a phase in progress in another worktree", async () => {
+    claude = createTree("spec-claim-claude-");
+    expect(await claimCommand(repo.dir, ["take", "a", "2", "--take-over"], deps("s1"))).toBe("claim: took a phase 2");
+    expect(await claimCommand(repo.dir, ["take", "a", "9", "--take-over"], deps("s1"))).toBe("claim refused: phase 9 is not in a");
   });
 
   test("an unreachable origin keeps the local claim and says so", async () => {

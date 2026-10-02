@@ -33,6 +33,7 @@ function fakeOrigin(initial: RemoteClaim[] = []): RemotePort & { refs: Map<strin
     fetch() {
       return this.offline ? { ok: false, reason: "unreachable" } : { ok: true, value: [...refs.values()] };
     },
+    hasBranch: () => true,
   };
 }
 

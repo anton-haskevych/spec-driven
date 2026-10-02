@@ -14,6 +14,7 @@ export type PushedClaim = { kind: "pushed"; sha: string } | Exclude<PushOutcome,
 export const REMOTE_TIMEOUT_MS = 10_000;
 const FETCHED_REFS = "refs/spec-claims-remote";
 const UNKNOWN_USER = "unknown";
+const LS_REMOTE_NO_MATCH = 2;
 
 const NETWORK: Omit<RunOptions, "cwd"> = { timeoutMs: REMOTE_TIMEOUT_MS, env: { GIT_TERMINAL_PROMPT: "0" } };
 
@@ -42,6 +43,12 @@ export function fetchClaims(git: Git): Result<RemoteClaim[]> {
   const listed = git.out(["for-each-ref", "--format=%(objectname)%00%(contents)%00", FETCHED_REFS]);
   if (!listed.ok) return listed;
   return { ok: true, value: toRemoteClaims(listed.value) };
+}
+
+export function branchOnOrigin(git: Git, branch: string): boolean | undefined {
+  const listed = git.run(["ls-remote", "--exit-code", "--heads", "origin", branch], NETWORK);
+  if (listed.code === 0) return true;
+  return listed.code === LS_REMOTE_NO_MATCH ? false : undefined;
 }
 
 export function remoteClaimOf(claims: readonly RemoteClaim[], spec: string, phase: string): RemoteClaim | undefined {

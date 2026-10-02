@@ -17,11 +17,12 @@ import { psProcStarts } from "../sessions/proc-starts";
 import { loadWorkspaces } from "../workspaces/list";
 import { systemBoardDeps, type BoardDeps } from "./board";
 
+const TAKE_OVER_FLAG = "--take-over";
 const TAKE_OVER_HINT = 'say "take it over" to take it anyway';
 const OFFLINE_TAKE = "claim: origin unreachable; claimed locally only";
 const OFFLINE_RELEASE = "claim: origin unreachable; released locally only";
 
-export const CLAIM_USAGE = "claim take <spec> <phase> | claim release <spec> [<phase>] | claim list";
+export const CLAIM_USAGE = "claim take <spec> <phase> [--take-over] | claim release <spec> [<phase>] | claim list";
 
 export interface ClaimDeps extends BoardDeps {
   env: Env;
@@ -45,11 +46,12 @@ interface ClaimWorld {
 }
 
 export async function claimCommand(projectDir: string, args: readonly string[], deps: ClaimDeps = systemClaimDeps()): Promise<string> {
-  const [action, spec, phase, ...extra] = args;
+  const takeOver = args.includes(TAKE_OVER_FLAG);
+  const [action, spec, phase, ...extra] = args.filter((arg) => arg !== TAKE_OVER_FLAG);
   const sessionId = deps.env.CLAUDE_CODE_SESSION_ID || undefined;
   if (action === "list" && !spec) return withWorld(projectDir, deps, listClaims);
-  if (action === "take" && spec && phase && extra.length === 0) return withWorld(projectDir, deps, (world) => take(world, spec, phase, sessionId));
-  if (action === "release" && spec && extra.length === 0) return withWorld(projectDir, deps, (world) => release(world, spec, phase, sessionId));
+  if (action === "take" && spec && phase && extra.length === 0) return withWorld(projectDir, deps, (world) => take(world, spec, phase, sessionId, takeOver));
+  if (action === "release" && spec && extra.length === 0 && !takeOver) return withWorld(projectDir, deps, (world) => release(world, spec, phase, sessionId));
   return `usage: ${CLAIM_USAGE}`;
 }
 
@@ -88,25 +90,43 @@ function remoteOf(git: Git, host: string): { remote?: RemotePort; holder: Holder
   return { ...(remote ? { remote } : {}), holder: readHolder(git, host) };
 }
 
-function take(world: ClaimWorld, spec: string, phase: string, sessionId: string | undefined): string {
-  const view = { activity: world.activity, currentPath: world.currentPath, baseState: world.context.baseStates.get(spec), ownState: world.ownStates?.get(spec) };
-  const refusal = takeRefusal(spec, phase, view);
-  if (refusal) return `claim refused: ${refusal}`;
-  const stale = (existing: Claim) => isStale(claimStatus(existing, world.context));
+function take(world: ClaimWorld, spec: string, phase: string, sessionId: string | undefined, takeOver: boolean): string {
+  const refusal = phaseRefusal(world, spec, phase, takeOver);
+  if (refusal) return refusal;
+  const stale = takeOver ? () => true : (existing: Claim) => isStale(claimStatus(existing, world.context));
   if (!sessionId) return heldWithoutSession(world, spec, phase, stale);
   pruneClaims(world.dir, sessionId, (existing) => removable(existing, world.context), world.now);
   const claim = newClaim(world, spec, phase, sessionId);
   const outcome = takeClaim(world.dir, claim, stale);
-  if (outcome.kind === "held" || !world.remote) return describeTake(outcome, spec, phase, world.context);
+  if (outcome.kind === "held") return describeTake(outcome, spec, phase, world.context);
+  if (!world.remote) return withTheirBranch(describeTake(outcome, spec, phase, world.context), outcome.kind === "took-over" ? outcome.from : undefined);
   const displaced = outcome.kind === "took-over" ? outcome.from : undefined;
   const payload = { claim: displaced ? { ...claim, takenFrom: displaced.sessionId } : claim, holder: world.holder };
-  const mirrored = mirrorTake(world.remote, payload, (existing) => existing.sessionId === displaced?.sessionId);
+  const mirrored = mirrorTake(world.remote, payload, takeOver ? () => true : (existing) => existing.sessionId === displaced?.sessionId);
   if (mirrored.kind === "held") {
     releaseClaims(world.dir, sessionId, spec, phase);
     return remoteRefusal(mirrored.by, spec, phase, world.now);
   }
-  const taken = describeTake(outcome, spec, phase, world.context);
-  return mirrored.kind === "offline" ? `${taken}\n${OFFLINE_TAKE}` : taken;
+  if (mirrored.kind === "offline") return `${describeTake(outcome, spec, phase, world.context)}\n${OFFLINE_TAKE}`;
+  const remoteFrom = mirrored.kind === "took-over" ? mirrored.from : undefined;
+  const taken = displaced || !remoteFrom ? describeTake(outcome, spec, phase, world.context) : `claim: took over ${spec} phase ${phase} from ${remoteHolderName(remoteFrom)}`;
+  return withTheirBranch(taken, remoteFrom?.claim ?? displaced, world.remote);
+}
+
+// A missing phase always refuses; work in progress elsewhere refuses unless the user said to take it over.
+function phaseRefusal(world: ClaimWorld, spec: string, phase: string, takeOver: boolean): string | undefined {
+  const view = { activity: world.activity, currentPath: world.currentPath, baseState: world.context.baseStates.get(spec), ownState: world.ownStates?.get(spec) };
+  const missing = takeRefusal(spec, phase, { ...view, activity: new Map() });
+  if (missing) return `claim refused: ${missing}`;
+  const busy = takeOver ? undefined : takeRefusal(spec, phase, view);
+  return busy ? `claim refused: ${busy}; ${TAKE_OVER_HINT}` : undefined;
+}
+
+function withTheirBranch(taken: string, previous: Claim | undefined, remote?: RemotePort): string {
+  if (!previous?.branch) return taken;
+  const onOrigin = remote?.hasBranch(previous.branch);
+  const where = onOrigin === undefined ? "" : onOrigin ? " (on origin)" : " (not on origin)";
+  return `${taken}\nclaim: their work is on ${previous.branch}${where}`;
 }
 
 function remoteRefusal(holder: RemoteClaim | undefined, spec: string, phase: string, now: Date): string {
@@ -151,7 +171,7 @@ function describeTake(outcome: TakeOutcome, spec: string, phase: string, context
 
 function refusedBy(holder: Claim | "unreadable", spec: string, phase: string): string {
   if (holder === "unreadable") return `claim refused: ${spec} phase ${phase} has an unreadable claim file; remove it if no session holds it`;
-  return `claim refused: ${spec} phase ${phase} is claimed by ${holderName(holder)} in ${holder.workspace}`;
+  return `claim refused: ${spec} phase ${phase} is claimed by ${holderName(holder)} in ${holder.workspace}; ${TAKE_OVER_HINT}`;
 }
 
 function release(world: ClaimWorld, spec: string, phase: string | undefined, sessionId: string | undefined): string {
@@ -159,15 +179,24 @@ function release(world: ClaimWorld, spec: string, phase: string | undefined, ses
   const local = releaseClaims(world.dir, sessionId, spec, phase).map((claim) => claim.phase);
   pruneClaims(world.dir, sessionId, (existing) => removable(existing, world.context), world.now);
   const mirrored = world.remote ? mirrorRelease(world.remote, spec, phase, sessionId) : undefined;
-  const takenOver = mirrored?.kind === "released" ? mirrored.takenOver : [];
-  const lost = new Set(takenOver.map((remote) => remote.claim.phase));
-  const released = [...new Set([...local, ...(mirrored?.kind === "released" ? mirrored.phases : [])])].filter((id) => !lost.has(id));
+  const takenOver = takenOverLines(world, spec, phase, sessionId, mirrored?.kind === "released" ? mirrored.takenOver : []);
+  const released = [...new Set([...local, ...(mirrored?.kind === "released" ? mirrored.phases : [])])].filter((id) => !takenOver.has(id));
   const lines = [
     ...(released.length > 0 ? [`claim: released ${spec} phase ${released.join(", ")}`] : []),
-    ...takenOver.map((remote) => `claim: phase ${remote.claim.phase} was taken over by ${remoteHolderName(remote)} ${ago(new Date(remote.claim.claimedAt), world.now)} ago; your work is on ${world.branch ?? "your branch"}`),
+    ...takenOver.values(),
     ...(mirrored?.kind === "offline" ? [OFFLINE_RELEASE] : []),
   ];
   return lines.length > 0 ? lines.join("\n") : `claim: nothing to release for ${spec}`;
+}
+
+// By phase; origin's view wins because it names the machine.
+function takenOverLines(world: ClaimWorld, spec: string, phase: string | undefined, sessionId: string, remote: readonly RemoteClaim[]): Map<string, string> {
+  const line = (id: string, by: string, since: string) => `claim: phase ${id} was taken over by ${by} ${ago(new Date(since), world.now)} ago; your work is on ${world.branch ?? "your branch"}`;
+  const local = loadClaims(world.dir).claims.filter((claim) => claim.takenFrom === sessionId && claim.spec === spec && (phase === undefined || claim.phase === phase));
+  return new Map([
+    ...local.map((claim) => [claim.phase, line(claim.phase, holderName(claim), claim.claimedAt)] as const),
+    ...remote.map((theirs) => [theirs.claim.phase, line(theirs.claim.phase, remoteHolderName(theirs), theirs.claim.claimedAt)] as const),
+  ]);
 }
 
 function listClaims(world: ClaimWorld): string {

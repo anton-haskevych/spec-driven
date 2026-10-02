@@ -1,6 +1,6 @@
 import type { Git } from "../core/git";
 import type { Result } from "../core/result";
-import { deleteClaim, fetchClaims, pushClaim, remoteClaimOf, type Lease, type PushedClaim, type RemoteClaim } from "./remote";
+import { branchOnOrigin, deleteClaim, fetchClaims, pushClaim, remoteClaimOf, type Lease, type PushedClaim, type RemoteClaim } from "./remote";
 import type { PushOutcome, RemotePayload } from "./remote-payload";
 import type { Claim } from "./store";
 
@@ -8,6 +8,8 @@ export interface RemotePort {
   push(payload: RemotePayload, lease: Lease): PushedClaim;
   remove(spec: string, phase: string, sha: string): PushOutcome;
   fetch(): Result<RemoteClaim[]>;
+  // undefined: origin didn't answer.
+  hasBranch(branch: string): boolean | undefined;
 }
 
 export type MirrorTake =
@@ -27,6 +29,7 @@ export function gitRemotePort(git: Git): RemotePort | undefined {
     push: (payload, lease) => pushClaim(git, payload, lease),
     remove: (spec, phase, sha) => deleteClaim(git, spec, phase, sha),
     fetch: () => fetchClaims(git),
+    hasBranch: (branch) => branchOnOrigin(git, branch),
   };
 }
 
