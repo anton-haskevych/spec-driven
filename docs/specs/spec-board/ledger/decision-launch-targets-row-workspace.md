@@ -2,6 +2,7 @@
 kind: decision
 applies-to: [phase 6]
 created: 2026-10-01T14:01:46-07:00
+superseded-by: decision-trees-placed-by-spec-driven.md
 ---
 
 # Launched sessions run in the row's workspace, or in a new `claude -w` worktree
