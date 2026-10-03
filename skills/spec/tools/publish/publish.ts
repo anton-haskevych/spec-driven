@@ -1,4 +1,4 @@
-import { firstLine, type Git } from "../core/git";
+import { gitFailureReason, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import type { RunResult } from "../core/run";
 import { buildSnapshot, pinDefault } from "./snapshot";
@@ -23,7 +23,7 @@ export function mergeTreeOutcome(result: RunResult): Result<string> {
   if (result.code === MERGE_TREE_CONFLICT) {
     return { ok: false, reason: `diverged on main in ${conflicted.join(", ")} — merge main first; nothing pushed` };
   }
-  return { ok: false, reason: `git merge-tree failed (needs git ≥ 2.38): ${firstLine(result.stderr)}` };
+  return { ok: false, reason: `git merge-tree failed (needs git ≥ 2.38): ${gitFailureReason(result.stderr)}` };
 }
 
 export function publishDocs(git: Git, request: PublishRequest): Result<Published> {

@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { firstLine } from "../core/git";
+import { gitFailureReason } from "../core/git";
 import { parsePorcelainZ } from "../core/git-status";
 import type { Result } from "../core/result";
 import { runAll, type AsyncRunner, type RunJob, type RunResult } from "../core/run";
@@ -45,7 +45,7 @@ function specDocQueries({ workspace, aheadOfBase }: ClassifiedWorkspace, baseSha
 
 function specNames(root: string, answered: ReadonlyArray<{ query: Query; result: RunResult }>): Result<string[]> {
   const failed = answered.find(({ result }) => result.code !== 0);
-  if (failed) return { ok: false, reason: `git ${failed.query.command} failed: ${firstLine(failed.result.stderr) || `exit ${failed.result.code}`}` };
+  if (failed) return { ok: false, reason: `git ${failed.query.command} failed: ${gitFailureReason(failed.result.stderr) || `exit ${failed.result.code}`}` };
   const paths = answered.flatMap(({ query, result }) => query.paths(result.stdout)).filter(isSpecDocPath);
   const names = paths.flatMap((path) => locateSpecFile(join(root, path))?.spec.name ?? []);
   return { ok: true, value: [...new Set(names)].sort() };

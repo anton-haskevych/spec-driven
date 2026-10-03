@@ -13,13 +13,22 @@ export function gitAt(cwd: string, runner: Runner): Git {
     out(args, options) {
       const result = run(args, options);
       if (result.code === 0) return { ok: true, value: result.stdout.trim() };
-      return { ok: false, reason: `git ${args[0]} failed: ${firstLine(result.stderr) || `exit ${result.code}`}` };
+      return { ok: false, reason: `git ${args[0]} failed: ${gitFailureReason(result.stderr) || `exit ${result.code}`}` };
     },
   };
 }
 
 export function firstLine(text: string): string {
   return text.trim().split("\n")[0] ?? "";
+}
+
+const REJECTED_REF = /^!\s/;
+const ERROR_LINE = /^(fatal|error):/;
+
+// Git often leads with context ("To <remote>", "remote: …") and puts the reason further down.
+export function gitFailureReason(stderr: string): string {
+  const lines = stderr.split("\n").map((line) => line.trim()).filter(Boolean);
+  return lines.find((line) => REJECTED_REF.test(line)) ?? lines.find((line) => ERROR_LINE.test(line)) ?? lines[0] ?? "";
 }
 
 // Shared by the main checkout and every linked worktree: state kept here is per clone, never committed.

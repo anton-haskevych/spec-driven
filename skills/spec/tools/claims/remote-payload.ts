@@ -1,4 +1,4 @@
-import { firstLine } from "../core/git";
+import { gitFailureReason } from "../core/git";
 import { isRecord, stringField } from "../core/frontmatter";
 import type { RunResult } from "../core/run";
 import { parseJson } from "../pr/gh-records";
@@ -48,6 +48,6 @@ function toHolder(data: Record<string, unknown>): Holder | undefined {
 // `!` is a refusal, whether from the client's lease check or the server's old-value check.
 export function pushOutcome(result: RunResult, ref: string): PushOutcome {
   const line = result.stdout.split("\n").find((candidate) => candidate.split("\t")[1]?.endsWith(`:${ref}`));
-  if (!line) return { kind: "offline", reason: firstLine(result.stderr) || `exit ${result.code}` };
+  if (!line) return { kind: "offline", reason: gitFailureReason(result.stderr) || `exit ${result.code}` };
   return line.startsWith("!") ? { kind: "refused" } : { kind: "pushed" };
 }

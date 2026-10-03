@@ -1,3 +1,4 @@
+import { firstLine } from "../core/git";
 import type { Result } from "../core/result";
 import type { Runner } from "../core/run";
 import { parseJson, toChecks, toJobs, toPrView, toWorkflowId, toWorkflowRuns } from "./gh-records";
@@ -47,6 +48,3 @@ export function ghClient(cwd: string, runner: Runner, budget = GH_CALL_BUDGET): 
   };
 }
 
-function firstLine(text: string): string {
-  return text.trim().split("\n")[0] ?? "";
-}
