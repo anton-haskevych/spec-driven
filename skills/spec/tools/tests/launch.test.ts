@@ -8,10 +8,15 @@ import { stubRunner } from "./stub-runner";
 describe("launchReport", () => {
   const iTerm = { TERM_PROGRAM: "iTerm.app" };
 
-  test("opens the session and says where", () => {
-    const runner = stubRunner([[["osascript"], {}]]);
-    expect(launchReport("/work/crm", ["prep", "gift-cards"], iTerm, runner)).toBe("Launched: iTerm — gift-cards prep");
+  test("opens the session and says which tab, with its ⌘ shortcut", () => {
+    const runner = stubRunner([[["osascript"], { stdout: "6\n" }]]);
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], iTerm, runner)).toBe("Launched: iTerm tab 6 (⌘6) — gift-cards prep");
     expect(runner.calls).toHaveLength(1);
+  });
+
+  test("a tab past 9 has no shortcut, and output that isn't a tab number names the terminal only", () => {
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], iTerm, stubRunner([[["osascript"], { stdout: "12\n" }]]))).toBe("Launched: iTerm tab 12 — gift-cards prep");
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], iTerm, stubRunner([[["osascript"], {}]]))).toBe("Launched: iTerm — gift-cards prep");
   });
 
   test("without a terminal it can drive, it prints the line to run", () => {
@@ -50,26 +55,38 @@ describe("pickTerminal", () => {
 });
 
 describe("launchArgv", () => {
-  test("tmux opens a named window in the project directory", () => {
-    expect(launchArgv("tmux", giftCards)).toEqual(["tmux", "new-window", "-n", "gift-cards prep", "-c", "/work/crm", giftCards.command]);
+  test("tmux opens a named window in the project directory without switching to it", () => {
+    expect(launchArgv("tmux", giftCards)).toEqual(["tmux", "new-window", "-d", "-n", "gift-cards prep", "-c", "/work/crm", giftCards.command]);
   });
 
-  test("iTerm opens a tab (or a window when none is open) and types the line, escaped for AppleScript", () => {
-    const [osascript, flag, script] = launchArgv("iTerm", { ...giftCards, shellLine: `cd '/a "b"\\c' && claude` });
+  test("iTerm types the line into the tab it created, then selects the tab you were in and finds the new tab's number", () => {
+    const [osascript, flag, script = ""] = launchArgv("iTerm", { ...giftCards, shellLine: `cd '/a "b"\\c' && claude` });
     expect([osascript, flag]).toEqual(["osascript", "-e"]);
-    expect(script).toContain(`tell current window to create tab with default profile`);
-    expect(script).toContain(`create window with default profile`);
-    expect(script).toContain(`write text "cd '/a \\"b\\"\\\\c' && claude"`);
+    const steps = [
+      "set previousTab to current tab of home",
+      "set newTab to (create tab with default profile)",
+      "set newSession to current session of newTab",
+      `tell newSession to write text "cd '/a \\"b\\"\\\\c' && claude"`,
+      "select previousTab",
+      "is unique ID of newSession then return tabNumber",
+    ];
+    expect(steps.map((step) => script.indexOf(step))).toEqual(steps.map((step) => script.indexOf(step)).toSorted((a, b) => a - b));
+    expect(steps.every((step) => script.includes(step))).toBe(true);
+    expect(script).not.toContain("current session of current window");
   });
 
-  test("Terminal.app runs the line in a new window", () => {
-    expect(launchArgv("Terminal", giftCards)).toEqual([
-      "osascript",
-      "-e",
-      `tell application "Terminal" to do script "${giftCards.shellLine}"`,
-      "-e",
-      `tell application "Terminal" to activate`,
-    ]);
+  test("iTerm with no window open creates one, and has no tab to go back to", () => {
+    const script = launchArgv("iTerm", giftCards)[2] ?? "";
+    expect(script).toContain("create window with default profile");
+    expect(script).toContain("current session of current tab of newWindow");
+  });
+
+  test("Terminal.app runs the line in a new window, then puts the window you were in back in front", () => {
+    const script = launchArgv("Terminal", giftCards)[2] ?? "";
+    expect(script).toContain(`do script "${giftCards.shellLine}"`);
+    expect(script).toContain("set previousWindow to id of front window");
+    expect(script).toContain("set index of window id previousWindow to 1");
+    expect(script).not.toContain("activate");
   });
 });
 

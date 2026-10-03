@@ -16,6 +16,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `docs/specs/_ledger/gotcha-bun-glob-scan-throws-on-missing-cwd.md` — [general] — Bun.Glob scanSync throws ENOENT on a missing cwd; check existsSync
 - `docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md` — [general] — Squash-merged branches aren't ancestors of main; match the merged PR's head
 - `docs/specs/_ledger/gotcha-clean-check-across-worktrees-stats-every-file.md` — [general] — git status in every worktree stats every file; let worktree remove refuse
+- `docs/specs/_ledger/gotcha-iterm-scripting-writes-to-whatever-tab-is-in-front.md` — [general] — iTerm: write into the tab you created; find it by session id; names don't stick
 
 ## Principles
 - `principle-claim-writes-are-single-atomic-ops.md` — [phase 5] — link to create, rename to take over or prune; the board never writes
