@@ -19,5 +19,8 @@ read, the claim system must not conclude that every session is gone. Otherwise e
   Run `ps` with `TZ=UTC` and compare with whitespace collapsed, or every session reads dead.
 - `sessions/live.ts` is the only reader. Fields seen on 2026-10-01 (CLI 2.1.287): `pid`, `sessionId`,
   `cwd`, `startedAt`, `procStart`, `kind`, `name`, `status` (busy|idle), `updatedAt`.
+- 2026-10-02 (CLI 2.1.288): `status` is also `shell` once a turn ends with a background shell still running
+  (a local stack left up). It is not work in progress (phase 10). Read each value you know explicitly and map
+  unknown ones to `busy`.
 - `cwd` is the start directory. Sessions that `EnterWorktree` keep main's path, so join sessions to rows
   through claim `sessionId` first.
