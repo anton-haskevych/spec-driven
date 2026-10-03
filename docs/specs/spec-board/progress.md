@@ -24,3 +24,4 @@
 - [x] Phase 7 — Handed-off sessions free the tree → `phases/phase-7-handed-off-sessions-free-the-tree.md`
 - [x] Phase 8 — Writes in a claimed tree need the claim → `phases/phase-8-writes-in-a-claimed-tree-need-the-claim.md`
 - [x] Phase 9 — Launch keeps your place → `phases/phase-9-launch-keeps-your-place.md`
+- [ ] Phase 10 — Background shells don't hold a tree → `phases/phase-10-background-shells-don-t-hold-a-tree.md`
