@@ -1,4 +1,5 @@
 import type { Priority } from "../core/schedule";
+import type { SessionStatus } from "../sessions/live";
 
 export const BOARD_VERSION = 1;
 
@@ -11,7 +12,7 @@ interface RowBase {
 }
 
 // "remote": another machine's claim; `since` is when it was claimed.
-export type SessionCell = { status: "busy" | "idle" | "remote"; since: string } | { status: "closed" | "unknown" };
+export type SessionCell = { status: SessionStatus | "remote"; since: string } | { status: "closed" | "unknown" };
 
 export interface PrCell {
   number: number;

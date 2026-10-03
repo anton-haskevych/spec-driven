@@ -6,12 +6,15 @@ import type { Result } from "../core/result";
 import { parseJson } from "../pr/gh-records";
 import { canonicalPath } from "../workspaces/list";
 
+export type SessionStatus = "busy" | "idle" | "shell";
+
 // The only reader of `<claudeHome>/sessions/*.json`, an undocumented Claude Code internal (ledger).
 export interface LiveSession {
   pid: number;
   sessionId: string;
   cwd: string;
-  status: "busy" | "idle";
+  // "shell": the turn is over but a background shell still runs, e.g. a local stack left up for the next phase.
+  status: SessionStatus;
   name?: string;
   updatedAt: Date;
   procStart: string;
@@ -33,7 +36,7 @@ export function parseSessionFile(text: string): LiveSession | undefined {
   const updatedAt = toDate(data.updatedAt) ?? toDate(data.startedAt);
   if (pid === undefined || !sessionId || !cwd || !procStart || !updatedAt) return undefined;
   const name = stringField(data, "name");
-  return { pid, sessionId, cwd, status: stringField(data, "status") === "idle" ? "idle" : "busy", ...(name ? { name } : {}), updatedAt, procStart };
+  return { pid, sessionId, cwd, status: toSessionStatus(stringField(data, "status")), ...(name ? { name } : {}), updatedAt, procStart };
 }
 
 export function loadLiveSessions(claudeHome: string, procStarts: ProcStarts): Result<LiveSession[]> {
@@ -86,6 +89,11 @@ function newestPerSession(sessions: readonly LiveSession[]): LiveSession[] {
     if (!seen || session.updatedAt > seen.updatedAt) newest.set(session.sessionId, session);
   }
   return [...newest.values()];
+}
+
+// A value this reader doesn't know yet counts as busy: an unknown state never frees a tree.
+function toSessionStatus(value: string | undefined): SessionStatus {
+  return value === "idle" || value === "shell" ? value : "busy";
 }
 
 function toDate(value: unknown): Date | undefined {

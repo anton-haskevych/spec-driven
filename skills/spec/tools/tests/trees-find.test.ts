@@ -73,6 +73,12 @@ describe("treeHolder: may another session work in this tree?", () => {
     expect(treeHolder("/t/old", idle, edited)).toEqual({ kind: "uncommitted", who: "s execute 2" });
   });
 
+  test("a session whose turn is over but whose background shell runs (a local stack left up) holds it like an idle one", () => {
+    const shell = view([session("/t/old", "other", "shell")]);
+    expect(treeHolder("/t/old", shell, clean)).toBeUndefined();
+    expect(treeHolder("/t/old", shell, edited)).toEqual({ kind: "uncommitted", who: "s execute 2" });
+  });
+
   test("without an uncommitted check (the board), an idle session never holds it", () => {
     expect(treeHolder("/t/old", view([session("/t/old", "other", "idle")]))).toBeUndefined();
   });

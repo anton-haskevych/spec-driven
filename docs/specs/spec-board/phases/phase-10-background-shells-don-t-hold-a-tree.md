@@ -31,5 +31,5 @@ files). The board's session cell shows `shell 3m`, which tells the user a backgr
 
 ## Deliverables
 
-- [ ] `parseSessionFile` reads `shell` as its own status; unknown values stay `busy`
-- [ ] `treeHolder`: a session with only a background shell running holds a tree like an idle one (claim or uncommitted changes only); the board cell shows `shell`
+- [x] `parseSessionFile` reads `shell` as its own status; unknown values stay `busy`
+- [x] `treeHolder`: a session with only a background shell running holds a tree like an idle one (claim or uncommitted changes only); the board cell shows `shell`
