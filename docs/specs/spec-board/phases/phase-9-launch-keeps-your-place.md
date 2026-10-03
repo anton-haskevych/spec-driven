@@ -36,6 +36,6 @@ launcher · low risk.
 
 ## Deliverables
 
-- [ ] iTerm: the command goes into the tab the script created; focus returns to the tab you were in; the tab is titled
-- [ ] tmux: the new window opens detached
-- [ ] The launch line names the tab (`⌘<n>`); SKILL.md *Tools* → Launch says so
+- [x] iTerm: the command goes into the tab the script created; focus returns to the tab you were in; the tab is titled by `claude -n` (iTerm resets a scripted session name)
+- [x] tmux: the new window opens detached; Terminal.app no longer activates itself, and the window you were in stays in front
+- [x] The launch line names the tab (`⌘<n>`); SKILL.md *Tools* → Launch says so

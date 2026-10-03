@@ -23,4 +23,4 @@
 - [x] Phase 6 — Loop wiring → `phases/phase-6-loop-wiring.md`
 - [x] Phase 7 — Handed-off sessions free the tree → `phases/phase-7-handed-off-sessions-free-the-tree.md`
 - [ ] Phase 8 — Writes in a claimed tree need the claim → `phases/phase-8-writes-in-a-claimed-tree-need-the-claim.md`
-- [ ] Phase 9 — Launch keeps your place → `phases/phase-9-launch-keeps-your-place.md`
+- [x] Phase 9 — Launch keeps your place → `phases/phase-9-launch-keeps-your-place.md`
