@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { firstLine, type Git } from "../core/git";
+import { gitFailureReason, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { isSpecDocPath } from "../core/spec-folders";
 
@@ -47,7 +47,7 @@ export function buildSnapshot(git: Git, request: SnapshotRequest): Result<Snapsh
   const base = snapshotBase(git, request.main);
   if (!base.ok) return base;
   const diff = git.run(["diff", "--name-status", "--no-renames", "-z", base.value, "HEAD"]);
-  if (diff.code !== 0) return { ok: false, reason: `git diff failed: ${firstLine(diff.stderr)}` };
+  if (diff.code !== 0) return { ok: false, reason: `git diff failed: ${gitFailureReason(diff.stderr)}` };
 
   const { publish, deleted } = specDocChanges(diff.stdout);
   if (publish.length === 0) return { ok: true, value: { kind: "nothing", deleted } };
@@ -68,7 +68,7 @@ function snapshotCommit(git: Git, base: string, files: readonly string[], spec: 
     const read = git.out(["read-tree", base], { env });
     if (!read.ok) return read;
     const entries = git.run(["ls-tree", "-z", "HEAD", "--", ...files]);
-    if (entries.code !== 0) return { ok: false, reason: `git ls-tree failed: ${firstLine(entries.stderr)}` };
+    if (entries.code !== 0) return { ok: false, reason: `git ls-tree failed: ${gitFailureReason(entries.stderr)}` };
     const staged = git.out(["update-index", "-z", "--index-info"], { env, stdin: entries.stdout });
     if (!staged.ok) return staged;
     const tree = git.out(["write-tree"], { env });
