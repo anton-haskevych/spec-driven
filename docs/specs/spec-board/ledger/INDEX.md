@@ -38,6 +38,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-remote-claims-landing-shape.md` — [phase 6] — remote claims: files, take order, take-over, board shape; packs local only
 - `decision-claims-landing-shape.md` — [phase 5a, 6] — claim:/claim refused: lines, one status path, packs read heldByOthers
 - `decision-tree-held-by-work.md` — [phase 7+] — held = claim, mid-turn, or idle + uncommitted; prune keeps any occupant
+- `decision-controller-tab-checks-claims-no-hook.md` — [phase 8+] — controller tab runs claim list before writing; no hook until it recurs
 
 ## Workarounds
 - `docs/specs/_ledger/workaround-squash-merge-leaves-local-main-diverged.md` — [general] — squash merge leaves local main diverged; verify tree, reset --keep
