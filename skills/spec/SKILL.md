@@ -77,6 +77,8 @@ One session works one spec, and usually one chunk:
 2. Work runs until the stopping rule in `execute.md` fires.
 3. `/spec handoff` closes the session. The next chunk starts in a new session.
 
+**A session that handed off may stay open** as the user's controller tab: it answers questions, reads the board and launches the next phase, even into its own tree (an idle session with no claim doesn't hold it). Before it writes in a tree again (commit, merge main, push, edit a file), it runs `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim list`. If another live session holds a claim on that tree, it doesn't write: it tells the user which session holds it and offers to ask that session through `SendMessage`.
+
 **A new spec found mid-session is spun off, not prepped here.** prep.md → *Spin-off* writes its `seed.md`, links the dependency and launches a fresh session for it; this session stays on its spec.
 
 Compaction is not part of the flow. If the conversation does get compacted, treat it as a stop signal and hand off at the next clean boundary.
