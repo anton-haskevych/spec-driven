@@ -33,8 +33,9 @@ describe("parseSessionFile", () => {
     expect(parseSessionFile(session({ updatedAt: undefined }))?.updatedAt).toEqual(new Date(1790895214501));
   });
 
-  test("any status other than idle reads as busy", () => {
+  test("idle and shell (turn over, a background shell still running) read as themselves; anything else as busy", () => {
     expect(parseSessionFile(session({ status: "idle" }))?.status).toBe("idle");
+    expect(parseSessionFile(session({ status: "shell" }))?.status).toBe("shell");
     expect(parseSessionFile(session({ status: "waiting" }))?.status).toBe("busy");
   });
 
