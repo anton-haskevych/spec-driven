@@ -70,7 +70,7 @@ describe("publishDocs (real git)", () => {
     expect(() => onOrigin("src/app.ts")).toThrow();
     expect(repo.git("diff", "HEAD^1", "HEAD")).toBe("");
 
-    mainMoves(INDEX, "- a\n- c\n- f\n");
+    mainMoves(INDEX, "- a\n- b\n- c\n- f\n");
     repo.git("merge", "-q", "--no-edit", "origin/main");
     repo.write("docs/specs/a/progress.md", "- [x] Phase 1\n- [ ] Phase 2\n");
     repo.commitAll("more");
