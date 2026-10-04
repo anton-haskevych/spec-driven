@@ -94,3 +94,45 @@ describe("buildSnapshot (real git)", () => {
     expect(second.value.files).toEqual(["docs/specs/a/design.md"]);
   });
 });
+
+describe("buildSnapshot after merging a main that carries another spec's snapshot (real git)", () => {
+  let repo: TestRepo;
+
+  beforeAll(() => {
+    repo = repoWithOrigin("spec-snapshot-foreign-");
+    repo.write("docs/specs/a/progress.md", "- [ ] Phase 1\n");
+    repo.commitAll("base");
+    repo.git("push", "-q", "origin", "main");
+  });
+
+  afterAll(() => repo.cleanup());
+
+  const git = () => gitAt(repo.dir, isolatedRunner);
+
+  test("bases on the merge-base with main, so main's own spec edits never read as this branch's", () => {
+    const oldMain = repo.git("rev-parse", "main");
+    repo.git("checkout", "-q", "-b", "feat-other");
+    repo.write("docs/specs/other/progress.md", "other\n");
+    repo.commitAll("other work");
+    const foreign = buildSnapshot(git(), { main: oldMain, spec: "other" });
+    if (!foreign.ok || foreign.value.kind !== "built") throw new Error(JSON.stringify(foreign));
+
+    repo.git("checkout", "-q", "main");
+    repo.write("docs/specs/a/progress.md", "- [ ] Phase 1 (re-planned on main)\n");
+    repo.commitAll("re-plan a on main");
+    repo.git("checkout", "-q", "-b", "feat-a");
+    repo.git("checkout", "-q", "main");
+    repo.git("merge", "-q", "--no-edit", foreign.value.commit);
+    const newMain = repo.git("rev-parse", "main");
+
+    repo.git("checkout", "-q", "feat-a");
+    repo.git("merge", "-q", "--no-edit", "main");
+    repo.write("docs/specs/a/design.md", "mine\n");
+    repo.commitAll("my work on a");
+
+    const mine = buildSnapshot(git(), { main: newMain, spec: "a" });
+    if (!mine.ok || mine.value.kind !== "built") throw new Error(JSON.stringify(mine));
+    expect(mine.value.base).toBe(newMain);
+    expect(mine.value.files).toEqual(["docs/specs/a/design.md"]);
+  });
+});

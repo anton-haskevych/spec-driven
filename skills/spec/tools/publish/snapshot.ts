@@ -56,9 +56,12 @@ export function buildSnapshot(git: Git, request: SnapshotRequest): Result<Snapsh
 }
 
 function snapshotBase(git: Git, main: string): Result<string> {
+  const mergeBase = git.out(["merge-base", "HEAD", main]);
+  if (!mergeBase.ok) return mergeBase;
   const last = git.out(["log", "-1", "--format=%H", `--grep=^${SNAPSHOT_SUBJECT}`, "HEAD"]);
-  if (last.ok && last.value) return last;
-  return git.out(["merge-base", "HEAD", main]);
+  if (!last.ok || !last.value) return mergeBase;
+  const alreadyOnMain = git.run(["merge-base", "--is-ancestor", last.value, mergeBase.value]).code === 0;
+  return alreadyOnMain ? mergeBase : last;
 }
 
 function snapshotCommit(git: Git, base: string, files: readonly string[], spec: string | undefined): Result<string> {
