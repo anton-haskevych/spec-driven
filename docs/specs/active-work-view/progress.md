@@ -1,0 +1,24 @@
+# Active Work View — Progress
+
+> This file is a thin index. Phase details live in `phases/phase-<N>-<slug>.md` (flat)
+> or `phases/phase-<N>-<slug>/plan.md` (folder). Forward-propagating learnings live
+> in `ledger/`. Ephemeral state lives in `in-flight.md`. Pre-PR checks and PR-readiness
+> live in `pr-opening.md`. Never write session logs, handoff blocks, or verification
+> steps here.
+
+## Success metrics
+
+- In CRM, `/spec list` opens on the team's focus specs, in the agreed order, identically on both machines.
+- Every open session on this machine appears either on a focus row or in `other sessions`.
+- A live claim idle for 2+ days, and a shipped focus spec, each show under needs you.
+- A teammate's claims and linked PRs appear on their focus rows.
+- With no `_focus/` folder, board output is byte-identical to 2.36.7.
+
+## Phases
+
+- [ ] Phase 1 — Groundwork: shared helpers, test factories, `list --local` fix → `phases/phase-1-groundwork.md`
+- [ ] Phase 2 — Focus set: entries, validation, writer → `phases/phase-2-focus-set.md`
+- [ ] Phase 3 — FOCUS lane on the board → `phases/phase-3-focus-lane.md`
+- [ ] Phase 4 — Teammate's work and `--who` → `phases/phase-4-teammate-work.md`
+- [ ] Phase 5 — Idle claims and shipped focus → `phases/phase-5-idle-and-shipped.md`
+- [ ] Phase 6 — Seed CRM's focus set → `phases/phase-6-seed-crm-focus.md`
