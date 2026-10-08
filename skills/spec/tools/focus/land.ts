@@ -2,13 +2,11 @@ import { join, relative } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { gitFailureReason, type Git } from "../core/git";
 import { findSpecs } from "../core/spec-folders";
-import { loadNodes } from "../graph/nodes";
 import { baseProject } from "../mainline/load";
 import { commitOnto } from "../publish/commit-onto";
 import { NON_FAST_FORWARD } from "../publish/publish";
 import { pinDefault } from "../publish/snapshot";
 import { planFocus, type FocusAction, type FocusLanded } from "./plan";
-import { focusEntries } from "./rank";
 
 export interface FocusRequest {
   defaultBranch: string;
@@ -45,7 +43,7 @@ async function landAttempt(git: Git, { defaultBranch: branch, action }: FocusReq
   if (specs.length > 1) return { kind: "refused", reason: `${specs.length} specs are named ${action.spec} on origin/${branch}` };
 
   const file = join(spec.dir, "CLAUDE.md");
-  const plan = planFocus(action, focusEntries(loadNodes(project.value.dir)), readTextIfExists(file) ?? "");
+  const plan = planFocus(action, readTextIfExists(file) ?? "");
   if (plan.kind === "refused") return plan;
 
   const blob = git.out(["hash-object", "-w", "--stdin"], { stdin: plan.text });

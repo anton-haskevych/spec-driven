@@ -81,8 +81,8 @@ describe("board focus --who (real git)", () => {
 
   beforeAll(() => {
     repo = repoWithOrigin("spec-board-who-");
-    spec("first", "focus: 10\n");
-    spec("second", "focus: 20\nowner: Taras Korpach\n");
+    spec("first", "focus: must\n");
+    spec("second", "focus: must\nowner: Taras Korpach\n");
     repo.commitAll("specs");
     repo.git("push", "-q", "origin", "main");
   });

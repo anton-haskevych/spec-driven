@@ -29,11 +29,19 @@ describe("checkSpecMeta", () => {
   });
 
   test("rejects a focus or owner it cannot read", () => {
-    const text = "---\nstatus: active\ncreated: a\nupdated: b\nfocus: -3\nowner: [a, b]\n---\n";
+    const text = "---\nstatus: active\ncreated: a\nupdated: b\nfocus: soon\nowner: [a, b]\n---\n";
     expect(checkSpecMeta("CLAUDE.md", text, STATUSES).map((i) => `${i.severity}: ${i.problem}`)).toEqual([
-      "error: focus -3 is not a number ≥ 0",
+      'error: focus "soon" is not one of must, should, could',
       'error: owner ["a","b"] is not a name',
     ]);
+  });
+
+  test("warns about a 2.37.0 numeric focus and accepts a band", () => {
+    const meta = (focus: string) => `---\nstatus: active\ncreated: a\nupdated: b\nfocus: ${focus}\n---\n`;
+    expect(checkSpecMeta("CLAUDE.md", meta("20"), STATUSES).map((i) => `${i.severity}: ${i.problem}`)).toEqual([
+      "warning: focus 20 is a 2.37.0 rank; use must, should or could",
+    ]);
+    expect(checkSpecMeta("CLAUDE.md", meta("must"), STATUSES)).toEqual([]);
   });
 
   test("reports unparseable YAML as an error", () => {

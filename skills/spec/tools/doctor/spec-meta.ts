@@ -18,7 +18,8 @@ export function checkSpecMeta(file: string, text: string, statuses: readonly str
     issues.push(error(file, `status "${status}" is not allowed here; use one of: ${statuses.join(", ")}`));
   }
   issues.push(...readSchedule(parsed.data).problems.map((problem) => error(file, problem)));
-  issues.push(...readFocusFields(parsed.data).problems.map((problem) => error(file, problem)));
+  const focus = readFocusFields(parsed.data);
+  issues.push(...focus.problems.map((problem) => error(file, problem)), ...focus.warnings.map((problem) => warning(file, problem)));
   for (const key of TIMESTAMP_FIELDS) {
     if (!stringField(parsed.data, key)) issues.push(warning(file, `frontmatter has no ${key}`));
   }

@@ -3,38 +3,41 @@ import { focusCommand, focusLine, parseFocusArgs } from "../commands/focus";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 
 describe("parseFocusArgs", () => {
-  test("reads add, drop and move with their places", () => {
-    expect(parseFocusArgs(["add", "a"])).toEqual({ kind: "add", spec: "a", place: { kind: "end" } });
-    expect(parseFocusArgs(["add", "a", "--top"])).toEqual({ kind: "add", spec: "a", place: { kind: "top" } });
-    expect(parseFocusArgs(["add", "a", "--after", "b"])).toEqual({ kind: "add", spec: "a", place: { kind: "after", spec: "b" } });
+  test("reads add and move with a band, and drop", () => {
+    expect(parseFocusArgs(["add", "a", "must"])).toEqual({ kind: "add", spec: "a", band: "must" });
+    expect(parseFocusArgs(["move", "a", "Could"])).toEqual({ kind: "move", spec: "a", band: "could" });
     expect(parseFocusArgs(["drop", "a"])).toEqual({ kind: "drop", spec: "a" });
-    expect(parseFocusArgs(["move", "a", "--top"])).toEqual({ kind: "move", spec: "a", place: { kind: "top" } });
   });
 
-  test("prints the verb's usage for a malformed call", () => {
-    for (const args of [["add"], ["add", "a", "--top", "--after", "b"], ["add", "a", "b"], ["add", "a", "--first"], ["drop", "a", "--top"]]) {
-      expect(parseFocusArgs(args)).toBe(`usage: focus ${args[0]} ${args[0] === "add" ? "<spec> [--top | --after <spec>]" : "<spec>"}`);
+  test("prints the verb's usage for a malformed call, a missing band included", () => {
+    for (const args of [["add"], ["add", "a"], ["add", "a", "must", "b"], ["add", "a", "must", "--first"], ["drop", "a", "must"]]) {
+      expect(parseFocusArgs(args)).toBe(`usage: focus ${args[0]} ${args[0] === "add" ? "<spec> <must|should|could>" : "<spec>"}`);
     }
-    expect(parseFocusArgs(["move", "a"])).toBe("usage: focus move <spec> (--top | --after <spec>)");
+    expect(parseFocusArgs(["move", "a"])).toBe("usage: focus move <spec> <must|should|could>");
+  });
+
+  test("refuses a word that is not a band", () => {
+    expect(parseFocusArgs(["add", "a", "top"])).toBe("focus add: top is not a band; use must, should or could");
+    expect(parseFocusArgs(["move", "a", "1"])).toBe("focus move: 1 is not a band; use must, should or could");
+  });
+
+  test("says --top and --after are gone", () => {
+    for (const args of [["add", "a", "--top"], ["move", "a", "--after", "b"], ["add", "a", "--after=b"]]) {
+      expect(parseFocusArgs(args)).toBe(`usage: focus ${args[0]} <spec> <must|should|could>\nfocus: --top and --after are gone; give a band (must, should, could)`);
+    }
   });
 
   test("prints every usage for an unknown verb", () => {
-    expect(parseFocusArgs(["toString"])).toBe(
-      "usage: focus add <spec> [--top | --after <spec>] | focus drop <spec> | focus move <spec> (--top | --after <spec>)",
-    );
+    expect(parseFocusArgs(["toString"])).toBe("usage: focus add <spec> <must|should|could> | focus drop <spec> | focus move <spec> <must|should|could>");
   });
 });
 
 describe("focusLine", () => {
   const sha = "0123456789abcdef";
 
-  test("says what landed, where, and the short sha", () => {
-    expect(focusLine({ kind: "add", spec: "a", place: { kind: "end" } }, { kind: "landed", sha, landed: { verb: "added", spec: "a", position: { position: 3, total: 3 } } })).toBe(
-      "focus: added a at 3/3 (0123456)",
-    );
-    expect(focusLine({ kind: "move", spec: "a", place: { kind: "top" } }, { kind: "landed", sha, landed: { verb: "moved", spec: "a", position: { position: 1, total: 3 } } })).toBe(
-      "focus: moved a to 1/3 (0123456)",
-    );
+  test("says what landed, in which band, and the short sha", () => {
+    expect(focusLine({ kind: "add", spec: "a", band: "must" }, { kind: "landed", sha, landed: { verb: "added", spec: "a", band: "must" } })).toBe("focus: added a to must (0123456)");
+    expect(focusLine({ kind: "move", spec: "a", band: "could" }, { kind: "landed", sha, landed: { verb: "moved", spec: "a", band: "could" } })).toBe("focus: moved a to could (0123456)");
     expect(focusLine({ kind: "drop", spec: "a" }, { kind: "landed", sha, landed: { verb: "dropped", spec: "a" } })).toBe("focus: dropped a (0123456)");
   });
 
@@ -57,7 +60,7 @@ describe("focusCommand (real git)", () => {
   afterEach(() => repo.cleanup());
 
   test("adds a spec on origin and then refuses to add it twice", async () => {
-    expect(await focusCommand(repo.dir, ["add", "a"], isolatedRunner)).toMatch(/^focus: added a at 1\/1 \([0-9a-f]{7}\)$/);
-    expect(await focusCommand(repo.dir, ["add", "a"], isolatedRunner)).toBe("focus add: a is already in focus (1/1)");
+    expect(await focusCommand(repo.dir, ["add", "a", "should"], isolatedRunner)).toMatch(/^focus: added a to should \([0-9a-f]{7}\)$/);
+    expect(await focusCommand(repo.dir, ["add", "a", "must"], isolatedRunner)).toBe("focus add: a is already in focus (should); use move");
   });
 });
