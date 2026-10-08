@@ -2,6 +2,7 @@ import type { PhaseActivity } from "../board/activity";
 import { rowKey } from "../board/phase-keys";
 import { holderName, type HeldClaim } from "../claims/rules";
 import type { Result } from "../core/result";
+import { sessionLabel } from "../sessions/label";
 import type { LiveSession } from "../sessions/live";
 import type { Workspace } from "../workspaces/list";
 import { ownerOf } from "../workspaces/owner";
@@ -55,9 +56,9 @@ export function treeHolder(tree: string, view: TreeView, hasUncommittedChanges?:
   if (claimed) return { kind: "claim", spec: claimed.claim.spec, phase: claimed.claim.phase, who: holderName(claimed.claim) };
   const others = sessionsIn(tree, view);
   const working = others.find((session) => session.status === "busy");
-  if (working) return { kind: "mid-task", who: sessionLabel(working) };
+  if (working) return { kind: "mid-task", who: sessionLabel(working.name, working.sessionId) };
   const idle = others[0];
-  return idle && hasUncommittedChanges?.() ? { kind: "uncommitted", who: sessionLabel(idle) } : undefined;
+  return idle && hasUncommittedChanges?.() ? { kind: "uncommitted", who: sessionLabel(idle.name, idle.sessionId) } : undefined;
 }
 
 export function describeHolder(holder: TreeHolder): string {
@@ -77,7 +78,7 @@ export function treeOccupant(tree: string, view: TreeView): string | undefined {
   if (claimed) return describeHolder({ kind: "claim", spec: claimed.claim.spec, phase: claimed.claim.phase, who: holderName(claimed.claim) });
   if (!view.sessions.ok) return "sessions can't be read";
   const inside = sessionsIn(tree, view)[0];
-  return inside && `${sessionLabel(inside)} is open there`;
+  return inside && `${sessionLabel(inside.name, inside.sessionId)} is open there`;
 }
 
 function blockingClaim(tree: string, view: TreeView): HeldClaim | undefined {
@@ -87,10 +88,6 @@ function blockingClaim(tree: string, view: TreeView): HeldClaim | undefined {
 function sessionsIn(tree: string, view: TreeView): LiveSession[] {
   if (!view.sessions.ok) return [];
   return view.sessions.value.filter((session) => session.sessionId !== view.ownSessionId && ownerOf(session.cwd, view.worktreePaths) === tree);
-}
-
-function sessionLabel(session: LiveSession): string {
-  return session.name ?? `session ${session.sessionId.slice(0, 8)}`;
 }
 
 function claimedPaths(group: GroupPhases, claims: readonly HeldClaim[]): string[] {
