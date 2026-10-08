@@ -69,6 +69,18 @@ describe("loadBoardInputs (real git)", () => {
     }
   });
 
+  test("worktreePaths lists every worktree, including a clean one the workspace scan leaves out", async () => {
+    const clean = repo.addWorktree("clean", "feat/clean");
+    try {
+      const inputs = await loadBoardInputs(repo.dir, { local: true }, runners);
+      if (!inputs.ok) throw new Error(inputs.reason);
+      expect(inputs.value.worktreePaths.toSorted()).toEqual([realpathSync(repo.dir), realpathSync(worktree), realpathSync(clean.dir)].toSorted());
+      expect(inputs.value.workspaces.map((workspace) => workspace.path)).not.toContain(realpathSync(clean.dir));
+    } finally {
+      repo.git("worktree", "remove", "--force", clean.dir);
+    }
+  });
+
   test("reads the same base from the main checkout and from a worktree with local edits", async () => {
     const fromMain = await loadBoardInputs(repo.dir, { local: true }, runners);
     const fromWorktree = await loadBoardInputs(worktree, { local: true }, runners);
