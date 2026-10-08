@@ -167,6 +167,11 @@ describe("loadBoard with worktrees (real git)", () => {
     }
   });
 
+  test("the board knows me by the git author name, offline too", async () => {
+    const board = await loadBoard(repo.dir, { local: true }, runners, NOW);
+    expect(board.ok && board.value.me).toBe("spec-tests");
+  });
+
   test("gh and session failures leave ? and unknown cells and say why in the footer", async () => {
     const asyncRunner = cannedGh(isolatedAsyncRunner, [[["gh"], { code: 1, stderr: "gh: not logged in" }]]);
     const board = await loadBoard(repo.dir, { local: false }, { runner: isolatedRunner, asyncRunner, claudeHome: "/no/claude/home" }, NOW);

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { realpathSync } from "node:fs";
 import { join } from "node:path";
-import { gitAt, gitCommonDir, gitFailureReason } from "../core/git";
+import { authorName, gitAt, gitCommonDir, gitFailureReason } from "../core/git";
 import { isolatedRunner, repoWithOrigin } from "./git-repo";
 import { stubRunner } from "./stub-runner";
 
@@ -54,6 +54,20 @@ describe("gitFailureReason", () => {
     expect(gitFailureReason("something odd\nmore\n")).toBe("something odd");
     expect(gitFailureReason("")).toBe("");
   });
+});
+
+describe("authorName", () => {
+  test("is the name part of git's author identity", () => {
+    const repo = repoWithOrigin("spec-git-author-");
+    try {
+      expect(authorName(gitAt(repo.dir, isolatedRunner))).toBe("spec-tests");
+    } finally {
+      repo.cleanup();
+    }
+  });
+
+  test("is undefined when git can't say", () => {
+    expect(authorName(gitAt("/repo", stubRunner([[["git", "var"], { code: 128, stderr: "fatal: no name" }]])))).toBeUndefined();  });
 });
 
 describe("gitCommonDir", () => {

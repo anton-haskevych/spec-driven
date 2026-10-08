@@ -114,6 +114,8 @@ export interface Board {
   repo: string;
   generatedAt: string;
   here: string;
+  // The git author name: who "my" claims and PRs belong to.
+  me?: string;
   mainCheckout?: string;
   base: { branch: string; sha: string; date: string; mode: BaseMode; reason?: string };
   lanes: { focus: FocusRow[]; inFlight: FlightRow[]; ready: ReadyRow[]; blocked: BlockedRow[]; needsYou: AttentionRow[] };

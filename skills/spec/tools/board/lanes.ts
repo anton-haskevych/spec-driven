@@ -35,7 +35,7 @@ interface SpecLanes {
   blocked: BlockedRow[];
 }
 
-export function buildBoard(inputs: BoardInputs, now: Date): Board {
+export function buildBoard(inputs: BoardInputs, now: Date, me?: string): Board {
   const today = isoDay(now);
   const open = [...inputs.nodes.values()].filter((node) => !isFinished(node));
   const active = open.filter((node) => node.status !== "paused");
@@ -53,6 +53,7 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
     repo: inputs.repo,
     generatedAt: now.toISOString(),
     here: inputs.currentPath,
+    ...(me ? { me } : {}),
     ...mainCheckout(inputs.workspaces),
     base: baseHeader(inputs.base),
     lanes: { focus: focus.rows, inFlight, ready, blocked, needsYou: needsYou(active, inputs, now, inFlight) },
