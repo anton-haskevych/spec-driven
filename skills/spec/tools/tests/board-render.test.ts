@@ -3,7 +3,7 @@ import type { Board } from "../board/model";
 import { renderBoard } from "../board/render";
 import { board, flightRow, readyRow } from "./board-factories";
 
-const lanes = (overrides: Partial<Board["lanes"]>): Board["lanes"] => ({ inFlight: [], ready: [], blocked: [], needsYou: [], ...overrides });
+const lanes = (overrides: Partial<Board["lanes"]>): Board["lanes"] => ({ focus: [], inFlight: [], ready: [], blocked: [], needsYou: [], ...overrides });
 
 describe("renderBoard", () => {
   test("prints the header, every lane in aligned columns and the footer", () => {

@@ -6,6 +6,7 @@ import { readySet } from "../ready/ready-set";
 import { phaseActivity, type PhaseActivity } from "./activity";
 import { needsYou } from "./attention";
 import { flightRows, isOnBoard, readyInWorkspaces } from "./flight";
+import { focusLane, focusOrder, withFocusPositions } from "./focus";
 import { joinFlightRows } from "./joins";
 import type { BaseRef, BoardInputs, SpecStage, WorkspaceView } from "./inputs";
 import { BOARD_VERSION, type Board, type BlockedRow, type ReadyRow } from "./model";
@@ -42,6 +43,10 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
   const inFlight = joinFlightRows(flightRows(activity, inputs), inputs);
   const placement: Placement = { inputs, today, unblocks: unblockCounts(inputs.states, inputs.nodes), activity, inFlight: new Set(inFlight.map(rowKey)) };
   const lanes = [...active.map((node) => specLanes(node, placement)), ...branchOnlyLanes(inputs.workspaces, placement)];
+  const order = focusOrder(inputs);
+  const ready = rankReady(withFocusPositions(markSafe(lanes.flatMap((spec) => spec.ready), inFlight, withBranchOnlyNodes(inputs), inputs.states), order));
+  const blocked = lanes.flatMap((spec) => spec.blocked);
+  const focus = focusLane({ inFlight, ready, blocked }, order, inputs, now);
   const { duplicates, ...counts } = inputs.counts;
   return {
     version: BOARD_VERSION,
@@ -50,13 +55,15 @@ export function buildBoard(inputs: BoardInputs, now: Date): Board {
     here: inputs.currentPath,
     ...mainCheckout(inputs.workspaces),
     base: baseHeader(inputs.base),
-    lanes: {
-      inFlight,
-      ready: rankReady(markSafe(lanes.flatMap((spec) => spec.ready), inFlight, withBranchOnlyNodes(inputs), inputs.states)),
-      blocked: lanes.flatMap((spec) => spec.blocked),
-      needsYou: needsYou(active, inputs, now, inFlight),
+    lanes: { focus: focus.rows, inFlight, ready, blocked, needsYou: needsYou(active, inputs, now, inFlight) },
+    footer: {
+      ...counts,
+      paused: open.length - active.length,
+      backlog: inputs.backlogCount,
+      duplicates,
+      ...unavailable(inputs),
+      ...(focus.otherSessions.length > 0 ? { otherSessions: focus.otherSessions } : {}),
     },
-    footer: { ...counts, paused: open.length - active.length, backlog: inputs.backlogCount, duplicates, ...unavailable(inputs) },
   };
 }
 

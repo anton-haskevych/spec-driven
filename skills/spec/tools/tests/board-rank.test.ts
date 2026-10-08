@@ -22,6 +22,11 @@ describe("rankReady", () => {
     expect(rankReady(rows).map((row) => row.spec)).toEqual(["late-p3", "p1", "p2", "due", "unblocks", "recent", "by-name-a", "by-name-b"]);
   });
 
+  test("focus rows come before every other row, by focus position; the rest keep today's order", () => {
+    const rows = [readyRow({ spec: "late-p1", priority: "p1", overdue: true }), readyRow({ spec: "focus-2", focus: 2 }), readyRow({ spec: "p2", priority: "p2" }), readyRow({ spec: "focus-1", focus: 1, priority: "p3" })];
+    expect(rankReady(rows).map((row) => row.spec)).toEqual(["focus-1", "focus-2", "late-p1", "p2"]);
+  });
+
   test("keeps readySet's order between phases of one spec", () => {
     expect(rankReady([readyRow({ phase: "4" }), readyRow({ phase: "2" })]).map((row) => row.phase)).toEqual(["4", "2"]);
   });
