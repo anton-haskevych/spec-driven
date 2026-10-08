@@ -5,11 +5,12 @@ import type { LiveSession } from "../sessions/live";
 import { describeHolder, findTree, treeHolder, treeOccupant, type FindInputs, type TreeView } from "../trees/find";
 import type { Workspace } from "../workspaces/list";
 import { NOW } from "./board-factories";
+import { claim as claimOf, liveSession } from "./factories";
 
 const worktree = (path: string, branch?: string, extra: Partial<Workspace> = {}): Workspace => ({ path, head: "abc", ...(branch ? { branch } : {}), detached: !branch, locked: false, prunable: false, isMain: false, ...extra });
-const claim = (phase: string, workspace: string, extra: Partial<Claim> = {}): Claim => ({ spec: "s", phase, sessionId: "other", sessionName: "s execute " + phase, workspace, claimedAt: NOW.toISOString(), ...extra });
+const claim = (phase: string, workspace: string, extra: Partial<Claim> = {}): Claim => claimOf({ spec: "s", phase, sessionId: "other", sessionName: "s execute " + phase, workspace, claimedAt: NOW.toISOString(), ...extra });
 const held = (status: HeldClaim["status"], value: Claim): HeldClaim => ({ claim: value, status });
-const session = (cwd: string, sessionId = "other", status: LiveSession["status"] = "busy"): LiveSession => ({ pid: 1, sessionId, cwd, status, name: "s execute 2", updatedAt: NOW, procStart: "x" });
+const session = (cwd: string, sessionId = "other", status: LiveSession["status"] = "busy"): LiveSession => liveSession({ sessionId, cwd, status, name: "s execute 2", updatedAt: NOW });
 
 const name = { branch: "feat/s-pr-b", folder: "s-pr-b" };
 const group = { spec: "s", phases: ["2", "3"] };

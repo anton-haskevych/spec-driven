@@ -3,9 +3,10 @@ import { join } from "node:path";
 import { deleteClaim, fetchClaims, pushClaim, readHolder } from "../claims/remote";
 import type { Claim } from "../claims/store";
 import { gitAt, type Git } from "../core/git";
+import { claim as claimOf } from "./factories";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 
-const claim = (phase: string, sessionId: string): Claim => ({ spec: "alpha", phase, sessionId, workspace: `/work/${sessionId}`, claimedAt: "2026-10-01T20:00:00.000Z" });
+const claim = (phase: string, sessionId: string): Claim => claimOf({ phase, sessionId, workspace: `/work/${sessionId}` });
 const holder = (host: string) => ({ user: "spec-tests", host });
 
 describe("remote claims on a bare origin", () => {

@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { withoutTakenOver } from "../claims/held";
 import type { HeldClaim } from "../claims/rules";
+import { heldClaim } from "./factories";
 
-const held = (sessionId: string, phase: string, status: HeldClaim["status"] = "live"): HeldClaim => ({
-  claim: { spec: "alpha", phase, sessionId, workspace: "/work/alpha", claimedAt: "2026-10-01T00:00:00Z" },
-  status,
-});
+const held = (sessionId: string, phase: string, status: HeldClaim["status"] = "live"): HeldClaim =>
+  heldClaim(status, { phase, sessionId, workspace: "/work/alpha", claimedAt: "2026-10-01T00:00:00Z" });
 
 describe("withoutTakenOver", () => {
   test("origin is the arbiter: a local claim whose phase another machine took over is dropped", () => {

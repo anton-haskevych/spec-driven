@@ -5,12 +5,12 @@ import type { Result } from "../core/result";
 import type { LiveSession } from "../sessions/live";
 import { claimStatus, isStale, takeRefusal, type ClaimContext } from "../claims/rules";
 import type { Claim } from "../claims/store";
-import { phaseState } from "./factories";
+import { claim, liveSession, phaseState } from "./factories";
 
-const holder: Claim = { spec: "alpha", phase: "4", sessionId: "s1", sessionName: "alpha execute 4", workspace: "/wt/alpha", claimedAt: "2026-10-01T20:00:00.000Z" };
+const holder: Claim = claim({ phase: "4", sessionId: "s1", sessionName: "alpha execute 4", workspace: "/wt/alpha" });
 
-function liveSession(sessionId: string): LiveSession {
-  return { pid: 1, sessionId, cwd: "/wt/alpha", status: "busy", updatedAt: new Date(0), procStart: "x" };
+function sessionOf(sessionId: string): LiveSession {
+  return liveSession({ sessionId, cwd: "/wt/alpha", status: "busy", updatedAt: new Date(0) });
 }
 
 function specState(name: string, phases: SpecState["phases"]): SpecState {
@@ -31,7 +31,7 @@ describe("claimStatus", () => {
   });
 
   test("live when its session is live, even if the phase is done", () => {
-    expect(claimStatus(holder, context({ sessions: { ok: true, value: [liveSession("s1")] }, done: true }))).toBe("live");
+    expect(claimStatus(holder, context({ sessions: { ok: true, value: [sessionOf("s1")] }, done: true }))).toBe("live");
   });
 
   test("done when the phase is ticked on base", () => {

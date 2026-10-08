@@ -3,8 +3,9 @@ import type { RemoteClaim } from "../claims/remote";
 import type { Holder } from "../claims/remote-payload";
 import { mirrorRelease, mirrorTake, type RemotePort } from "../claims/remote-take";
 import type { Claim } from "../claims/store";
+import { claim as claimOf } from "./factories";
 
-const claim = (sessionId: string, fields: Partial<Claim> = {}): Claim => ({ spec: "alpha", phase: "4", sessionId, workspace: `/work/${sessionId}`, claimedAt: "2026-10-01T20:00:00.000Z", ...fields });
+const claim = (sessionId: string, fields: Partial<Claim> = {}): Claim => claimOf({ phase: "4", sessionId, workspace: `/work/${sessionId}`, ...fields });
 const LAPTOP: Holder = { user: "Anton", host: "laptop" };
 const DESKTOP: Holder = { user: "Taras", host: "desktop" };
 

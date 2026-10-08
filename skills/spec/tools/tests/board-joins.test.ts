@@ -5,9 +5,10 @@ import type { CheckSummary } from "../pr/checks";
 import type { PrRow } from "../pr/rollup";
 import type { LiveSession } from "../sessions/live";
 import { boardInputs, flightRow, prRow, workspaceView } from "./board-factories";
+import { liveSession } from "./factories";
 
 function session(cwd: string, overrides: Partial<LiveSession> = {}): LiveSession {
-  return { pid: 1, sessionId: cwd, cwd, status: "busy", updatedAt: new Date("2026-10-01T20:00:00Z"), procStart: "x", ...overrides };
+  return liveSession({ sessionId: cwd, cwd, status: "busy", ...overrides });
 }
 
 function checks(counts: Partial<CheckSummary["counts"]>): CheckSummary {
