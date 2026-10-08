@@ -1,6 +1,6 @@
 ---
 needs: [3]
-pr: C
+pr: B
 ---
 
 # Phase 4 — Teammate's work and `--who`

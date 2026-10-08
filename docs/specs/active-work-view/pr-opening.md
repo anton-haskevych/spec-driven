@@ -3,12 +3,12 @@
 ## Spec state
 
 Spec written 2026-10-07, reviewed 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`). 5 code phases + 1 task phase.
-Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–3 (branch `feat/active-work-view-pr-b`, no PR yet; PR B is complete). Left: 4–6.
+Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–3 (branch `feat/active-work-view-pr-b`, no PR yet). Left: 4–6. Phase 4 moved into PR B (user, 2026-10-07).
 Phase 3 smoke so far: CRM `board --local` with no `focus:` is byte-identical to 2.36.8 (2026-10-07).
 Split (value first):
 - **PR A: phase 1.** Shared helpers, test factories, `list --local` fix. Refactor only; release 2.36.8.
-- **PR B: phases 2–3.** Focus field + base-first writer + FOCUS lane. The first usable cut; release 2.37.0. Phases 1 and 2 run in parallel.
-- **PR C: phases 4–5.** Teammate's work and `--who`; idle claims. Release 2.38.0.
+- **PR B: phases 2–4.** Focus field + base-first writer + FOCUS lane + teammate's work and `--who`. The first usable cut; release 2.37.0. Phases 1 and 2 run in parallel.
+- **PR C: phase 5.** Idle claims. Release 2.38.0.
 - Phase 6 (task) runs in CRM once 2.37.0 is installed.
 
 ## Pre-PR checks
@@ -31,7 +31,7 @@ PR B:
 - [ ] Smoke in CRM: every live CRM session on this machine appears on a focus row or in `other sessions`, and no claude-plugins session does (compare with ListAgents)
 - [ ] Board time in CRM with gh and sessions stays < 5 s
 - [ ] `list.md` no-Bun fallback still describes the table; `SKILL.md` *Tools*, `README.md` updated
+- [ ] Smoke in CRM: Taras's gift-cards remote claims show as `taras`, and open PRs linked on main show by author; `board focus --who taras` and `--who me` filter text and `--json`
 
 PR C:
-- [ ] Smoke in CRM: Taras's gift-cards remote claims show as `taras`, and open PRs linked on main show by author; `board focus --who taras` and `--who me` filter text and `--json`
 - [ ] Smoke in CRM: recurring-series-lifecycle-clarity · 7 (or any 2-day-idle live claim) shows `claim idle`
