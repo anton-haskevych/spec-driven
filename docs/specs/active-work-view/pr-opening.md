@@ -3,7 +3,7 @@
 ## Spec state
 
 Spec written 2026-10-07, reviewed 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`). 5 code phases + 1 task phase.
-Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, `feat/active-work-view-pr-b`, 2.37.0, open). Left: 5–6. Phase 4 moved into PR B (user, 2026-10-07).
+Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, merged as 2.37.0); phase 5 (PR C: `feat/active-work-view-pr-c`). Left: 6. Phase 4 moved into PR B (user, 2026-10-07).
 Phase 3 smoke so far: CRM `board --local` with no `focus:` is byte-identical to 2.36.8 (2026-10-07).
 Split (value first):
 - **PR A: phase 1.** Shared helpers, test factories, `list --local` fix. Refactor only; release 2.36.8.
@@ -35,3 +35,4 @@ PR B (checks above re-run for PR B, 2.37.0, 2026-10-07: 886 tests pass, typechec
 
 PR C:
 - [ ] Smoke in CRM: recurring-series-lifecycle-clarity · 7 (or any 2-day-idle live claim) shows `claim idle`
+  - 2026-10-07: no 2-day-idle live claim in CRM to smoke against (that session moved on to phase 8, busy). CRM `board you` shows no `claim idle` row, which is correct; the flagged path is covered by `board-claims.test.ts`.

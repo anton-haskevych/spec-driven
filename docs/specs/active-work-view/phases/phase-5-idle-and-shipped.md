@@ -42,9 +42,9 @@ This row is board-wide, whether or not a focus set exists (design decision 14).
 
 ## Deliverables
 
-- [ ] `idle-claim` attention kind with `IDLE_CLAIM_DAYS = 2`; one row per session; tests for the boundary, unreadable sessions, the `startedAt` fallback, an off-board row and `shell`
-- [ ] Render line per `design.md` → *Copy*; tests
-- [ ] `list.md` / `README.md`: what the row means; "switch to it" → name the tab; "take it over" → `claim take … --take-over` on the user's word only
+- [x] `idle-claim` attention kind with `IDLE_CLAIM_DAYS = 2`; one row per session; tests for the boundary, unreadable sessions, the `startedAt` fallback, an off-board row and `shell`
+- [x] Render line per `design.md` → *Copy*; tests
+- [x] `list.md` / `README.md`: what the row means; "switch to it" → name the tab; "take it over" → `claim take … --take-over` on the user's word only
 
 ## Phase-local notes
 
