@@ -46,8 +46,14 @@ describe("board and list commands (real git)", () => {
     expect(output).toEndWith("\n```");
   });
 
+  test("board focus prints the FOCUS lane alone, none when no spec has focus:", async () => {
+    const output = await boardCommand(repo.dir, ["focus", "--local"], deps);
+    expect(output).toContain("\n\nFOCUS\n  none\n```");
+    expect(output).not.toContain("READY");
+  });
+
   test("board refuses an unknown lane or flag with its usage", async () => {
-    expect(await boardCommand(repo.dir, ["soon"], deps)).toBe("board: unknown lane soon (flight, ready, blocked, you)");
+    expect(await boardCommand(repo.dir, ["soon"], deps)).toBe("board: unknown lane soon (focus, flight, ready, blocked, you)");
     expect(await boardCommand(repo.dir, ["--fast"], deps)).toStartWith("usage: board");
   });
 

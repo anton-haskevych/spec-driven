@@ -6,7 +6,7 @@ import { systemAsyncRunner, systemRunner } from "../core/run";
 import { defaultClaudeHome } from "../sessions/live";
 import { ownSessionId } from "../sessions/own";
 
-export const BOARD_USAGE = "board [flight|ready|blocked|you] [--json] [--local]";
+export const BOARD_USAGE = "board [focus|flight|ready|blocked|you] [--json] [--local]";
 
 export interface BoardDeps extends BoardRunners {
   now: Date;

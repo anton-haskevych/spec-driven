@@ -1,8 +1,9 @@
 import { ago, alignColumns, clock, lane, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
 import type { AttentionRow, Board, FlightRow, ReadyRow } from "./model";
+import { focusSection } from "./render-focus";
 
-export type Lane = "flight" | "ready" | "blocked" | "you";
-export const LANES: readonly Lane[] = ["flight", "ready", "blocked", "you"];
+export type Lane = "focus" | "flight" | "ready" | "blocked" | "you";
+export const LANES: readonly Lane[] = ["focus", "flight", "ready", "blocked", "you"];
 
 export const READY_CAP = 8;
 export const BLOCKED_CAP = 5;
@@ -18,12 +19,14 @@ const STALE_BASE: Record<Exclude<Board["base"]["mode"], "fetched">, string> = {
 export function renderBoard(board: Board, options: { lane?: Lane } = {}): string {
   const now = new Date(board.generatedAt);
   const sections: Record<Lane, string> = {
+    focus: focusSection(board, now),
     flight: lane("IN FLIGHT", alignColumns(flightCells(board, now))),
     ready: lane("READY   ★ = shares no files with anything in flight", capped(readyCells(board), READY_CAP, "ready", options.lane)),
     blocked: lane("BLOCKED", capped(blockedCells(board), BLOCKED_CAP, "blocked", options.lane)),
     you: lane("NEEDS YOU", alignColumns(board.lanes.needsYou.map((row) => attentionCells(row, now)))),
   };
-  const body = options.lane ? [sections[options.lane]] : [...LANES.map((name) => sections[name]), footer(board)];
+  const shown = LANES.filter((name) => name !== "focus" || board.lanes.focus.length > 0);
+  const body = options.lane ? [sections[options.lane]] : [...shown.map((name) => sections[name]), footer(board)];
   return [header(board, now), ...body].join("\n\n");
 }
 
@@ -32,8 +35,8 @@ function header(board: Board, now: Date): string {
   const sha = board.base.sha.slice(0, SHORT_SHA);
   const freshness =
     mode === "fetched" ? `origin/${branch} ${sha} · fetched ${clock(now)}` : `${STALE_BASE[mode]}, origin/${branch} as of ${sha} ${stamp(new Date(date))}`;
-  const { inFlight, ready, blocked, needsYou } = board.lanes;
-  const counts = `${inFlight.length} in flight · ${ready.length} ready · ${blocked.length} blocked · ${needsYou.length} ${needsYou.length === 1 ? "needs" : "need"} you`;
+  const { focus, inFlight, ready, blocked, needsYou } = board.lanes;
+  const counts = `${focus.length > 0 ? `${focus.length} focus · ` : ""}${inFlight.length} in flight · ${ready.length} ready · ${blocked.length} blocked · ${needsYou.length} ${needsYou.length === 1 ? "needs" : "need"} you`;
   return `spec board · ${board.repo} · ${freshness}\n${counts}`;
 }
 
@@ -64,6 +67,12 @@ function readyCells(board: Board): string[][] {
 }
 
 function readyNote(row: ReadyRow, board: Board): string {
+  const note = placementNote(row, board);
+  if (row.focus === undefined) return note;
+  return note ? `focus ${row.focus} · ${note}` : `focus ${row.focus}`;
+}
+
+function placementNote(row: ReadyRow, board: Board): string {
   if (row.treeBusy) return row.treeBusy;
   if (row.readyIn) return `in ${workspaceName(row.readyIn.workspace, board)} (needs ${row.readyIn.needs.join(", ")}, ticked there)`;
   if (row.onlyOn) return `only on ${row.onlyOn}`;
