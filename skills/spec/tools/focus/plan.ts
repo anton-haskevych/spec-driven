@@ -1,9 +1,11 @@
 import { removeFrontmatterLine, setFrontmatterLine, type FrontmatterPatch } from "../core/frontmatter-patch";
 import { focusPosition, rankFor, type FocusEntry, type FocusPlace } from "./rank";
 
+export type MovePlace = Exclude<FocusPlace, { kind: "end" }>;
+
 export type FocusAction =
   | { kind: "add"; spec: string; place: FocusPlace }
-  | { kind: "move"; spec: string; place: Exclude<FocusPlace, { kind: "end" }> }
+  | { kind: "move"; spec: string; place: MovePlace }
   | { kind: "drop"; spec: string };
 
 export interface FocusLanded {
