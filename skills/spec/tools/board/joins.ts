@@ -1,6 +1,6 @@
 import type { PrRow } from "../pr/rollup";
+import { sessionsByWorkspace } from "../sessions/by-workspace";
 import type { LiveSession } from "../sessions/live";
-import { ownerOf } from "../workspaces/owner";
 import { claimsOnBoard } from "./flight";
 import type { BoardInputs } from "./inputs";
 import { rowKey } from "./phase-keys";
@@ -35,15 +35,6 @@ export function attachPrs(rows: readonly FlightRow[], inputs: BoardInputs): Flig
     const cell = byBranch(prs.value, branch) ?? byLinks(prs.value, inputs.prLinks.get(row.spec) ?? []);
     return cell ? { ...row, pr: cell, next: nextFromChecks(cell) ?? row.next } : { ...row };
   });
-}
-
-function sessionsByWorkspace(sessions: readonly LiveSession[], paths: readonly string[]): Map<string, LiveSession[]> {
-  const owned = new Map<string, LiveSession[]>();
-  for (const session of sessions) {
-    const owner = ownerOf(session.cwd, paths);
-    if (owner) owned.set(owner, [...(owned.get(owner) ?? []), session]);
-  }
-  return owned;
 }
 
 function sessionCell(session: LiveSession): SessionCell {

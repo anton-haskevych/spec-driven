@@ -2,10 +2,10 @@ import type { PhaseActivity } from "../board/activity";
 import { rowKey } from "../board/phase-keys";
 import { holderName, type HeldClaim } from "../claims/rules";
 import type { Result } from "../core/result";
+import { sessionsByWorkspace } from "../sessions/by-workspace";
 import { sessionLabel } from "../sessions/label";
 import type { LiveSession } from "../sessions/live";
 import type { Workspace } from "../workspaces/list";
-import { ownerOf } from "../workspaces/owner";
 import type { TreeName } from "./naming";
 
 export interface GroupPhases {
@@ -87,7 +87,8 @@ function blockingClaim(tree: string, view: TreeView): HeldClaim | undefined {
 
 function sessionsIn(tree: string, view: TreeView): LiveSession[] {
   if (!view.sessions.ok) return [];
-  return view.sessions.value.filter((session) => session.sessionId !== view.ownSessionId && ownerOf(session.cwd, view.worktreePaths) === tree);
+  const inTree = sessionsByWorkspace(view.sessions.value, view.worktreePaths).get(tree) ?? [];
+  return inTree.filter((session) => session.sessionId !== view.ownSessionId);
 }
 
 function claimedPaths(group: GroupPhases, claims: readonly HeldClaim[]): string[] {
