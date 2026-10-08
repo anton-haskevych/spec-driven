@@ -3,7 +3,7 @@
 ## Spec state
 
 Spec written 2026-10-07, reviewed 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`). 6 code phases + 1 task phase.
-Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, merged 2026-10-08 as 2.37.0); phase 7 (PR D: #20, merged 2026-10-08 as 2.39.0); phase 5 (PR C: #19, `feat/active-work-view-pr-c`, 2.40.0, open). Left: 6. Phase 4 moved into PR B (user, 2026-10-07).
+Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, merged 2026-10-08 as 2.37.0); phase 7 (PR D: #20, merged 2026-10-08 as 2.39.0); phase 5 (PR C: #19, merged 2026-10-08 as 2.40.0). Left: phase 6, its last item (tell Taras); CRM main carries the bands since 2026-10-08. Phase 4 moved into PR B (user, 2026-10-07).
 Phase 7 added 2026-10-08 while seeding CRM: `focus:` becomes a band (must / should / could) instead of a rank (`ledger/decision-focus-is-a-band.md`); phase 6 now needs it.
 Phase 3 smoke so far: CRM `board --local` with no `focus:` is byte-identical to 2.36.8 (2026-10-07).
 Split (value first):
