@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { setFrontmatterLine } from "../core/frontmatter-patch";
+import { removeFrontmatterLine, setFrontmatterLine } from "../core/frontmatter-patch";
 
 describe("setFrontmatterLine", () => {
   test("replaces an inline value", () => {
@@ -34,5 +34,25 @@ describe("setFrontmatterLine", () => {
   test("refuses text without a closed frontmatter block", () => {
     expect(setFrontmatterLine("# T\n", "a", "b")).toEqual({ kind: "invalid", reason: "entry has no frontmatter" });
     expect(setFrontmatterLine("---\nkind: x\n", "a", "b")).toEqual({ kind: "invalid", reason: "frontmatter has no closing ---" });
+  });
+});
+
+describe("removeFrontmatterLine", () => {
+  test("removes an inline value", () => {
+    expect(removeFrontmatterLine("---\nstatus: active\nfocus: 20\n---\n# T\n", "focus")).toEqual({ kind: "ok", text: "---\nstatus: active\n---\n# T\n" });
+  });
+
+  test("removes a block value with its continuation lines", () => {
+    const text = "---\nrelated:\n  - a: why\n  - b: why\nfocus: 1\n---\n";
+    expect(removeFrontmatterLine(text, "related")).toEqual({ kind: "ok", text: "---\nfocus: 1\n---\n" });
+  });
+
+  test("leaves the text alone when the key is missing, in the body or only a prefix", () => {
+    const text = "---\nfocus-area: x\n---\nfocus: is a word\n";
+    expect(removeFrontmatterLine(text, "focus")).toEqual({ kind: "ok", text });
+  });
+
+  test("refuses text without a closed frontmatter block", () => {
+    expect(removeFrontmatterLine("# T\n", "a")).toEqual({ kind: "invalid", reason: "entry has no frontmatter" });
   });
 });
