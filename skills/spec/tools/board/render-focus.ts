@@ -57,7 +57,8 @@ function flightText(phases: readonly string[], next: readonly FlightNext[]): str
 function whoCell(row: FocusRow, me: string, now: Date): string {
   const people = withMySessions(row, me).map(({ work, sessions }) => `${work.person}: ${workText(work, sessions, now)}`);
   const cells = [...people, ...(row.unattributedPrs.length > 0 ? [row.unattributedPrs.map(prCell).join(" ")] : [])];
-  return cells.length > 0 ? cells.join("; ") : EMPTY;
+  if (cells.length > 0) return cells.join("; ");
+  return row.owner ? `${EMPTY} (${row.owner})` : EMPTY;
 }
 
 function withMySessions(row: FocusRow, me: string): { work: FocusWork; sessions: readonly FocusSession[] }[] {

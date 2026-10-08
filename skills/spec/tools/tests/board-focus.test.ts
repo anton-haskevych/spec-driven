@@ -28,6 +28,11 @@ describe("FOCUS lane rows", () => {
     expect(board.footer).not.toHaveProperty("otherSessions");
   });
 
+  test("a spec's owner rides on its row", () => {
+    const board = focusOf([focused("owned", 1, { meta: { owner: "taras" } }), focused("free", 2)]);
+    expect(board.lanes.focus.map((row) => row.owner)).toEqual(["taras", undefined]);
+  });
+
   test("progress, due and overdue come from the spec; a spec without phases shows its stage", () => {
     const board = focusOf([
       focused("late", 1, { phases: [phase("1", { done: true }), phase("2")], meta: { due: "2026-09-01" } }),

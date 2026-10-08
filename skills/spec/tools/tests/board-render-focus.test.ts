@@ -81,6 +81,13 @@ describe("FOCUS lane", () => {
     expect(focusLines(withFocus([row]))[1]).toBe("  1  alpha  0/3  —  me: execute 2 busy 5m; taras: 3 claims 4d");
   });
 
+  test("the owner shows in brackets only when nobody is on the row", () => {
+    expect(focusLines(withFocus([focusRow({ owner: "taras" }), focusRow({ spec: "beta", owner: "taras", sessions: [session()] })])).slice(1)).toEqual([
+      "  1  alpha  0/3  —  — (taras)",
+      "  2  beta   0/3  —  me: execute 2 busy 5m",
+    ]);
+  });
+
   test("other sessions close the lane, at most 5, then +N", () => {
     const others = ["r-1", "r-2", "r-3", "r-4", "r-5", "r-6", "r-7"].map((label) => ({ label, status: "idle" as const, since: "2026-10-01T19:00:00.000Z" }));
     expect(focusLines(withFocus([focusRow()], { otherSessions: others })).at(-1)).toBe("  other sessions: r-1 idle 1h, r-2 idle 1h, r-3 idle 1h, r-4 idle 1h, r-5 idle 1h, +2");

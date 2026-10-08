@@ -112,6 +112,7 @@ export interface FocusWork {
 export interface FocusRow {
   spec: string;
   rank: number;
+  owner?: string;
   progress?: { done: number; total: number };
   stage?: SpecStage;
   due?: string;

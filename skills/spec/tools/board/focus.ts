@@ -58,6 +58,7 @@ export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inpu
     return {
       spec: name,
       rank,
+      ...(node.meta.owner ? { owner: node.meta.owner } : {}),
       ...(stage ? { stage } : { progress }),
       ...(due ? { due } : {}),
       overdue,
