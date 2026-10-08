@@ -1,3 +1,4 @@
+import { olderThanDays } from "../core/age";
 import { isOverdue, isoDay } from "../core/schedule";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
@@ -8,7 +9,6 @@ import { deployWaits } from "./deploy-waits";
 import { rowKey, splitKey } from "./phase-keys";
 
 export const REMOTE_CLAIM_STALE_DAYS = 3;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function needsYou(active: readonly SpecNode[], inputs: BoardInputs, now: Date, inFlight: readonly FlightRow[]): AttentionRow[] {
   const today = isoDay(now);
@@ -42,9 +42,8 @@ function closedClaims(inputs: BoardInputs, inFlight: readonly FlightRow[]): Atte
 // No liveness across machines, so age is the only signal that a remote holder went silent.
 function oldRemoteClaims(inputs: BoardInputs, inFlight: readonly FlightRow[], now: Date): AttentionRow[] {
   const shown = new Set(inFlight.map(rowKey));
-  const cutoff = now.getTime() - REMOTE_CLAIM_STALE_DAYS * DAY_MS;
   return inputs.claims
-    .filter((held) => held.status === "remote" && shown.has(rowKey(held.claim)) && new Date(held.claim.claimedAt).getTime() < cutoff)
+    .filter((held) => held.status === "remote" && shown.has(rowKey(held.claim)) && olderThanDays(new Date(held.claim.claimedAt), now, REMOTE_CLAIM_STALE_DAYS))
     .map((held) => ({ kind: "remote-claim", spec: held.claim.spec, phase: held.claim.phase, holder: heldName(held), since: held.claim.claimedAt }));
 }
 
