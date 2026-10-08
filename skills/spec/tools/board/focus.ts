@@ -1,7 +1,8 @@
-import { isoDay } from "../core/schedule";
+import { compareDue, priorityRank } from "../core/schedule";
+import { FOCUS_BANDS, type FocusBand } from "../core/spec-meta";
 import { isFinished, type SpecNode } from "../graph/nodes";
 import { parseLaunchTitle } from "../launch/title";
-import { specSummary } from "../portfolio/rows";
+import { specSummary, type SpecSummary } from "../portfolio/rows";
 import { sessionLabel } from "../sessions/label";
 import type { LiveSession } from "../sessions/live";
 import { attributeSessions } from "./attribution";
@@ -22,7 +23,8 @@ export interface FocusLane {
 
 interface FocusedSpec {
   node: SpecNode;
-  rank: number;
+  band: FocusBand;
+  summary: SpecSummary;
 }
 
 interface BuiltLanes {
@@ -31,33 +33,45 @@ interface BuiltLanes {
   blocked: readonly BlockedRow[];
 }
 
-// Base specs with `focus:`, ranked; finished ones stay only while a linked PR is open (merging).
-export function focusOrder(inputs: BoardInputs): FocusedSpec[] {
+// Base specs with `focus:`, by band and then by their own data; finished ones stay only while a linked PR is open (merging).
+export function focusOrder(inputs: BoardInputs, today: string): FocusedSpec[] {
   return [...inputs.nodes.values()]
-    .flatMap((node) => (node.meta.focus === undefined || !isShown(node, inputs) ? [] : [{ node, rank: node.meta.focus }]))
-    .toSorted((a, b) => a.rank - b.rank || a.node.spec.name.localeCompare(b.node.spec.name));
+    .flatMap((node) => {
+      const band = node.meta.focus;
+      return band === undefined || !isShown(node, inputs) ? [] : [{ node, band, summary: specSummary(node, today) }];
+    })
+    .toSorted(compareFocus);
+}
+
+function compareFocus(a: FocusedSpec, b: FocusedSpec): number {
+  return (
+    FOCUS_BANDS.indexOf(a.band) - FOCUS_BANDS.indexOf(b.band) ||
+    Number(b.summary.overdue) - Number(a.summary.overdue) ||
+    compareDue(a.summary.due, b.summary.due) ||
+    priorityRank(a.summary.priority) - priorityRank(b.summary.priority) ||
+    a.node.spec.name.localeCompare(b.node.spec.name)
+  );
 }
 
 export function withFocusPositions(rows: readonly ReadyRow[], order: readonly FocusedSpec[]): ReadyRow[] {
-  const positions = new Map(order.map(({ node }, index) => [node.spec.name, index + 1]));
+  const places = new Map(order.map(({ node, band }, index) => [node.spec.name, { focus: index + 1, focusBand: band }]));
   return rows.map((row) => {
-    const focus = positions.get(row.spec);
-    return focus === undefined ? row : { ...row, focus };
+    const place = places.get(row.spec);
+    return place === undefined ? row : { ...row, ...place };
   });
 }
 
-export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inputs: BoardInputs, now: Date, me?: string): FocusLane {
+export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inputs: BoardInputs, me?: string): FocusLane {
   if (order.length === 0) return { rows: [], otherSessions: [] };
-  const today = isoDay(now);
   const live = inputs.sessions !== "local" && inputs.sessions.ok ? inputs.sessions.value : [];
   const { bySpec, unattributed } = attributeSessions(live, inputs, new Set(order.map(({ node }) => node.spec.name)));
-  const rows = order.map(({ node, rank }, index): FocusRow => {
+  const rows = order.map(({ node, band, summary }, index): FocusRow => {
     const name = node.spec.name;
-    const { progress, due, overdue } = specSummary(node, today);
+    const { progress, due, overdue } = summary;
     const stage = inputs.stages.get(name);
     return {
       spec: name,
-      rank,
+      band,
       position: index + 1,
       ...(node.meta.owner ? { owner: node.meta.owner } : {}),
       ...(stage ? { stage } : { progress }),

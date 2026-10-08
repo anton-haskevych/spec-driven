@@ -3,7 +3,7 @@ import type { Board, FocusRow, FocusSession } from "../board/model";
 import { renderBoard } from "../board/render";
 import { board, readyRow } from "./board-factories";
 
-const focusRow = (overrides: Partial<FocusRow> = {}): FocusRow => ({ spec: "alpha", rank: 10, position: 1, progress: { done: 0, total: 3 }, overdue: false, now: { kind: "none" }, sessions: [], work: [], unattributedPrs: [], ...overrides });
+const focusRow = (overrides: Partial<FocusRow> = {}): FocusRow => ({ spec: "alpha", band: "must", position: 1, progress: { done: 0, total: 3 }, overdue: false, now: { kind: "none" }, sessions: [], work: [], unattributedPrs: [], ...overrides });
 const session = (overrides: Partial<FocusSession> = {}): FocusSession => ({ label: "alpha execute 2", sub: "execute", phase: "2", status: "busy", since: "2026-10-01T19:55:00.000Z", ...overrides });
 
 function withFocus(focus: FocusRow[], footer: Partial<Board["footer"]> = {}, ready: Board["lanes"]["ready"] = []): Board {
@@ -15,17 +15,23 @@ const focusLines = (target: Board) => renderBoard(target, { lane: "focus" }).spl
 
 describe("FOCUS lane", () => {
   test("prints first, with the header count, each row's position, progress, now and sessions", () => {
-    const text = renderBoard(withFocus([focusRow({ sessions: [session(), session({ phase: "3", status: "idle", since: "2026-10-01T14:00:00.000Z" })] }), focusRow({ spec: "beta", rank: 20 })]));
-    expect(text.split("\n").slice(0, 7)).toEqual([
+    const text = renderBoard(withFocus([focusRow({ sessions: [session(), session({ phase: "3", status: "idle", since: "2026-10-01T14:00:00.000Z" })] }), focusRow({ spec: "beta" })]));
+    expect(text.split("\n").slice(0, 8)).toEqual([
       "spec board · crm · origin/main e43d948 · fetched 20:00",
       "2 focus · 0 in flight · 0 ready · 0 blocked · 0 need you",
       "",
       "FOCUS",
+      "  MUST",
       "  1  alpha  0/3  —  me: execute 2 busy 5m, execute 3 idle 6h",
       "  2  beta   0/3  —  —",
       "",
     ]);
     expect(text.indexOf("FOCUS")).toBeLessThan(text.indexOf("IN FLIGHT"));
+  });
+
+  test("each non-empty band gets a header, and columns align across the whole lane", () => {
+    const rows = [focusRow({ spec: "a" }), focusRow({ spec: "longer-name", band: "could", now: { kind: "paused" } })];
+    expect(focusLines(withFocus(rows))).toEqual(["FOCUS", "  MUST", "  1  a            0/3  —       —", "  COULD", "  2  longer-name  0/3  paused  —"]);
   });
 
   test("now: in flight, ready (capped at 3), deploy, blocked, paused, merging", () => {
@@ -41,6 +47,7 @@ describe("FOCUS lane", () => {
     ];
     expect(focusLines(withFocus(rows))).toEqual([
       "FOCUS",
+      "  MUST",
       "  1  a  0/3    executing 2 · 6caaa on branch  —",
       "  2  b  0/3    ready 3, 4, 5 +2               —",
       "  3  c  draft  ready: /spec create            —",
@@ -55,13 +62,14 @@ describe("FOCUS lane", () => {
   test("overdue marks the spec; a due day that hasn't passed follows now", () => {
     expect(focusLines(withFocus([focusRow({ overdue: true, due: "2026-09-01" }), focusRow({ spec: "beta", due: "2026-10-20" })]))).toEqual([
       "FOCUS",
+      "  MUST",
       "  1  alpha ⚠  0/3  —              —",
       "  2  beta     0/3  — · due 10-20  —",
     ]);
   });
 
   test("a session without a launch title shows its label", () => {
-    expect(focusLines(withFocus([focusRow({ sessions: [{ label: "poking around", status: "shell", since: "2026-10-01T17:00:00.000Z" }] })]))[1]).toBe("  1  alpha  0/3  —  me: poking around shell 3h");
+    expect(focusLines(withFocus([focusRow({ sessions: [{ label: "poking around", status: "shell", since: "2026-10-01T17:00:00.000Z" }] })]))[2]).toBe("  1  alpha  0/3  —  me: poking around shell 3h");
   });
 
   test("who: my sessions, claims and PRs first under my name, then each teammate's, then PRs with no author", () => {
@@ -70,7 +78,7 @@ describe("FOCUS lane", () => {
       { person: "taraskorpach", mine: false, claims: [{ phase: "2", since: "2026-09-29T20:00:00.000Z" }], prs: [{ number: 7, listed: true, failing: 2, pending: 0, passing: 3 }] },
     ];
     const row = focusRow({ sessions: [session()], work, unattributedPrs: [{ number: 9, listed: true }] });
-    expect(focusLines(board({ ...withFocus([row]), me: "spec-tests" }))[1]).toBe(
+    expect(focusLines(board({ ...withFocus([row]), me: "spec-tests" }))[2]).toBe(
       "  1  alpha  0/3  —  spectests: execute 2 busy 5m · claim 4 1d · #8 draft; taraskorpach: claim 2 2d · #7 ✗ 2; #9",
     );
   });
@@ -78,11 +86,11 @@ describe("FOCUS lane", () => {
   test("my sessions show under me when git gave no name; more than 2 claims collapse to a count and the oldest age", () => {
     const claims = ["2", "3", "4"].map((phase, index) => ({ phase, since: `2026-09-2${index + 7}T20:00:00.000Z` }));
     const row = focusRow({ sessions: [session()], work: [{ person: "taras", mine: false, claims, prs: [] }] });
-    expect(focusLines(withFocus([row]))[1]).toBe("  1  alpha  0/3  —  me: execute 2 busy 5m; taras: 3 claims 4d");
+    expect(focusLines(withFocus([row]))[2]).toBe("  1  alpha  0/3  —  me: execute 2 busy 5m; taras: 3 claims 4d");
   });
 
   test("the owner shows in brackets only when nobody is on the row", () => {
-    expect(focusLines(withFocus([focusRow({ owner: "taras" }), focusRow({ spec: "beta", owner: "taras", sessions: [session()] })])).slice(1)).toEqual([
+    expect(focusLines(withFocus([focusRow({ owner: "taras" }), focusRow({ spec: "beta", owner: "taras", sessions: [session()] })])).slice(2)).toEqual([
       "  1  alpha  0/3  —  — (taras)",
       "  2  beta   0/3  —  me: execute 2 busy 5m",
     ]);
@@ -90,7 +98,7 @@ describe("FOCUS lane", () => {
 
   test("filtered to one person, the title names them and rows keep their place in the whole lane", () => {
     const filtered = board({ lanes: { ...board().lanes, focus: [focusRow({ position: 6, owner: "taras" })] } });
-    expect(renderBoard(filtered, { lane: "focus", who: "taras" }).split("\n").slice(3)).toEqual(["FOCUS · taras", "  6  alpha  0/3  —  — (taras)"]);
+    expect(renderBoard(filtered, { lane: "focus", who: "taras" }).split("\n").slice(3)).toEqual(["FOCUS · taras", "  MUST", "  6  alpha  0/3  —  — (taras)"]);
   });
 
   test("filtered to nobody, the whole board still prints the lane, with none", () => {
@@ -109,8 +117,9 @@ describe("FOCUS lane", () => {
     expect(focusLines(board())).toEqual(["FOCUS", "  none"]);
   });
 
-  test("a ready row of a focus spec notes its position before any other note", () => {
-    const text = renderBoard(withFocus([focusRow()], {}, [readyRow({ focus: 1, unblocks: 2 }), readyRow({ spec: "beta", focus: 2 })]), { lane: "ready" });
-    expect(text.split("\n").slice(4)).toEqual(["  1 ★  alpha · 1  /spec execute      focus 1 · unblocks 2", "  2 ★  beta · 1   /spec execute      focus 2"]);
+  test("a ready row of a focus spec notes its band before any other note", () => {
+    const ready = [readyRow({ focus: 1, focusBand: "must", unblocks: 2 }), readyRow({ spec: "beta", focus: 2, focusBand: "could" })];
+    const text = renderBoard(withFocus([focusRow()], {}, ready), { lane: "ready" });
+    expect(text.split("\n").slice(4)).toEqual(["  1 ★  alpha · 1  /spec execute      must · unblocks 2", "  2 ★  beta · 1   /spec execute      could"]);
   });
 });

@@ -8,8 +8,8 @@ needs to know exist to navigate the code — not every file that's touched.
 | File | Role | Phase |
 |------|------|-------|
 | `skills/spec/tools/focus/land.ts` | Base-first writer: pin, commit one `CLAUDE.md` onto the tip, push, retry | 2 |
-| `skills/spec/tools/focus/rank.ts` | Pure rank arithmetic (append, top, after; never renumbers) | 2 |
-| `skills/spec/tools/focus/plan.ts` | Pure: the one `CLAUDE.md` edit (or refusal) for add / move / drop | 2 |
+| `skills/spec/tools/focus/rank.ts` | Pure rank arithmetic (append, top, after); **deleted in phase 7** when `focus:` became a band | 2 |
+| `skills/spec/tools/focus/plan.ts` | Pure: the one `CLAUDE.md` edit (or refusal) for add / move / drop; takes a band since phase 7 | 2, 7 |
 | `skills/spec/tools/commands/focus.ts` | `spec.ts focus add\|drop\|move`: args, copy | 2 |
 | `skills/spec/tools/publish/commit-onto.ts` | `commitOnto`: index-info entries onto a base via a scratch index (snapshot + focus) | 2 |
 | `skills/spec/tools/board/attribution.ts` | Session → spec: repo scope, claim → launch title → non-main tree | 3 |
@@ -26,7 +26,7 @@ needs to know exist to navigate the code — not every file that's touched.
 
 | File | Why we care | Ledger |
 |------|-------------|--------|
-| `skills/spec/tools/core/spec-meta.ts` | `SpecMeta.focus` / `owner`; the board reads `node.meta.focus` | `decision-focus-rank-in-spec-meta` |
+| `skills/spec/tools/core/spec-meta.ts` | `SpecMeta.focus` (a band since phase 7) / `owner`; the board reads `node.meta.focus` | `decision-focus-rank-in-spec-meta`, `decision-focus-is-a-band` |
 | `skills/spec/tools/core/frontmatter-patch.ts` | `setFrontmatterLine` + new `removeFrontmatterLine` | |
 | `skills/spec/tools/publish/snapshot.ts`, `publish/publish.ts` | `pinDefault`, `NON_FAST_FORWARD` (exported) | `decision-focus-writes-land-on-default-branch` |
 | `skills/spec/tools/mainline/load.ts` | `baseProject(git, sha)`: spec docs at a sha from the base cache (board + focus writer) | |

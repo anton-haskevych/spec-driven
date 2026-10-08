@@ -12,7 +12,7 @@ Answers "what can I start next, what waits on what, and what's open": a board of
 | "what's Taras on", "Taras's focus" | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board focus --who taras` |
 | `table`, `all`, or any other filter | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list [table] [all] [<filter>]` — the table |
 
-**The board** reads `origin/<default>` (fetched, 10 s timeout) plus every worktree's unmerged spec docs, so it is the same from any checkout or worktree (the current one is marked `◀ here`). Lanes: FOCUS first, when any spec has `focus:` (one row per focus spec in focus order: progress, what is happening now — executing, ready, needs deploy, blocked, paused, or `merging #n` while a finished spec's linked PR is open — and who is on it, per person, me first: `<person>: <sessions> · <claims> · <PRs>`, from this repo's sessions on this machine, other machines' claims and the open PRs its `pr-opening.md` links, by author; an owner with nobody on the row shows as `— (<owner>)`; `other sessions:` lists this repo's other sessions), in flight (phases ticked or half-done in a worktree), ready (ranked: focus specs first, by focus position and marked `focus <n>`; then overdue, priority, due, unblocks most, recently updated; ★ = shares no files with anything in flight; a phase whose need is ticked only in one worktree is ready `in <worktree>`; a spec only on a branch says `only on <branch>`), blocked (with the reasons), needs you (overdue work, a done phase another one waits to see deployed, a session idle 2+ days that still holds a live claim). The header says when origin couldn't be fetched. If the board can't be built (not a git repo, no origin), the tool prints the table and a `board unavailable: <reason>` line.
+**The board** reads `origin/<default>` (fetched, 10 s timeout) plus every worktree's unmerged spec docs, so it is the same from any checkout or worktree (the current one is marked `◀ here`). Lanes: FOCUS first, when any spec has `focus:` (one row per focus spec under a MUST / SHOULD / COULD sub-header, numbered 1…n down the lane: progress, what is happening now — executing, ready, needs deploy, blocked, paused, or `merging #n` while a finished spec's linked PR is open — and who is on it, per person, me first: `<person>: <sessions> · <claims> · <PRs>`, from this repo's sessions on this machine, other machines' claims and the open PRs its `pr-opening.md` links, by author; an owner with nobody on the row shows as `— (<owner>)`; `other sessions:` lists this repo's other sessions), in flight (phases ticked or half-done in a worktree), ready (ranked: focus specs first, in lane order and marked with their band, `must`; then overdue, priority, due, unblocks most, recently updated; ★ = shares no files with anything in flight; a phase whose need is ticked only in one worktree is ready `in <worktree>`; a spec only on a branch says `only on <branch>`), blocked (with the reasons), needs you (overdue work, a done phase another one waits to see deployed, a session idle 2+ days that still holds a live claim). The header says when origin couldn't be fetched. If the board can't be built (not a git repo, no origin), the tool prints the table and a `board unavailable: <reason>` line.
 
 **The table**:
 - **No filter** (`list table`): the top 30 open specs plus every open backlog idea.
@@ -34,14 +34,25 @@ Print the tool's output exactly as given, code fence included. Don't recast it a
 
 ## Focus
 
-The team's focus set is a `focus: <rank>` line in each focus spec's `CLAUDE.md` on the default branch (lower = higher). Change it only when the user says so: every write lands on `origin/<default>` at once, one commit, for the whole team.
+The team's focus set is a `focus: must | should | could` line in each focus spec's `CLAUDE.md` on the default branch. The bands are MoSCoW's:
+
+- **must**: pick first.
+- **should**: committed; pick when your must is done, blocked or in review.
+- **could**: when there's room, e.g. a spare parallel session or while waiting on CI.
+- No `focus:` line: not in focus, MoSCoW's "won't, this time".
+
+Inside a band the board orders specs from their data: overdue first, then due date, then priority, then name. There is no rank: to put X ahead of Y in one band, give X a due date or a higher priority.
+
+Change the set only when the user says so: every write lands on `origin/<default>` at once, one commit, for the whole team.
 
 | The user says | Run |
 |---|---|
-| "focus on X", "add X to focus" | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts focus add X` (last) |
-| "put X on top" | `focus add X --top`, or `focus move X --top` when X is already in focus |
-| "X after Y" | `focus add X --after Y`, or `focus move X --after Y` |
+| "focus on X", "add X to focus", "X is a should" | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts focus add X <band>`; no band named → `should`, and say so |
+| "move X to must", "X is a must now", "X can wait" (→ `could`) | `focus move X <band>`, or `focus add X <band>` when X isn't in focus |
+| "bump X up", "push X down" | `focus move X` one band up or down (must ↔ should ↔ could) |
 | "drop X from focus" | `focus drop X` |
+
+A 2.37.0 number (`focus: 10`) shows under SHOULD and the doctor warns; `focus add X <band>` rewrites it and `focus drop X` removes it.
 
 Print the tool's line. A refusal (`focus add: …`, `focus: push to main refused: …`) means nothing was written; pass it on. "X is Taras's" is not a focus write: set `owner: taras` in X's `CLAUDE.md` with an ordinary spec-doc edit.
 

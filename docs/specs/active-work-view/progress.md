@@ -8,7 +8,7 @@
 
 ## Success metrics
 
-- In CRM, `/spec list` opens on the team's focus specs, in the agreed order, identically on both machines.
+- In CRM, `/spec list` opens on the team's focus specs, in the agreed bands (must / should / could), identically on both machines.
 - Every open session in this repo on this machine appears either on a focus row or in `other sessions`; sessions from other repos never do.
 - A live claim idle for 2+ days shows under needs you; a finished focus spec stays visible (`merging #n`) until its PR merges.
 - A teammate's claims and linked PRs appear on their focus rows.
@@ -22,3 +22,4 @@
 - [x] Phase 4 — Teammate's work and `--who` → `phases/phase-4-teammate-work.md`
 - [x] Phase 5 — Idle claims → `phases/phase-5-idle-and-shipped.md`
 - [ ] Phase 6 — Seed CRM's focus set → `phases/phase-6-seed-crm-focus.md`
+- [x] Phase 7 — Focus bands: must, should, could → `phases/phase-7-focus-bands-must-should-could.md`

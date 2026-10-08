@@ -43,10 +43,10 @@ export function buildBoard(inputs: BoardInputs, now: Date, me?: string): Board {
   const inFlight = joinFlightRows(flightRows(activity, inputs), inputs);
   const placement: Placement = { inputs, today, unblocks: unblockCounts(inputs.states, inputs.nodes), activity, inFlight: new Set(inFlight.map(rowKey)) };
   const lanes = [...active.map((node) => specLanes(node, placement)), ...branchOnlyLanes(inputs.workspaces, placement)];
-  const order = focusOrder(inputs);
+  const order = focusOrder(inputs, today);
   const ready = rankReady(withFocusPositions(markSafe(lanes.flatMap((spec) => spec.ready), inFlight, withBranchOnlyNodes(inputs), inputs.states), order));
   const blocked = lanes.flatMap((spec) => spec.blocked);
-  const focus = focusLane({ inFlight, ready, blocked }, order, inputs, now, me);
+  const focus = focusLane({ inFlight, ready, blocked }, order, inputs, me);
   const { duplicates, ...counts } = inputs.counts;
   return {
     version: BOARD_VERSION,

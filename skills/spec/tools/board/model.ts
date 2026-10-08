@@ -1,4 +1,5 @@
 import type { Priority } from "../core/schedule";
+import type { FocusBand } from "../core/spec-meta";
 import type { SessionStatus } from "../sessions/live";
 import type { SpecStage } from "./inputs";
 
@@ -46,6 +47,7 @@ export interface ReadyRow extends RowBase {
   next: NextStep;
   // The spec's position in the FOCUS lane (1 = top); focus rows rank first.
   focus?: number;
+  focusBand?: FocusBand;
   prGroup?: string;
   priority?: Priority;
   due?: string;
@@ -113,7 +115,7 @@ export interface FocusWork {
 
 export interface FocusRow {
   spec: string;
-  rank: number;
+  band: FocusBand;
   // 1-based place in the whole lane, kept when `--who` filters rows out.
   position: number;
   owner?: string;

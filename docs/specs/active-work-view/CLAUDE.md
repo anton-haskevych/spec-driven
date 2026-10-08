@@ -1,6 +1,6 @@
 ---
 created: 2026-10-07T18:39:32-07:00
-updated: 2026-10-07T21:12:04-07:00
+updated: 2026-10-08T15:17:31-07:00
 status: active
 area: [tools, sub-commands]
 domain: [spec-workflow]
@@ -13,9 +13,9 @@ related:
 
 # Active Work View Spec
 
-A team-shared, ranked **focus set** (`focus: <rank>` in each spec's `CLAUDE.md`, plus the documented
-`owner:`; written straight onto the default branch by `spec.ts focus`) and a **FOCUS** section at the
-top of `/spec list`: per focus spec, progress, what is happening now and who is on it (this repo's
+A team-shared **focus set** in three bands (`focus: must | should | could` in each spec's `CLAUDE.md`,
+plus the documented `owner:`; written straight onto the default branch by `spec.ts focus`) and a
+**FOCUS** section at the top of `/spec list`, grouped MUST / SHOULD / COULD: per focus spec, progress, what is happening now and who is on it (this repo's
 sessions on this machine, plus a teammate's claims and open PRs). Live claims idle for 2+ days show
 under needs you. No focus set → today's lanes, unchanged.
 

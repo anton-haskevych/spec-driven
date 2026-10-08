@@ -2,14 +2,16 @@
 
 ## Spec state
 
-Spec written 2026-10-07, reviewed 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`). 5 code phases + 1 task phase.
-Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, merged as 2.37.0); phase 5 (PR C: #19, `feat/active-work-view-pr-c`, 2.38.0, open). Left: 6. Phase 4 moved into PR B (user, 2026-10-07).
+Spec written 2026-10-07, reviewed 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`). 6 code phases + 1 task phase.
+Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, merged 2026-10-08 as 2.37.0); phase 7 (PR D: #20, merged 2026-10-08 as 2.39.0); phase 5 (PR C: #19, `feat/active-work-view-pr-c`, 2.40.0, open). Left: 6. Phase 4 moved into PR B (user, 2026-10-07).
+Phase 7 added 2026-10-08 while seeding CRM: `focus:` becomes a band (must / should / could) instead of a rank (`ledger/decision-focus-is-a-band.md`); phase 6 now needs it.
 Phase 3 smoke so far: CRM `board --local` with no `focus:` is byte-identical to 2.36.8 (2026-10-07).
 Split (value first):
 - **PR A: phase 1.** Shared helpers, test factories, `list --local` fix. Refactor only; release 2.36.8.
 - **PR B: phases 2–4.** Focus field + base-first writer + FOCUS lane + teammate's work and `--who`. The first usable cut; release 2.37.0. Phases 1 and 2 run in parallel.
-- **PR C: phase 5.** Idle claims. Release 2.38.0.
-- Phase 6 (task) runs in CRM once 2.37.0 is installed.
+- **PR C: phase 5.** Idle claims, 2.40.0 (moved from 2.38.0 after PR D merged first).
+- **PR D: phase 7.** Focus bands, merged as 2.39.0. Independent of PR C (both touch `board/model.ts`, `board/render.ts` and the ROADMAP table; rebase the second).
+- Phase 6 (task) runs in CRM once the release with phase 7 is installed on both machines.
 
 ## Pre-PR checks
 
@@ -36,3 +38,11 @@ PR B (checks above re-run for PR B, 2.37.0, 2026-10-07: 886 tests pass, typechec
 PR C (checks above re-run for PR C, 2.38.0, 2026-10-07: 895 tests pass, typecheck clean, frozen lockfile clean, versions match, touched files ≤ 187 lines):
 - [ ] Smoke in CRM: recurring-series-lifecycle-clarity · 7 (or any 2-day-idle live claim) shows `claim idle`
   - 2026-10-07: no 2-day-idle live claim in CRM to smoke against (that session moved on to phase 8, busy). CRM `board you` shows no `claim idle` row, which is correct; the flagged path is covered by `board-claims.test.ts`.
+
+- [x] Re-run after merging main (PR D, 2.39.0) and moving to 2.40.0, 2026-10-08: 892 tests pass, typecheck clean, frozen lockfile clean, versions match
+
+PR D:
+- [x] Smoke against a scratch bare origin + two clones: `focus add` into each band, `move`, `drop`; both clones show the same MUST / SHOULD / COULD lane; doctor 0 errors (2026-10-08: the stale clone's board matched; `--top` and a non-band refused with the new copy; a hand-written `focus: 7` showed under SHOULD with the doctor's warning; `add` overwrote a legacy 20)
+- [x] Smoke in CRM before reseeding: the four legacy numeric `focus:` values show under SHOULD and the doctor warns; with no `focus:` the no-focus golden still matches (2026-10-08: `board focus --local` lists all four under SHOULD, ready rows note `should`; doctor warns on an `origin/main` export, see `gotcha-doctor-reads-the-checkout-not-origin`; golden test untouched and green)
+- [x] PR body says `FocusRow.rank` became `band` with `BOARD_VERSION` 1 kept, and why
+- [x] Every-PR checks re-run for PR D, 2.39.0, 2026-10-08: 883 tests pass, typecheck clean, frozen lockfile clean, versions match, no touched file over 250 lines
