@@ -1,4 +1,4 @@
-import { ago, alignColumns, clock, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
+import { ago, alignColumns, clock, lane, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
 import type { AttentionRow, Board, FlightRow, ReadyRow } from "./model";
 
 export type Lane = "flight" | "ready" | "blocked" | "you";
@@ -35,10 +35,6 @@ function header(board: Board, now: Date): string {
   const { inFlight, ready, blocked, needsYou } = board.lanes;
   const counts = `${inFlight.length} in flight · ${ready.length} ready · ${blocked.length} blocked · ${needsYou.length} ${needsYou.length === 1 ? "needs" : "need"} you`;
   return `spec board · ${board.repo} · ${freshness}\n${counts}`;
-}
-
-function lane(title: string, lines: readonly string[]): string {
-  return [title, ...(lines.length > 0 ? lines : ["none"]).map((line) => `  ${line}`)].join("\n");
 }
 
 function capped(rows: ReadonlyArray<readonly string[]>, cap: number, name: Lane, asked: Lane | undefined): string[] {
