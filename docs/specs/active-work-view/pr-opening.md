@@ -15,14 +15,14 @@ Split (value first):
 Scoped to the plugin repo (`skills/spec/`). Plugin repo PRs are ready, not draft — never straight to `main`.
 
 Every PR:
-- [ ] `bun test` passes (incl. `commands-table.test.ts`, `skill-wiring.test.ts`)
-- [ ] `bun run typecheck` clean
-- [ ] `bun install --frozen-lockfile` clean (no new runtime deps)
-- [ ] `python3 scripts/version.py --set <v>`; all declarations match; ROADMAP row added
-- [ ] New and touched files under 250 lines, functions under 50 (`principles.md`)
+- [x] `bun test` passes (incl. `commands-table.test.ts`, `skill-wiring.test.ts`)
+- [x] `bun run typecheck` clean
+- [x] `bun install --frozen-lockfile` clean (no new runtime deps)
+- [x] `python3 scripts/version.py --set <v>`; all declarations match; ROADMAP row added
+- [x] New and touched files under 250 lines, functions under 50 (`principles.md`)
 
-PR A:
-- [ ] Smoke in CRM: `spec.ts list` output identical to 2.36.7 (diff the two); `spec.ts list table --local` prints the table
+PR A (checks above ticked for PR A, 2.36.8, 2026-10-07: 777 tests pass; CRM `board --local` and `list table` byte-identical to 2.36.7; `list --local` prints the board):
+- [x] Smoke in CRM: `spec.ts list` output identical to 2.36.7 (diff the two); `spec.ts list table --local` prints the table
 
 PR B:
 - [ ] Smoke in CRM before any `focus:`: board identical to 2.36.7
