@@ -53,16 +53,16 @@ Test it without git.
 
 ## Deliverables
 
-- [ ] `sessionLabel` in `sessions/label.ts`, used by `trees/find.ts` and `claims/rules.ts`, with a test
-- [ ] `sessionsByWorkspace` in `sessions/by-workspace.ts` (all sessions per tree), used by `board/joins.ts` and `trees/find.ts`, with a test
-- [ ] `splitKey` next to `rowKey`; `flight.ts` and `attention.ts` use it; cases in `board-phase-keys.test.ts`
-- [ ] `deployWaits` pairs in `board/deploy-waits.ts`; `attention.ts` groups them; test; existing deploy pins unchanged
-- [ ] `olderThanDays` in `core/age.ts` (strict; N days false, N days + 1 ms true); `attention.ts` uses it for remote claims
-- [ ] `specSummary` exported from `portfolio/rows.ts`; `specRow` uses it; cases in `portfolio.test.ts`
-- [ ] `toPrCell` + `linkedPrs` exported from `board/joins.ts`; in-flight output unchanged
-- [ ] `launchTitle` / `parseLaunchTitle` in `launch/title.ts`; `sessionLaunch` uses the builder; round-trip test
-- [ ] Shared `claim` / `heldClaim` / `liveSession` / `prRow` factories; fitting copies replaced
-- [ ] `listRoute`: `list --local` shows the board, unknown `--` flags print usage; test
+- [x] `sessionLabel` in `sessions/label.ts`, used by `trees/find.ts` and `claims/rules.ts`, with a test
+- [x] `sessionsByWorkspace` in `sessions/by-workspace.ts` (all sessions per tree), used by `board/joins.ts` and `trees/find.ts`, with a test
+- [x] `splitKey` next to `rowKey`; `flight.ts` and `attention.ts` use it; cases in `board-phase-keys.test.ts`
+- [x] `deployWaits` pairs in `board/deploy-waits.ts`; `attention.ts` groups them; test; existing deploy pins unchanged
+- [x] `olderThanDays` in `core/age.ts` (strict; N days false, N days + 1 ms true); `attention.ts` uses it for remote claims
+- [x] `specSummary` exported from `portfolio/rows.ts`; `specRow` uses it; cases in `portfolio.test.ts`
+- [x] `toPrCell` + `linkedPrs` exported from `board/joins.ts`; in-flight output unchanged
+- [x] `launchTitle` / `parseLaunchTitle` in `launch/title.ts`; `sessionLaunch` uses the builder; round-trip test
+- [x] Shared `claim` / `heldClaim` / `liveSession` / `prRow` factories; fitting copies replaced
+- [x] `listRoute`: `list --local` shows the board, unknown `--` flags print usage; test
 
 ## Phase-local notes
 

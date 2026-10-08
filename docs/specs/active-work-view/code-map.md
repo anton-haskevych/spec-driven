@@ -12,6 +12,9 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/board/attribution.ts` | Session → spec: repo scope, claim → launch title → non-main tree | 3 |
 | `skills/spec/tools/board/focus.ts` | `focusLane`: FOCUS rows + `otherSessions` | 3 |
 | `skills/spec/tools/launch/title.ts` | Launch title builder and its inverse | 1 |
+| `skills/spec/tools/sessions/by-workspace.ts`, `sessions/label.ts` | Every session per tree; `name ?? session <id8>` | 1 |
+| `skills/spec/tools/board/deploy-waits.ts` | `{ waiter, target }` row-key pairs for undeployed needs | 1 |
+| `skills/spec/tools/core/age.ts` | `olderThanDays` (strict) for remote and idle claims | 1 |
 | `skills/spec/tools/board/people.ts` | `samePerson`, `personKey`, `focusFor` (`--who`) | 4 |
 
 ## Existing files touched
@@ -30,7 +33,10 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/sessions/live.ts` | Only reader of `~/.claude/sessions/*.json` (every repo on the machine) | `principle-session-attribution-scope-and-order` |
 | `skills/spec/tools/claims/held.ts` | `claimContext` lists every worktree path; the repo scope reuses that read | |
 | `skills/spec/tools/pr/gh-lists.ts` | `gh pr list` fields (`author`) | |
-| `skills/spec/tools/commands/list.ts` | `list` routing and the `--local` bug | |
+| `skills/spec/tools/commands/list.ts` | `listRoute`: board vs table, `--local` (fixed in phase 1) | |
+| `skills/spec/tools/portfolio/rows.ts` | `specSummary`: progress, priority, due, overdue per spec node | |
+| `skills/spec/tools/board/phase-keys.ts` | `rowKey` / `splitKey` (inverse pair) | `domain-whole-spec-deploy-refs-never-wait` |
+| `tests/factories.ts`, `tests/board-factories.ts` | Shared `claim`, `heldClaim`, `liveSession`, `prRow` | |
 | `skills/spec/tools/commands/context.ts` | `OFFER_TOP_READY` follows `rankReady` | |
 
 ## External references

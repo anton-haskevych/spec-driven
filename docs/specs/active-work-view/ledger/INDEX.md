@@ -11,6 +11,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `principle-session-attribution-scope-and-order.md` — [phase 3+, load-bearing] — repo scope first; claim → launch title → non-main tree
 
 ## Domain
+- `domain-whole-spec-deploy-refs-never-wait.md` — [phase 3, 5] — needs-deployed on a whole spec never waits; deployWaits yields phase keys only
 
 ## Decisions
 - `decision-focus-rank-in-spec-meta.md` — [general, load-bearing] — `focus:` + `owner:` in spec CLAUDE.md; no `_focus/` registry
