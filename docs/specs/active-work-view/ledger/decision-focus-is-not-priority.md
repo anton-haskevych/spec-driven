@@ -12,3 +12,5 @@ urgency across all specs.
 
 `rankReady` puts focus rows first (by focus rank), then today's order (overdue → priority → due → …).
 No doctor coupling: a "focus spec should be p1" warning would push everything back to p1.
+
+Phase 7 (2026-10-08) turns the rank into a band (`decision-focus-is-a-band.md`). The two axes stay separate: grouping FOCUS by `priority:` was rejected again.

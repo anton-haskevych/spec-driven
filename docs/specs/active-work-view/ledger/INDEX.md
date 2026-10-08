@@ -16,6 +16,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `domain-whole-spec-deploy-refs-never-wait.md` — [phase 3, 5] — needs-deployed on a whole spec never waits; deployWaits yields phase keys only
 
 ## Decisions
+- `decision-focus-is-a-band.md` — [general, load-bearing] — `focus: must|should|could`; in-band order from data; no rank, no tier
 - `decision-focus-rank-in-spec-meta.md` — [general, load-bearing] — `focus:` + `owner:` in spec CLAUDE.md; no `_focus/` registry
 - `decision-focus-writes-land-on-default-branch.md` — [phase 2, 6] — focus writer pins origin/<default>, commits one file, pushes
 - `decision-focus-is-not-priority.md` — [phase 3+] — focus ≠ p1; focus ranks before priority in ready rows

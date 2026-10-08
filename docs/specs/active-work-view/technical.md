@@ -10,25 +10,26 @@ Ground truth: `research/2026-10-07-wave-1-board-sessions-storage.md` (seams, reu
 ---
 …
 priority: p1
-focus: 20         # optional; finite number ≥ 0; lower = higher in focus
+focus: must       # optional; must | should | could (phase 7; a 2.37.0 number reads as should)
 owner: taras      # optional; the documented "one named person" key; gh login preferred
 ---
 ```
 
-- `T/core/spec-meta.ts`: `SpecMeta` gains `focus?: number` and `owner?: string`; `readSpecMeta` reads
-  them (a non-number `focus` → undefined). The board reads `node.meta.focus` from the base nodes it
+- `T/core/spec-meta.ts`: `SpecMeta` gains `focus?: FocusBand` (`FOCUS_BANDS = ["must", "should",
+  "could"]`, phase 7; 2.37.0 shipped `focus?: number`) and `owner?: string`; `readSpecMeta` reads them
+  (a number → `should` plus a warning problem; anything else → undefined plus an error problem). The board reads `node.meta.focus` from the base nodes it
   already loads; there is no new loader and no `BoardInputs.focus`.
-- Validation: `checkSpecMeta` (`T/doctor/spec-meta.ts`) errors on a `focus` that isn't a finite number
-  ≥ 0 and on a non-string `owner`. The spec-file hook already runs it on every `CLAUDE.md` write.
+- Validation: `checkSpecMeta` (`T/doctor/spec-meta.ts`) errors on a `focus` that isn't a band, warns on
+  a legacy number, and errors on a non-string `owner`. The spec-file hook already runs it on every `CLAUDE.md` write.
 - `T/core/frontmatter-patch.ts` gains `removeFrontmatterLine(text, key)` (with continuation lines), the
   inverse of `setFrontmatterLine`.
 
 ## Writer: `spec.ts focus`
 
 ```
-focus add <spec> [--top | --after <spec>]
+focus add <spec> <must|should|could>
+focus move <spec> <must|should|could>
 focus drop <spec>
-focus move <spec> (--top | --after <spec>)
 ```
 
 Exemplar `T/commands/phase.ts` (`ACTIONS` record, `FOCUS_USAGE`, errors `focus <action>: <reason>`).
@@ -38,7 +39,7 @@ Ownership is not the writer's job: Claude sets `owner:` with an ordinary spec-do
 1. `pinDefault(git, branch)` (`T/publish/snapshot.ts`) → the tip sha.
 2. Read every spec's `focus:` at that tip (base nodes, as the board loads them) and the target spec's
    `CLAUDE.md` text at the tip (`git show <tip>:<path>`). Refuse a spec that isn't on the base.
-3. `T/focus/rank.ts` (pure) gives the new rank; the planner gives the new `CLAUDE.md` text
+3. The planner (`T/focus/plan.ts`, pure) checks the band and gives the new `CLAUDE.md` text
    (`setFrontmatterLine` / `removeFrontmatterLine`).
 4. Commit that one file onto the tip with a scratch index and `commit-tree -p <tip>`, subject
    `[focus] <verb> <spec>`. Extract the scratch-index part of `snapshotCommit` into a shared
@@ -50,13 +51,14 @@ Ownership is not the writer's job: Claude sets `owner:` with an ordinary spec-do
 The working tree is never touched. A checkout catches up the next time it merges main; the added or
 removed line is far from `updated:`, so that merge is clean.
 
-**Rank arithmetic** (`T/focus/rank.ts`, pure over `{ spec, rank }[]` sorted by rank then spec; the
-moved spec is removed first):
-- `add` default: `max + 10` (empty: 10). `--top`: `min − 10`, or `min / 2` when that would be ≤ 0, so written ranks stay above 0 and `--top` never ties; over a hand-written `0` it refuses.
-- `--after X`: midpoint of X and the next entry with a rank **greater** than X's (none → X + 10).
-- `move` = the same over the set without the moved spec. Never touches another spec.
-- Refusals: spec not on the base; already in focus (`add`); not in focus (`drop` / `move`); `--after`
-  target not in focus. A malformed `focus:` counts as not in focus, so `add` overwrites it.
+**Bands** (phase 7, `ledger/decision-focus-is-a-band.md`; 2.37.0's rank arithmetic in `focus/rank.ts`
+is deleted). The plan is pure over `{ spec, band }[]`:
+- `add <spec> <band>` writes `focus: <band>`; `move` rewrites it; `drop` removes the line. Never
+  touches another spec.
+- Refusals: spec not on the base; not a band; already in focus (`add`, names its band, says `use
+  move`); already that band (`move`); not in focus (`drop` / `move`). A legacy number or malformed
+  `focus:` counts as not in focus, so `add` overwrites it.
+- In-band order is not stored. The board computes it (*Ranking*).
 
 ## Board model (additive, `BOARD_VERSION` 1)
 
@@ -80,7 +82,7 @@ export interface FocusWork {
 }
 export interface FocusRow {
   spec: string;
-  rank: number;
+  band: FocusBand;                                 // phase 7; replaced 2.37.0's rank: number
   position: number;                                // place in the whole lane; kept by --who
   owner?: string;
   sessions: FocusSession[];                        // this machine's: always mine, merged into my bucket at render
@@ -93,7 +95,7 @@ export interface FocusRow {
   unattributedPrs: PrCell[];                       // open linked PRs with no author
 }
 // Board.lanes.focus: FocusRow[]   Board.footer.otherSessions?: string[]   Board.me?: string
-// ReadyRow.focus?: number
+// ReadyRow.focus?: number (lane position)   ReadyRow.focusBand?: FocusBand
 // AttentionRow += { kind: "idle-claim"; session: string; spec: string; phases: string[]; since: string }
 ```
 
@@ -115,7 +117,9 @@ export interface FocusRow {
   open are rows; finished ones are rows only while a linked PR is open (`merging`). Progress, due and
   overdue come from `specSummary` (extraction #6). `otherSessions` = this repo's sessions not on any
   row, and only when there are rows.
-- `buildBoard` sets `ReadyRow.focus` from `node.meta.focus` before `rankReady`.
+- `buildBoard` sets `ReadyRow.focus` (lane position) and `focusBand` from `focusOrder` before `rankReady`.
+- `focusOrder` sorts by band (must → should → could), then overdue → due → priority (`specSummary`) →
+  spec name. One order feeds the lane and the ready rows.
 - `T/board/attribution.ts` — `attributeSessions(sessions, inputs, focusSpecs): { bySpec: Map<string,
   LiveSession[]>; unattributed: LiveSession[] }`:
   0. keep sessions with `ownerOf(session.cwd, inputs.worktreePaths)`; `worktreePaths` is every
@@ -149,13 +153,15 @@ export interface FocusRow {
 `T/board/render-focus.ts` (new): `focusLane` text using `lane()`, `alignColumns`, `rowName`, `ago`,
 `prCell` from `T/board/cells.ts`. It takes the filter name only for the title. `render.ts`: `LANES`
 gains `"focus"` first; the section is skipped when `lanes.focus` is empty, except `board focus` prints
-`FOCUS\n  none`; header count prefix; one `attentionCells` line; the ready row's `focus <n>` note.
+`FOCUS\n  none`; header count prefix; one `attentionCells` line; the ready row's band note (`must`;
+2.37.0 printed `focus <n>`). `render-focus.ts` inserts a `MUST` / `SHOULD` / `COULD` line before each
+non-empty band, after one `alignColumns` over the whole lane.
 `T/commands/board.ts`: `--who <name|me>` (only with the `focus` lane or none) runs `focusFor` before
 both `--json` and text.
 
 ## Ranking
 
-`T/board/rank.ts` `rankReady`: rows with `focus` first, by `focus` ascending; then today's order
+`T/board/rank.ts` `rankReady`: rows with `focus` first, by `focus` (lane position, so band first) ascending; then today's order
 (overdue → priority → due → unblocks → updated → name). `markSafe` unchanged. Agents that read the top
 ready row change behaviour with it: `skills/spec/execute.md` (offer the top ready row),
 `T/commands/context.ts` (`OFFER_TOP_READY`), `T/tests/context.test.ts`.
@@ -187,12 +193,12 @@ args: string[] } | string`. `--local` alone → board with `local: true`; `table
 
 ```
 skills/spec/tools/
-  focus/rank.ts  focus/plan.ts  focus/land.ts
+  focus/plan.ts  focus/land.ts                     (focus/rank.ts: 2.37.0, deleted in phase 7)
   commands/focus.ts
   board/focus.ts  board/attribution.ts  board/people.ts  board/render-focus.ts  board/deploy-waits.ts
   sessions/label.ts  sessions/by-workspace.ts  launch/title.ts
   core/age.ts
-  tests/focus-rank.test.ts  focus-plan.test.ts  focus-land.test.ts  focus-command.test.ts
+  tests/focus-plan.test.ts  focus-land.test.ts  focus-command.test.ts
         board-focus.test.ts  board-attribution.test.ts  board-people.test.ts  board-render-focus.test.ts
         sessions-label.test.ts  sessions-by-workspace.test.ts  core-age.test.ts  launch-title.test.ts
         board-deploy-waits.test.ts  list-route.test.ts

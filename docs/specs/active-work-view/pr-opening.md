@@ -2,14 +2,16 @@
 
 ## Spec state
 
-Spec written 2026-10-07, reviewed 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`). 5 code phases + 1 task phase.
-Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, `feat/active-work-view-pr-b`, 2.37.0, open). Left: 5–6. Phase 4 moved into PR B (user, 2026-10-07).
+Spec written 2026-10-07, reviewed 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`). 6 code phases + 1 task phase.
+Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, merged 2026-10-08 as 2.37.0). Left: 5, 7, then 6. Phase 4 moved into PR B (user, 2026-10-07).
+Phase 7 added 2026-10-08 while seeding CRM: `focus:` becomes a band (must / should / could) instead of a rank (`ledger/decision-focus-is-a-band.md`); phase 6 now needs it.
 Phase 3 smoke so far: CRM `board --local` with no `focus:` is byte-identical to 2.36.8 (2026-10-07).
 Split (value first):
 - **PR A: phase 1.** Shared helpers, test factories, `list --local` fix. Refactor only; release 2.36.8.
 - **PR B: phases 2–4.** Focus field + base-first writer + FOCUS lane + teammate's work and `--who`. The first usable cut; release 2.37.0. Phases 1 and 2 run in parallel.
-- **PR C: phase 5.** Idle claims. Release 2.38.0.
-- Phase 6 (task) runs in CRM once 2.37.0 is installed.
+- **PR C: phase 5.** Idle claims. Next minor release.
+- **PR D: phase 7.** Focus bands. Next minor release; independent of PR C (both touch `board/model.ts` and `board/render.ts`; rebase the second).
+- Phase 6 (task) runs in CRM once the release with phase 7 is installed on both machines.
 
 ## Pre-PR checks
 
@@ -35,3 +37,8 @@ PR B (checks above re-run for PR B, 2.37.0, 2026-10-07: 886 tests pass, typechec
 
 PR C:
 - [ ] Smoke in CRM: recurring-series-lifecycle-clarity · 7 (or any 2-day-idle live claim) shows `claim idle`
+
+PR D:
+- [ ] Smoke against a scratch bare origin + two clones: `focus add` into each band, `move`, `drop`; both clones show the same MUST / SHOULD / COULD lane; doctor 0 errors
+- [ ] Smoke in CRM before reseeding: the four legacy numeric `focus:` values show under SHOULD and the doctor warns; with no `focus:` the no-focus golden still matches
+- [ ] PR body says `FocusRow.rank` became `band` with `BOARD_VERSION` 1 kept, and why

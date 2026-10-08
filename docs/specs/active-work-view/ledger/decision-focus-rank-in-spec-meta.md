@@ -19,3 +19,5 @@ Asked 2026-10-07 at review, after prior-art challenged design decision 2. Anton 
 
 Consequence: never reintroduce a separate focus registry. A finished spec's leftover `focus:` is
 harmless; the board hides it once no linked PR is open.
+
+Since phase 7 the value is a band, not a rank (`decision-focus-is-a-band.md`); where it lives is unchanged.
