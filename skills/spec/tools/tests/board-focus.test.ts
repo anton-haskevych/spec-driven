@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { BoardInputs } from "../board/inputs";
+import type { BoardInputs, HeldClaim } from "../board/inputs";
 import { buildBoard } from "../board/lanes";
 import type { SpecMeta } from "../core/spec-meta";
 import type { PhaseState } from "../core/spec-state";
@@ -123,6 +123,44 @@ describe("FOCUS sessions", () => {
     const blind = focusOf([ALPHA], { sessions: { ok: false, reason: "no dir" }, worktreePaths: ["/repo"] });
     expect(blind.lanes.focus[0]?.sessions).toEqual([]);
     expect(blind.footer).not.toHaveProperty("otherSessions");
+  });
+});
+
+describe("FOCUS work by person", () => {
+  const ME = "spec-tests";
+  const remote = (phase: string, user: string, claimedAt: string, spec = "alpha"): HeldClaim => ({ ...heldClaim("remote", { spec, phase, claimedAt }), holder: { user, host: "desktop" } });
+  const alpha = focused("alpha", 1, { phases: [phase("1", { done: true }), phase("2"), phase("3"), phase("4")] });
+  const prs = [
+    prRow({ number: 6, state: "MERGED", author: "taraskorpach" }),
+    prRow({ number: 7, author: "taraskorpach" }),
+    prRow({ number: 8, author: ME, draft: true }),
+    prRow({ number: 9 }),
+  ];
+  const board = buildBoard(
+    boardInputs([alpha, specFixture("beta", { phases: [phase("1")] })], {
+      claims: [remote("1", "Taras Korpach", "2026-09-28T10:00:00.000Z", "beta"), remote("2", "Taras Korpach", "2026-09-29T10:00:00.000Z"), remote("3", ME, "2026-09-30T10:00:00.000Z")],
+      prs: { ok: true, value: prs },
+      prLinks: new Map([["alpha", [6, 7, 8, 9]]]),
+    }),
+    NOW,
+    ME,
+  );
+  const [row] = board.lanes.focus;
+
+  test("my remote claims and PRs come first; a teammate's git name and gh login share one bucket", () => {
+    expect(row?.work).toEqual([
+      { person: "spectests", mine: true, claims: [{ phase: "3", since: "2026-09-30T10:00:00.000Z" }], prs: [{ number: 8, listed: true, draft: true }] },
+      { person: "taraskorpach", mine: false, claims: [{ phase: "2", since: "2026-09-29T10:00:00.000Z" }], prs: [{ number: 7, listed: true }] },
+    ]);
+  });
+
+  test("another spec's claim and a merged PR don't count; an open PR with no author stands apart", () => {
+    expect(row?.unattributedPrs).toEqual([{ number: 9, listed: true }]);
+  });
+
+  test("without a git name nothing is mine", () => {
+    const anonymous = buildBoard(boardInputs([alpha], { claims: [remote("3", ME, "2026-09-30T10:00:00.000Z")] }), NOW);
+    expect(anonymous.lanes.focus[0]?.work).toEqual([{ person: "spectests", mine: false, claims: [{ phase: "3", since: "2026-09-30T10:00:00.000Z" }], prs: [] }]);
   });
 });
 

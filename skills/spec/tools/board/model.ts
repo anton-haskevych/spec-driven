@@ -96,6 +96,19 @@ export interface FocusSession {
   since: string;
 }
 
+export interface FocusClaim {
+  phase: string;
+  since: string;
+}
+
+// One person's remote claims and open PRs on a focus spec. This machine's sessions stay on the row: they are always mine.
+export interface FocusWork {
+  person: string;
+  mine: boolean;
+  claims: FocusClaim[];
+  prs: PrCell[];
+}
+
 export interface FocusRow {
   spec: string;
   rank: number;
@@ -105,6 +118,8 @@ export interface FocusRow {
   overdue: boolean;
   now: FocusNow;
   sessions: FocusSession[];
+  work: FocusWork[];
+  unattributedPrs: PrCell[];
 }
 
 export type BaseMode = "fetched" | "offline" | "busy" | "local";

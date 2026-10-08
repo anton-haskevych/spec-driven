@@ -46,7 +46,7 @@ export function buildBoard(inputs: BoardInputs, now: Date, me?: string): Board {
   const order = focusOrder(inputs);
   const ready = rankReady(withFocusPositions(markSafe(lanes.flatMap((spec) => spec.ready), inFlight, withBranchOnlyNodes(inputs), inputs.states), order));
   const blocked = lanes.flatMap((spec) => spec.blocked);
-  const focus = focusLane({ inFlight, ready, blocked }, order, inputs, now);
+  const focus = focusLane({ inFlight, ready, blocked }, order, inputs, now, me);
   const { duplicates, ...counts } = inputs.counts;
   return {
     version: BOARD_VERSION,

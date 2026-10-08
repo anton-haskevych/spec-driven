@@ -7,8 +7,10 @@ import type { LiveSession } from "../sessions/live";
 import { attributeSessions } from "./attribution";
 import { deployWaits } from "./deploy-waits";
 import type { BoardInputs } from "./inputs";
-import { linkedPrs } from "./joins";
+import { linkedPrs, toPrCell } from "./joins";
+import type { PrRow } from "../pr/rollup";
 import type { BlockedRow, FlightRow, FocusNow, FocusRow, FocusSession, ReadyRow } from "./model";
+import { focusWork, type PersonClaim } from "./people";
 import { splitKey } from "./phase-keys";
 
 const DROPPED = new Set(["abandoned", "good-enough"]);
@@ -44,7 +46,7 @@ export function withFocusPositions(rows: readonly ReadyRow[], order: readonly Fo
   });
 }
 
-export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inputs: BoardInputs, now: Date): FocusLane {
+export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inputs: BoardInputs, now: Date, me?: string): FocusLane {
   if (order.length === 0) return { rows: [], otherSessions: [] };
   const today = isoDay(now);
   const live = inputs.sessions !== "local" && inputs.sessions.ok ? inputs.sessions.value : [];
@@ -61,6 +63,7 @@ export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inpu
       overdue,
       now: focusNow(node, lanes, inputs),
       sessions: (bySpec.get(name) ?? []).map((session) => focusSession(session, name)),
+      ...focusWork(remoteClaims(name, inputs), openLinkedPrs(name, inputs).map((pr) => ({ author: pr.author, cell: toPrCell(pr) })), me),
     };
   });
   return { rows, otherSessions: unattributed.map((session) => focusSession(session)) };
@@ -110,9 +113,17 @@ function mergingNow(node: SpecNode, inputs: BoardInputs): FocusNow | undefined {
   return pr === undefined ? undefined : { kind: "merging", pr };
 }
 
-function openLinkedPr(spec: string, { prs, prLinks }: BoardInputs): number | undefined {
-  if (prs === "local" || !prs.ok) return undefined;
-  return linkedPrs(prs.value, prLinks.get(spec) ?? []).find((pr) => pr.state === "OPEN")?.number;
+function openLinkedPr(spec: string, inputs: BoardInputs): number | undefined {
+  return openLinkedPrs(spec, inputs)[0]?.number;
+}
+
+function openLinkedPrs(spec: string, { prs, prLinks }: BoardInputs): PrRow[] {
+  if (prs === "local" || !prs.ok) return [];
+  return linkedPrs(prs.value, prLinks.get(spec) ?? []).filter((pr) => pr.state === "OPEN");
+}
+
+function remoteClaims(spec: string, { claims }: BoardInputs): PersonClaim[] {
+  return claims.flatMap(({ claim, status, holder }) => (status === "remote" && holder && claim.spec === spec ? [{ user: holder.user, phase: claim.phase, since: claim.claimedAt }] : []));
 }
 
 function focusSession(session: LiveSession, spec?: string): FocusSession {

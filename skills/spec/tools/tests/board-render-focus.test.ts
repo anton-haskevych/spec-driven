@@ -3,7 +3,7 @@ import type { Board, FocusRow, FocusSession } from "../board/model";
 import { renderBoard } from "../board/render";
 import { board, readyRow } from "./board-factories";
 
-const focusRow = (overrides: Partial<FocusRow> = {}): FocusRow => ({ spec: "alpha", rank: 10, progress: { done: 0, total: 3 }, overdue: false, now: { kind: "none" }, sessions: [], ...overrides });
+const focusRow = (overrides: Partial<FocusRow> = {}): FocusRow => ({ spec: "alpha", rank: 10, progress: { done: 0, total: 3 }, overdue: false, now: { kind: "none" }, sessions: [], work: [], unattributedPrs: [], ...overrides });
 const session = (overrides: Partial<FocusSession> = {}): FocusSession => ({ label: "alpha execute 2", sub: "execute", phase: "2", status: "busy", since: "2026-10-01T19:55:00.000Z", ...overrides });
 
 function withFocus(focus: FocusRow[], footer: Partial<Board["footer"]> = {}, ready: Board["lanes"]["ready"] = []): Board {
