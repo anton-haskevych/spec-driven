@@ -11,6 +11,12 @@ always mine, so they stay on `FocusRow.sessions` for good (JSON stays additive).
 remote claims and open PRs by person, and renders `<me>: <sessions>` by merging the row's sessions into
 the me bucket at render time. `footer.otherSessions` is `FocusSession[]` too, not strings.
 
+As built in phase 4: `FocusWork = { person, mine, claims, prs }` with no sessions; `person` is
+`personKey(name)` for everyone (me included), so a row reads `spectests: … ; taraskorpach: …`, or `me:`
+when git gives no name. `FocusRow.position` (1-based place in the whole lane) exists so `--who` keeps a
+row's number after filtering. PRs in the who cell reuse `prCell` (`#7 ✗ 2`, `#8 draft`), not the design's
+`2 failing` / `checks pass` copy, so FOCUS and IN FLIGHT read the same.
+
 `ReadyRow.focus` is the 1-based position in the FOCUS lane (one `focusOrder` feeds both), not the raw
 `focus:` number.
 

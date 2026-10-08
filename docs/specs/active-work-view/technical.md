@@ -73,16 +73,17 @@ export type FocusNow =
 
 export interface FocusSession { label: string; sub?: string; phase?: string; status: SessionStatus; since: string }
 export interface FocusWork {
-  person: string;                                  // display name; me first
+  person: string;                                  // personKey(name); me first
   mine: boolean;
-  sessions: FocusSession[];                        // this machine's, so only on the mine bucket
   claims: { phase: string; since: string }[];      // remote claims only (local ones show as sessions)
   prs: PrCell[];                                   // open only
 }
 export interface FocusRow {
   spec: string;
   rank: number;
+  position: number;                                // place in the whole lane; kept by --who
   owner?: string;
+  sessions: FocusSession[];                        // this machine's: always mine, merged into my bucket at render
   progress?: { done: number; total: number };
   stage?: SpecStage;
   due?: string;

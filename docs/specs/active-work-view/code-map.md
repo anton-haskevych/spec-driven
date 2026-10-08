@@ -20,7 +20,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/sessions/by-workspace.ts`, `sessions/label.ts` | Every session per tree; `name ?? session <id8>` | 1 |
 | `skills/spec/tools/board/deploy-waits.ts` | `{ waiter, target }` row-key pairs for undeployed needs | 1 |
 | `skills/spec/tools/core/age.ts` | `olderThanDays` (strict) for remote and idle claims | 1 |
-| `skills/spec/tools/board/people.ts` | `samePerson`, `personKey`, `focusFor` (`--who`) | 4 |
+| `skills/spec/tools/board/people.ts` | `samePerson`, `personKey`, `focusWork` (who buckets), `focusFor` / `boardFor` (`--who`) | 4 |
 
 ## Existing files touched
 
