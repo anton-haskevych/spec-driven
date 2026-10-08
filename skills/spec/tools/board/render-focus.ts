@@ -10,9 +10,18 @@ const FLIGHT_SHORT: Partial<Record<FlightNext, string>> = { "ticked on branch, n
 
 export function focusSection(board: Board, now: Date, who?: string): string {
   const me = board.me ? personKey(board.me) : ME;
-  const rows = board.lanes.focus.map((row) => [String(row.position), row.overdue ? `${row.spec} ⚠` : row.spec, progressCell(row), nowCell(row), whoCell(row, me, now)]);
+  const rows = board.lanes.focus;
+  const lines = alignColumns(rows.map((row) => [String(row.position), row.overdue ? `${row.spec} ⚠` : row.spec, progressCell(row), nowCell(row), whoCell(row, me, now)]));
   const others = board.footer.otherSessions ?? [];
-  return lane(who ? `FOCUS · ${who}` : "FOCUS", [...alignColumns(rows), ...(others.length > 0 ? [`other sessions: ${otherSessionsCell(others, now)}`] : [])]);
+  return lane(who ? `FOCUS · ${who}` : "FOCUS", [...withBandHeaders(rows, lines), ...(others.length > 0 ? [`other sessions: ${otherSessionsCell(others, now)}`] : [])]);
+}
+
+// Headers go in after alignment, so the bands read as one table.
+function withBandHeaders(rows: readonly FocusRow[], lines: readonly string[]): string[] {
+  return lines.flatMap((line, index) => {
+    const band = rows[index]?.band;
+    return band && band !== rows[index - 1]?.band ? [band.toUpperCase(), line] : [line];
+  });
 }
 
 function progressCell(row: FocusRow): string {
