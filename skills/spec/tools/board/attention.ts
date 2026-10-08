@@ -4,7 +4,8 @@ import type { SpecNode } from "../graph/nodes";
 import { heldName, holderName } from "../claims/rules";
 import type { BoardInputs } from "./inputs";
 import type { AttentionRow, FlightRow } from "./model";
-import { resolvedPhaseKeys, rowKey, splitKey } from "./phase-keys";
+import { deployWaits } from "./deploy-waits";
+import { rowKey, splitKey } from "./phase-keys";
 
 export const REMOTE_CLAIM_STALE_DAYS = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -63,12 +64,7 @@ function overdue(node: SpecNode, state: SpecState | undefined, today: string): A
 
 function awaitingDeploy(states: readonly SpecState[], nodes: ReadonlyMap<string, SpecNode>): AttentionRow[] {
   const waiting = new Map<string, string[]>();
-  for (const state of states) {
-    for (const phase of state.phases.filter((candidate) => !candidate.done)) {
-      const undeployed = resolvedPhaseKeys(phase.edges.needsDeployed, state, nodes).filter((target) => target.done && !target.deployed);
-      for (const { key } of undeployed) waiting.set(key, [...(waiting.get(key) ?? []), `${state.spec.name}#${phase.id}`]);
-    }
-  }
+  for (const { waiter, target } of deployWaits(states, nodes)) waiting.set(target, [...(waiting.get(target) ?? []), waiter]);
   return [...waiting].map(([key, by]) => {
     const { spec, phase = "" } = splitKey(key);
     return { kind: "deploy", spec, phase, waiting: by };
