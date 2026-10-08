@@ -1,13 +1,17 @@
-import { ago, alignColumns, EMPTY, lane, monthDay } from "./cells";
-import type { Board, FlightNext, FocusNow, FocusRow, FocusSession } from "./model";
+import { ago, alignColumns, EMPTY, lane, monthDay, prCell } from "./cells";
+import type { Board, FlightNext, FocusClaim, FocusNow, FocusRow, FocusSession, FocusWork } from "./model";
+import { personKey } from "./people";
 
 const READY_SHOWN = 3;
 const OTHER_SESSIONS_SHOWN = 5;
+const CLAIMS_SHOWN = 2;
+const ME = "me";
 const STAGE: Record<NonNullable<FocusRow["stage"]>, string> = { prep: "prep", create: "draft" };
 const FLIGHT_SHORT: Partial<Record<FlightNext, string>> = { "ticked on branch, not merged": "on branch" };
 
 export function focusSection(board: Board, now: Date): string {
-  const rows = board.lanes.focus.map((row, index) => [String(index + 1), row.overdue ? `${row.spec} ⚠` : row.spec, progressCell(row), nowCell(row), whoCell(row.sessions, now)]);
+  const me = board.me ? personKey(board.me) : ME;
+  const rows = board.lanes.focus.map((row, index) => [String(index + 1), row.overdue ? `${row.spec} ⚠` : row.spec, progressCell(row), nowCell(row), whoCell(row, me, now)]);
   const others = board.footer.otherSessions ?? [];
   return lane("FOCUS", [...alignColumns(rows), ...(others.length > 0 ? [`other sessions: ${otherSessionsCell(others, now)}`] : [])]);
 }
@@ -50,8 +54,29 @@ function flightText(phases: readonly string[], next: readonly FlightNext[]): str
   return [...(executing.length > 0 ? [`executing ${executing.join(", ")}`] : []), ...others].join(" · ");
 }
 
-function whoCell(sessions: readonly FocusSession[], now: Date): string {
-  return sessions.length > 0 ? sessions.map((session) => sessionText(session, now)).join(", ") : EMPTY;
+function whoCell(row: FocusRow, me: string, now: Date): string {
+  const people = withMySessions(row, me).map(({ work, sessions }) => `${work.person}: ${workText(work, sessions, now)}`);
+  const cells = [...people, ...(row.unattributedPrs.length > 0 ? [row.unattributedPrs.map(prCell).join(" ")] : [])];
+  return cells.length > 0 ? cells.join("; ") : EMPTY;
+}
+
+function withMySessions(row: FocusRow, me: string): { work: FocusWork; sessions: readonly FocusSession[] }[] {
+  const mine = row.work.find((work) => work.mine) ?? (row.sessions.length > 0 ? { person: me, mine: true, claims: [], prs: [] } : undefined);
+  const others = row.work.filter((work) => !work.mine).map((work) => ({ work, sessions: [] }));
+  return mine ? [{ work: mine, sessions: row.sessions }, ...others] : others;
+}
+
+function workText(work: FocusWork, sessions: readonly FocusSession[], now: Date): string {
+  const parts = [sessions.map((session) => sessionText(session, now)).join(", "), claimsText(work.claims, now), work.prs.map(prCell).join(" ")];
+  return parts.filter(Boolean).join(" · ");
+}
+
+function claimsText(claims: readonly FocusClaim[], now: Date): string {
+  if (claims.length > CLAIMS_SHOWN) {
+    const [oldest = ""] = claims.map((claim) => claim.since).toSorted();
+    return `${claims.length} claims ${ago(new Date(oldest), now)}`;
+  }
+  return claims.map((claim) => `claim ${claim.phase} ${ago(new Date(claim.since), now)}`).join(", ");
 }
 
 function sessionText(session: FocusSession, now: Date): string {

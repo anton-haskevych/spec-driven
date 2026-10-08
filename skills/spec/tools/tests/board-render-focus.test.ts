@@ -21,7 +21,7 @@ describe("FOCUS lane", () => {
       "2 focus · 0 in flight · 0 ready · 0 blocked · 0 need you",
       "",
       "FOCUS",
-      "  1  alpha  0/3  —  execute 2 busy 5m, execute 3 idle 6h",
+      "  1  alpha  0/3  —  me: execute 2 busy 5m, execute 3 idle 6h",
       "  2  beta   0/3  —  —",
       "",
     ]);
@@ -61,7 +61,24 @@ describe("FOCUS lane", () => {
   });
 
   test("a session without a launch title shows its label", () => {
-    expect(focusLines(withFocus([focusRow({ sessions: [{ label: "poking around", status: "shell", since: "2026-10-01T17:00:00.000Z" }] })]))[1]).toBe("  1  alpha  0/3  —  poking around shell 3h");
+    expect(focusLines(withFocus([focusRow({ sessions: [{ label: "poking around", status: "shell", since: "2026-10-01T17:00:00.000Z" }] })]))[1]).toBe("  1  alpha  0/3  —  me: poking around shell 3h");
+  });
+
+  test("who: my sessions, claims and PRs first under my name, then each teammate's, then PRs with no author", () => {
+    const work: FocusRow["work"] = [
+      { person: "spectests", mine: true, claims: [{ phase: "4", since: "2026-09-30T20:00:00.000Z" }], prs: [{ number: 8, listed: true, draft: true }] },
+      { person: "taraskorpach", mine: false, claims: [{ phase: "2", since: "2026-09-29T20:00:00.000Z" }], prs: [{ number: 7, listed: true, failing: 2, pending: 0, passing: 3 }] },
+    ];
+    const row = focusRow({ sessions: [session()], work, unattributedPrs: [{ number: 9, listed: true }] });
+    expect(focusLines(board({ ...withFocus([row]), me: "spec-tests" }))[1]).toBe(
+      "  1  alpha  0/3  —  spectests: execute 2 busy 5m · claim 4 1d · #8 draft; taraskorpach: claim 2 2d · #7 ✗ 2; #9",
+    );
+  });
+
+  test("my sessions show under me when git gave no name; more than 2 claims collapse to a count and the oldest age", () => {
+    const claims = ["2", "3", "4"].map((phase, index) => ({ phase, since: `2026-09-2${index + 7}T20:00:00.000Z` }));
+    const row = focusRow({ sessions: [session()], work: [{ person: "taras", mine: false, claims, prs: [] }] });
+    expect(focusLines(withFocus([row]))[1]).toBe("  1  alpha  0/3  —  me: execute 2 busy 5m; taras: 3 claims 4d");
   });
 
   test("other sessions close the lane, at most 5, then +N", () => {
