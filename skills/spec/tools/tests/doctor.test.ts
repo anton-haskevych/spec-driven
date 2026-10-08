@@ -28,6 +28,14 @@ describe("checkSpecMeta", () => {
     ]);
   });
 
+  test("rejects a focus or owner it cannot read", () => {
+    const text = "---\nstatus: active\ncreated: a\nupdated: b\nfocus: -3\nowner: [a, b]\n---\n";
+    expect(checkSpecMeta("CLAUDE.md", text, STATUSES).map((i) => `${i.severity}: ${i.problem}`)).toEqual([
+      "error: focus -3 is not a number ≥ 0",
+      'error: owner ["a","b"] is not a name',
+    ]);
+  });
+
   test("reports unparseable YAML as an error", () => {
     const [issue] = checkSpecMeta("CLAUDE.md", "---\nstatus: [active\n---\n", STATUSES);
     expect(issue?.severity).toBe("error");
