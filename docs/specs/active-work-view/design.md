@@ -112,7 +112,7 @@ person's remote claims across all specs.
 | Header count | `<n> focus · ` prefix, only when the set is non-empty |
 | Attention, idle claim | `claim idle <ago>` · `<spec> · <phases> → switch to <session> or take it over` |
 | Writer success | `focus: added <spec> at <position>/<total> (<sha>)` · `focus: dropped <spec> (<sha>)` · `focus: moved <spec> to <position>/<total> (<sha>)` |
-| Writer refusals | `focus add: no spec named <x> on origin/<default>; land the spec first` · `focus add: <x> is already in focus (<position>/<total>)` · `focus drop: <x> is not in focus` · `focus move: --after <y>: <y> is not in focus` · `focus: push to <default> refused: <git's reason>` |
+| Writer refusals | `focus add: no spec named <x> on origin/<default>; land the spec first` · `focus add: <x> is already in focus (<position>/<total>)` · `focus drop: <x> is not in focus` · `focus move: --after <y>: <y> is not in focus` · `focus move: <x> is not in focus` · `focus: push to <default> refused: <git's reason>` · `focus: can't read origin/<default>: <reason>; nothing written` (offline) · `focus: <default> moved twice while writing; nothing pushed — run it again` |
 
 ## Edge cases
 

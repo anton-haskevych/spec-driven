@@ -3,7 +3,7 @@
 ## Spec state
 
 Spec written 2026-10-07, reviewed 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`). 5 code phases + 1 task phase.
-Done: phase 1 (branch `feat/active-work-view-pr-a`, PR A: #17, ready for review). Left: 2–6.
+Done: phase 1 (PR A: #17, merged as 2.36.8); phase 2 (branch `feat/active-work-view-pr-b`, no PR yet). Left: 3–6.
 Split (value first):
 - **PR A: phase 1.** Shared helpers, test factories, `list --local` fix. Refactor only; release 2.36.8.
 - **PR B: phases 2–3.** Focus field + base-first writer + FOCUS lane. The first usable cut; release 2.37.0. Phases 1 and 2 run in parallel.

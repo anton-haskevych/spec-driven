@@ -17,7 +17,7 @@
 ## Phases
 
 - [x] Phase 1 — Groundwork: shared helpers, test factories, `list --local` fix → `phases/phase-1-groundwork.md`
-- [ ] Phase 2 — Focus set: spec meta, validation, base-first writer → `phases/phase-2-focus-set.md`
+- [x] Phase 2 — Focus set: spec meta, validation, base-first writer → `phases/phase-2-focus-set.md`
 - [ ] Phase 3 — FOCUS lane on the board → `phases/phase-3-focus-lane.md`
 - [ ] Phase 4 — Teammate's work and `--who` → `phases/phase-4-teammate-work.md`
 - [ ] Phase 5 — Idle claims → `phases/phase-5-idle-and-shipped.md`

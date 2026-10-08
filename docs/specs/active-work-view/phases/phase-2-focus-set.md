@@ -67,7 +67,7 @@ and doctor already call it, so you add no new path regex.
 - [x] `commitOnto` extracted from `snapshotCommit`; publish tests unchanged
 - [x] `focus/land.ts` base-first commit + push with one retry; stale-clone, race, refusal, branch-only, drop tests
 - [x] `spec.ts focus add|drop|move` with the copy from `design.md` → *Copy*, registered in `spec.ts`, tests
-- [ ] Prose: `list.md` *Focus*, `SKILL.md` *Tools* + *Priority, due dates and owners*, `README.md`
+- [x] Prose: `list.md` *Focus*, `SKILL.md` *Tools* + *Priority, due dates and owners*, `README.md`
 
 ## Phase-local notes
 
