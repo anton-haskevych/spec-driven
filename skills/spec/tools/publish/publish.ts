@@ -15,7 +15,7 @@ export type Published =
 type Attempt = Result<Published> | { retry: true };
 
 const MERGE_TREE_CONFLICT = 1;
-const NON_FAST_FORWARD = /\[rejected\].*\((non-fast-forward|fetch first)\)/;
+export const NON_FAST_FORWARD = /\[rejected\].*\((non-fast-forward|fetch first)\)/;
 
 export function mergeTreeOutcome(result: RunResult): Result<string> {
   const [tree = "", ...conflicted] = result.stdout.split("\n").filter(Boolean);

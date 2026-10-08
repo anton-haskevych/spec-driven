@@ -1,9 +1,7 @@
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { gitFailureReason, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { isSpecDocPath } from "../core/spec-folders";
+import { commitOnto } from "./commit-onto";
 
 export const SNAPSHOT_SUBJECT = "docs(spec): snapshot";
 
@@ -65,19 +63,7 @@ function snapshotBase(git: Git, main: string): Result<string> {
 }
 
 function snapshotCommit(git: Git, base: string, files: readonly string[], spec: string | undefined): Result<string> {
-  const scratch = mkdtempSync(join(tmpdir(), "spec-snapshot-"));
-  const env = { GIT_INDEX_FILE: join(scratch, "index") };
-  try {
-    const read = git.out(["read-tree", base], { env });
-    if (!read.ok) return read;
-    const entries = git.run(["ls-tree", "-z", "HEAD", "--", ...files]);
-    if (entries.code !== 0) return { ok: false, reason: `git ls-tree failed: ${gitFailureReason(entries.stderr)}` };
-    const staged = git.out(["update-index", "-z", "--index-info"], { env, stdin: entries.stdout });
-    if (!staged.ok) return staged;
-    const tree = git.out(["write-tree"], { env });
-    if (!tree.ok) return tree;
-    return git.out(["commit-tree", tree.value, "-p", base, "-m", spec ? `${SNAPSHOT_SUBJECT} ${spec}` : SNAPSHOT_SUBJECT]);
-  } finally {
-    rmSync(scratch, { recursive: true, force: true });
-  }
+  const entries = git.run(["ls-tree", "-z", "HEAD", "--", ...files]);
+  if (entries.code !== 0) return { ok: false, reason: `git ls-tree failed: ${gitFailureReason(entries.stderr)}` };
+  return commitOnto(git, base, entries.stdout, spec ? `${SNAPSHOT_SUBJECT} ${spec}` : SNAPSHOT_SUBJECT);
 }
