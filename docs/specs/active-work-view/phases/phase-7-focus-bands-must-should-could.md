@@ -85,11 +85,11 @@ whichever lands second.
 
 ## Deliverables
 
-- [ ] `focus:` reads as a band: values, legacy number → `should` with a warning, bad value → error; spec-meta and doctor tests
-- [ ] `focusOrder` sorts by band → overdue → due → priority → name; `FocusRow.band`, `ReadyRow.focusBand`; board-focus tests
-- [ ] FOCUS lane prints MUST / SHOULD / COULD sub-headers, empty bands omitted, aligned across the lane, `--who` keeps positions; ready note shows the band; render and command tests; no-focus golden unchanged
-- [ ] `spec.ts focus add|move <spec> <band>` and `drop`; `rank.ts` and its test deleted; copy and refusals as above; plan, command and land tests
-- [ ] `list.md` *Focus* defines the bands (Must: pick first · Should: committed, pick when your Must is done, blocked or in review · Could: when there's room, e.g. a spare parallel session or while waiting on CI; not in focus = MoSCoW's "won't, this time") and maps "move X to must" style requests; `SKILL.md`, `README.md`, `ROADMAP.md` updated
+- [x] `focus:` reads as a band: values, legacy number → `should` with a warning, bad value → error; spec-meta and doctor tests
+- [x] `focusOrder` sorts by band → overdue → due → priority → name; `FocusRow.band`, `ReadyRow.focusBand`; board-focus tests
+- [x] FOCUS lane prints MUST / SHOULD / COULD sub-headers, empty bands omitted, aligned across the lane, `--who` keeps positions; ready note shows the band; render and command tests; no-focus golden unchanged
+- [x] `spec.ts focus add|move <spec> <band>` and `drop`; `rank.ts` and its test deleted; copy and refusals as above; plan, command and land tests
+- [x] `list.md` *Focus* defines the bands (Must: pick first · Should: committed, pick when your Must is done, blocked or in review · Could: when there's room, e.g. a spare parallel session or while waiting on CI; not in focus = MoSCoW's "won't, this time") and maps "move X to must" style requests; `SKILL.md`, `README.md`, `ROADMAP.md` updated
 
 ## Phase-local notes
 

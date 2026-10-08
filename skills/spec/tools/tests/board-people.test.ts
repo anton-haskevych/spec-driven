@@ -28,7 +28,7 @@ describe("samePerson", () => {
 });
 
 describe("focusFor", () => {
-  const row = (spec: string, overrides: Partial<FocusRow> = {}): FocusRow => ({ spec, rank: 1, position: 1, overdue: false, now: { kind: "none" }, sessions: [], work: [], unattributedPrs: [], ...overrides });
+  const row = (spec: string, overrides: Partial<FocusRow> = {}): FocusRow => ({ spec, band: "should", position: 1, overdue: false, now: { kind: "none" }, sessions: [], work: [], unattributedPrs: [], ...overrides });
   const work = (person: string, mine = false): FocusWork => ({ person, mine, claims: [{ phase: "1", since: "t" }], prs: [] });
   const rows = [
     row("owned", { owner: "Taras Korpach" }),

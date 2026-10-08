@@ -67,5 +67,10 @@ export function priorityRank(priority: Priority | undefined): number {
 }
 
 export function compareSchedule(a: Pick<Schedule, "priority" | "due">, b: Pick<Schedule, "priority" | "due">): number {
-  return priorityRank(a.priority) - priorityRank(b.priority) || (a.due ?? NO_DUE).localeCompare(b.due ?? NO_DUE);
+  return priorityRank(a.priority) - priorityRank(b.priority) || compareDue(a.due, b.due);
+}
+
+// Earliest first; no due date last.
+export function compareDue(a: string | undefined, b: string | undefined): number {
+  return (a ?? NO_DUE).localeCompare(b ?? NO_DUE);
 }

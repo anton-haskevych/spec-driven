@@ -81,8 +81,8 @@ describe("board focus --who (real git)", () => {
 
   beforeAll(() => {
     repo = repoWithOrigin("spec-board-who-");
-    spec("first", "focus: 10\n");
-    spec("second", "focus: 20\nowner: Taras Korpach\n");
+    spec("first", "focus: must\n");
+    spec("second", "focus: must\nowner: Taras Korpach\n");
     repo.commitAll("specs");
     repo.git("push", "-q", "origin", "main");
   });
@@ -99,7 +99,7 @@ describe("board focus --who (real git)", () => {
   });
 
   test("text names the person; me with nothing on the board is none", async () => {
-    expect(await boardCommand(repo.dir, ["focus", "--who", "taras", "--local"], deps)).toContain("\n\nFOCUS · taras\n  2  second  0/1  ready 1  — (Taras Korpach)\n```");
+    expect(await boardCommand(repo.dir, ["focus", "--who", "taras", "--local"], deps)).toContain("\n\nFOCUS · taras\n  MUST\n  2  second  0/1  ready 1  — (Taras Korpach)\n```");
     expect(await boardCommand(repo.dir, ["--who", "me", "--local"], deps)).toContain("\n\nFOCUS · me\n  none\n\nIN FLIGHT");
   });
 

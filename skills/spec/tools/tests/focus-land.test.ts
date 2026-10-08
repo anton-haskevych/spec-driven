@@ -7,7 +7,7 @@ import { landFocus } from "../focus/land";
 import type { FocusAction } from "../focus/plan";
 import { isolatedRunner, repoWithOrigin, type TestRepo, type WorkingCopy } from "./git-repo";
 
-const claudeMd = (focus?: number) => `---\nstatus: active\n${focus === undefined ? "" : `focus: ${focus}\n`}---\n# Spec\n`;
+const claudeMd = (focus?: string) => `---\nstatus: active\n${focus === undefined ? "" : `focus: ${focus}\n`}---\n# Spec\n`;
 const META = (spec: string) => `docs/specs/${spec}/CLAUDE.md`;
 
 describe("landFocus (real git)", () => {
@@ -16,7 +16,7 @@ describe("landFocus (real git)", () => {
 
   beforeEach(() => {
     repo = repoWithOrigin("spec-focus-land-");
-    repo.write(META("a"), claudeMd(10));
+    repo.write(META("a"), claudeMd("must"));
     repo.write(META("b"), claudeMd());
     repo.write(META("c"), claudeMd());
     repo.commitAll("specs");
@@ -36,15 +36,15 @@ describe("landFocus (real git)", () => {
   };
   const land = (action: FocusAction, runner: Runner = isolatedRunner) => landFocus(gitAt(repo.dir, runner), { defaultBranch: "main", action });
 
-  test("a stale clone ranks against origin's set, pushes one file and leaves its checkout alone", async () => {
-    otherPushes(META("b"), claudeMd(20));
+  test("a stale clone reads the band on origin, pushes one file and leaves its checkout alone", async () => {
+    otherPushes(META("c"), claudeMd("could"));
     const head = repo.git("rev-parse", "HEAD");
 
-    const outcome = await land({ kind: "add", spec: "c", place: { kind: "end" } });
-    expect(outcome).toMatchObject({ kind: "landed", landed: { verb: "added", spec: "c", position: { position: 3, total: 3 } } });
-    expect(onOrigin(META("c"))).toBe(claudeMd(30).trim());
+    const outcome = await land({ kind: "move", spec: "c", band: "must" });
+    expect(outcome).toMatchObject({ kind: "landed", landed: { verb: "moved", spec: "c", band: "must" } });
+    expect(onOrigin(META("c"))).toBe(claudeMd("must").trim());
     expect(repo.git("--git-dir", repo.origin, "diff", "--name-only", "main^", "main")).toBe(META("c"));
-    expect(originLog()[0]).toBe("[focus] add c");
+    expect(originLog()[0]).toBe("[focus] move c");
     expect(repo.git("rev-parse", "HEAD")).toBe(head);
     expect(repo.git("status", "--porcelain")).toBe("");
   });
@@ -55,15 +55,16 @@ describe("landFocus (real git)", () => {
       run(argv, options) {
         if (!raced && argv[1] === "push") {
           raced = true;
-          otherPushes(META("b"), claudeMd(5));
+          otherPushes(META("b"), claudeMd("should"));
         }
         return isolatedRunner.run(argv, options);
       },
     };
 
-    const outcome = await land({ kind: "add", spec: "c", place: { kind: "top" } }, racing);
-    expect(outcome).toMatchObject({ kind: "landed", landed: { position: { position: 1, total: 3 } } });
-    expect(onOrigin(META("c"))).toBe(claudeMd(2.5).trim());
+    const outcome = await land({ kind: "add", spec: "c", band: "must" }, racing);
+    expect(outcome).toMatchObject({ kind: "landed", landed: { verb: "added", band: "must" } });
+    expect(onOrigin(META("c"))).toBe(claudeMd("must").trim());
+    expect(onOrigin(META("b"))).toBe(claudeMd("should").trim());
     expect(originLog().slice(0, 2)).toEqual(["[focus] add c", `other edits ${META("b")}`]);
   });
 
@@ -72,7 +73,7 @@ describe("landFocus (real git)", () => {
     writeFileSync(hook, "#!/bin/sh\necho 'protected branch' >&2\nexit 1\n");
     chmodSync(hook, 0o755);
 
-    const outcome = await land({ kind: "add", spec: "b", place: { kind: "end" } });
+    const outcome = await land({ kind: "add", spec: "b", band: "should" });
     expect(outcome.kind).toBe("failed");
     expect(outcome.kind === "failed" && outcome.reason).toMatch(/^push to main refused: .*declined/);
     expect(onOrigin(META("b"))).toBe(claudeMd().trim());
@@ -83,7 +84,7 @@ describe("landFocus (real git)", () => {
     repo.write(META("d"), claudeMd());
     repo.commitAll("spec d on a branch");
 
-    expect(await land({ kind: "add", spec: "d", place: { kind: "end" } })).toEqual({
+    expect(await land({ kind: "add", spec: "d", band: "should" })).toEqual({
       kind: "refused",
       reason: "no spec named d on origin/main; land the spec first",
     });

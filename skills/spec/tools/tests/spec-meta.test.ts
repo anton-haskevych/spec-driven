@@ -1,21 +1,36 @@
 import { describe, expect, test } from "bun:test";
-import { readFocusFields, readSpecMeta } from "../core/spec-meta";
+import { focusBand, readFocusFields, readSpecMeta } from "../core/spec-meta";
+
+describe("focusBand", () => {
+  test("reads must, should and could in any case", () => {
+    expect(["must", "Should", "COULD", " must "].map(focusBand)).toEqual(["must", "should", "could", "must"]);
+  });
+
+  test("anything else is no band, a number included", () => {
+    for (const value of ["soon", "", 10, null, ["must"], undefined]) expect(focusBand(value)).toBeUndefined();
+  });
+});
 
 describe("readFocusFields", () => {
-  test("reads a rank and an owner", () => {
-    expect(readFocusFields({ focus: 12.5, owner: "taras" })).toEqual({ focus: 12.5, owner: "taras", problems: [] });
-    expect(readFocusFields({ focus: 0 })).toEqual({ focus: 0, problems: [] });
+  test("reads a band and an owner", () => {
+    expect(readFocusFields({ focus: "must", owner: "taras" })).toEqual({ focus: "must", owner: "taras", problems: [], warnings: [] });
+    expect(readFocusFields({ focus: "Could" })).toEqual({ focus: "could", problems: [], warnings: [] });
   });
 
   test("is silent when neither key is set", () => {
-    expect(readFocusFields({ status: "active" })).toEqual({ problems: [] });
+    expect(readFocusFields({ status: "active" })).toEqual({ problems: [], warnings: [] });
   });
 
-  test("a focus that is not a finite number ≥ 0 is no rank, and a problem", () => {
-    for (const focus of ["soon", -1, Number.POSITIVE_INFINITY, null, [1]]) {
+  test("a 2.37.0 rank reads as should, with a warning", () => {
+    expect(readFocusFields({ focus: 10 })).toEqual({ focus: "should", problems: [], warnings: ["focus 10 is a 2.37.0 rank; use must, should or could"] });
+    expect(readFocusFields({ focus: 2.5 }).focus).toBe("should");
+  });
+
+  test("anything else is no band, and a problem", () => {
+    for (const focus of ["soon", null, ["must"], Number.POSITIVE_INFINITY]) {
       const fields = readFocusFields({ focus });
       expect(fields.focus).toBeUndefined();
-      expect(fields.problems).toEqual([`focus ${JSON.stringify(focus)} is not a number ≥ 0`]);
+      expect(fields.problems).toEqual([`focus ${JSON.stringify(focus)} is not one of must, should, could`]);
     }
   });
 
@@ -30,7 +45,8 @@ describe("readFocusFields", () => {
 
 describe("readSpecMeta", () => {
   test("carries focus and owner, dropping a malformed focus", () => {
-    expect(readSpecMeta({ focus: 20, owner: "anton" })).toMatchObject({ focus: 20, owner: "anton" });
+    expect(readSpecMeta({ focus: "should", owner: "anton" })).toMatchObject({ focus: "should", owner: "anton" });
+    expect(readSpecMeta({ focus: 20 }).focus).toBe("should");
     expect(readSpecMeta({ focus: "top" }).focus).toBeUndefined();
   });
 });

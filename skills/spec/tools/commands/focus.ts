@@ -1,47 +1,35 @@
 import { parseArgs } from "node:util";
 import { gitAt } from "../core/git";
 import { defaultBranch, systemRunner, type Runner } from "../core/run";
+import { BAND_CHOICES, FOCUS_BANDS, focusBand } from "../core/spec-meta";
 import { landFocus, type LandOutcome } from "../focus/land";
-import type { FocusAction, MovePlace } from "../focus/plan";
+import type { FocusAction } from "../focus/plan";
 import { NO_DEFAULT_BRANCH } from "./push";
 
-interface FocusFlags {
-  spec: string;
-  top: boolean;
-  after?: string;
-}
+type FocusVerb = FocusAction["kind"];
 
-interface FocusVerb {
-  usage: string;
-  action(flags: FocusFlags): FocusAction | undefined;
-}
-
-const ACTIONS: Record<string, FocusVerb> = {
-  add: {
-    usage: "focus add <spec> [--top | --after <spec>]",
-    action: ({ spec, top, after }) => (top && after ? undefined : { kind: "add", spec, place: placeOf(top, after) ?? { kind: "end" } }),
-  },
-  drop: { usage: "focus drop <spec>", action: ({ spec, top, after }) => (top || after ? undefined : { kind: "drop", spec }) },
-  move: {
-    usage: "focus move <spec> (--top | --after <spec>)",
-    action: ({ spec, top, after }) => {
-      const place = top && after ? undefined : placeOf(top, after);
-      return place ? { kind: "move", spec, place } : undefined;
-    },
-  },
+const BAND_ARG = `<${FOCUS_BANDS.join("|")}>`;
+const USAGES: Record<FocusVerb, string> = {
+  add: `focus add <spec> ${BAND_ARG}`,
+  drop: "focus drop <spec>",
+  move: `focus move <spec> ${BAND_ARG}`,
 };
+const GONE_FLAGS = ["--top", "--after"];
+const GONE_FLAGS_LINE = `focus: ${GONE_FLAGS.join(" and ")} are gone; give a band (${FOCUS_BANDS.join(", ")})`;
 
-export const FOCUS_USAGE = Object.values(ACTIONS)
-  .map((verb) => verb.usage)
-  .join(" | ");
+export const FOCUS_USAGE = Object.values(USAGES).join(" | ");
 
 export function parseFocusArgs(args: readonly string[]): FocusAction | string {
   const [name, ...rest] = args;
-  const verb = name !== undefined && Object.hasOwn(ACTIONS, name) ? ACTIONS[name] : undefined;
-  if (!verb) return `usage: ${FOCUS_USAGE}`;
-  const flags = parseFlags(rest);
-  const action = flags && verb.action(flags);
-  return action ?? `usage: ${verb.usage}`;
+  if (!isVerb(name)) return `usage: ${FOCUS_USAGE}`;
+  const usage = `usage: ${USAGES[name]}`;
+  if (rest.some(isGoneFlag)) return `${usage}\n${GONE_FLAGS_LINE}`;
+  const [spec, word, ...extra] = positionals(rest) ?? [];
+  if (spec === undefined || extra.length > 0) return usage;
+  if (name === "drop") return word === undefined ? { kind: name, spec } : usage;
+  if (word === undefined) return usage;
+  const band = focusBand(word);
+  return band ? { kind: name, spec, band } : `focus ${name}: ${word} is not a band; use ${BAND_CHOICES}`;
 }
 
 export async function focusCommand(projectDir: string, args: readonly string[], runner: Runner = systemRunner): Promise<string> {
@@ -55,29 +43,22 @@ export async function focusCommand(projectDir: string, args: readonly string[], 
 export function focusLine(action: FocusAction, outcome: LandOutcome): string {
   if (outcome.kind === "refused") return `focus ${action.kind}: ${outcome.reason}`;
   if (outcome.kind === "failed") return `focus: ${outcome.reason}`;
-  const { verb, spec, position } = outcome.landed;
+  const { verb, spec, band } = outcome.landed;
   const sha = outcome.sha.slice(0, 7);
-  if (!position) return `focus: ${verb} ${spec} (${sha})`;
-  const where = `${position.position}/${position.total}`;
-  return `focus: ${verb} ${spec} ${verb === "added" ? "at" : "to"} ${where} (${sha})`;
+  return band ? `focus: ${verb} ${spec} to ${band} (${sha})` : `focus: ${verb} ${spec} (${sha})`;
 }
 
-function placeOf(top: boolean, after: string | undefined): MovePlace | undefined {
-  if (top) return { kind: "top" };
-  return after ? { kind: "after", spec: after } : undefined;
+function isVerb(name: string | undefined): name is FocusVerb {
+  return name !== undefined && Object.hasOwn(USAGES, name);
 }
 
-function parseFlags(args: string[]): FocusFlags | undefined {
+function isGoneFlag(arg: string): boolean {
+  return GONE_FLAGS.some((flag) => arg === flag || arg.startsWith(`${flag}=`));
+}
+
+function positionals(args: string[]): string[] | undefined {
   try {
-    const { values, positionals } = parseArgs({
-      args,
-      options: { top: { type: "boolean" }, after: { type: "string" } },
-      allowPositionals: true,
-      strict: true,
-    });
-    const [spec, ...extra] = positionals;
-    if (!spec || extra.length > 0) return undefined;
-    return { spec, top: values.top ?? false, ...(values.after ? { after: values.after } : {}) };
+    return parseArgs({ args, options: {}, allowPositionals: true, strict: true }).positionals;
   } catch {
     return undefined;
   }
