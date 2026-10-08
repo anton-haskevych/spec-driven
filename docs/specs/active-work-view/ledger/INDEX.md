@@ -17,5 +17,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-focus-rank-in-spec-meta.md` — [general, load-bearing] — `focus:` + `owner:` in spec CLAUDE.md; no `_focus/` registry
 - `decision-focus-writes-land-on-default-branch.md` — [phase 2, 6] — focus writer pins origin/<default>, commits one file, pushes
 - `decision-focus-is-not-priority.md` — [phase 3+] — focus ≠ p1; focus ranks before priority in ready rows
+- `decision-focus-row-sessions-stay-on-the-row.md` — [phase 3, 4] — sessions on FocusRow.sessions; phase 4 adds work; ReadyRow.focus = position
 
 ## Workarounds
