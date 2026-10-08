@@ -13,7 +13,9 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/focus.ts` | `spec.ts focus add\|drop\|move`: args, copy | 2 |
 | `skills/spec/tools/publish/commit-onto.ts` | `commitOnto`: index-info entries onto a base via a scratch index (snapshot + focus) | 2 |
 | `skills/spec/tools/board/attribution.ts` | Session → spec: repo scope, claim → launch title → non-main tree | 3 |
-| `skills/spec/tools/board/focus.ts` | `focusLane`: FOCUS rows + `otherSessions` | 3 |
+| `skills/spec/tools/board/focus.ts` | `focusOrder` (one order for lane + `ReadyRow.focus`), `focusLane`: rows, `now`, sessions, `otherSessions` | 3 |
+| `skills/spec/tools/board/render-focus.ts` | FOCUS lane text; `render.ts` only places it | 3 |
+| `skills/spec/tools/tests/board-no-focus-golden.test.ts` | Golden: `renderBoard(buildBoard(...))` with no `focus:` = 2.36.7 | 3 |
 | `skills/spec/tools/launch/title.ts` | Launch title builder and its inverse | 1 |
 | `skills/spec/tools/sessions/by-workspace.ts`, `sessions/label.ts` | Every session per tree; `name ?? session <id8>` | 1 |
 | `skills/spec/tools/board/deploy-waits.ts` | `{ waiter, target }` row-key pairs for undeployed needs | 1 |
@@ -34,8 +36,9 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/board/joins.ts` | IN FLIGHT session/PR joins (unchanged); exports `toPrCell`, `linkedPrs` | |
 | `skills/spec/tools/board/attention.ts` | Needs-you kinds (`idle-claim`) | |
 | `skills/spec/tools/board/rank.ts` | `rankReady`: focus first | |
-| `skills/spec/tools/sessions/live.ts` | Only reader of `~/.claude/sessions/*.json` (every repo on the machine) | `principle-session-attribution-scope-and-order` |
-| `skills/spec/tools/claims/held.ts` | `claimContext` lists every worktree path; the repo scope reuses that read | |
+| `skills/spec/tools/sessions/live.ts` | Only reader of `~/.claude/sessions/*.json` (every repo on the machine); `nameSource`, `updatedFrom` | `principle-session-attribution-scope-and-order` |
+| `skills/spec/tools/claims/held.ts` | `claimContext` lists every worktree path (its own read) | |
+| `skills/spec/tools/board/load.ts`, `board/inputs.ts` | `BoardInputs.worktreePaths`: every `git worktree list` path (repo scope) | `gotcha-session-files-span-every-repo` |
 | `skills/spec/tools/pr/gh-lists.ts` | `gh pr list` fields (`author`) | |
 | `skills/spec/tools/commands/list.ts` | `listRoute`: board vs table, `--local` (fixed in phase 1) | |
 | `skills/spec/tools/portfolio/rows.ts` | `specSummary`: progress, priority, due, overdue per spec node | |

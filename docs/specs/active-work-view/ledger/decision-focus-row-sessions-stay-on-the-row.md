@@ -13,3 +13,8 @@ the me bucket at render time. `footer.otherSessions` is `FocusSession[]` too, no
 
 `ReadyRow.focus` is the 1-based position in the FOCUS lane (one `focusOrder` feeds both), not the raw
 `focus:` number.
+
+`nameSource` is read (`sessions/live.ts`) but attribution does not gate launch titles on it: the
+recorded fixture `tests/fixtures/session-busy.json` has `nameSource: "derived"` with a launch-style name,
+so "derived" doesn't prove the name isn't a launch title. Requiring the title's spec to be a base node
+is the guard.

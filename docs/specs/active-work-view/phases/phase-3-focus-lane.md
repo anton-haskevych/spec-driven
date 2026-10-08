@@ -72,7 +72,7 @@ the new top-ready behaviour in `context.test.ts` (`OFFER_TOP_READY`).
 - [x] Model fields (`lanes.focus`, `footer.otherSessions`, `ReadyRow.focus`) with factory defaults; `BOARD_VERSION` stays 1
 - [x] Render: FOCUS lane, header count, `other sessions` line, ready `focus <n>` note; golden "no focus" test; `board focus` lane word and empty `none`; tests
 - [x] `rankReady` puts focus rows first by focus rank; `board-rank` + `context` tests
-- [ ] Prose: `list.md` lane description, `SKILL.md` *Tools* (List, Board), `execute.md` top-ready note, `README.md`
+- [x] Prose: `list.md` lane description, `SKILL.md` *Tools* (List, Board), `execute.md` top-ready note, `README.md`
 
 ## Phase-local notes
 
