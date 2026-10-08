@@ -62,7 +62,7 @@ band once #913 merges.
 - [x] `focus:` bands written with `spec.ts focus add` for each spec and landed on CRM `main`, legacy numbers rewritten (commit shas) — 2026-10-08, CRM main: 17 commits ce63c41 … 6bd139a via spec.ts focus add (2.40.0); the four numeric values rewritten
 - [x] `owner: taras` on tap-to-pay-payments, permission-aware-ui and gift-cards, on CRM `main` (commit sha) — 2026-10-08, CRM main 30c09f8
 - [x] `/spec list` in CRM opens on FOCUS with MUST / SHOULD / COULD as above; the lane pasted in the evidence — 2026-10-08, CRM origin/main 30c09f8: lane below under Phase-local notes
-- [ ] Taras told the set exists, what the bands mean and how to change them (message link or date)
+- [x] Taras told the set exists, what the bands mean and how to change them (message link or date) — 2026-10-08: Anton's call — Taras learns through his own Claude Code; list.md → Focus ships the bands and how to change them in 2.40.0 (he needs that version)
 
 ## Phase-local notes
 

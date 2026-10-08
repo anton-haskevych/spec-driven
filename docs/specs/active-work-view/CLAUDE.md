@@ -1,7 +1,7 @@
 ---
 created: 2026-10-07T18:39:32-07:00
-updated: 2026-10-08T15:24:35-07:00
-status: active
+updated: 2026-10-08T15:43:22-07:00
+status: done
 area: [tools, sub-commands]
 domain: [spec-workflow]
 scope: [feature]
