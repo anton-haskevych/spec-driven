@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { portfolioTable } from "../commands/list";
 import { matchesItem, matchesSpec, orderBacklog, orderSpecs } from "../portfolio/order";
 import { renderPortfolio } from "../portfolio/render";
-import { specRow } from "../portfolio/rows";
+import { specRow, specSummary } from "../portfolio/rows";
 import { backlogItem, specMeta, specNode, specRowOf } from "./factories";
 
 const TODAY = "2026-09-23";
@@ -31,6 +31,18 @@ describe("specRow", () => {
       updated: "2026-09-21",
       progress: { done: 1, total: 2 },
     });
+  });
+});
+
+describe("specSummary", () => {
+  test("counts done phases and flags a passed due day", () => {
+    const node = specNode({ phases: [{ id: "1", done: true, deployed: false }, { id: "2", done: false, deployed: false }], meta: specMeta({ priority: "p2", due: "2026-09-22" }) });
+    expect(specSummary(node, TODAY)).toEqual({ progress: { done: 1, total: 2 }, priority: "p2", due: "2026-09-22", overdue: true });
+  });
+
+  test("a finished spec is never overdue", () => {
+    const node = specNode({ status: "done", meta: specMeta({ due: "2026-09-01" }) });
+    expect(specSummary(node, TODAY)).toEqual({ progress: { done: 0, total: 0 }, priority: undefined, due: "2026-09-01", overdue: false });
   });
 });
 
