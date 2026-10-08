@@ -1,5 +1,9 @@
 [
   {
+    "author": {
+      "is_bot": true,
+      "login": "app/dependabot"
+    },
     "headRefName": "dependabot/docker/docker/base-images-942da21f21",
     "isDraft": false,
     "number": 879,
@@ -98,6 +102,10 @@
     "url": "https://github.com/CRM-Dance/crm/pull/879"
   },
   {
+    "author": {
+      "is_bot": true,
+      "login": "app/dependabot"
+    },
     "headRefName": "dependabot/github_actions/all-actions-e71a03c6fe",
     "isDraft": false,
     "number": 874,
@@ -436,6 +444,12 @@
     "url": "https://github.com/CRM-Dance/crm/pull/874"
   },
   {
+    "author": {
+      "id": "U_kgDOBj4JuQ",
+      "is_bot": false,
+      "login": "anton-haskevych",
+      "name": "Anton Haskevych"
+    },
     "headRefName": "ops-provisioning-dx",
     "isDraft": true,
     "number": 566,

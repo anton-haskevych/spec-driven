@@ -10,6 +10,8 @@ export interface PrRow {
   state: PrListState;
   draft: boolean;
   url: string;
+  // The author's gh login; only the open list asks for it.
+  author?: string;
   checks?: CheckSummary;
 }
 
@@ -68,7 +70,8 @@ function toPrRow(record: FrontmatterData): PrRow | undefined {
   const branch = stringField(record, "headRefName");
   const state = LIST_STATES.find((candidate) => candidate === stringField(record, "state"));
   if (number === undefined || !branch || !state) return undefined;
-  return { number, branch, state, draft: booleanField(record, "isDraft") ?? false, url: stringField(record, "url") ?? "" };
+  const author = isRecord(record.author) ? stringField(record.author, "login") : undefined;
+  return { number, branch, state, draft: booleanField(record, "isDraft") ?? false, url: stringField(record, "url") ?? "", ...(author ? { author } : {}) };
 }
 
 function records(value: unknown): FrontmatterData[] {
