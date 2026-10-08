@@ -51,13 +51,14 @@ export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inpu
   const today = isoDay(now);
   const live = inputs.sessions !== "local" && inputs.sessions.ok ? inputs.sessions.value : [];
   const { bySpec, unattributed } = attributeSessions(live, inputs, new Set(order.map(({ node }) => node.spec.name)));
-  const rows = order.map(({ node, rank }): FocusRow => {
+  const rows = order.map(({ node, rank }, index): FocusRow => {
     const name = node.spec.name;
     const { progress, due, overdue } = specSummary(node, today);
     const stage = inputs.stages.get(name);
     return {
       spec: name,
       rank,
+      position: index + 1,
       ...(node.meta.owner ? { owner: node.meta.owner } : {}),
       ...(stage ? { stage } : { progress }),
       ...(due ? { due } : {}),

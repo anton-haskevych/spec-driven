@@ -3,12 +3,12 @@ import type { Board, FocusRow, FocusSession } from "../board/model";
 import { renderBoard } from "../board/render";
 import { board, readyRow } from "./board-factories";
 
-const focusRow = (overrides: Partial<FocusRow> = {}): FocusRow => ({ spec: "alpha", rank: 10, progress: { done: 0, total: 3 }, overdue: false, now: { kind: "none" }, sessions: [], work: [], unattributedPrs: [], ...overrides });
+const focusRow = (overrides: Partial<FocusRow> = {}): FocusRow => ({ spec: "alpha", rank: 10, position: 1, progress: { done: 0, total: 3 }, overdue: false, now: { kind: "none" }, sessions: [], work: [], unattributedPrs: [], ...overrides });
 const session = (overrides: Partial<FocusSession> = {}): FocusSession => ({ label: "alpha execute 2", sub: "execute", phase: "2", status: "busy", since: "2026-10-01T19:55:00.000Z", ...overrides });
 
 function withFocus(focus: FocusRow[], footer: Partial<Board["footer"]> = {}, ready: Board["lanes"]["ready"] = []): Board {
   const base = board();
-  return board({ lanes: { ...base.lanes, focus, ready }, footer: { ...base.footer, ...footer } });
+  return board({ lanes: { ...base.lanes, focus: focus.map((row, index) => ({ ...row, position: index + 1 })), ready }, footer: { ...base.footer, ...footer } });
 }
 
 const focusLines = (target: Board) => renderBoard(target, { lane: "focus" }).split("\n").slice(3);
@@ -86,6 +86,15 @@ describe("FOCUS lane", () => {
       "  1  alpha  0/3  —  — (taras)",
       "  2  beta   0/3  —  me: execute 2 busy 5m",
     ]);
+  });
+
+  test("filtered to one person, the title names them and rows keep their place in the whole lane", () => {
+    const filtered = board({ lanes: { ...board().lanes, focus: [focusRow({ position: 6, owner: "taras" })] } });
+    expect(renderBoard(filtered, { lane: "focus", who: "taras" }).split("\n").slice(3)).toEqual(["FOCUS · taras", "  6  alpha  0/3  —  — (taras)"]);
+  });
+
+  test("filtered to nobody, the whole board still prints the lane, with none", () => {
+    expect(renderBoard(board(), { who: "zoe" })).toContain("\n\nFOCUS · zoe\n  none\n\nIN FLIGHT");
   });
 
   test("other sessions close the lane, at most 5, then +N", () => {

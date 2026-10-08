@@ -16,16 +16,17 @@ const STALE_BASE: Record<Exclude<Board["base"]["mode"], "fetched">, string> = {
   local: "local",
 };
 
-export function renderBoard(board: Board, options: { lane?: Lane } = {}): string {
+// `who`: the board's FOCUS rows were filtered to this person; the lane shows even when none are left.
+export function renderBoard(board: Board, options: { lane?: Lane; who?: string } = {}): string {
   const now = new Date(board.generatedAt);
   const sections: Record<Lane, string> = {
-    focus: focusSection(board, now),
+    focus: focusSection(board, now, options.who),
     flight: lane("IN FLIGHT", alignColumns(flightCells(board, now))),
     ready: lane("READY   ★ = shares no files with anything in flight", capped(readyCells(board), READY_CAP, "ready", options.lane)),
     blocked: lane("BLOCKED", capped(blockedCells(board), BLOCKED_CAP, "blocked", options.lane)),
     you: lane("NEEDS YOU", alignColumns(board.lanes.needsYou.map((row) => attentionCells(row, now)))),
   };
-  const shown = LANES.filter((name) => name !== "focus" || board.lanes.focus.length > 0);
+  const shown = LANES.filter((name) => name !== "focus" || board.lanes.focus.length > 0 || options.who !== undefined);
   const body = options.lane ? [sections[options.lane]] : [...shown.map((name) => sections[name]), footer(board)];
   return [header(board, now), ...body].join("\n\n");
 }

@@ -1,19 +1,18 @@
 import { ago, alignColumns, EMPTY, lane, monthDay, prCell } from "./cells";
 import type { Board, FlightNext, FocusClaim, FocusNow, FocusRow, FocusSession, FocusWork } from "./model";
-import { personKey } from "./people";
+import { ME, personKey } from "./people";
 
 const READY_SHOWN = 3;
 const OTHER_SESSIONS_SHOWN = 5;
 const CLAIMS_SHOWN = 2;
-const ME = "me";
 const STAGE: Record<NonNullable<FocusRow["stage"]>, string> = { prep: "prep", create: "draft" };
 const FLIGHT_SHORT: Partial<Record<FlightNext, string>> = { "ticked on branch, not merged": "on branch" };
 
-export function focusSection(board: Board, now: Date): string {
+export function focusSection(board: Board, now: Date, who?: string): string {
   const me = board.me ? personKey(board.me) : ME;
-  const rows = board.lanes.focus.map((row, index) => [String(index + 1), row.overdue ? `${row.spec} ⚠` : row.spec, progressCell(row), nowCell(row), whoCell(row, me, now)]);
+  const rows = board.lanes.focus.map((row) => [String(row.position), row.overdue ? `${row.spec} ⚠` : row.spec, progressCell(row), nowCell(row), whoCell(row, me, now)]);
   const others = board.footer.otherSessions ?? [];
-  return lane("FOCUS", [...alignColumns(rows), ...(others.length > 0 ? [`other sessions: ${otherSessionsCell(others, now)}`] : [])]);
+  return lane(who ? `FOCUS · ${who}` : "FOCUS", [...alignColumns(rows), ...(others.length > 0 ? [`other sessions: ${otherSessionsCell(others, now)}`] : [])]);
 }
 
 function progressCell(row: FocusRow): string {

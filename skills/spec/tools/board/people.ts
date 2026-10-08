@@ -1,5 +1,6 @@
-import type { FocusClaim, FocusWork, PrCell } from "./model";
+import type { Board, FocusClaim, FocusRow, FocusWork, PrCell } from "./model";
 
+export const ME = "me";
 const UNKNOWN = "unknown";
 const MIN_PREFIX = 3;
 
@@ -38,4 +39,22 @@ export function focusWork(claims: readonly PersonClaim[], prs: readonly Authored
   for (const { author, cell } of prs) if (author) bucket(author).prs.push(cell);
   const work = [...buckets.values()].toSorted((a, b) => Number(b.mine) - Number(a.mine) || a.person.localeCompare(b.person));
   return { work, unattributedPrs: prs.flatMap(({ author, cell }) => (author ? [] : [cell])) };
+}
+
+// Other sessions are this machine's, so they are mine: only my view keeps them.
+export function boardFor(board: Board, who: string): Board {
+  const { otherSessions, ...footer } = board.footer;
+  const focus = focusFor(board.lanes.focus, who, board.me);
+  return { ...board, lanes: { ...board.lanes, focus }, footer: isMe(who, board.me) && otherSessions ? { ...footer, otherSessions } : footer };
+}
+
+export function focusFor(rows: readonly FocusRow[], who: string, me?: string): FocusRow[] {
+  const mine = isMe(who, me);
+  const name = who === ME ? me : who;
+  const theirs = (person: string) => name !== undefined && samePerson(person, name);
+  return rows.filter((row) => (row.owner !== undefined && theirs(row.owner)) || (mine ? row.sessions.length > 0 || row.work.some((work) => work.mine) : row.work.some((work) => theirs(work.person))));
+}
+
+function isMe(who: string, me: string | undefined): boolean {
+  return who === ME || (me !== undefined && samePerson(who, me));
 }

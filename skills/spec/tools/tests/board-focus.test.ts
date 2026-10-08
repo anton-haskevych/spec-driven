@@ -15,10 +15,10 @@ const focusOf = (specs: SpecFixture[], overrides: Partial<BoardInputs> = {}) => 
 describe("FOCUS lane rows", () => {
   test("one row per focus spec, by rank then name; specs without focus get none", () => {
     const board = focusOf([focused("b", 20), focused("a", 20), focused("c", 5), specFixture("plain", { phases: [phase("1")] })]);
-    expect(board.lanes.focus.map((row) => [row.spec, row.rank])).toEqual([
-      ["c", 5],
-      ["a", 20],
-      ["b", 20],
+    expect(board.lanes.focus.map((row) => [row.spec, row.rank, row.position])).toEqual([
+      ["c", 5, 1],
+      ["a", 20, 2],
+      ["b", 20, 3],
     ]);
   });
 

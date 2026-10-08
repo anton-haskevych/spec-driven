@@ -112,6 +112,8 @@ export interface FocusWork {
 export interface FocusRow {
   spec: string;
   rank: number;
+  // 1-based place in the whole lane, kept when `--who` filters rows out.
+  position: number;
   owner?: string;
   progress?: { done: number; total: number };
   stage?: SpecStage;
