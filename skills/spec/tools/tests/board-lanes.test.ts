@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { buildBoard } from "../board/lanes";
 import { BOARD_VERSION } from "../board/model";
-import { phaseEdges, phaseState } from "./factories";
+import { heldClaim, liveSession, phaseEdges, phaseState } from "./factories";
 import { baseRef, boardInputs, NOW, specFixture, workspaceView } from "./board-factories";
 
 const done = (id: string, overrides = {}) => phaseState({ id, name: `P${id}`, done: true, edges: phaseEdges({ declared: true }), ...overrides });
@@ -32,8 +32,8 @@ describe("buildBoard", () => {
     const free = buildBoard(boardInputs([alpha], { workspaces: [tree] }), NOW);
     expect(free.lanes.ready.map((row) => [row.phase, row.target, row.safe])).toEqual([["4", { workspace: "/trees/alpha-pr-b" }, true], ["5", { workspace: "/trees/alpha-pr-b" }, true]]);
 
-    const claim = { spec: "alpha", phase: "4", sessionId: "s1", sessionName: "alpha execute 4", workspace: "/trees/alpha-pr-b", claimedAt: NOW.toISOString() };
-    const busy = buildBoard(boardInputs([alpha], { workspaces: [tree], claims: [{ claim, status: "live" }] }), NOW);
+    const held = heldClaim("live", { phase: "4", sessionId: "s1", sessionName: "alpha execute 4", workspace: "/trees/alpha-pr-b", claimedAt: NOW.toISOString() });
+    const busy = buildBoard(boardInputs([alpha], { workspaces: [tree], claims: [held] }), NOW);
     expect(busy.lanes.ready.map((row) => [row.phase, row.safe, row.treeBusy])).toEqual([["5", false, "after alpha 4 (alpha execute 4)"]]);
   });
 
@@ -41,11 +41,11 @@ describe("buildBoard", () => {
     const grouped = (id: string) => open(id, [], { edges: phaseEdges({ declared: true, pr: "B" }) });
     const alpha = specFixture("alpha", { phases: [grouped("4"), grouped("5")] });
     const tree = workspaceView("/trees/alpha-pr-b", [], { branch: "feat/alpha-pr-b" });
-    const claim = { spec: "alpha", phase: "4", sessionId: "me", sessionName: "alpha execute 4", workspace: "/trees/alpha-pr-b", claimedAt: NOW.toISOString() };
-    const own = buildBoard(boardInputs([alpha], { workspaces: [tree], claims: [{ claim, status: "unknown" }], ownSessionId: "me" }), NOW);
+    const held = heldClaim("unknown", { phase: "4", sessionId: "me", sessionName: "alpha execute 4", workspace: "/trees/alpha-pr-b", claimedAt: NOW.toISOString() });
+    const own = buildBoard(boardInputs([alpha], { workspaces: [tree], claims: [held], ownSessionId: "me" }), NOW);
     expect(own.lanes.ready.map((row) => [row.phase, row.treeBusy])).toEqual([["5", undefined]]);
 
-    const tab = (status: "busy" | "idle") => ({ pid: 1, sessionId: "other", cwd: "/trees/alpha-pr-b", status, name: "alpha execute 3", updatedAt: NOW, procStart: "x" });
+    const tab = (status: "busy" | "idle") => liveSession({ sessionId: "other", cwd: "/trees/alpha-pr-b", status, name: "alpha execute 3", updatedAt: NOW });
     const withTab = (status: "busy" | "idle") => buildBoard(boardInputs([alpha], { workspaces: [tree], sessions: { ok: true, value: [tab(status)] }, ownSessionId: "me" }), NOW);
     expect(withTab("idle").lanes.ready.map((row) => row.treeBusy)).toEqual([undefined, undefined]);
     expect(withTab("busy").lanes.ready.map((row) => row.treeBusy)).toEqual(["alpha execute 3 is mid-task there", "alpha execute 3 is mid-task there"]);

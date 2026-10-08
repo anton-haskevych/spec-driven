@@ -1,22 +1,22 @@
 import { describe, expect, test } from "bun:test";
-import type { HeldClaim } from "../claims/rules";
 import { buildBoard } from "../board/lanes";
 import { renderBoard } from "../board/render";
-import type { ClaimStatus } from "../claims/rules";
-import type { PhaseState } from "../core/spec-state";
+import type { ClaimStatus, HeldClaim } from "../claims/rules";
+import type { Claim } from "../claims/store";
 import type { LiveSession } from "../sessions/live";
+import type { PhaseState } from "../core/spec-state";
 import { boardInputs, NOW, specFixture, workspaceView } from "./board-factories";
-import { phaseEdges, phaseState } from "./factories";
+import { heldClaim, liveSession, phaseEdges, phaseState } from "./factories";
 
 const open = (id: string, extra: Partial<PhaseState> = {}) => phaseState({ id, edges: phaseEdges({ declared: true, needs: [] }), ...extra });
 const ALPHA = specFixture("alpha", { phases: [open("1", { done: true }), open("2"), open("3")] });
 
-function held(phase: string, status: ClaimStatus, overrides: Partial<HeldClaim["claim"]> = {}): HeldClaim {
-  return { claim: { spec: "alpha", phase, sessionId: `s${phase}`, sessionName: `alpha execute ${phase}`, workspace: "/wt/a", claimedAt: "t", ...overrides }, status };
+function held(phase: string, status: ClaimStatus, overrides: Partial<Claim> = {}): HeldClaim {
+  return heldClaim(status, { phase, sessionId: `s${phase}`, sessionName: `alpha execute ${phase}`, workspace: "/wt/a", claimedAt: "t", ...overrides });
 }
 
 function session(sessionId: string, cwd: string): LiveSession {
-  return { pid: 1, sessionId, cwd, status: "busy", updatedAt: new Date("2026-10-01T19:58:00Z"), procStart: "x" };
+  return liveSession({ sessionId, cwd, status: "busy", updatedAt: new Date("2026-10-01T19:58:00Z") });
 }
 
 const boardWith = (claims: HeldClaim[], sessions: ReturnType<typeof boardInputs>["sessions"] = { ok: true, value: [] }) =>

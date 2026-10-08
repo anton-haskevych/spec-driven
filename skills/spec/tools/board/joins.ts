@@ -1,6 +1,6 @@
 import type { PrRow } from "../pr/rollup";
+import { sessionsByWorkspace } from "../sessions/by-workspace";
 import type { LiveSession } from "../sessions/live";
-import { ownerOf } from "../workspaces/owner";
 import { claimsOnBoard } from "./flight";
 import type { BoardInputs } from "./inputs";
 import { rowKey } from "./phase-keys";
@@ -37,13 +37,18 @@ export function attachPrs(rows: readonly FlightRow[], inputs: BoardInputs): Flig
   });
 }
 
-function sessionsByWorkspace(sessions: readonly LiveSession[], paths: readonly string[]): Map<string, LiveSession[]> {
-  const owned = new Map<string, LiveSession[]>();
-  for (const session of sessions) {
-    const owner = ownerOf(session.cwd, paths);
-    if (owner) owned.set(owner, [...(owned.get(owner) ?? []), session]);
-  }
-  return owned;
+// pr-opening.md lists links oldest first.
+export function linkedPrs(prs: readonly PrRow[], links: readonly number[]): PrRow[] {
+  const listed = links.toReversed().flatMap((number) => prs.filter((pr) => pr.number === number));
+  return [...listed.filter((pr) => pr.state === "OPEN"), ...listed.filter((pr) => pr.state !== "OPEN")];
+}
+
+export function toPrCell(pr: PrRow): PrCell {
+  const base: PrCell = { number: pr.number, listed: true, ...(pr.draft ? { draft: true } : {}) };
+  if (pr.state !== "OPEN") return { ...base, state: pr.state === "MERGED" ? "merged" : "closed" };
+  if (!pr.checks) return base;
+  const { pass, fail, cancel, pending } = pr.checks.counts;
+  return { ...base, failing: fail + cancel, pending, passing: pass };
 }
 
 function sessionCell(session: LiveSession): SessionCell {
@@ -54,23 +59,14 @@ function byBranch(prs: readonly PrRow[], branch: string | undefined): PrCell | u
   if (!branch) return undefined;
   const newestFirst = prs.filter((pr) => pr.branch === branch).toSorted((a, b) => b.number - a.number);
   const chosen = newestFirst.find((pr) => pr.state === "OPEN") ?? newestFirst[0];
-  return chosen && prCell(chosen);
+  return chosen && toPrCell(chosen);
 }
 
 function byLinks(prs: readonly PrRow[], links: readonly number[]): PrCell | undefined {
-  const newestFirst = links.toReversed();
-  const listed = newestFirst.flatMap((number) => prs.filter((pr) => pr.number === number));
-  const chosen = listed.find((pr) => pr.state === "OPEN") ?? listed[0];
-  if (chosen) return prCell(chosen);
-  return newestFirst[0] === undefined ? undefined : { number: newestFirst[0], listed: false };
-}
-
-function prCell(pr: PrRow): PrCell {
-  const base: PrCell = { number: pr.number, listed: true, ...(pr.draft ? { draft: true } : {}) };
-  if (pr.state !== "OPEN") return { ...base, state: pr.state === "MERGED" ? "merged" : "closed" };
-  if (!pr.checks) return base;
-  const { pass, fail, cancel, pending } = pr.checks.counts;
-  return { ...base, failing: fail + cancel, pending, passing: pass };
+  const [chosen] = linkedPrs(prs, links);
+  if (chosen) return toPrCell(chosen);
+  const newest = links.at(-1);
+  return newest === undefined ? undefined : { number: newest, listed: false };
 }
 
 function nextFromChecks(cell: PrCell): FlightNext | undefined {

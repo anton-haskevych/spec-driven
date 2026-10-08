@@ -15,32 +15,36 @@ Nothing in the plugin may assume a person, project, branch convention or domain.
 
 ## Key decisions
 
+Review 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`) replaced decisions 2, 3, 4, 9, 12
+and added 15–16; the originals are in git history.
+
 | # | Decision | What we chose | Rejected alternative | Why |
 |---|----------|---------------|----------------------|-----|
-| 1 | Name of the concept | **focus** (`_focus/` folder, `FOCUS` section, `board focus`, `spec.ts focus`) | "now", "shipping", "active" | "active" already means nothing (186 specs). "focus" is the user's word for it, short, and unused as an identifier. The prose "Currently focused: Phase N" in `status.md` is a different file and stays |
-| 2 | Where the set lives | **One file per spec**: `docs/specs/_focus/<spec>.md` with `rank:` (+ optional `who:`) | (a) `focus: <rank>` frontmatter in each spec's `CLAUDE.md`; (b) a list in `_playbook/settings.md` | (b) is the shared-append file the project retired (`gotcha-github-ignores-merge-union`): two people adding on branches conflict. (a) spreads one ranking over N `CLAUDE.md`s that every session on that spec also bumps, and branch edits to existing specs' meta never reach the board (`workspaces/views.ts` overlays only state). Per-entry files reuse the backlog pattern, are in the base `READ_SET` already, and two people adding different specs never touch the same file |
-| 3 | Order | Integer `rank:`, ascending, ties by spec name. New entries go last (max + 10); "top" = min − 10; "after X" = midpoint, renumbering only the files between when no gap is left | Filename order; a fractional/lexicographic key | Gaps of 10 make every common move a one-file write (no conflict surface). Integers stay readable when someone opens the file |
-| 4 | Who a focus spec belongs to | Optional `who:` with any name of the person (gh login preferred). Matched by **normalized prefix**: lowercase, drop non-alphanumerics, one side a prefix of the other | (a) A `_people/` alias file; (b) exact gh login only; (c) a field named `owner` | Real data: git author "Taras Korpach" → `taraskorpach` = gh login `taraskorpach`; "anton-haskevych" = login `anton-haskevych`. Normalized prefix joins git names, logins and first names ("taras") with no config. (a) is machinery for a 2-person team. (c) collides with `ownerOf` (a path's worktree) |
-| 5 | Who "me" is | Local claims and this machine's sessions are always mine. For PRs and remote claims: the normalized git author name (`git var GIT_AUTHOR_IDENT`, already read by `readHolder`) | `gh api user` per board run | No extra network call; the board budget is < 5 s (`decision-board-timing-accepted`). Same normalization as #4 |
-| 6 | Session → spec | In order: (1) the session holds a claim on the spec; (2) its cwd is in a worktree whose spec changes name exactly one spec; (3) its name parses as launch's `<spec> <sub-command> [<phase>]` with `<spec>` a known spec. Every session that matches is shown, not just the newest per tree. The rest count under "other sessions" | Branch names; transcript `gitBranch`; newest-per-tree (today) | ROADMAP rule: no branch-to-spec mapping (and the two developers' conventions differ). Transcripts are large and undocumented. Newest-per-tree hides execute 8, 9 and 10 sharing one tree |
-| 7 | Teammate's work | Remote claims (exist) + open PRs linked from the spec's `pr-opening.md` (`prLinks`), labelled by PR author when it isn't me | Reading origin branches; `gh pr list --author` per person | No branch mapping (rule). One field (`author`) on the existing `gh pr list` call costs nothing extra |
-| 8 | A live claim whose session is idle | New needs-you kind `idle-claim` after **2 days** idle (`IDLE_CLAIM_DAYS`), copy `claim idle 3d → resume or release` | Calling it "stale"; reusing `REMOTE_CLAIM_STALE_DAYS` (3) | `isStale` already means "safe to take over"; an idle live claim is not that. 2 days: an overnight pause is normal, a weekend-plus is not |
-| 9 | Shipped focus specs | Hidden from FOCUS once finished; needs-you `focus-shipped` row `shipped → drop from focus`; handoff drops the entry when its spec's last phase lands | Auto-delete on read; keep showing as done | The board never writes. A row tells the team, and handoff already writes spec docs at that moment |
-| 10 | Focus vs the rest of the board | FOCUS is a new lane, printed first; the other lanes are unchanged. Ready rows rank focus specs first (by focus rank), then today's order | (a) A separate command; (b) filter the board to focus specs only | (a) breaks "no new user command". (b) loses the blocked/needs-you picture. Ranking focus first makes *Next sessions* and "what's next" recommend focus work with no prose change |
-| 11 | Filter mine / a teammate's | `board focus --who <name\|me>`; Claude maps "my focus", "what's Taras on" to it (`list.md`) | `list mine` / `list <name>` words | Free words on `list` are the table filter, and idea/prep dedupe pass free words there (`decision-board-command-surface`) |
-| 12 | Writing the set | `spec.ts focus add|drop|move` (validated, one file per write), called by Claude on the user's words; landed like spec docs | Claude hand-writes files (backlog style) | Rank arithmetic and renumbering are easy to get wrong by hand; a validated writer keeps one-file writes. Landing reuses `publish-docs` (carries any `docs/specs/**` path) |
-| 13 | JSON | Additive: `lanes.focus`, `footer.otherSessions`, two attention kinds. `BOARD_VERSION` stays 1 | Bump to 2 | Precedent `decision-remote-claims-landing-shape`: additive fields don't break readers |
-| 14 | No focus set | FOCUS lane omitted entirely; the board prints exactly as today | An empty "FOCUS none" lane | The brief: solo users and repos without a set see no change |
+| 1 | Name of the concept | **focus** (`focus:` field, `FOCUS` section, `board focus`, `spec.ts focus`) | "now", "shipping", "active" | "active" already means nothing (186 specs). "focus" is the user's word for it, short, and unused as an identifier. The prose "Currently focused: Phase N" in `status.md` is a different file and stays |
+| 2 | Where the rank lives | **`focus: <number>` in the spec's own `CLAUDE.md` frontmatter** (`ledger/decision-focus-rank-in-spec-meta.md`) | (a) `docs/specs/_focus/<spec>.md`, one file per spec; (b) a list in `_playbook/settings.md` | (a) lets entries dangle (renamed, deleted, finished, branch-only specs) and needs its own loader, two doctor checks, a hook regex and `unknown` / `branch-only` / `shipped → drop` handling; the field rides the spec through renames, drops out when the spec finishes, and reuses `SpecMeta`, `checkSpecMeta` and `setFrontmatterLine`. An added key lands just before the closing fence, far from `updated:`, so it merges cleanly. (b) is the shared-append file the project retired (`gotcha-github-ignores-merge-union`) |
+| 3 | Order | `focus:` is any finite number ≥ 0, ascending, ties by spec name. Add = max + 10 (first: 10); top = min − 10, or min / 2 when that would go below 0; after X = midpoint of X and the next higher rank (none → X + 10). Never renumbers | Integers with gap renumbering; filename order | Every write is one file, so it never touches another spec's `CLAUDE.md`. `12.5` is still readable |
+| 4 | Who a focus spec belongs to | The documented optional **`owner:`** key (`SKILL.md` → *Priority, due dates and owners*), any name of the person (gh login preferred). Matched by normalized prefix (lowercase, drop non-alphanumerics, one side a prefix of the other, min 3 chars) against **me** only; everyone else is keyed by exact normalized name. `unknown` never matches | A new `who:` key; a `_people/` alias file; exact gh login only | `owner:` is already the house key for "one named person"; a second key would split it. In code the identifier is `person` (not `owner`, which `ownerOf` uses for a path's worktree). Bucketing against me only keeps grouping deterministic ("anton" vs "antonio" can't merge two teammates) |
+| 5 | Who "me" is | Local claims and this machine's sessions are always mine. For PRs and remote claims: the normalized git author name, one `git var GIT_AUTHOR_IDENT` in `loadBoard` (not in `loadBoardInputs`, which `claim` and `trees place` also call) | `gh api user` per board run | No network call; the board budget is < 5 s (`decision-board-timing-accepted`) |
+| 6 | Session → spec | First keep only this repo's sessions (cwd inside any `git worktree list` path). Then, in order: (1) the session holds a claim on the spec; (2) its name parses as launch's `<spec> <sub-command> [<phase>]` with `<spec>` a spec on the base; (3) its cwd is in a **non-main** worktree whose spec changes name exactly one *focus* spec. Every match shows, not just the newest per tree. The rest of this repo's sessions are `other sessions` | Branch names; transcript `gitBranch`; newest-per-tree (today); tree before name | ROADMAP rule: no branch-to-spec mapping. The main checkout is always "live" and collects prep/idea edits, so it can't stand for one spec. Trees are reused across specs, so the launch name outranks the tree. `~/.claude/sessions` spans every repo on the machine |
+| 7 | Teammate's work | Remote claims (exist) + **open** PRs linked from the spec's `pr-opening.md` on the base (`prLinks`), labelled by PR author; an author-less PR shows unlabelled | Reading origin branches; `gh pr list --author` per person | No branch mapping (rule). One field (`author`) on the existing `gh pr list` call. A teammate's links on an unmerged branch stay invisible until they reach the base: accepted |
+| 8 | A live claim whose session is idle | Needs-you kind `idle-claim` after **2 days** idle (`IDLE_CLAIM_DAYS`), one row per session: `claim idle 3d` · `<spec> · 1, 2, 4a → switch to <session> or take it over`. Board-wide, focus set or not | Calling it "stale"; reusing `REMOTE_CLAIM_STALE_DAYS` (3); "release" | `isStale` already means "safe to take over". `claim release` only frees the caller's own claims, and take-over needs the user's word, so the copy names the two real actions |
+| 9 | Finished focus specs | Shown while the base says finished but a linked PR is still open (`now: merging #n`); hidden once no linked PR is open. `abandoned` / `good-enough` hide at once. The leftover `focus:` is harmless; no drop step, no attention row | A `shipped → drop from focus` row plus a handoff drop | In `docs: main` projects the last tick reaches main at handoff, before the code merges; hiding then would drop the team's #1 while it's unmerged. With the rank in spec meta there is nothing to clean up |
+| 10 | Focus vs the rest of the board | FOCUS is a new lane, printed first; the other lanes are unchanged. Ready rows carry `focus?: number` and rank focus specs first (by focus rank), then today's order | (a) A separate command; (b) filter the board to focus specs only | (a) breaks "no new user command". (b) loses the blocked/needs-you picture. Ranking focus first makes *Next sessions*, execute's "offer the top ready row" and "what's next" recommend focus work with no prose change |
+| 11 | Filter mine / a teammate's | `board focus --who <name\|me>`, applied to the model before JSON and text; Claude maps "my focus", "what's Taras on" to it (`list.md`) | `list mine` / `list <name>` words; filtering in the renderer | Free words on `list` are the table filter (`decision-board-command-surface`). Filtering the model keeps agents reading `--json` on the same answer |
+| 12 | Writing the set | `spec.ts focus add\|drop\|move` reads the set from `origin/<default>` and pushes a one-file commit onto it (pin, commit, push, retry on non-fast-forward), from any checkout and in any docs mode (`ledger/decision-focus-writes-land-on-default-branch.md`) | Write the checkout and land via `publish-docs` | `publish-docs` skips deletions, runs only in `docs: main`, and a worktree's view of the set can be days old. Focus is shared team state, like claims: read and written at the base |
+| 13 | JSON | Additive: `lanes.focus`, `footer.otherSessions`, `me`, `ReadyRow.focus`, one attention kind. `BOARD_VERSION` stays 1 | Bump to 2 | Precedent `decision-remote-claims-landing-shape`: additive fields don't break readers |
+| 14 | No focus set | FOCUS lane, header count and `other sessions` omitted; the board prints as today except `claim idle` rows (decision 8) | An empty "FOCUS none" lane | The brief: solo users and repos without a set see no change to their lanes |
+| 15 | Focus vs `priority:` | Separate axes. Focus = the team's short, totally ordered shipping list; `priority` = urgency across all specs. In ready ranking focus comes before priority. No doctor coupling (`ledger/decision-focus-is-not-priority.md`) | Focus = `priority: p1` ordered by due | CRM has 22 `p1` specs, no total order, no per-person view. A "focus must be p1" warning would push everything to p1 again |
+| 16 | Sessions and joins | FOCUS has its own resolver (decision 6); `board/joins.ts` keeps today's per-row pick for IN FLIGHT | One resolver for both | Rewiring joins would change in-flight output, which this spec leaves alone. A session can show on an IN FLIGHT row and in `other sessions` when its tree touches two focus specs: accepted |
 
 ## Core flow
 
 ```
 Anton: "put multi-location-studios and cross-studio on top of focus"
-  Claude ─► spec.ts focus add multi-location-studios --top      (writes _focus/multi-location-studios.md)
+  Claude ─► spec.ts focus add multi-location-studios --top      (commit on origin/main: focus: in its CLAUDE.md)
          ─► spec.ts focus add cross-studio --after multi-location-studios
-         ─► commit "[focus] …" ─► land (publish-docs / push docs to main)
 Taras (later, any session): /spec list
-  board ─► reads origin/main _focus/*.md ─► same FOCUS order on both machines
+  board ─► reads origin/main specs' focus: ─► same FOCUS order on both machines
 ```
 
 ## Board — default view (wireframe)
@@ -56,6 +60,7 @@ FOCUS
   4  recurring-series-lifecycle…     10/14 executing 7 · 6caaa on branch   anton: execute 7 idle 3d, execute 6caaa shell 3h
   5  fast-parallel-backend-tests     5/12  executing 6                     anton: execute 6 busy 6m, 8 idle 6h, 9 idle 4h, 10 idle 3h
   6  gift-cards                      0/9   in flight 1, 2, 3, 4a           taras: 4 claims 2d · #904 #905 draft
+  7  local-test-cost                 3/8   paused                          — (anton)
   …
   other sessions: crm-d1 busy 4h, crm-82 idle 6h, crm-ac idle 3d
 
@@ -67,33 +72,37 @@ READY   ★ = shares no files with anything in flight
   …
 
 NEEDS YOU
-  claim idle 3d          recurring-series-lifecycle-clarity · 7 → resume or release
-  shipped                getting-started → drop from focus
+  claim idle 3d          recurring-series-lifecycle-clarity · 7 → switch to recurring-series-lifecycle-clarity execute 7 or take it over
   …
 ```
 
-- Columns: focus rank · spec (`⚠` when overdue) · progress `done/total` (`prep` / `draft` for specs
+- Columns: focus position · spec (`⚠` when overdue) · progress `done/total` (`prep` / `draft` for specs
   without phases) · **now** · **who**. Due day after `now` when set and not overdue.
-- **now** (first match): `executing <ids>` / flight `next` text (in flight) → `ready <ids>` (max 3, then
-  `+N`) or `ready: /spec create` / `ready: /spec prep` → `needs deploy of <ids>` → `blocked: <first
-  reason>` → `not on main` (spec only on a branch) → `unknown spec` (no such spec; doctor errors).
-- **who**: per person, `<name>: <sessions> · <claims> · <PRs>`, people sorted me first.
-  Session: `<sub> <phase> <status> <ago>` from the launch name, else `<session label> <status> <ago>`.
-  Remote claims collapse to `N claims <age>` when more than 2. PRs: `#<n>` + `draft` / `N failing` /
-  `checks pass`. Nothing known → `—`.
-- `who:` from the entry shows when nobody is on it: `— (taras)`.
-- `other sessions:` lists sessions attributed to no focus spec, at most 5, then `+N`. Omitted when none.
+- **now** (first match, model kind in brackets): `executing <ids>` / flight `next` text [`flight`] →
+  `ready <ids>` (max 3, then `+N`) or `ready: /spec create` / `ready: /spec prep` [`ready`] →
+  `needs deploy of <ids>` [`deploy`] → `blocked: <first reason>` [`blocked`] → `paused` [`paused`] →
+  `merging #<n>` (finished on base, linked PR open) [`merging`] → `—` [`none`].
+- **who**: per person, `<name>: <sessions> · <claims> · <PRs>`, me first, then others by name.
+  Session: `<sub> <phase> <status> <ago>` from the parsed launch title, else `<session label> <status> <ago>`.
+  Remote claims collapse to `N claims <age>` when more than 2. PRs (open only): `#<n>` + `draft` /
+  `N failing` / `checks pass`; an author-less PR shows after the people, unlabelled. Nothing known → `—`.
+- The spec's `owner:` shows when nobody is on it: `— (taras)`.
+- `other sessions:` lists this repo's sessions on no focus row, at most 5, then `+N`. Omitted when none
+  or when the focus set is empty.
 
 ## `board focus` and `--who`
 
 ```
 $ spec.ts board focus --who taras
+spec board · crm · origin/main 0f91711 · fetched 18:30
 FOCUS · taras
   6  gift-cards                      0/9   in flight 1, 2, 3, 4a           taras: 4 claims 2d · #904 #905 draft
 ```
 
-`--who` keeps rows whose entry `who:` matches or where that person appears in the who cell. `--who me`
-uses the identity from decision 5. No match → `FOCUS · <name>\n  none`.
+`--who` keeps rows whose `owner:` matches or where that person has a who bucket; `--who me` uses `me`
+(decision 5). It filters the model, so `--json` returns the same rows. No match → `FOCUS · <name>\n  none`.
+Empty focus set → `FOCUS\n  none`. When `--who <name>` finds none, `list.md` has Claude fall back to that
+person's remote claims across all specs.
 
 ## Copy
 
@@ -101,23 +110,26 @@ uses the identity from decision 5. No match → `FOCUS · <name>\n  none`.
 |---|---|
 | Lane title | `FOCUS` (filtered: `FOCUS · <name>`) |
 | Header count | `<n> focus · ` prefix, only when the set is non-empty |
-| Attention, idle claim | `claim idle <ago>` · `<spec> · <phase> → resume or release` |
-| Attention, shipped | `shipped` · `<spec> → drop from focus` |
-| Writer success | `focus: added <spec> at <position>/<total>` · `focus: dropped <spec>` · `focus: moved <spec> to <position>/<total>` |
-| Writer refusals | `focus add: no spec named <x>` · `focus add: <x> is already in focus (rank <n>)` · `focus drop: <x> is not in focus` · `focus move: --after <y>: <y> is not in focus` |
+| Attention, idle claim | `claim idle <ago>` · `<spec> · <phases> → switch to <session> or take it over` |
+| Writer success | `focus: added <spec> at <position>/<total> (<sha>)` · `focus: dropped <spec> (<sha>)` · `focus: moved <spec> to <position>/<total> (<sha>)` |
+| Writer refusals | `focus add: no spec named <x> on origin/<default>; land the spec first` · `focus add: <x> is already in focus (<position>/<total>)` · `focus drop: <x> is not in focus` · `focus move: --after <y>: <y> is not in focus` · `focus: push to <default> refused: <git's reason>` |
 
 ## Edge cases
 
 | Case | Behavior |
 |---|---|
-| No `_focus/` folder or it's empty | No FOCUS lane, no header count; board identical to today |
-| Entry for a spec that doesn't exist (renamed/deleted) | Row `unknown spec`; doctor error; writer `drop` still works |
-| Entry exists only on a branch | Not shown until it reaches the default branch (board truth is base, spec-board decision 4); `publish-docs` lands it at handoff, or Claude lands it right after writing |
-| Two entries with the same rank | Ordered by spec name; doctor warning |
-| Malformed entry (bad rank) | Skipped by the loader; doctor and spec-file hook error |
+| No spec has `focus:` | No FOCUS lane, no header count, no `other sessions`; board identical to today except `claim idle` rows |
+| Spec renamed | `focus:` moves with its `CLAUDE.md`; nothing to fix |
+| Spec exists only on a branch | `focus add` refuses (`land the spec first`); the board never shows it |
+| Two specs with the same rank | Ordered by spec name; `--after` puts the moved spec at the midpoint to the next higher distinct rank |
+| Malformed `focus:` (not a number ≥ 0) | Skipped by the board; doctor and spec-file hook error; `focus add`/`move` overwrite it |
+| Paused focus spec | Row with `now: paused` |
+| Finished on base, linked PR open | Row with `now: merging #n` |
+| Finished, no open linked PR; or `abandoned` / `good-enough` | Hidden; `focus:` stays in its meta, harmless |
 | Sessions unreadable | Who cell shows only claims/PRs; footer keeps `sessions unavailable: …`; nothing is called idle |
+| Session in another repo | Not on this board at all |
 | `--local` / gh unavailable | PRs omitted from who cells; footer's `PRs unavailable` line as today |
-| Same session matches two focus specs (tree touches both) | Rule 3 (name) decides; if it doesn't, the session counts under "other sessions" |
-| A session in the main checkout with no claim and a derived name | "other sessions" |
-| A spec finished but still in focus | Hidden from FOCUS; `shipped` row |
-| Teammate's git name and gh login don't share a prefix | Shown under both names; fix by writing their gh login in `who:` and matching on it (documented in `list.md`) |
+| A tree touches two focus specs, session has no claim and no launch name | `other sessions` |
+| Session in the main checkout with no claim and a derived name | `other sessions` (main never attributes by tree) |
+| Main rejects the writer's push (branch protection, offline) | `focus: push to <default> refused: …`; nothing written locally |
+| Teammate's git name and gh login don't share a prefix | Their claims and PRs show under two names; harmless, documented in `list.md` |

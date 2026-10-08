@@ -1,61 +1,62 @@
 # Active Work View — Technical
 
-Ground truth: `research/2026-10-07-wave-1-board-sessions-storage.md` (seams, reuse, blast radius) and
-`research/2026-10-07-craft-names-fixtures-extraction.md` (names, exemplars, fixtures, extractions).
-`T` = `skills/spec/tools`.
+Ground truth: `research/2026-10-07-wave-1-board-sessions-storage.md` (seams, reuse, blast radius),
+`research/2026-10-07-craft-names-fixtures-extraction.md` (names, exemplars, fixtures, extractions) and
+`reviews/2026-10-07-focus-storage-and-landing.md` (what changed after review). `T` = `skills/spec/tools`.
 
-## Focus entry file
-
-`docs/specs/_focus/<spec>.md` (flat; `_` dirs are never specs; already in `READ_SET`). Filename = spec name.
+## Focus in spec meta
 
 ```markdown
 ---
-rank: 20          # required, integer ≥ 0; lower = higher in focus
-who: taras        # optional; any name of the person (gh login preferred)
+…
+priority: p1
+focus: 20         # optional; finite number ≥ 0; lower = higher in focus
+owner: taras      # optional; the documented "one named person" key; gh login preferred
 ---
-
-Optional one-line why (ignored by tools).
 ```
 
-```ts
-// T/focus/entries.ts
-export const FOCUS_DIR = "_focus";
-export interface FocusEntry { spec: string; rank: number; who?: string; file: string }
-export function loadFocus(projectDir: string): FocusEntry[]          // sorted rank asc, then spec
-export function parseFocusEntry(file: string, spec: string, text: string): FocusEntry | undefined
-```
-
-Mirror `T/backlog/items.ts` (`markdownFilesIn` guards a missing dir). Wired in `T/mainline/load.ts`
-`loadSpecDocs` next to `loadBacklog` → `Mainline.focus` → `BoardInputs.focus: FocusEntry[]`.
-
-**Validation.** `T/doctor/focus-entry.ts` (`checkFocusEntry`: rank is a non-negative integer; spec
-exists; unknown keys warn) and `T/doctor/focus.ts` (`focusIssues`: duplicate ranks warn), wired in
-`T/commands/doctor.ts` and the spec-file hook (`T/hooks/spec-file-check.ts`, new `FOCUS` path regex).
+- `T/core/spec-meta.ts`: `SpecMeta` gains `focus?: number` and `owner?: string`; `readSpecMeta` reads
+  them (a non-number `focus` → undefined). The board reads `node.meta.focus` from the base nodes it
+  already loads; there is no new loader and no `BoardInputs.focus`.
+- Validation: `checkSpecMeta` (`T/doctor/spec-meta.ts`) errors on a `focus` that isn't a finite number
+  ≥ 0 and on a non-string `owner`. The spec-file hook already runs it on every `CLAUDE.md` write.
+- `T/core/frontmatter-patch.ts` gains `removeFrontmatterLine(text, key)` (with continuation lines), the
+  inverse of `setFrontmatterLine`.
 
 ## Writer: `spec.ts focus`
 
 ```
-focus add <spec> [--top | --after <spec>] [--who <name>]
+focus add <spec> [--top | --after <spec>]
 focus drop <spec>
 focus move <spec> (--top | --after <spec>)
 ```
 
 Exemplar `T/commands/phase.ts` (`ACTIONS` record, `FOCUS_USAGE`, errors `focus <action>: <reason>`).
-Planners in `T/focus/plan.ts` return `EditPlan` (`T/core/apply-edits.ts`), applied by `applyEdits`.
+Ownership is not the writer's job: Claude sets `owner:` with an ordinary spec-doc edit.
 
-Rank arithmetic (`T/focus/rank.ts`, pure):
-- `add` default: `max + 10` (first entry: 10). `--top`: `min − 10`, floored at 0; when `min` is 0,
-  renumber all to 10, 20, … first.
-- `--after X`: midpoint of X and its successor (successor absent → X + 10). No integer gap → renumber
-  only the entries from X's successor down by +10 steps until a gap opens. Renumbering is the only
-  multi-file write.
-- `move` = recompute the moved entry's rank by the same rules; never touches other files unless a
-  renumber is needed.
-- Validates: spec exists (`resolveSpec`), not already in focus (`add`), in focus (`drop`/`move`).
+**Base-first** (`ledger/decision-focus-writes-land-on-default-branch.md`). `T/focus/land.ts`:
+1. `pinDefault(git, branch)` (`T/publish/snapshot.ts`) → the tip sha.
+2. Read every spec's `focus:` at that tip (base nodes, as the board loads them) and the target spec's
+   `CLAUDE.md` text at the tip (`git show <tip>:<path>`). Refuse a spec that isn't on the base.
+3. `T/focus/rank.ts` (pure) gives the new rank; the planner gives the new `CLAUDE.md` text
+   (`setFrontmatterLine` / `removeFrontmatterLine`).
+4. Commit that one file onto the tip with a scratch index and `commit-tree -p <tip>`, subject
+   `[focus] <verb> <spec>`. Extract the scratch-index part of `snapshotCommit` into a shared
+   `commitOnto(git, base, files, message)` in `T/publish/` (second use).
+5. `git push origin <commit>:refs/heads/<default>`; a non-fast-forward (`NON_FAST_FORWARD`, exported
+   from `T/publish/publish.ts`) retries from step 1 once, as `publishDocs` does; any other refusal
+   prints `focus: push to <default> refused: <reason>`.
 
-The writer never commits. `list.md` tells Claude to commit (`[focus] <verb> <spec>`) and land it like
-spec docs: `publish-docs` (carries any `docs/specs/**` path) on a branch; on the default branch in a
-`docs: main` project, `spec.ts push` refuses code, not docs.
+The working tree is never touched. A checkout catches up the next time it merges main; the added or
+removed line is far from `updated:`, so that merge is clean.
+
+**Rank arithmetic** (`T/focus/rank.ts`, pure over `{ spec, rank }[]` sorted by rank then spec; the
+moved spec is removed first):
+- `add` default: `max + 10` (empty: 10). `--top`: `min − 10`, or `min / 2` when that would be < 0.
+- `--after X`: midpoint of X and the next entry with a rank **greater** than X's (none → X + 10).
+- `move` = the same over the set without the moved spec. Never touches another spec.
+- Refusals: spec not on the base; already in focus (`add`); not in focus (`drop` / `move`); `--after`
+  target not in focus. A malformed `focus:` counts as not in focus, so `add` overwrites it.
 
 ## Board model (additive, `BOARD_VERSION` 1)
 
@@ -66,69 +67,97 @@ export type FocusNow =
   | { kind: "ready"; phases: string[]; step: NextStep }
   | { kind: "deploy"; phases: string[] }          // undeployed phases this spec waits on
   | { kind: "blocked"; reason: string }
-  | { kind: "branch-only" } | { kind: "unknown" } | { kind: "idle" };
+  | { kind: "paused" }
+  | { kind: "merging"; pr: number }               // finished on base, a linked PR still open
+  | { kind: "none" };
 
-export interface FocusSession { label: string; status: SessionStatus; since: string; mine: true }
+export interface FocusSession { label: string; sub?: string; phase?: string; status: SessionStatus; since: string }
 export interface FocusWork {
-  person: string;                                  // "me" or a display name
+  person: string;                                  // display name; me first
   mine: boolean;
-  sessions: FocusSession[];
+  sessions: FocusSession[];                        // this machine's, so only on the mine bucket
   claims: { phase: string; since: string }[];      // remote claims only (local ones show as sessions)
-  prs: PrCell[];
+  prs: PrCell[];                                   // open only
 }
 export interface FocusRow {
   spec: string;
   rank: number;
-  who?: string;
+  owner?: string;
   progress?: { done: number; total: number };
   stage?: SpecStage;
   due?: string;
   overdue: boolean;
   now: FocusNow;
   work: FocusWork[];
+  unattributedPrs: PrCell[];                       // open linked PRs with no author
 }
-// Board.lanes.focus: FocusRow[]   Board.footer.otherSessions?: string[]
-// AttentionRow += { kind: "idle-claim"; spec; phase; since } | { kind: "focus-shipped"; spec }
+// Board.lanes.focus: FocusRow[]   Board.footer.otherSessions?: string[]   Board.me?: string
+// ReadyRow.focus?: number
+// AttentionRow += { kind: "idle-claim"; session: string; spec: string; phases: string[]; since: string }
 ```
+
+| `FocusNow.kind` | Copy |
+|---|---|
+| `flight` | `executing <ids>` or the flight row's `next` text |
+| `ready` | `ready <ids>` (max 3, `+N`), `ready: /spec create`, `ready: /spec prep` |
+| `deploy` | `needs deploy of <ids>` |
+| `blocked` | `blocked: <reason>` |
+| `paused` | `paused` |
+| `merging` | `merging #<n>` |
+| `none` | `—` |
 
 ## Builder and attribution
 
-- `T/board/focus.ts` — `focusRows(entries, board-so-far, inputs, now): FocusRow[]` (pure, plural-noun
-  idiom). Called once from `buildBoard` (`T/board/lanes.ts`) after the other lanes exist, so it reads
-  finished `inFlight` / `ready` / `blocked` rows filtered by `row.spec` (no shared group-by helper).
-  Finished specs are skipped (they go to `focus-shipped`).
-- `T/board/attribution.ts` — `attributeSessions(sessions, inputs): Map<spec, LiveSession[]> & { other }`:
-  1. claim with this `sessionId` → that claim's spec;
-  2. `ownerOf(session.cwd, workspace paths)` → that workspace's `states` keys, if exactly one;
-  3. `parseSessionName(name)` → `<spec>` when `nameSource` is `user` or absent, the first token is a
-     known spec node and the second is in `SUB_COMMANDS`; phase via `isPhaseId`.
-  Own session (`ownSessionId`) is included (the board isn't a tree-safety check).
-- `T/sessions/live.ts` gains optional `nameSource?: "user" | "derived"` (explicit read; anything else →
-  undefined) — the only reader of session files (`gotcha-claude-session-files-are-undocumented`).
+- `T/board/focus.ts` — `focusLane(lanes, inputs, now): { rows: FocusRow[]; otherSessions: string[] }`.
+  Called once from `buildBoard` (`T/board/lanes.ts`) after the other lanes exist; reads finished
+  `inFlight` / `ready` / `blocked` rows filtered by `row.spec`. Specs with `focus:` that are `paused` or
+  open are rows; finished ones are rows only while a linked PR is open (`merging`). Progress, due and
+  overdue come from `specSummary` (extraction #6). `otherSessions` = this repo's sessions not on any
+  row, and only when there are rows.
+- `buildBoard` sets `ReadyRow.focus` from `node.meta.focus` before `rankReady`.
+- `T/board/attribution.ts` — `attributeSessions(sessions, inputs, focusSpecs): { bySpec: Map<string,
+  LiveSession[]>; unattributed: LiveSession[] }`:
+  0. keep sessions with `ownerOf(session.cwd, inputs.worktreePaths)`; `worktreePaths` is every
+     `git worktree list` path, loaded in `board/load.ts` the way `claimContext` does
+     (`T/claims/held.ts`), not the live-only `inputs.workspaces`;
+  1. a claim with this `sessionId` → that claim's spec;
+  2. `parseLaunchTitle(name)` (`T/launch/title.ts`) → `<spec>` when the spec is a base node;
+  3. `ownerOf(session.cwd, workspace paths)` → a workspace that is **not** `isMain` whose `states` keys
+     include exactly one focus spec.
+  The own session (`ownSessionId`) is included (the board isn't a tree-safety check).
+- `T/board/joins.ts` is unchanged in behaviour (design decision 16).
 - People: `T/board/people.ts` — `samePerson(a, b)` (normalize: lowercase, strip `[^a-z0-9]`; equal or
-  one a prefix of the other, min 3 chars), `myName` from `BoardInputs.me` (git author name, loaded in
-  `board/load.ts` via the existing `readHolder` path).
+  one a prefix of the other, min 3 chars; `unknown` never matches), `personKey(name)`, and
+  `focusFor(rows, who, me): FocusRow[]`. Bucketing: local sessions and anything `samePerson(me)` → me;
+  everything else keyed by `personKey`. `me` = one `git var GIT_AUTHOR_IDENT` in `loadBoard`.
 - PR author: `T/pr/gh-lists.ts` adds `author` to `OPEN_FIELDS`; `PrRow.author?: string` from
-  `author.login` (`isRecord`) in `T/pr/rollup.ts`. PRs join specs through `prLinks` (unchanged).
+  `author.login` (`isRecord`) in `T/pr/rollup.ts`. Linked PRs come from `linkedPrs` and render through
+  `toPrCell` (extraction #7), open only.
 
 ## Attention
 
-`T/board/attention.ts` adds two private builders spread into `needsYou`:
-- `idleClaims`: a local claim whose status is `live` and whose session `status !== "busy"` and
-  `olderThanDays(session.updatedAt, now, IDLE_CLAIM_DAYS)` (`IDLE_CLAIM_DAYS = 2`).
-- `shippedFocus`: focus entries whose spec `isFinished`.
+`T/board/attention.ts` adds one private builder spread into `needsYou`, one spread per line:
+- `idleClaims`: local claims whose status is `live`, whose row is on the board (the `shown` filter
+  `oldRemoteClaims` uses), whose session's `status` is not `busy` (a `shell` session counts as idle),
+  whose `updatedAt` was read from the file (not the `startedAt` fallback; `T/sessions/live.ts` marks it),
+  and `olderThanDays(session.updatedAt, now, IDLE_CLAIM_DAYS)` (`IDLE_CLAIM_DAYS = 2`). Grouped to one
+  row per session. Sessions unreadable → none.
 
 ## Render
 
-`T/board/render-focus.ts` (new; `render.ts` is 106 lines): `focusLane(board, who?)` using `lane()`,
-`alignColumns`, `rowName`, `ago`, `prCell` from `T/board/cells.ts`. `render.ts`: `LANES` gains
-`"focus"` first; `sections.focus` omitted when `lanes.focus` is empty; header count prefix; two
-`attentionCells` lines. `T/commands/board.ts`: `--who <name>` (only with the `focus` lane or none).
+`T/board/render-focus.ts` (new): `focusLane` text using `lane()`, `alignColumns`, `rowName`, `ago`,
+`prCell` from `T/board/cells.ts`. It takes the filter name only for the title. `render.ts`: `LANES`
+gains `"focus"` first; the section is skipped when `lanes.focus` is empty, except `board focus` prints
+`FOCUS\n  none`; header count prefix; one `attentionCells` line; the ready row's `focus <n>` note.
+`T/commands/board.ts`: `--who <name|me>` (only with the `focus` lane or none) runs `focusFor` before
+both `--json` and text.
 
 ## Ranking
 
-`T/board/rank.ts` `rankReady`: focus rank first (rows of focus specs before others, by focus rank),
-then today's order (overdue → priority → due → unblocks → updated → name). `markSafe` unchanged.
+`T/board/rank.ts` `rankReady`: rows with `focus` first, by `focus` ascending; then today's order
+(overdue → priority → due → unblocks → updated → name). `markSafe` unchanged. Agents that read the top
+ready row change behaviour with it: `skills/spec/execute.md` (offer the top ready row),
+`T/commands/context.ts` (`OFFER_TOP_READY`), `T/tests/context.test.ts`.
 
 ## Extractions (phase 1, behavior-preserving)
 
@@ -138,36 +167,39 @@ then today's order (overdue → priority → due → unblocks → updated → na
 | 2 | `sessionsByWorkspace(sessions, paths)` | `board/joins.ts:40-47`, `trees/find.ts:87-90` | `T/sessions/by-workspace.ts` |
 | 3 | `deployWaits(states, nodes)` → `{ waiter, target }[]` | `board/attention.ts:66-75` | `T/board/deploy-waits.ts` |
 | 4 | `splitKey(key)` | `board/flight.ts:86-89`, `board/attention.ts:73` | `T/board/phase-keys.ts` |
-| 5 | `olderThanDays(then, now, days)` | `board/attention.ts:10,44` | `T/core/age.ts` |
-| 6 | `phaseProgress(phases)` → `{ done, total }` | `portfolio/rows.ts:37`, `context/status-table.ts:49` | `T/graph/progress.ts` |
-| — | Shared test factories `liveSession`, `claim`, `heldClaim`, `prRow` | ~10 test files (craft snapshot) | `T/tests/board-factories.ts` |
+| 5 | `olderThanDays(then: Date, now: Date, days)`, strict (`then < now − days`) | `board/attention.ts:10,44` | `T/core/age.ts` |
+| 6 | `specSummary(node, today)` → `{ progress, priority, due, overdue }` | `portfolio/rows.ts:30-38` | same file, exported; `specRow` uses it |
+| 7 | `toPrCell(pr)` (was private `prCell`), `linkedPrs(prs, links)` | `board/joins.ts:60-74` | `board/joins.ts`, exported |
+| 8 | `launchTitle(spec, sub, phase?)` / `parseLaunchTitle(name)`, round-trip test | `launch/command-line.ts:26-27` | `T/launch/title.ts` |
+| — | Factories `liveSession`, `claim`, `heldClaim` → `tests/factories.ts`; `prRow` → `tests/board-factories.ts` | ~10 test files (craft snapshot) | migrate a copy only where the defaults fit; thin local wrappers stay |
 
 Not extracted: list/board arg parser, group-rows-by-spec, folder-of-markdown reader, `ago`, `isOverdue`,
-`ownerOf`, `treeHolder` (reasons in the craft snapshot).
+`ownerOf`, `treeHolder`, `status-table.ts`'s done count (reasons in the craft snapshot and the review).
 
 ## `list` fix
 
-`T/commands/list.ts`: `--local` is consumed (board with `local: true`; table ignores it) and any other
-`--flag` is dropped from the filter instead of filtering on it.
+`T/commands/list.ts`: a pure `listRoute(args): { kind: "board"; local: boolean } | { kind: "table";
+args: string[] } | string`. `--local` alone → board with `local: true`; `table`/filters (with or without
+`--local`) → table; an unknown `--` flag → `usage: list …`. Tested without git, like `parseBoardArgs`.
 
 ## File tree (new)
 
 ```
 skills/spec/tools/
-  focus/entries.ts  focus/plan.ts  focus/rank.ts
+  focus/rank.ts  focus/plan.ts  focus/land.ts
   commands/focus.ts
   board/focus.ts  board/attribution.ts  board/people.ts  board/render-focus.ts  board/deploy-waits.ts
-  sessions/label.ts  sessions/by-workspace.ts
-  core/age.ts  graph/progress.ts
-  doctor/focus-entry.ts  doctor/focus.ts
-  tests/focus-entries.test.ts  focus-plan.test.ts  focus-rank.test.ts  focus-command.test.ts
+  sessions/label.ts  sessions/by-workspace.ts  launch/title.ts
+  core/age.ts
+  tests/focus-rank.test.ts  focus-plan.test.ts  focus-land.test.ts  focus-command.test.ts
         board-focus.test.ts  board-attribution.test.ts  board-people.test.ts  board-render-focus.test.ts
-        sessions-label.test.ts  sessions-by-workspace.test.ts  core-age.test.ts  graph-progress.test.ts
-        board-deploy-waits.test.ts
+        sessions-label.test.ts  sessions-by-workspace.test.ts  core-age.test.ts  launch-title.test.ts
+        board-deploy-waits.test.ts  list-route.test.ts
 ```
 
 ## Prose touched
 
-`skills/spec/list.md` (FOCUS lane, focus words → `focus add|drop|move`, "my focus" / "what's <name> on"
-→ `board focus --who`), `SKILL.md` (*Tools*: Focus bullet; *List*/*Board* mention the lane),
-`handoff.md` (last phase of a focus spec → `focus drop`), `README.md`, `ROADMAP.md` row.
+`skills/spec/list.md` (FOCUS lane; focus words → `focus add|drop|move`; "my focus" / "what's <name> on"
+→ `board focus --who`, falling back to their remote claims; `claim idle` actions), `SKILL.md` (*Tools*:
+Focus bullet; *List*/*Board* mention the lane; *Priority, due dates and owners* mentions `focus:`),
+`execute.md` (top ready row now ranks focus first), `README.md`, `ROADMAP.md` row.

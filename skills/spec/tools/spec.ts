@@ -8,7 +8,7 @@ import { LAUNCH_USAGE, launchCommand } from "./commands/launch";
 import { lessonsCommand } from "./commands/lessons";
 import { BOARD_USAGE, boardCommand, systemBoardDeps } from "./commands/board";
 import { CLAIM_USAGE, claimCommand } from "./commands/claim";
-import { listCommand } from "./commands/list";
+import { LIST_USAGE, listCommand } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
 import { PR_STATUS_USAGE, prStatusReport } from "./commands/pr-status";
@@ -34,7 +34,7 @@ export const COMMANDS: Record<string, Command> = {
   graph: { usage: "graph …", run: graphCommand },
   ready: { usage: "ready <spec-name>", run: (dir, args) => readyReport(dir, args[0]) },
   gates: { usage: GATES_USAGE, run: gatesReport },
-  list: { usage: "list [table] [all] [filter] [--json]", run: (dir, args) => listCommand(dir, args, systemBoardDeps()) },
+  list: { usage: LIST_USAGE, run: (dir, args) => listCommand(dir, args, systemBoardDeps()) },
   board: { usage: BOARD_USAGE, run: (dir, args) => boardCommand(dir, args) },
   playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
   phase: { usage: PHASE_USAGE, run: phaseCommand },

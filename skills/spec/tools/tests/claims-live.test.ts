@@ -5,6 +5,7 @@ import { heldByOthers } from "../claims/live";
 import { claimsDir, takeClaim, type Claim } from "../claims/store";
 import { gitAt } from "../core/git";
 import type { RunOptions } from "../core/run";
+import { claim as claimOf } from "./factories";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { createTree, type Tree } from "./tree";
 
@@ -13,7 +14,7 @@ describe("heldByOthers", () => {
   let claude: Tree;
   let dir = "";
   const runner = { run: (argv: readonly string[], options?: RunOptions) => (argv[0] === "ps" ? { code: 0, stdout: `${process.pid} start\n`, stderr: "" } : isolatedRunner.run(argv, options)) };
-  const claim = (spec: string, phase: string, sessionId: string, sessionName?: string): Claim => ({ spec, phase, sessionId, ...(sessionName ? { sessionName } : {}), workspace: "/w", claimedAt: "t" });
+  const claim = (spec: string, phase: string, sessionId: string, sessionName?: string): Claim => claimOf({ spec, phase, sessionId, ...(sessionName ? { sessionName } : {}), workspace: "/w", claimedAt: "t" });
   const live = (sessionId: string) =>
     claude.write(`sessions/${process.pid}.json`, JSON.stringify({ pid: process.pid, sessionId, cwd: "/w", procStart: "start", status: "busy", updatedAt: 1 }));
 

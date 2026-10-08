@@ -3,11 +3,12 @@ import { readdirSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import { gitAt } from "../core/git";
 import { claimFile, claimsDir, loadClaims, pruneClaims, releaseClaims, takeClaim, type Claim } from "../claims/store";
+import { claim as claimOf } from "./factories";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { createTree, type Tree } from "./tree";
 
 function claim(fields: Partial<Claim> = {}): Claim {
-  return { spec: "alpha", phase: "4", sessionId: "s1", workspace: "/work/crm", claimedAt: "2026-10-01T20:00:00.000Z", ...fields };
+  return claimOf({ phase: "4", sessionId: "s1", workspace: "/work/crm", ...fields });
 }
 
 const never = () => false;

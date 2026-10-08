@@ -9,16 +9,16 @@
 ## Success metrics
 
 - In CRM, `/spec list` opens on the team's focus specs, in the agreed order, identically on both machines.
-- Every open session on this machine appears either on a focus row or in `other sessions`.
-- A live claim idle for 2+ days, and a shipped focus spec, each show under needs you.
+- Every open session in this repo on this machine appears either on a focus row or in `other sessions`; sessions from other repos never do.
+- A live claim idle for 2+ days shows under needs you; a finished focus spec stays visible (`merging #n`) until its PR merges.
 - A teammate's claims and linked PRs appear on their focus rows.
-- With no `_focus/` folder, board output is byte-identical to 2.36.7.
+- With no `focus:` anywhere, board output is byte-identical to 2.36.7 except `claim idle` rows.
 
 ## Phases
 
-- [ ] Phase 1 — Groundwork: shared helpers, test factories, `list --local` fix → `phases/phase-1-groundwork.md`
-- [ ] Phase 2 — Focus set: entries, validation, writer → `phases/phase-2-focus-set.md`
+- [x] Phase 1 — Groundwork: shared helpers, test factories, `list --local` fix → `phases/phase-1-groundwork.md`
+- [ ] Phase 2 — Focus set: spec meta, validation, base-first writer → `phases/phase-2-focus-set.md`
 - [ ] Phase 3 — FOCUS lane on the board → `phases/phase-3-focus-lane.md`
 - [ ] Phase 4 — Teammate's work and `--who` → `phases/phase-4-teammate-work.md`
-- [ ] Phase 5 — Idle claims and shipped focus → `phases/phase-5-idle-and-shipped.md`
+- [ ] Phase 5 — Idle claims → `phases/phase-5-idle-and-shipped.md`
 - [ ] Phase 6 — Seed CRM's focus set → `phases/phase-6-seed-crm-focus.md`

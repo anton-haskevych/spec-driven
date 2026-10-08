@@ -17,23 +17,35 @@ export interface SpecRow {
   progress: { done: number; total: number };
 }
 
+export type SpecSummary = Pick<SpecRow, "progress" | "priority" | "due" | "overdue">;
+
 const DAY_LENGTH = 10;
 
 export function specRow(node: SpecNode, projectDir: string, today: string): SpecRow {
-  const finished = isFinished(node);
-  const { area, domain, scope, priority, due, updated } = node.meta;
+  const { area, domain, scope, updated } = node.meta;
+  const { progress, priority, due, overdue } = specSummary(node, today);
   return {
     name: node.spec.name,
     root: relative(projectDir, dirname(node.spec.dir)),
     status: node.status,
-    finished,
+    finished: isFinished(node),
     area,
     domain,
     scope,
     priority,
     due,
-    overdue: !finished && isOverdue(due, today),
+    overdue,
     updated: updated?.slice(0, DAY_LENGTH),
+    progress,
+  };
+}
+
+export function specSummary(node: SpecNode, today: string): SpecSummary {
+  const { priority, due } = node.meta;
+  return {
     progress: { done: node.phases.filter((phase) => phase.done).length, total: node.phases.length },
+    priority,
+    due,
+    overdue: !isFinished(node) && isOverdue(due, today),
   };
 }

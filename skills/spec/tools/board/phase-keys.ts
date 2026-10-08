@@ -20,6 +20,11 @@ export function rowKey(row: { spec: string; phase?: string }): string {
   return row.phase === undefined ? row.spec : `${row.spec}#${row.phase}`;
 }
 
+export function splitKey(key: string): { spec: string; phase?: string } {
+  const at = key.indexOf("#");
+  return at < 0 ? { spec: key } : { spec: key.slice(0, at), phase: key.slice(at + 1) };
+}
+
 function phaseKey(spec: string, label: string, nodes: ReadonlyMap<string, SpecNode>): string {
   return label.includes("#") || nodes.has(label) ? label : `${spec}#${label}`;
 }

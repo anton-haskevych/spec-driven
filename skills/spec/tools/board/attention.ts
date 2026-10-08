@@ -1,13 +1,14 @@
+import { olderThanDays } from "../core/age";
 import { isOverdue, isoDay } from "../core/schedule";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 import { heldName, holderName } from "../claims/rules";
 import type { BoardInputs } from "./inputs";
 import type { AttentionRow, FlightRow } from "./model";
-import { resolvedPhaseKeys, rowKey } from "./phase-keys";
+import { deployWaits } from "./deploy-waits";
+import { rowKey, splitKey } from "./phase-keys";
 
 export const REMOTE_CLAIM_STALE_DAYS = 3;
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function needsYou(active: readonly SpecNode[], inputs: BoardInputs, now: Date, inFlight: readonly FlightRow[]): AttentionRow[] {
   const today = isoDay(now);
@@ -41,9 +42,8 @@ function closedClaims(inputs: BoardInputs, inFlight: readonly FlightRow[]): Atte
 // No liveness across machines, so age is the only signal that a remote holder went silent.
 function oldRemoteClaims(inputs: BoardInputs, inFlight: readonly FlightRow[], now: Date): AttentionRow[] {
   const shown = new Set(inFlight.map(rowKey));
-  const cutoff = now.getTime() - REMOTE_CLAIM_STALE_DAYS * DAY_MS;
   return inputs.claims
-    .filter((held) => held.status === "remote" && shown.has(rowKey(held.claim)) && new Date(held.claim.claimedAt).getTime() < cutoff)
+    .filter((held) => held.status === "remote" && shown.has(rowKey(held.claim)) && olderThanDays(new Date(held.claim.claimedAt), now, REMOTE_CLAIM_STALE_DAYS))
     .map((held) => ({ kind: "remote-claim", spec: held.claim.spec, phase: held.claim.phase, holder: heldName(held), since: held.claim.claimedAt }));
 }
 
@@ -63,14 +63,9 @@ function overdue(node: SpecNode, state: SpecState | undefined, today: string): A
 
 function awaitingDeploy(states: readonly SpecState[], nodes: ReadonlyMap<string, SpecNode>): AttentionRow[] {
   const waiting = new Map<string, string[]>();
-  for (const state of states) {
-    for (const phase of state.phases.filter((candidate) => !candidate.done)) {
-      const undeployed = resolvedPhaseKeys(phase.edges.needsDeployed, state, nodes).filter((target) => target.done && !target.deployed);
-      for (const { key } of undeployed) waiting.set(key, [...(waiting.get(key) ?? []), `${state.spec.name}#${phase.id}`]);
-    }
-  }
+  for (const { waiter, target } of deployWaits(states, nodes)) waiting.set(target, [...(waiting.get(target) ?? []), waiter]);
   return [...waiting].map(([key, by]) => {
-    const [spec = "", phase = ""] = key.split("#");
+    const { spec, phase = "" } = splitKey(key);
     return { kind: "deploy", spec, phase, waiting: by };
   });
 }

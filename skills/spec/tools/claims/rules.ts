@@ -2,6 +2,7 @@ import type { PhaseActivity } from "../board/activity";
 import { rowKey } from "../board/phase-keys";
 import type { Result } from "../core/result";
 import type { SpecState } from "../core/spec-state";
+import { sessionLabel } from "../sessions/label";
 import type { LiveSession } from "../sessions/live";
 import { remoteHolderName, type Holder } from "./remote-payload";
 import type { Claim } from "./store";
@@ -57,5 +58,5 @@ export function heldName(held: HeldClaim): string {
 }
 
 export function holderName(claim: Claim): string {
-  return claim.sessionName ?? `session ${claim.sessionId.slice(0, 8)}`;
+  return sessionLabel(claim.sessionName, claim.sessionId);
 }
