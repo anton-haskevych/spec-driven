@@ -73,6 +73,8 @@ export type AttentionRow =
   | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number }
   | { kind: "claim"; spec: string; phase: string; holder: string }
   | { kind: "remote-claim"; spec: string; phase: string; holder: string; since: string }
+  // A live session holding claims has been idle since `since`: the user switches to it or takes it over.
+  | { kind: "idle-claim"; spec: string; phases: string[]; session: string; since: string }
   // Merged worktrees by ancestry; `trees prune` also finds squash-merged ones by their PR's head.
   | { kind: "prune"; trees: number };
 

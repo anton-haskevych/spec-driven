@@ -91,6 +91,7 @@ function attentionCells(row: AttentionRow, now: Date): string[] {
   if (row.kind === "overdue") return [`⚠ overdue (due ${monthDay(row.due)})`, rowName(row)];
   if (row.kind === "claim") return ["claim by a closed session", `${rowName(row)} → resume or release`];
   if (row.kind === "prune") return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "say yes to remove them (trees prune --apply)"];
+  if (row.kind === "idle-claim") return [`claim idle ${ago(new Date(row.since), now)}`, `${row.spec} · ${row.phases.join(", ")} → switch to ${row.session} or take it over`];
   if (row.kind === "remote-claim") return [`remote claim ${ago(new Date(row.since), now)} old`, `${rowName(row)} → ask ${row.holder} or take it over`];
   return ["not deployed → deploy", rowName(row), `needed by ${row.waiting.join(", ")}`];
 }

@@ -67,6 +67,42 @@ describe("claims on the board", () => {
     expect(renderBoard(board, { lane: "you" }).split("\n").slice(3)).toEqual(["NEEDS YOU", "  remote claim 4d old  alpha · 2 → ask Taras@desktop (alpha execute 2) or take it over"]);
   });
 
+  describe("idle claims", () => {
+    const idleFor = (updatedAt: string, extra: Partial<LiveSession> = {}) =>
+      liveSession({ sessionId: "s2", name: "alpha execute 2", cwd: "/wt/a", status: "idle", updatedAt: new Date(updatedAt), ...extra });
+    const idleBoard = (sessionValue: LiveSession, claims = [held("2", "live"), held("3", "live", { sessionId: "s2" })]) => boardWith(claims, { ok: true, value: [sessionValue] });
+
+    test("a session idle past IDLE_CLAIM_DAYS gets one needs-you row listing its claimed phases", () => {
+      const board = idleBoard(idleFor("2026-09-28T20:00:00Z"));
+      expect(board.lanes.needsYou).toEqual([{ kind: "idle-claim", spec: "alpha", phases: ["2", "3"], session: "alpha execute 2", since: "2026-09-28T20:00:00.000Z" }]);
+      expect(renderBoard(board, { lane: "you" }).split("\n").slice(3)).toEqual(["NEEDS YOU", "  claim idle 3d  alpha · 2, 3 → switch to alpha execute 2 or take it over"]);
+    });
+
+    test("idle exactly IDLE_CLAIM_DAYS is not yet flagged; a minute more is", () => {
+      expect(idleBoard(idleFor("2026-09-29T20:00:00Z")).lanes.needsYou).toEqual([]);
+      expect(idleBoard(idleFor("2026-09-29T19:59:00Z")).lanes.needsYou.map((row) => row.kind)).toEqual(["idle-claim"]);
+    });
+
+    test("a shell session counts as idle; a busy one never does", () => {
+      expect(idleBoard(idleFor("2026-09-28T20:00:00Z", { status: "shell" })).lanes.needsYou.map((row) => row.kind)).toEqual(["idle-claim"]);
+      expect(idleBoard(idleFor("2026-09-28T20:00:00Z", { status: "busy" })).lanes.needsYou).toEqual([]);
+    });
+
+    test("a session whose last change is only its start time is never called idle", () => {
+      expect(idleBoard(idleFor("2026-09-28T20:00:00Z", { updatedFrom: "startedAt" })).lanes.needsYou).toEqual([]);
+    });
+
+    test("unreadable sessions call nothing idle", () => {
+      expect(boardWith([held("2", "live")], { ok: false, reason: "x" }).lanes.needsYou).toEqual([]);
+    });
+
+    test("a claim whose row is off the board is not listed", () => {
+      const board = idleBoard(idleFor("2026-09-28T20:00:00Z"), [held("2", "live", { spec: "ghost" })]);
+      expect(board.lanes.inFlight).toEqual([]);
+      expect(board.lanes.needsYou).toEqual([]);
+    });
+  });
+
   test("a remote claim keeps its cell when local sessions are unreadable", () => {
     const theirs = { ...held("2", "remote", { claimedAt: "2026-10-01T17:00:00.000Z" }), holder: { user: "Taras", host: "desktop" } };
     expect(boardWith([theirs], { ok: false, reason: "x" }).lanes.inFlight[0]?.session).toEqual({ status: "remote", since: "2026-10-01T17:00:00.000Z" });

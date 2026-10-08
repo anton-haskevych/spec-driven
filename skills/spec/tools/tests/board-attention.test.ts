@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { needsYou, prAttention } from "../board/attention";
 import { boardInputs, flightRow, NOW } from "./board-factories";
+import { heldClaim, liveSession } from "./factories";
 
 describe("prAttention", () => {
   test("joined PRs to merge or fix CI become needs-you rows", () => {
@@ -34,5 +35,31 @@ describe("needsYou: merged trees", () => {
     const inputs = (merged: number) => boardInputs([], { counts: { merged, unknownBase: 0, unreadable: 0, duplicates: [] } });
     expect(needsYou([], inputs(43), NOW, [])).toEqual([{ kind: "prune", trees: 43 }]);
     expect(needsYou([], inputs(0), NOW, [])).toEqual([]);
+  });
+});
+
+describe("needsYou: idle claims", () => {
+  const quiet = new Date("2026-09-28T20:00:00Z");
+  const inputs = boardInputs([], {
+    sessions: { ok: true, value: [liveSession({ sessionId: "a", name: "tab a", updatedAt: quiet }), liveSession({ sessionId: "b", updatedAt: quiet })] },
+    claims: [
+      heldClaim("live", { sessionId: "a", spec: "alpha", phase: "2" }),
+      heldClaim("live", { sessionId: "a", spec: "beta", phase: "1" }),
+      heldClaim("live", { sessionId: "a", spec: "alpha", phase: "4a" }),
+      heldClaim("live", { sessionId: "b", spec: "alpha", phase: "5" }),
+    ],
+  });
+  const shown = [flightRow({ phase: "2" }), flightRow({ spec: "beta", phase: "1" }), flightRow({ phase: "4a" }), flightRow({ phase: "5" })];
+
+  test("one row per session and spec, phases in claim order; an unnamed session shows its short id", () => {
+    expect(needsYou([], inputs, NOW, shown).filter((row) => row.kind === "idle-claim")).toEqual([
+      { kind: "idle-claim", spec: "alpha", phases: ["2", "4a"], session: "tab a", since: quiet.toISOString() },
+      { kind: "idle-claim", spec: "beta", phases: ["1"], session: "tab a", since: quiet.toISOString() },
+      { kind: "idle-claim", spec: "alpha", phases: ["5"], session: "session b", since: quiet.toISOString() },
+    ]);
+  });
+
+  test("--local reads no sessions, so nothing is idle", () => {
+    expect(needsYou([], { ...inputs, sessions: "local" }, NOW, shown)).toEqual([]);
   });
 });

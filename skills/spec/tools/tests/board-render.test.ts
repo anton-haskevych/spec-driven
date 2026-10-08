@@ -116,6 +116,18 @@ describe("renderBoard", () => {
     ]);
   });
 
+  test("an idle claim names its age, phases and the session to switch to", () => {
+    const needsYou: Board["lanes"]["needsYou"] = [
+      { kind: "idle-claim", spec: "recurring-series-lifecycle-clarity", phases: ["7"], session: "recurring-series-lifecycle-clarity execute 7", since: "2026-09-28T19:00:00.000Z" },
+      { kind: "merge", spec: "gamma", pr: 9 },
+    ];
+    expect(renderBoard(board({ lanes: lanes({ needsYou }) }), { lane: "you" }).split("\n").slice(3)).toEqual([
+      "NEEDS YOU",
+      "  claim idle 3d           recurring-series-lifecycle-clarity · 7 → switch to recurring-series-lifecycle-clarity execute 7 or take it over",
+      "  #9 checks pass → merge  gamma",
+    ]);
+  });
+
   test("names the main checkout, marks the current workspace and lists every worktree a phase is ticked in", () => {
     const output = renderBoard(
       board({
