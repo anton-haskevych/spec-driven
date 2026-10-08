@@ -36,6 +36,8 @@ export function focusPosition(entries: readonly FocusEntry[], spec: string): { p
   return index === -1 ? undefined : { position: index + 1, total: entries.length };
 }
 
-function topOf(lowest: number): number {
-  return lowest - RANK_STEP >= 0 ? lowest - RANK_STEP : lowest / 2;
+// Written ranks stay above 0, so the next --top always fits below them; only a hand-written 0 can't be beaten.
+function topOf(lowest: number): number | undefined {
+  if (lowest <= 0) return undefined;
+  return lowest - RANK_STEP > 0 ? lowest - RANK_STEP : lowest / 2;
 }

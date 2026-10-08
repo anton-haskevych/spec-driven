@@ -26,13 +26,20 @@ describe("planFocus", () => {
 
   test("add overwrites a malformed focus, which counts as not in focus", () => {
     const plan = planFocus({ kind: "add", spec: "c", place: { kind: "top" } }, SET, withFocus("soon"));
-    expect(plan).toMatchObject({ kind: "write", text: withFocus("0"), landed: { position: { position: 1, total: 3 } } });
+    expect(plan).toMatchObject({ kind: "write", text: withFocus("5"), landed: { position: { position: 1, total: 3 } } });
   });
 
   test("add refuses a spec already in focus, with its position", () => {
     expect(planFocus({ kind: "add", spec: "b", place: { kind: "end" } }, SET, withFocus("20"))).toEqual({
       kind: "refused",
       reason: "b is already in focus (2/2)",
+    });
+  });
+
+  test("--top over a spec at rank 0 is refused", () => {
+    expect(planFocus({ kind: "add", spec: "c", place: { kind: "top" } }, [{ spec: "a", rank: 0 }], META)).toEqual({
+      kind: "refused",
+      reason: "--top: a is at rank 0, so nothing fits above it; move a down first",
     });
   });
 
@@ -47,7 +54,7 @@ describe("planFocus", () => {
     const plan = planFocus({ kind: "move", spec: "b", place: { kind: "top" } }, SET, withFocus("20"));
     expect(plan).toEqual({
       kind: "write",
-      text: withFocus("0"),
+      text: withFocus("5"),
       message: "[focus] move b",
       landed: { verb: "moved", spec: "b", position: { position: 1, total: 2 } },
     });

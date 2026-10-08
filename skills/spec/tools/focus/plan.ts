@@ -1,5 +1,5 @@
 import { removeFrontmatterLine, setFrontmatterLine, type FrontmatterPatch } from "../core/frontmatter-patch";
-import { focusPosition, rankFor, type FocusEntry, type FocusPlace } from "./rank";
+import { focusPosition, rankFor, sortFocus, type FocusEntry, type FocusPlace } from "./rank";
 
 export type MovePlace = Exclude<FocusPlace, { kind: "end" }>;
 
@@ -26,10 +26,7 @@ export function planFocus(action: FocusAction, entries: readonly FocusEntry[], c
   if (action.kind === "drop") return written(action, removeFrontmatterLine(claudeMd, FOCUS_KEY));
 
   const rank = rankFor(entries, action.spec, action.place);
-  if (rank === undefined) {
-    const after = action.place.kind === "after" ? action.place.spec : "";
-    return refused(`--after ${after}: ${after} is not in focus`);
-  }
+  if (rank === undefined) return refused(noRank(action.place, entries, action.spec));
   const placed = [...entries.filter((entry) => entry.spec !== action.spec), { spec: action.spec, rank }];
   return written(action, setFrontmatterLine(claudeMd, FOCUS_KEY, String(rank)), focusPosition(placed, action.spec));
 }
@@ -38,6 +35,12 @@ function written(action: FocusAction, patch: FrontmatterPatch, position?: FocusL
   if (patch.kind === "invalid") return refused(`${action.spec}'s CLAUDE.md: ${patch.reason}`);
   const landed: FocusLanded = { verb: VERBS[action.kind], spec: action.spec, ...(position ? { position } : {}) };
   return { kind: "write", text: patch.text, message: `[focus] ${action.kind} ${action.spec}`, landed };
+}
+
+function noRank(place: FocusPlace, entries: readonly FocusEntry[], spec: string): string {
+  if (place.kind === "after") return `--after ${place.spec}: ${place.spec} is not in focus`;
+  const lowest = sortFocus(entries.filter((entry) => entry.spec !== spec))[0]?.spec ?? "";
+  return `--top: ${lowest} is at rank 0, so nothing fits above it; move ${lowest} down first`;
 }
 
 function refused(reason: string): FocusPlan {

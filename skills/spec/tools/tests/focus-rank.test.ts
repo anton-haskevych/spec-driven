@@ -14,11 +14,15 @@ describe("rankFor", () => {
     expect(rankFor(set(["a", 10], ["b", 35]), "c", { kind: "end" })).toBe(45);
   });
 
-  test("--top goes 10 below the lowest, or halves it when that would drop below 0", () => {
+  test("--top goes 10 below the lowest, or halves it, so a written rank stays above 0 and never ties", () => {
     expect(rankFor(set(["a", 30], ["b", 40]), "c", { kind: "top" })).toBe(20);
-    expect(rankFor(set(["a", 10]), "c", { kind: "top" })).toBe(0);
+    expect(rankFor(set(["a", 10]), "c", { kind: "top" })).toBe(5);
     expect(rankFor(set(["a", 6]), "c", { kind: "top" })).toBe(3);
-    expect(rankFor(set(["a", 0]), "c", { kind: "top" })).toBe(0);
+    expect(rankFor(set(["a", 5]), "c", { kind: "top" })).toBe(2.5);
+  });
+
+  test("--top over a hand-written 0 has no rank: nothing fits above it without renumbering", () => {
+    expect(rankFor(set(["a", 0]), "c", { kind: "top" })).toBeUndefined();
   });
 
   test("--after takes the midpoint to the next entry, or 10 past the last", () => {
