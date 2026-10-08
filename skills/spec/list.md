@@ -24,6 +24,19 @@ Print the tool's output exactly as given, code fence included. Don't recast it a
 
 **Starting rows.** When the user then says "start 1", "start 1 and 2" or "go" about board rows, launch them exactly as SKILL.md → *Next sessions* step 3 says: `launch execute <spec> <phase>` per row, which places each tree first.
 
+## Focus
+
+The team's focus set is a `focus: <rank>` line in each focus spec's `CLAUDE.md` on the default branch (lower = higher). Change it only when the user says so: every write lands on `origin/<default>` at once, one commit, for the whole team.
+
+| The user says | Run |
+|---|---|
+| "focus on X", "add X to focus" | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts focus add X` (last) |
+| "put X on top" | `focus add X --top`, or `focus move X --top` when X is already in focus |
+| "X after Y" | `focus add X --after Y`, or `focus move X --after Y` |
+| "drop X from focus" | `focus drop X` |
+
+Print the tool's line. A refusal (`focus add: …`, `focus: push to main refused: …`) means nothing was written; pass it on. "X is Taras's" is not a focus write: set `owner: taras` in X's `CLAUDE.md` with an ordinary spec-doc edit.
+
 ## 2. Without Bun
 
 There is no board without Bun; print the table. Glob `docs/specs/*/CLAUDE.md` and `*/docs/specs/*/CLAUDE.md`, skipping folders that start with `_`. Read each file's frontmatter and its `progress.md` phase lines, then read `docs/specs/_backlog/*.md`. Render the same two tables:

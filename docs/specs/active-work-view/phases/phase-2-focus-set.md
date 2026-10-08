@@ -61,12 +61,12 @@ and doctor already call it, so you add no new path regex.
 
 ## Deliverables
 
-- [ ] `SpecMeta.focus` / `SpecMeta.owner` read and validated (doctor + hook through `checkSpecMeta`), tests
-- [ ] `removeFrontmatterLine` next to `setFrontmatterLine`, tests
-- [ ] Rank arithmetic (`append`, `top`, `after`, ties, self-neighbour) in `focus/rank.ts`, tests
-- [ ] `commitOnto` extracted from `snapshotCommit`; publish tests unchanged
-- [ ] `focus/land.ts` base-first commit + push with one retry; stale-clone, race, refusal, branch-only, drop tests
-- [ ] `spec.ts focus add|drop|move` with the copy from `design.md` → *Copy*, registered in `spec.ts`, tests
+- [x] `SpecMeta.focus` / `SpecMeta.owner` read and validated (doctor + hook through `checkSpecMeta`), tests
+- [x] `removeFrontmatterLine` next to `setFrontmatterLine`, tests
+- [x] Rank arithmetic (`append`, `top`, `after`, ties, self-neighbour) in `focus/rank.ts`, tests
+- [x] `commitOnto` extracted from `snapshotCommit`; publish tests unchanged
+- [x] `focus/land.ts` base-first commit + push with one retry; stale-clone, race, refusal, branch-only, drop tests
+- [x] `spec.ts focus add|drop|move` with the copy from `design.md` → *Copy*, registered in `spec.ts`, tests
 - [ ] Prose: `list.md` *Focus*, `SKILL.md` *Tools* + *Priority, due dates and owners*, `README.md`
 
 ## Phase-local notes
