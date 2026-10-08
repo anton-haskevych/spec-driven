@@ -6,6 +6,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 ## Gotchas
 - `docs/specs/_ledger/gotcha-publish-docs-skips-deleted-files.md` — [general] — publish-docs skips deleted spec docs; edit a line or commit to main
 - `docs/specs/_ledger/gotcha-session-files-span-every-repo.md` — [general] — Session files span every repo; scope by this repo's worktree paths
+- `docs/specs/_ledger/gotcha-trees-place-reads-pr-group-from-base.md` — [general] — trees place reads pr: from base; a branch-only regroup is ignored
 
 ## Principles
 - `principle-session-attribution-scope-and-order.md` — [phase 3+, load-bearing] — repo scope first; claim → launch title → non-main tree
