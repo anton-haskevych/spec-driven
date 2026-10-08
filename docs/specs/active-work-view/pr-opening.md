@@ -41,4 +41,5 @@ PR C:
 PR D:
 - [x] Smoke against a scratch bare origin + two clones: `focus add` into each band, `move`, `drop`; both clones show the same MUST / SHOULD / COULD lane; doctor 0 errors (2026-10-08: the stale clone's board matched; `--top` and a non-band refused with the new copy; a hand-written `focus: 7` showed under SHOULD with the doctor's warning; `add` overwrote a legacy 20)
 - [x] Smoke in CRM before reseeding: the four legacy numeric `focus:` values show under SHOULD and the doctor warns; with no `focus:` the no-focus golden still matches (2026-10-08: `board focus --local` lists all four under SHOULD, ready rows note `should`; doctor warns on an `origin/main` export, see `gotcha-doctor-reads-the-checkout-not-origin`; golden test untouched and green)
-- [ ] PR body says `FocusRow.rank` became `band` with `BOARD_VERSION` 1 kept, and why
+- [x] PR body says `FocusRow.rank` became `band` with `BOARD_VERSION` 1 kept, and why
+- [x] Every-PR checks re-run for PR D, 2.39.0, 2026-10-08: 883 tests pass, typecheck clean, frozen lockfile clean, versions match, no touched file over 250 lines
