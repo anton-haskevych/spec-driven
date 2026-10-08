@@ -23,14 +23,22 @@ describe("parseSessionFile", () => {
       cwd: "/work/crm-wt/alpha",
       status: "busy",
       name: "alpha execute 4",
+      nameSource: "derived",
       updatedAt: new Date(1790895692399),
+      updatedFrom: "updatedAt",
       procStart: PROC_START,
     });
   });
 
-  test("updatedAt may be epoch ms or ISO; without it, startedAt stands in", () => {
-    expect(parseSessionFile(session({ updatedAt: "2026-10-01T22:00:00Z" }))?.updatedAt).toEqual(new Date("2026-10-01T22:00:00Z"));
-    expect(parseSessionFile(session({ updatedAt: undefined }))?.updatedAt).toEqual(new Date(1790895214501));
+  test("updatedAt may be epoch ms or ISO; without it, startedAt stands in and says so", () => {
+    expect(parseSessionFile(session({ updatedAt: "2026-10-01T22:00:00Z" }))).toMatchObject({ updatedAt: new Date("2026-10-01T22:00:00Z"), updatedFrom: "updatedAt" });
+    expect(parseSessionFile(session({ updatedAt: undefined }))).toMatchObject({ updatedAt: new Date(1790895214501), updatedFrom: "startedAt" });
+  });
+
+  test("nameSource reads user or derived; anything else, or none, is unknown", () => {
+    expect(parseSessionFile(session({ nameSource: "user" }))?.nameSource).toBe("user");
+    expect(parseSessionFile(session({ nameSource: "typed" }))).not.toHaveProperty("nameSource");
+    expect(parseSessionFile(session({ nameSource: undefined }))).not.toHaveProperty("nameSource");
   });
 
   test("idle and shell (turn over, a background shell still running) read as themselves; anything else as busy", () => {
