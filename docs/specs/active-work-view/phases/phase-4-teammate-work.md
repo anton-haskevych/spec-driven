@@ -1,6 +1,6 @@
 ---
 needs: [3]
-pr: C
+pr: B
 ---
 
 # Phase 4 — Teammate's work and `--who`
@@ -48,13 +48,13 @@ valid only with no lane or with the `focus` lane; otherwise print a usage error.
 
 ## Deliverables
 
-- [ ] `author` on `gh pr list` and `PrRow.author`; fixtures and field-string tests updated
-- [ ] `samePerson` / `personKey` in `board/people.ts`, tests with real name pairs, anton/antonio and unknown
-- [ ] `Board.me` from the git author name in `loadBoard`; isolated-runner test
-- [ ] Focus rows carry `FocusWork` per person (sessions, remote claims, open PRs) + `unattributedPrs`; render `<person>: …`; tests
-- [ ] `owner:` shown as `— (<owner>)` when nobody is on the row; test
-- [ ] `board focus --who <name|me>` filters the model (JSON and text) and gives a usage error otherwise; tests
-- [ ] `list.md`: "my focus" / "what's <name> on" → `board focus --who`, falling back to that person's remote claims when it's `none`
+- [x] `author` on `gh pr list` and `PrRow.author`; fixtures and field-string tests updated
+- [x] `samePerson` / `personKey` in `board/people.ts`, tests with real name pairs, anton/antonio and unknown
+- [x] `Board.me` from the git author name in `loadBoard`; isolated-runner test
+- [x] Focus rows carry `FocusWork` per person (sessions, remote claims, open PRs) + `unattributedPrs`; render `<person>: …`; tests
+- [x] `owner:` shown as `— (<owner>)` when nobody is on the row; test
+- [x] `board focus --who <name|me>` filters the model (JSON and text) and gives a usage error otherwise; tests
+- [x] `list.md`: "my focus" / "what's <name> on" → `board focus --who`, falling back to that person's remote claims when it's `none`
 
 ## Phase-local notes
 

@@ -86,6 +86,14 @@ describe("toPrRows", () => {
     expect((external?.external ?? 0) + Object.values(external?.counts ?? {}).reduce((a, b) => a + b, 0)).toBe(Object.values(counted?.counts ?? {}).reduce((a, b) => a + b, 0));
   });
 
+  test("open PRs carry their author's login; a record without one has none", async () => {
+    const rows = toPrRows(await fixture("gh-pr-list-open.json"), await fixture("gh-pr-list-all.json"), []);
+    const byNumber = new Map(rows.map((row) => [row.number, row]));
+    expect(byNumber.get(566)?.author).toBe("anton-haskevych");
+    expect(byNumber.get(879)?.author).toBe("app/dependabot");
+    expect(toPrRows([{ number: 1, headRefName: "x", author: null }, { number: 2, headRefName: "y", author: { login: 3 } }], [], []).map((row) => row.author)).toEqual([undefined, undefined]);
+  });
+
   test("records without a number or branch are dropped", () => {
     expect(toPrRows([{ headRefName: "x" }, { number: 1 }], [{ number: 2, state: "MERGED" }], [])).toEqual([]);
   });

@@ -68,7 +68,7 @@ export function phaseEdges(overrides: Partial<PhaseEdges> = {}): PhaseEdges {
 }
 
 export function liveSession(overrides: Partial<LiveSession> = {}): LiveSession {
-  return { pid: 1, sessionId: "session-1", cwd: "/repo", status: "idle", updatedAt: new Date("2026-10-01T20:00:00Z"), procStart: "x", ...overrides };
+  return { pid: 1, sessionId: "session-1", cwd: "/repo", status: "idle", updatedAt: new Date("2026-10-01T20:00:00Z"), updatedFrom: "updatedAt", procStart: "x", ...overrides };
 }
 
 export function claim(overrides: Partial<Claim> = {}): Claim {

@@ -6,9 +6,11 @@ import { phaseNeeds } from "../ready/ready-set";
 import type { FlightRow, ReadyRow } from "./model";
 import { resolvedPhaseKeys, rowKey } from "./phase-keys";
 
+// Focus rows first, by lane position (ledger: decision-focus-is-not-priority); then urgency.
 export function rankReady(rows: readonly ReadyRow[]): ReadyRow[] {
   return rows.toSorted(
     (a, b) =>
+      (a.focus ?? Infinity) - (b.focus ?? Infinity) ||
       Number(b.overdue) - Number(a.overdue) ||
       compareSchedule(a, b) ||
       b.unblocks - a.unblocks ||

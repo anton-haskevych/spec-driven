@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { boardCommand, type BoardDeps } from "../commands/board";
+import { BOARD_USAGE, boardCommand, type BoardDeps } from "../commands/board";
 import { listCommand } from "../commands/list";
 import { NOW } from "./board-factories";
 import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
@@ -46,8 +46,14 @@ describe("board and list commands (real git)", () => {
     expect(output).toEndWith("\n```");
   });
 
+  test("board focus prints the FOCUS lane alone, none when no spec has focus:", async () => {
+    const output = await boardCommand(repo.dir, ["focus", "--local"], deps);
+    expect(output).toContain("\n\nFOCUS\n  none\n```");
+    expect(output).not.toContain("READY");
+  });
+
   test("board refuses an unknown lane or flag with its usage", async () => {
-    expect(await boardCommand(repo.dir, ["soon"], deps)).toBe("board: unknown lane soon (flight, ready, blocked, you)");
+    expect(await boardCommand(repo.dir, ["soon"], deps)).toBe("board: unknown lane soon (focus, flight, ready, blocked, you)");
     expect(await boardCommand(repo.dir, ["--fast"], deps)).toStartWith("usage: board");
   });
 
@@ -59,6 +65,47 @@ describe("board and list commands (real git)", () => {
     expect(board).not.toContain("unavailable");
     expect(await listCommand(repo.dir, ["p1"], deps)).toContain("## Open specs (1)");
     expect(await listCommand(repo.dir, ["table"], deps)).toContain("| a | active | p1 |");
+  });
+});
+
+describe("board focus --who (real git)", () => {
+  let repo: TestRepo;
+  const claudeHome = mkdtempSync(join(tmpdir(), "spec-board-who-claude-"));
+  mkdirSync(join(claudeHome, "sessions"));
+  const deps: BoardDeps = { runner: isolatedRunner, asyncRunner: isolatedAsyncRunner, claudeHome, now: NOW, env: {} };
+  const spec = (name: string, meta: string) => {
+    repo.write(`docs/specs/${name}/CLAUDE.md`, `---\nstatus: active\n${meta}---\n`);
+    repo.write(`docs/specs/${name}/progress.md`, `- [ ] Phase 1 — One → \`phases/phase-1-one.md\`\n`);
+    repo.write(`docs/specs/${name}/phases/phase-1-one.md`, "---\nneeds: []\n---\n- [ ] item\n");
+  };
+
+  beforeAll(() => {
+    repo = repoWithOrigin("spec-board-who-");
+    spec("first", "focus: 10\n");
+    spec("second", "focus: 20\nowner: Taras Korpach\n");
+    repo.commitAll("specs");
+    repo.git("push", "-q", "origin", "main");
+  });
+
+  afterAll(() => {
+    repo.cleanup();
+    rmSync(claudeHome, { recursive: true, force: true });
+  });
+
+  test("--json keeps only that person's rows, at their place in the lane", async () => {
+    const { board } = JSON.parse(await boardCommand(repo.dir, ["focus", "--who", "taras", "--json", "--local"], deps));
+    expect(board.lanes.focus.map((row: { spec: string; position: number }) => [row.spec, row.position])).toEqual([["second", 2]]);
+    expect(board.me).toBe("spec-tests");
+  });
+
+  test("text names the person; me with nothing on the board is none", async () => {
+    expect(await boardCommand(repo.dir, ["focus", "--who", "taras", "--local"], deps)).toContain("\n\nFOCUS · taras\n  2  second  0/1  ready 1  — (Taras Korpach)\n```");
+    expect(await boardCommand(repo.dir, ["--who", "me", "--local"], deps)).toContain("\n\nFOCUS · me\n  none\n\nIN FLIGHT");
+  });
+
+  test("--who with another lane, or without a name, is a usage error", async () => {
+    expect(await boardCommand(repo.dir, ["ready", "--who", "taras"], deps)).toBe(`usage: ${BOARD_USAGE}`);
+    expect(await boardCommand(repo.dir, ["focus", "--who"], deps)).toBe(`usage: ${BOARD_USAGE}`);
   });
 });
 

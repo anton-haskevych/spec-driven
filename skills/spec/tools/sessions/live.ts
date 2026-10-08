@@ -7,6 +7,8 @@ import { parseJson } from "../pr/gh-records";
 import { canonicalPath } from "../workspaces/list";
 
 export type SessionStatus = "busy" | "idle" | "shell";
+// "user": named with `claude -n` (launch's `<spec> <sub> [<phase>]`, or free text); "derived": Claude Code's `<repo>-<2hex>`.
+export type NameSource = "user" | "derived";
 
 // The only reader of `<claudeHome>/sessions/*.json`, an undocumented Claude Code internal (ledger).
 export interface LiveSession {
@@ -16,7 +18,10 @@ export interface LiveSession {
   // "shell": the turn is over but a background shell still runs, e.g. a local stack left up for the next phase.
   status: SessionStatus;
   name?: string;
+  nameSource?: NameSource;
   updatedAt: Date;
+  // "startedAt": the file had no `updatedAt`, so the last status change is unknown.
+  updatedFrom: "updatedAt" | "startedAt";
   procStart: string;
 }
 
@@ -33,10 +38,22 @@ export function parseSessionFile(text: string): LiveSession | undefined {
   const sessionId = stringField(data, "sessionId");
   const cwd = stringField(data, "cwd");
   const procStart = stringField(data, "procStart");
-  const updatedAt = toDate(data.updatedAt) ?? toDate(data.startedAt);
+  const updated = toDate(data.updatedAt);
+  const updatedAt = updated ?? toDate(data.startedAt);
   if (pid === undefined || !sessionId || !cwd || !procStart || !updatedAt) return undefined;
   const name = stringField(data, "name");
-  return { pid, sessionId, cwd, status: toSessionStatus(stringField(data, "status")), ...(name ? { name } : {}), updatedAt, procStart };
+  const nameSource = toNameSource(stringField(data, "nameSource"));
+  return {
+    pid,
+    sessionId,
+    cwd,
+    status: toSessionStatus(stringField(data, "status")),
+    ...(name ? { name } : {}),
+    ...(nameSource ? { nameSource } : {}),
+    updatedAt,
+    updatedFrom: updated ? "updatedAt" : "startedAt",
+    procStart,
+  };
 }
 
 export function loadLiveSessions(claudeHome: string, procStarts: ProcStarts): Result<LiveSession[]> {
@@ -94,6 +111,10 @@ function newestPerSession(sessions: readonly LiveSession[]): LiveSession[] {
 // A value this reader doesn't know yet counts as busy: an unknown state never frees a tree.
 function toSessionStatus(value: string | undefined): SessionStatus {
   return value === "idle" || value === "shell" ? value : "busy";
+}
+
+function toNameSource(value: string | undefined): NameSource | undefined {
+  return value === "user" || value === "derived" ? value : undefined;
 }
 
 function toDate(value: unknown): Date | undefined {

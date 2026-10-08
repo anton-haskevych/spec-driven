@@ -31,6 +31,11 @@ export function gitFailureReason(stderr: string): string {
   return lines.find((line) => REJECTED_REF.test(line)) ?? lines.find((line) => ERROR_LINE.test(line)) ?? lines[0] ?? "";
 }
 
+export function authorName(git: Git): string | undefined {
+  const ident = git.out(["var", "GIT_AUTHOR_IDENT"]);
+  return (ident.ok && ident.value.split(" <")[0]?.trim()) || undefined;
+}
+
 // Shared by the main checkout and every linked worktree: state kept here is per clone, never committed.
 export function gitCommonDir(git: Git): Result<string> {
   return git.out(["rev-parse", "--path-format=absolute", "--git-common-dir"]);

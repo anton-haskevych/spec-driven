@@ -33,6 +33,8 @@ export interface BoardInputs {
   states: ReadonlyMap<string, SpecState>;
   stages: ReadonlyMap<string, SpecStage>;
   workspaces: readonly WorkspaceView[];
+  // Every `git worktree list` path, live or not: sessions are scoped to this repo by these.
+  worktreePaths: readonly string[];
   counts: { merged: number; unknownBase: number; unreadable: number; duplicates: string[] };
   backlogCount: number;
   // "local": --local skipped the source.

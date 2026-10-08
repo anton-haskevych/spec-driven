@@ -1,5 +1,6 @@
 import type { Priority } from "../core/schedule";
 import type { SessionStatus } from "../sessions/live";
+import type { SpecStage } from "./inputs";
 
 export const BOARD_VERSION = 1;
 
@@ -43,6 +44,8 @@ export type NextStep = "prep" | "create" | "execute";
 
 export interface ReadyRow extends RowBase {
   next: NextStep;
+  // The spec's position in the FOCUS lane (1 = top); focus rows rank first.
+  focus?: number;
   prGroup?: string;
   priority?: Priority;
   due?: string;
@@ -73,6 +76,55 @@ export type AttentionRow =
   // Merged worktrees by ancestry; `trees prune` also finds squash-merged ones by their PR's head.
   | { kind: "prune"; trees: number };
 
+// What a focus spec is doing now: the first kind that applies, in this order.
+export type FocusNow =
+  | { kind: "flight"; phases: string[]; next: FlightNext[] }
+  | { kind: "ready"; phases: string[]; step: NextStep }
+  | { kind: "deploy"; phases: string[] }
+  | { kind: "blocked"; reason: string }
+  | { kind: "paused" }
+  // Finished on base, but a PR its pr-opening.md links is still open.
+  | { kind: "merging"; pr: number }
+  | { kind: "none" };
+
+// A session on this machine, in this repo. `sub` and `phase` come from a launch title naming the row's spec.
+export interface FocusSession {
+  label: string;
+  sub?: string;
+  phase?: string;
+  status: SessionStatus;
+  since: string;
+}
+
+export interface FocusClaim {
+  phase: string;
+  since: string;
+}
+
+// One person's remote claims and open PRs on a focus spec. This machine's sessions stay on the row: they are always mine.
+export interface FocusWork {
+  person: string;
+  mine: boolean;
+  claims: FocusClaim[];
+  prs: PrCell[];
+}
+
+export interface FocusRow {
+  spec: string;
+  rank: number;
+  // 1-based place in the whole lane, kept when `--who` filters rows out.
+  position: number;
+  owner?: string;
+  progress?: { done: number; total: number };
+  stage?: SpecStage;
+  due?: string;
+  overdue: boolean;
+  now: FocusNow;
+  sessions: FocusSession[];
+  work: FocusWork[];
+  unattributedPrs: PrCell[];
+}
+
 export type BaseMode = "fetched" | "offline" | "busy" | "local";
 
 export interface Board {
@@ -80,9 +132,11 @@ export interface Board {
   repo: string;
   generatedAt: string;
   here: string;
+  // The git author name: who "my" claims and PRs belong to.
+  me?: string;
   mainCheckout?: string;
   base: { branch: string; sha: string; date: string; mode: BaseMode; reason?: string };
-  lanes: { inFlight: FlightRow[]; ready: ReadyRow[]; blocked: BlockedRow[]; needsYou: AttentionRow[] };
+  lanes: { focus: FocusRow[]; inFlight: FlightRow[]; ready: ReadyRow[]; blocked: BlockedRow[]; needsYou: AttentionRow[] };
   footer: {
     merged: number;
     unknownBase: number;
@@ -92,5 +146,7 @@ export interface Board {
     duplicates: string[];
     prs?: string;
     sessions?: string;
+    // This repo's sessions on no focus row; only when the FOCUS lane has rows.
+    otherSessions?: FocusSession[];
   };
 }

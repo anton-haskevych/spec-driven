@@ -1,4 +1,4 @@
-import type { Git } from "../core/git";
+import { authorName, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import type { RunOptions } from "../core/run";
 import { CLAIM_REFS, claimRef, decodeRemotePayload, encodeRemotePayload, pushOutcome, type Holder, type PushOutcome, type RemotePayload } from "./remote-payload";
@@ -19,9 +19,7 @@ const LS_REMOTE_NO_MATCH = 2;
 const NETWORK: Omit<RunOptions, "cwd"> = { timeoutMs: REMOTE_TIMEOUT_MS, env: { GIT_TERMINAL_PROMPT: "0" } };
 
 export function readHolder(git: Git, host: string): Holder {
-  const ident = git.out(["var", "GIT_AUTHOR_IDENT"]);
-  const user = ident.ok ? ident.value.split(" <")[0]?.trim() : undefined;
-  return { user: user || UNKNOWN_USER, host };
+  return { user: authorName(git) ?? UNKNOWN_USER, host };
 }
 
 export function pushClaim(git: Git, payload: RemotePayload, lease: Lease): PushedClaim {

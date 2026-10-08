@@ -18,6 +18,10 @@ export function alignColumns(rows: ReadonlyArray<readonly string[]>): string[] {
   );
 }
 
+export function lane(title: string, lines: readonly string[]): string {
+  return [title, ...(lines.length > 0 ? lines : ["none"]).map((line) => `  ${line}`)].join("\n");
+}
+
 export function rowName(row: { spec: string; phase?: string; prGroup?: string }): string {
   const name = row.phase === undefined ? row.spec : `${row.spec} · ${row.phase}`;
   return row.prGroup ? `${name} (PR ${row.prGroup})` : name;

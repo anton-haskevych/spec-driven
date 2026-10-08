@@ -52,7 +52,7 @@ removed line is far from `updated:`, so that merge is clean.
 
 **Rank arithmetic** (`T/focus/rank.ts`, pure over `{ spec, rank }[]` sorted by rank then spec; the
 moved spec is removed first):
-- `add` default: `max + 10` (empty: 10). `--top`: `min − 10`, or `min / 2` when that would be < 0.
+- `add` default: `max + 10` (empty: 10). `--top`: `min − 10`, or `min / 2` when that would be ≤ 0, so written ranks stay above 0 and `--top` never ties; over a hand-written `0` it refuses.
 - `--after X`: midpoint of X and the next entry with a rank **greater** than X's (none → X + 10).
 - `move` = the same over the set without the moved spec. Never touches another spec.
 - Refusals: spec not on the base; already in focus (`add`); not in focus (`drop` / `move`); `--after`
@@ -73,16 +73,17 @@ export type FocusNow =
 
 export interface FocusSession { label: string; sub?: string; phase?: string; status: SessionStatus; since: string }
 export interface FocusWork {
-  person: string;                                  // display name; me first
+  person: string;                                  // personKey(name); me first
   mine: boolean;
-  sessions: FocusSession[];                        // this machine's, so only on the mine bucket
   claims: { phase: string; since: string }[];      // remote claims only (local ones show as sessions)
   prs: PrCell[];                                   // open only
 }
 export interface FocusRow {
   spec: string;
   rank: number;
+  position: number;                                // place in the whole lane; kept by --who
   owner?: string;
+  sessions: FocusSession[];                        // this machine's: always mine, merged into my bucket at render
   progress?: { done: number; total: number };
   stage?: SpecStage;
   due?: string;

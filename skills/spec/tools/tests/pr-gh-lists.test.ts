@@ -14,7 +14,7 @@ describe("fetchPrLists", () => {
     ]);
     expect(await fetchPrLists("/repo", runner)).toEqual({ ok: true, value: { open: [{ number: 1 }], recent: [{ number: 2 }] } });
     expect(runner.calls.map((call) => call.cwd)).toEqual(["/repo", "/repo"]);
-    expect(runner.calls[0]?.argv).toContain("number,headRefName,isDraft,url,statusCheckRollup");
+    expect(runner.calls[0]?.argv).toContain("number,headRefName,isDraft,url,statusCheckRollup,author");
     expect(runner.calls[1]?.argv).toContain("number,headRefName,state,mergedAt,url");
   });
 

@@ -1,6 +1,6 @@
 import { basename, dirname, join } from "node:path";
 import { readTextIfExists } from "../core/files";
-import { gitAt, type Git } from "../core/git";
+import { authorName, gitAt, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { defaultBranch, type AsyncRunner, type Runner } from "../core/run";
 import type { SpecState } from "../core/spec-state";
@@ -12,7 +12,7 @@ import { heldClaims, remoteHeldClaims, withoutTakenOver } from "../claims/held";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
 import { psProcStarts } from "../sessions/proc-starts";
 import { scanWorkspaces, type WorkspaceScanResult } from "../workspaces/scan";
-import { canonicalPath } from "../workspaces/list";
+import { canonicalPath, loadWorkspaces } from "../workspaces/list";
 import { loadWorkspaceViews } from "../workspaces/views";
 import type { BoardInputs, WorkspaceView } from "./inputs";
 import { buildBoard } from "./lanes";
@@ -36,7 +36,7 @@ const NO_SCAN: WorkspaceScanResult = { scans: [], counts: { merged: 0, unknownBa
 
 export async function loadBoard(projectDir: string, request: BoardRequest, runners: BoardRunners, now: Date): Promise<Result<Board>> {
   const inputs = await loadBoardInputs(projectDir, request, runners);
-  return inputs.ok ? { ok: true, value: buildBoard(inputs.value, now) } : inputs;
+  return inputs.ok ? { ok: true, value: buildBoard(inputs.value, now, authorName(gitAt(projectDir, runners.runner))) } : inputs;
 }
 
 export async function loadBoardInputs(projectDir: string, request: BoardRequest, runners: BoardRunners): Promise<Result<BoardInputs>> {
@@ -64,6 +64,7 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       states,
       stages,
       workspaces,
+      worktreePaths: worktreePaths(git, workspaces),
       counts: { ...counts, duplicates },
       backlogCount: backlog.length,
       sessions,
@@ -89,6 +90,12 @@ function prLinks(states: ReadonlyMap<string, SpecState>, workspaces: readonly Wo
     }
   }
   return links;
+}
+
+// An unreadable worktree list falls back to the live ones, as claimContext falls back to claimed ones.
+function worktreePaths(git: Git, workspaces: readonly WorkspaceView[]): string[] {
+  const listed = loadWorkspaces(git);
+  return listed.ok ? listed.value.map((worktree) => worktree.path) : workspaces.map((workspace) => workspace.path);
 }
 
 // Resolved like worktree paths, so the board can match it against them.

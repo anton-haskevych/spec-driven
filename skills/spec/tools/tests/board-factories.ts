@@ -53,6 +53,7 @@ export function boardInputs(specs: readonly SpecFixture[], overrides: Partial<Bo
     states: new Map(specs.map((fixture) => [fixture.node.spec.name, fixture.state])),
     stages: new Map(specs.flatMap((fixture) => (fixture.stage ? [[fixture.node.spec.name, fixture.stage] as const] : []))),
     workspaces: [],
+    worktreePaths: [],
     counts: { merged: 0, unknownBase: 0, unreadable: 0, duplicates: [] },
     backlogCount: 0,
     sessions: "local",
@@ -90,7 +91,7 @@ export function board(overrides: Partial<Board> = {}): Board {
     here: "/repo",
     mainCheckout: "/repo",
     base: { branch: "main", sha: "e43d948", date: "2026-10-01T13:40:00-07:00", mode: "fetched" },
-    lanes: { inFlight: [], ready: [], blocked: [], needsYou: [] },
+    lanes: { focus: [], inFlight: [], ready: [], blocked: [], needsYou: [] },
     footer: { merged: 0, unknownBase: 0, unreadable: 0, paused: 0, backlog: 0, duplicates: [] },
     ...overrides,
   };
