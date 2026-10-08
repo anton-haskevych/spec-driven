@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import type { BoardInputs } from "../board/inputs";
-import { attachPrs, attachSessions } from "../board/joins";
+import { attachPrs, attachSessions, linkedPrs, toPrCell } from "../board/joins";
 import type { CheckSummary } from "../pr/checks";
 import type { PrRow } from "../pr/rollup";
 import type { LiveSession } from "../sessions/live";
-import { boardInputs, flightRow, workspaceView } from "./board-factories";
+import { boardInputs, flightRow, prRow, workspaceView } from "./board-factories";
 
 function session(cwd: string, overrides: Partial<LiveSession> = {}): LiveSession {
   return { pid: 1, sessionId: cwd, cwd, status: "busy", updatedAt: new Date("2026-10-01T20:00:00Z"), procStart: "x", ...overrides };
@@ -15,7 +15,7 @@ function checks(counts: Partial<CheckSummary["counts"]>): CheckSummary {
 }
 
 function pr(number: number, branch: string, overrides: Partial<PrRow> = {}): PrRow {
-  return { number, branch, state: "OPEN", draft: false, url: `https://x/pull/${number}`, ...overrides };
+  return prRow({ number, branch, ...overrides });
 }
 
 const FOO = "/wt/crm/foo";
@@ -94,5 +94,32 @@ describe("attachPrs", () => {
   test("gh failing makes every PR cell ?; --local leaves them empty", () => {
     expect(attachPrs([flightRow({ workspace: FOO })], boardInputs([], { workspaces, prs: { ok: false, reason: "offline" } }))[0]?.pr).toBe("unknown");
     expect(attachPrs([flightRow({ workspace: FOO })], boardInputs([], { workspaces, prs: "local" }))[0]?.pr).toBeUndefined();
+  });
+});
+
+describe("toPrCell", () => {
+  test("an open PR carries its check counts, failing including cancelled", () => {
+    expect(toPrCell(pr(4, "foo", { draft: true, checks: checks({ pass: 2, fail: 1, cancel: 1, pending: 3 }) }))).toEqual({ number: 4, listed: true, draft: true, failing: 2, pending: 3, passing: 2 });
+  });
+
+  test("an open PR without checks is just its number", () => {
+    expect(toPrCell(pr(4, "foo"))).toEqual({ number: 4, listed: true });
+  });
+
+  test("a merged or closed PR carries its state, not its checks", () => {
+    expect(toPrCell(pr(7, "foo", { state: "MERGED", checks: checks({ fail: 1 }) }))).toEqual({ number: 7, listed: true, state: "merged" });
+    expect(toPrCell(pr(8, "foo", { state: "CLOSED" }))).toEqual({ number: 8, listed: true, state: "closed" });
+  });
+});
+
+describe("linkedPrs", () => {
+  test("the listed PRs a spec links, open first, each group newest link first", () => {
+    const prs = [pr(10, "a"), pr(11, "b", { state: "MERGED" }), pr(12, "c"), pr(13, "d", { state: "CLOSED" }), pr(99, "e")];
+    expect(linkedPrs(prs, [10, 11, 12, 13, 14]).map((row) => row.number)).toEqual([12, 10, 13, 11]);
+  });
+
+  test("nothing listed, nothing linked", () => {
+    expect(linkedPrs([pr(1, "a")], [2])).toEqual([]);
+    expect(linkedPrs([pr(1, "a")], [])).toEqual([]);
   });
 });

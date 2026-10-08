@@ -3,6 +3,7 @@ import { BOARD_VERSION, type Board, type FlightRow, type ReadyRow } from "../boa
 import type { SpecMeta } from "../core/spec-meta";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
+import type { PrRow } from "../pr/rollup";
 import { specMeta, specNode } from "./factories";
 
 export const NOW = new Date("2026-10-01T20:00:00Z");
@@ -93,4 +94,9 @@ export function board(overrides: Partial<Board> = {}): Board {
     footer: { merged: 0, unknownBase: 0, unreadable: 0, paused: 0, backlog: 0, duplicates: [] },
     ...overrides,
   };
+}
+
+export function prRow(overrides: Partial<PrRow> = {}): PrRow {
+  const number = overrides.number ?? 1;
+  return { number, branch: "feat/alpha-pr-a", state: "OPEN", draft: false, url: `https://x/pull/${number}`, ...overrides };
 }
