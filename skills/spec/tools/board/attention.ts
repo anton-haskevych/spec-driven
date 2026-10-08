@@ -4,7 +4,7 @@ import type { SpecNode } from "../graph/nodes";
 import { heldName, holderName } from "../claims/rules";
 import type { BoardInputs } from "./inputs";
 import type { AttentionRow, FlightRow } from "./model";
-import { resolvedPhaseKeys, rowKey } from "./phase-keys";
+import { resolvedPhaseKeys, rowKey, splitKey } from "./phase-keys";
 
 export const REMOTE_CLAIM_STALE_DAYS = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -70,7 +70,7 @@ function awaitingDeploy(states: readonly SpecState[], nodes: ReadonlyMap<string,
     }
   }
   return [...waiting].map(([key, by]) => {
-    const [spec = "", phase = ""] = key.split("#");
+    const { spec, phase = "" } = splitKey(key);
     return { kind: "deploy", spec, phase, waiting: by };
   });
 }

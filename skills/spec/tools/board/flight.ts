@@ -5,7 +5,7 @@ import type { PhaseActivity } from "./activity";
 import { heldName } from "../claims/rules";
 import type { BoardInputs, HeldClaim } from "./inputs";
 import type { FlightRow } from "./model";
-import { resolvedPhaseKeys, rowKey } from "./phase-keys";
+import { resolvedPhaseKeys, rowKey, splitKey } from "./phase-keys";
 
 export interface WorkspaceReady {
   workspace: string;
@@ -73,7 +73,7 @@ function tickedByWorkspace(spec: string, activity: ReadonlyMap<string, PhaseActi
   const byWorkspace = new Map<string, Set<string>>();
   for (const [key, { tickedIn }] of activity) {
     const { spec: owner, phase } = splitKey(key);
-    if (owner !== spec) continue;
+    if (owner !== spec || phase === undefined) continue;
     for (const workspace of tickedIn) byWorkspace.set(workspace, (byWorkspace.get(workspace) ?? new Set()).add(phase));
   }
   return byWorkspace;
@@ -81,9 +81,4 @@ function tickedByWorkspace(spec: string, activity: ReadonlyMap<string, PhaseActi
 
 function workspaceState(spec: string, path: string, inputs: BoardInputs): SpecState | undefined {
   return inputs.workspaces.find((workspace) => workspace.path === path)?.states.get(spec);
-}
-
-function splitKey(key: string): { spec: string; phase: string } {
-  const at = key.indexOf("#");
-  return { spec: key.slice(0, at), phase: key.slice(at + 1) };
 }

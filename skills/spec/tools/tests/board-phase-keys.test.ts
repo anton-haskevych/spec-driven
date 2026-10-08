@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { resolvedPhaseKeys } from "../board/phase-keys";
+import { resolvedPhaseKeys, rowKey, splitKey } from "../board/phase-keys";
 import { phaseState } from "./factories";
 import { boardInputs, specFixture } from "./board-factories";
 
@@ -14,5 +14,19 @@ describe("resolvedPhaseKeys", () => {
       { key: "beta", done: false, deployed: false },
       { key: "alpha#2", done: false, deployed: false },
     ]);
+  });
+});
+
+describe("splitKey", () => {
+  test("splits a phase key at its #", () => {
+    expect(splitKey("alpha#2b")).toEqual({ spec: "alpha", phase: "2b" });
+  });
+
+  test("reads a whole-spec key as the spec alone", () => {
+    expect(splitKey("beta")).toEqual({ spec: "beta" });
+  });
+
+  test("inverts rowKey", () => {
+    for (const row of [{ spec: "alpha", phase: "9.10" }, { spec: "beta" }]) expect(splitKey(rowKey(row))).toEqual(row);
   });
 });
