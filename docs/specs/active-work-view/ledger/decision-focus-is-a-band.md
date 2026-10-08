@@ -29,3 +29,8 @@ internal monologue". He then rejected a separate `tier:` beside `focus:` as blen
   - Focus ≠ priority.
   - `ReadyRow.focus` = lane position (one `focusOrder`).
 - **Legacy:** a number (2.37.0) reads as `should` with a doctor warning; `focus add` overwrites it.
+- **Writer, as built (phase 7):** the planner reads only the target's own `CLAUDE.md` (no set, no
+  `loadNodes`). The board and the writer read a legacy number differently on purpose: the board shows it
+  under SHOULD, the writer treats it as "no band", so `add` overwrites it and `move` refuses it as `not
+  in focus`. `drop` removes any `focus:` line, legacy or malformed, so a legacy spec can leave focus in
+  one step. A missing band prints the verb's usage, like every other malformed call.

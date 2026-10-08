@@ -22,4 +22,4 @@
 - [x] Phase 4 — Teammate's work and `--who` → `phases/phase-4-teammate-work.md`
 - [ ] Phase 5 — Idle claims → `phases/phase-5-idle-and-shipped.md`
 - [ ] Phase 6 — Seed CRM's focus set → `phases/phase-6-seed-crm-focus.md`
-- [ ] Phase 7 — Focus bands: must, should, could → `phases/phase-7-focus-bands-must-should-could.md`
+- [x] Phase 7 — Focus bands: must, should, could → `phases/phase-7-focus-bands-must-should-could.md`

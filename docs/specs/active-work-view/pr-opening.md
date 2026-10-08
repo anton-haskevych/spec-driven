@@ -3,14 +3,14 @@
 ## Spec state
 
 Spec written 2026-10-07, reviewed 2026-10-07 (`reviews/2026-10-07-focus-storage-and-landing.md`). 6 code phases + 1 task phase.
-Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, merged 2026-10-08 as 2.37.0). Left: 5, 7, then 6. Phase 4 moved into PR B (user, 2026-10-07).
+Done: phase 1 (PR A: #17, merged as 2.36.8); phases 2–4 (PR B: #18, merged 2026-10-08 as 2.37.0); phase 7 (PR D, branch `feat/active-work-view-pr-d`, 2.39.0). Left: 5 (PR C: #19, open as 2.38.0), then 6. Phase 4 moved into PR B (user, 2026-10-07).
 Phase 7 added 2026-10-08 while seeding CRM: `focus:` becomes a band (must / should / could) instead of a rank (`ledger/decision-focus-is-a-band.md`); phase 6 now needs it.
 Phase 3 smoke so far: CRM `board --local` with no `focus:` is byte-identical to 2.36.8 (2026-10-07).
 Split (value first):
 - **PR A: phase 1.** Shared helpers, test factories, `list --local` fix. Refactor only; release 2.36.8.
 - **PR B: phases 2–4.** Focus field + base-first writer + FOCUS lane + teammate's work and `--who`. The first usable cut; release 2.37.0. Phases 1 and 2 run in parallel.
 - **PR C: phase 5.** Idle claims. Next minor release.
-- **PR D: phase 7.** Focus bands. Next minor release; independent of PR C (both touch `board/model.ts` and `board/render.ts`; rebase the second).
+- **PR D: phase 7.** Focus bands, 2.39.0 (PR C took 2.38.0). Independent of PR C (both touch `board/model.ts`, `board/render.ts` and the ROADMAP table; rebase the second).
 - Phase 6 (task) runs in CRM once the release with phase 7 is installed on both machines.
 
 ## Pre-PR checks
@@ -39,6 +39,6 @@ PR C:
 - [ ] Smoke in CRM: recurring-series-lifecycle-clarity · 7 (or any 2-day-idle live claim) shows `claim idle`
 
 PR D:
-- [ ] Smoke against a scratch bare origin + two clones: `focus add` into each band, `move`, `drop`; both clones show the same MUST / SHOULD / COULD lane; doctor 0 errors
-- [ ] Smoke in CRM before reseeding: the four legacy numeric `focus:` values show under SHOULD and the doctor warns; with no `focus:` the no-focus golden still matches
+- [x] Smoke against a scratch bare origin + two clones: `focus add` into each band, `move`, `drop`; both clones show the same MUST / SHOULD / COULD lane; doctor 0 errors (2026-10-08: the stale clone's board matched; `--top` and a non-band refused with the new copy; a hand-written `focus: 7` showed under SHOULD with the doctor's warning; `add` overwrote a legacy 20)
+- [x] Smoke in CRM before reseeding: the four legacy numeric `focus:` values show under SHOULD and the doctor warns; with no `focus:` the no-focus golden still matches (2026-10-08: `board focus --local` lists all four under SHOULD, ready rows note `should`; doctor warns on an `origin/main` export, see `gotcha-doctor-reads-the-checkout-not-origin`; golden test untouched and green)
 - [ ] PR body says `FocusRow.rank` became `band` with `BOARD_VERSION` 1 kept, and why

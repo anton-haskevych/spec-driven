@@ -8,6 +8,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `docs/specs/_ledger/gotcha-session-files-span-every-repo.md` — [general] — Session files span every repo; scope by this repo's worktree paths
 - `docs/specs/_ledger/gotcha-trees-place-reads-pr-group-from-base.md` — [general] — trees place reads pr: from base; a branch-only regroup is ignored
 - `docs/specs/_ledger/gotcha-remote-claims-never-read-as-done.md` — [general] — Remote claims never read as done; the board keeps them in flight
+- `gotcha-doctor-reads-the-checkout-not-origin.md` — [phase 6] — doctor reads the checkout; a stale one hides legacy focus warnings
 
 ## Principles
 - `principle-session-attribution-scope-and-order.md` — [phase 3+, load-bearing] — repo scope first; claim → launch title → non-main tree
