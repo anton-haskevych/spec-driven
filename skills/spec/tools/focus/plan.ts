@@ -1,0 +1,43 @@
+import { removeFrontmatterLine, setFrontmatterLine, type FrontmatterPatch } from "../core/frontmatter-patch";
+import { focusPosition, rankFor, type FocusEntry, type FocusPlace } from "./rank";
+
+export type FocusAction =
+  | { kind: "add"; spec: string; place: FocusPlace }
+  | { kind: "move"; spec: string; place: Exclude<FocusPlace, { kind: "end" }> }
+  | { kind: "drop"; spec: string };
+
+export interface FocusLanded {
+  verb: "added" | "moved" | "dropped";
+  spec: string;
+  position?: { position: number; total: number };
+}
+
+export type FocusPlan = { kind: "write"; text: string; message: string; landed: FocusLanded } | { kind: "refused"; reason: string };
+
+const FOCUS_KEY = "focus";
+const VERBS = { add: "added", move: "moved", drop: "dropped" } as const;
+
+export function planFocus(action: FocusAction, entries: readonly FocusEntry[], claudeMd: string): FocusPlan {
+  const current = focusPosition(entries, action.spec);
+  if (action.kind === "add" && current) return refused(`${action.spec} is already in focus (${current.position}/${current.total})`);
+  if (action.kind !== "add" && !current) return refused(`${action.spec} is not in focus`);
+  if (action.kind === "drop") return written(action, removeFrontmatterLine(claudeMd, FOCUS_KEY));
+
+  const rank = rankFor(entries, action.spec, action.place);
+  if (rank === undefined) {
+    const after = action.place.kind === "after" ? action.place.spec : "";
+    return refused(`--after ${after}: ${after} is not in focus`);
+  }
+  const placed = [...entries.filter((entry) => entry.spec !== action.spec), { spec: action.spec, rank }];
+  return written(action, setFrontmatterLine(claudeMd, FOCUS_KEY, String(rank)), focusPosition(placed, action.spec));
+}
+
+function written(action: FocusAction, patch: FrontmatterPatch, position?: FocusLanded["position"]): FocusPlan {
+  if (patch.kind === "invalid") return refused(`${action.spec}'s CLAUDE.md: ${patch.reason}`);
+  const landed: FocusLanded = { verb: VERBS[action.kind], spec: action.spec, ...(position ? { position } : {}) };
+  return { kind: "write", text: patch.text, message: `[focus] ${action.kind} ${action.spec}`, landed };
+}
+
+function refused(reason: string): FocusPlan {
+  return { kind: "refused", reason };
+}
