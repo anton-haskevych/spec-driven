@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { gitAt } from "../core/git";
-import { loadMainline, type MainlineOptions } from "../mainline/load";
+import { baseProject, loadMainline, type MainlineOptions } from "../mainline/load";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 
 const FETCHED: MainlineOptions = { timeoutMs: 10_000, local: false };
@@ -32,6 +32,14 @@ describe("loadMainline (real git)", () => {
   afterAll(() => repo.cleanup());
 
   const git = () => gitAt(repo.dir, isolatedRunner);
+
+  test("baseProject extracts the spec docs at a given sha, not the checkout's", async () => {
+    const sha = repo.git("rev-parse", "HEAD");
+    const project = await baseProject(git(), sha);
+    if (!project.ok) throw new Error(project.reason);
+    expect(project.value.dir).toBe(project.value.root);
+    expect(readFileSync(join(project.value.root, "docs/specs/a/progress.md"), "utf8")).toBe("- [ ] Phase 1 — One → `phases/phase-1-one.md`\n");
+  });
 
   test("fetches origin and loads its spec docs, not the checkout's", async () => {
     const result = await loadMainline(git(), "main", FETCHED);

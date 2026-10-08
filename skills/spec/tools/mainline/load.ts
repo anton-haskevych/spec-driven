@@ -27,27 +27,33 @@ export interface Mainline {
   duplicates: string[];
 }
 
+export interface BaseProject {
+  commonDir: string;
+  root: string;
+  dir: string;
+}
+
 export async function loadMainline(git: Git, branch: string, options: MainlineOptions): Promise<Result<Mainline>> {
   const pinned = pinBase(git, branch, options);
   if (!pinned.ok) return pinned;
   const { sha, fetch } = pinned.value;
-  const facts = repoFacts(git, sha);
-  if (!facts.ok) return facts;
-  const { date, commonDir, prefix } = facts.value;
-
-  const cache = await baseCache(git, sha, commonDir);
-  if (!cache.ok) return cache;
-  return { ok: true, value: { base: { branch, sha, date, fetch }, commonDir, ...loadSpecDocs(join(cache.value, prefix)) } };
-}
-
-function repoFacts(git: Git, sha: string): Result<{ date: string; commonDir: string; prefix: string }> {
   const date = git.out(["log", "-1", "--format=%cI", sha]);
   if (!date.ok) return date;
+  const project = await baseProject(git, sha);
+  if (!project.ok) return project;
+  const { commonDir, dir } = project.value;
+  return { ok: true, value: { base: { branch, sha, date: date.value, fetch }, commonDir, ...loadSpecDocs(dir) } };
+}
+
+// The spec docs at `sha`, extracted to the shared cache: `root` is the repo root there, `dir` this project.
+export async function baseProject(git: Git, sha: string): Promise<Result<BaseProject>> {
   const commonDir = gitCommonDir(git);
   if (!commonDir.ok) return commonDir;
   const prefix = git.out(["rev-parse", "--show-prefix"]);
   if (!prefix.ok) return prefix;
-  return { ok: true, value: { date: date.value, commonDir: commonDir.value, prefix: prefix.value } };
+  const cache = await baseCache(git, sha, commonDir.value);
+  if (!cache.ok) return cache;
+  return { ok: true, value: { commonDir: commonDir.value, root: cache.value, dir: join(cache.value, prefix.value) } };
 }
 
 function pinBase(git: Git, branch: string, options: MainlineOptions): Result<{ sha: string; fetch: BaseRef["fetch"] }> {
