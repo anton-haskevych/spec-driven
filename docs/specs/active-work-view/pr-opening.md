@@ -33,6 +33,6 @@ PR B (checks above re-run for PR B, 2.37.0, 2026-10-07: 886 tests pass, typechec
 - [x] `list.md` no-Bun fallback still describes the table; `SKILL.md` *Tools*, `README.md` updated
 - [x] Smoke in CRM: Taras's gift-cards remote claims show as `taraskorpach: 6 claims 14h`; open PR #911 linked on main shows under its author (me); `board focus --who taras` and `--who me` filter (text here, `--json` in `board-command.test.ts`). No open PR of Taras's is linked on main to show under his name
 
-PR C:
+PR C (checks above re-run for PR C, 2.38.0, 2026-10-07: 895 tests pass, typecheck clean, frozen lockfile clean, versions match, touched files ≤ 187 lines):
 - [ ] Smoke in CRM: recurring-series-lifecycle-clarity · 7 (or any 2-day-idle live claim) shows `claim idle`
   - 2026-10-07: no 2-day-idle live claim in CRM to smoke against (that session moved on to phase 8, busy). CRM `board you` shows no `claim idle` row, which is correct; the flagged path is covered by `board-claims.test.ts`.
