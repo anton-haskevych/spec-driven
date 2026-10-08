@@ -25,7 +25,7 @@ const PACK_MODES = new Set(["resume", "status", "execute", "route"]);
 const INFERRING_MODES = new Set(["resume", "status", "execute"]);
 const CONVERSATION_FIRST = "If this conversation already resumed or executed another spec, use that one instead (re-run `spec.ts context <mode> <that spec>`).";
 const NOTHING_HERE = "No spec named, and nothing in this tree points at one (no claim here, no changed spec files).";
-const OFFER_TOP_READY = "If this conversation already resumed or executed a spec, use that one. Otherwise run `spec.ts board ready --json --local`, offer its top row as `<spec> <phase> — <title>`, and start it on a yes.";
+const OFFER_TOP_READY = "If this conversation already resumed or executed a spec, use that one. Otherwise run `spec.ts board ready --json --local`, offer its top row (focus specs rank first) as `<spec> <phase> — <title>`, and start it on a yes.";
 
 export type HeldReader = (projectDir: string) => HeldPhases;
 
