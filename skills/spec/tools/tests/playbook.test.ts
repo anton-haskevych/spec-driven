@@ -17,6 +17,7 @@ describe("parseGates and referencedGates", () => {
       ]),
     );
     expect(referencedGates("## Pre-PR checks\n- [ ] gate: landing, Backend\n- [ ] manual smoke on staging\n")).toEqual(["landing", "backend"]);
+    expect(referencedGates("- [x] gate: merge-main — merged 2026-10-08 (250 commits, no conflicts); build passed\n")).toEqual(["merge-main"]);
   });
 });
 

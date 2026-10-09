@@ -111,7 +111,7 @@ For each unit:
 
 1. **Red.** Write the unit test. Assert the invariant the unit must satisfy. Run it; confirm it fails for the right reason.
 2. **Implement.** Write the smallest code that turns the test green. No extra abstractions, no premature generalization.
-3. **Green.** Run the unit test → green. Run the broader test suite → still green.
+3. **Green.** Run the unit test → green. Then run the project's per-commit gate: when settings name `gates.per-commit` (the pack's `Settings:` line says `each commit: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do its lines for the subprojects you touched. For a subproject the gate doesn't list, or with no such setting, run the tests your change affects (the affected slice). Never the full suite per commit: it belongs to the PR gate (§10) or CI. Without Bun, read `gates.per-commit` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
 4. **Refactor (if warranted).** Improve names, split functions that grew too large, eliminate duplication that just appeared. Tests stay green throughout.
 5. **Commit.** One logical change per commit. Commit message states the *why*, not just the *what*. Body explains anything non-obvious about the approach.
 6. **Update progress.** Tick the matching sub-checkbox with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"` (or `#N` for the Nth open item, which keeps backticks out of the shell). When it ticks the last open item it also flips the `progress.md` box and says `Phase N complete`. Then refresh the **Spec state** in `pr-opening.md` (phases done / left). Without Bun, edit the boxes by hand: the entry's sub-checkbox, and the `progress.md` box only when every sub-checkbox is ticked.
@@ -183,4 +183,4 @@ A task phase (`code: false`) delivers work outside the repo. No recon waves, no 
 - The TDD loop is non-negotiable for production code paths. Pure scripts, throwaway prototypes, and configuration files are exempt — but most of what you'll write inside a spec is production code.
 - "Test exists and passes" beats "test exists and is comprehensive." A focused test that asserts the right invariant outperforms 200 lines of edge-case ceremony around weak invariants.
 - Don't write tests *for* the implementation. Write tests for the contract the unit must satisfy. The implementation should be free to change underneath.
-- If the broader test suite is slow, run the affected slice during the per-unit cycle and the full suite before committing. Don't let "the suite takes 10 minutes" become an excuse to skip green-bar verification.
+- Per commit, the per-commit gate (or the affected slice) is the green bar; the full suite runs once, at the PR gate or in CI. Narrowing what runs never means skipping the green check: no commit without it.

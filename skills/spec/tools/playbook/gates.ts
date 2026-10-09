@@ -3,7 +3,7 @@ import { readTextIfExists } from "../core/files";
 import { outlineMarkdown } from "../core/markdown";
 
 export const GATES_FILE = join("docs", "specs", "_playbook", "gates.md");
-const GATE_REFERENCE = /^gate:\s*(.+)$/i;
+const GATE_REFERENCE = /^gate:\s*(.+?)(?:\s+—\s.*)?$/i;
 
 export function parseGates(markdown: string): Map<string, string[]> {
   const gates = new Map<string, string[]>();
