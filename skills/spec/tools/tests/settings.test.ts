@@ -14,6 +14,7 @@ checks:
 gates:
   after-merge-main: merge-main
   bootstrap: bootstrap
+  per-commit: quick
 ---
 
 Why: CRM drafts run no CI.
@@ -26,7 +27,7 @@ describe("parseSettings", () => {
         docs: "main",
         pr: { draft: false, merge: "squash" },
         checks: { external: ["Vercel*"] },
-        gates: { afterMergeMain: "merge-main", bootstrap: "bootstrap" },
+        gates: { afterMergeMain: "merge-main", bootstrap: "bootstrap", perCommit: "quick" },
       },
       problems: [],
     });
@@ -74,7 +75,7 @@ describe("loadSettings", () => {
 describe("describeSettings", () => {
   test("one line, unset parts left out", () => {
     expect(describeSettings(parseSettings(CRM).settings)).toBe(
-      "docs on main · PRs ready · merge squash · external checks Vercel* · after merging main: gate merge-main · fresh worktree: gate bootstrap",
+      "docs on main · PRs ready · merge squash · external checks Vercel* · each commit: gate quick · after merging main: gate merge-main · fresh worktree: gate bootstrap",
     );
     expect(describeSettings(DEFAULT_SETTINGS)).toBe("docs on branch · PRs draft · merge: ask the user");
   });

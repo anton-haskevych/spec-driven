@@ -145,8 +145,8 @@ describe("contextPack", () => {
     expect(contextPack(project, { mode: "resume", name: "checkout" })).not.toContain("Settings:");
     const settings = join(project, "docs", "specs", "_playbook", "settings.md");
     mkdirSync(join(settings, ".."), { recursive: true });
-    writeFileSync(settings, "---\npr:\n  draft: false\n---\n");
-    const line = "Settings: docs on branch · PRs ready · merge: ask the user";
+    writeFileSync(settings, "---\npr:\n  draft: false\ngates:\n  per-commit: quick\n---\n");
+    const line = "Settings: docs on branch · PRs ready · merge: ask the user · each commit: gate quick";
     expect(contextPack(project, { mode: "resume", name: "checkout" }).split("\n\n")[1]).toBe(line);
     expect(contextPack(project, { mode: "execute", name: "checkout" })).toContain(`(first ready phase)\n\n${line}`);
     rmSync(settings);
