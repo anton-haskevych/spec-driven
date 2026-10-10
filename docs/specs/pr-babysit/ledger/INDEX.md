@@ -4,6 +4,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 `[applies-to]` scope tag. See `SKILL.md` for entry format and filtering rules.
 
 ## Gotchas
+- `gotcha-settings-read-from-the-working-tree.md` — [phase 5, 6, 7, 8] — settings come from the tree, not main
 - `gotcha-e2e-tail-is-container-noise.md` — [phase 6] — CRM E2E tail is MySQL startup log, not the failing test
 - `gotcha-ghclient-caches-run-reads.md` — [phase 3, 5, 6] — GhClient caches run jobs; poll with uncached reads, pollUntil
 - `gotcha-rerun-leaves-a-stale-failed-row.md` — [phase 3, 6, 7] — queued re-run hides behind old failure; can't re-run a running run
