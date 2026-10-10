@@ -117,7 +117,7 @@ Per failed row, computed by `pr status` only (never by `pr wait`):
 
 | Fact | From |
 |---|---|
-| `infra` | job conclusion `startup_failure`; `cancelled` only when the run has no failed sibling and the tail lacks `exceeded the maximum execution time`; or the log tail matches a built-in signature: `The self-hosted runner lost communication`, `The runner has received a shutdown signal`, `No space left on device`, `The job was not acquired by Runner` |
+| `infra` | job conclusion `startup_failure`; `cancelled` only when the run has no failed sibling and the tail lacks `exceeded the maximum execution time`; or the log tail matches a built-in signature: `lost communication with the server` (hosted and self-hosted runners word the start differently), `The runner has received a shutdown signal`, `No space left on device`, `The job was not acquired by Runner` |
 | `failsOnMain` | `pr/failures/main-compare.ts` (same job, latest main run) |
 | `tail` | `pr/failures/log-tail.ts` via `gh api …/actions/jobs/<id>/logs` (doesn't wait for the run) |
 
