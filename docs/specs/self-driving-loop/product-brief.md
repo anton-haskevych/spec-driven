@@ -27,3 +27,4 @@ Between Anton's decisions the loop does the mechanical work itself; he makes the
 - Launching sessions with no pick from Anton (later, once picking has proven reliable), and carrying a PR to merged (`pr-babysit`).
 - Getting new workspaces ready to build (dropped by Anton), and the project's own migration-check script (CRM work); the loop only runs what a project declares.
 - Machine load / how many sessions run at once (CRM specs own it).
+- First release ships the cheap, high-value part (pick by number, plain reports, no collisions, tools from any folder); a one-step sync and one-step start/close come later, built on what it shows.
