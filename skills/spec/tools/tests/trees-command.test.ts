@@ -3,7 +3,7 @@ import { existsSync, readFileSync, realpathSync, rmSync, writeFileSync } from "n
 import { join } from "node:path";
 import { treesCommand } from "../commands/trees";
 import type { RunOptions } from "../core/run";
-import type { PlaceDeps } from "../trees/place";
+import { placeTree, type PlaceDeps } from "../trees/place";
 import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { createTree, type Tree } from "./tree";
 
@@ -51,6 +51,13 @@ describe("trees place (real git)", () => {
 
   test("another phase of the same PR group lands in the same tree", async () => {
     expect(await treesCommand(repo.dir, ["place", "a", "2"], deps())).toBe(`Tree: ${treePath()} · feat/a-pr-a · existing`);
+  });
+
+  test("a babysitter's PR claim id places in its group's existing tree, and existing-only never cuts one", async () => {
+    expect(await placeTree(repo.dir, "a", "pr-A", deps(), { existingOnly: true })).toEqual({ ok: true, value: { kind: "found", branch: "feat/a-pr-a", path: treePath() } });
+    expect(await placeTree(repo.dir, "a", "pr-B", deps(), { existingOnly: true })).toEqual({ ok: false, reason: "no tree for feat/a-pr-b" });
+    expect(existsSync(join(home, "claude-worktrees", "work", "a-pr-b"))).toBe(false);
+    expect(await placeTree(repo.dir, "a", "pr-Z", deps(), { existingOnly: true })).toEqual({ ok: false, reason: "PR group Z is not in a" });
   });
 
   const sessionInTree = (status: "busy" | "idle") =>

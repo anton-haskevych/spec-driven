@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { phaseActivity, type PhaseActivity } from "../board/activity";
 import { loadBoardInputs, repoName, type BoardRunners } from "../board/load";
 import { heldClaims } from "../claims/held";
+import { prClaimGroup } from "../claims/pr-claim";
 import type { HeldClaim } from "../claims/rules";
 import { gitAt, gitCommonDir, type Git } from "../core/git";
 import type { Result } from "../core/result";
@@ -34,6 +35,11 @@ export type Placement = { branch: string; path: string; rootNotice?: string } & 
   | { kind: "added"; how: AddedTree["kind"]; offline?: string; setup: SetupReport; bootstrap?: string }
 );
 
+// existingOnly: a babysitter needs the tree that holds the PR's code, never a fresh one.
+export interface PlaceOptions {
+  existingOnly?: boolean;
+}
+
 interface PlaceWorld {
   git: Git;
   defaultBranch: string;
@@ -45,7 +51,8 @@ interface PlaceWorld {
   views: SpecState[];
 }
 
-export async function placeTree(projectDir: string, spec: string, phase: string, deps: PlaceDeps): Promise<Result<Placement>> {
+// `phase` may be a PR claim id (`pr-<group>`), which places the group's tree.
+export async function placeTree(projectDir: string, spec: string, phase: string, deps: PlaceDeps, options: PlaceOptions = {}): Promise<Result<Placement>> {
   const world = await loadPlaceWorld(projectDir, spec, deps);
   if (!world.ok) return world;
   const { views, worktrees, sessions, claims } = world.value;
@@ -53,7 +60,7 @@ export async function placeTree(projectDir: string, spec: string, phase: string,
   if (!group.ok) return group;
   const name = treeName(spec, group.value.prGroup);
   const found = findTree(name, group.value, world.value);
-  if (!found) return addPlacedTree(projectDir, name, world.value, deps);
+  if (!found) return options.existingOnly ? { ok: false, reason: `no tree for ${name.branch}` } : addPlacedTree(projectDir, name, world.value, deps);
   const view = { sessions, claims, worktreePaths: worktrees.map((worktree) => worktree.path), ownSessionId: ownSessionId(deps.env) };
   const holder = treeHolder(found.path, view, () => hasUncommittedChanges(found.path, deps.runner));
   const branch = found.branch ?? name.branch;
@@ -107,10 +114,18 @@ async function loadPlaceWorld(projectDir: string, spec: string, deps: PlaceDeps)
 }
 
 function groupPhases(views: readonly SpecState[], spec: string, phase: string): Result<GroupPhases & { prGroup?: string }> {
+  const claimedGroup = prClaimGroup(phase);
+  if (claimedGroup !== undefined) return wholeGroup(views, spec, claimedGroup);
   const state = views.find((view) => view.phases.some((candidate) => candidate.id === phase));
   const picked = state?.phases.find((candidate) => candidate.id === phase);
   if (!state || !picked) return { ok: false, reason: `phase ${phase} is not in ${spec}` };
   const prGroup = picked.edges.pr;
   const phases = state.phases.filter((candidate) => candidate.edges.pr === prGroup).map((candidate) => candidate.id);
   return { ok: true, value: { spec, phases, ...(prGroup === undefined ? {} : { prGroup }) } };
+}
+
+function wholeGroup(views: readonly SpecState[], spec: string, prGroup: string): Result<GroupPhases & { prGroup?: string }> {
+  const state = views.find((view) => view.phases.some((candidate) => candidate.edges.pr === prGroup));
+  if (!state) return { ok: false, reason: `PR group ${prGroup} is not in ${spec}` };
+  return { ok: true, value: { spec, phases: state.phases.filter((candidate) => candidate.edges.pr === prGroup).map((candidate) => candidate.id), prGroup } };
 }
