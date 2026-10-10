@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { treeName } from "../trees/naming";
+import { specOfBranch, treeName } from "../trees/naming";
 
 describe("treeName", () => {
   test("a PR group names the branch and folder the way people already cut them", () => {
@@ -9,5 +9,18 @@ describe("treeName", () => {
 
   test("a phase with no PR group gets the spec's own branch", () => {
     expect(treeName("spec-board")).toEqual({ branch: "feat/spec-board", folder: "spec-board" });
+  });
+});
+
+describe("specOfBranch", () => {
+  test("reads the spec back from any branch treeName cuts", () => {
+    expect(specOfBranch(treeName("spec-board", "B").branch)).toBe("spec-board");
+    expect(specOfBranch(treeName("double-charge-proof-checkout", "2").branch)).toBe("double-charge-proof-checkout");
+    expect(specOfBranch(treeName("spec-board").branch)).toBe("spec-board");
+  });
+
+  test("a branch outside feat/ names no spec", () => {
+    expect(specOfBranch("main")).toBeUndefined();
+    expect(specOfBranch("fix/typo")).toBeUndefined();
   });
 });
