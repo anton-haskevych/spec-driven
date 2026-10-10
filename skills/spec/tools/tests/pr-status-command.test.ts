@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { prStatusReport } from "../commands/pr-status";
+import { prCommand } from "../commands/pr";
+import { prStatus } from "../commands/pr/status";
 import { specPrNumbers } from "../pr/resolve";
 import { prView } from "./pr-factories";
 import { stubRunner } from "./stub-runner";
@@ -15,14 +16,14 @@ describe("specPrNumbers", () => {
   });
 });
 
-describe("pr-status", () => {
+describe("pr status", () => {
   let tree: Tree;
   afterEach(() => tree?.cleanup());
 
   test("a PR number goes straight to gh; the verdict line follows the header", () => {
     tree = createTree();
     const runner = stubRunner([[["gh", "pr", "view", "871"], { stdout: view(871, "MERGED") }], GIT_MAIN]);
-    expect(prStatusReport(tree.root, ["#871"], runner).split("\n").slice(0, 2)).toEqual([
+    expect(prStatus(tree.root, ["#871"], runner).split("\n").slice(0, 2)).toEqual([
       "PR #871 merged · mergeable CLEAN · head abcdef0",
       "verdict: merged",
     ]);
@@ -36,7 +37,7 @@ describe("pr-status", () => {
       [["gh", "pr", "view", "801"], { stdout: view(801, "OPEN") }],
       GIT_MAIN,
     ]);
-    const lines = prStatusReport(tree.root, ["billing"], runner).split("\n");
+    const lines = prStatus(tree.root, ["billing"], runner).split("\n");
     expect(lines[0]).toStartWith("PR #801 ready");
     expect(lines.at(-1)).toBe("other PRs in this spec: #779, #812");
   });
@@ -45,8 +46,14 @@ describe("pr-status", () => {
     tree = createTree();
     tree.spec("empty", { "pr-opening.md": "## Spec state\n\nNo PR yet.\n" });
     const noPr = stubRunner([[["gh", "pr", "view"], { code: 1, stderr: 'no pull requests found for branch "feat/x"' }]]);
-    expect(prStatusReport(tree.root, [], noPr)).toBe('pr-status: no pull requests found for branch "feat/x"');
-    expect(prStatusReport(tree.root, ["empty"], noPr)).toBe("pr-status: pr-opening.md for empty links no PR");
-    expect(prStatusReport(tree.root, ["nope"], noPr)).toBe("pr-status: no PR number or spec named nope");
+    expect(prStatus(tree.root, [], noPr)).toBe('pr status: no pull requests found for branch "feat/x"');
+    expect(prStatus(tree.root, ["empty"], noPr)).toBe("pr status: pr-opening.md for empty links no PR");
+    expect(prStatus(tree.root, ["nope"], noPr)).toBe("pr status: no PR number or spec named nope");
+  });
+
+  test("the pr group dispatches status and lists its usage otherwise", async () => {
+    tree = createTree();
+    expect(await prCommand(tree.root, ["nope"])).toBe("usage: pr status [<pr> | <spec-name>]");
+    expect(await prCommand(tree.root, [])).toBe("usage: pr status [<pr> | <spec-name>]");
   });
 });
