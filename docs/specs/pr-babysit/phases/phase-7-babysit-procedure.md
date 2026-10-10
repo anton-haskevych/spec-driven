@@ -30,13 +30,13 @@ PR claims: `takeRefusal` (`claims/rules.ts:50`) accepts `pr-<group>` when some p
 
 ## Deliverables
 
-- [ ] `pr-<group>` claims: `takeRefusal` accepts existing groups, refuses unknown ones; a live PR claim blocks placement in its tree — tests
-- [ ] Board: live `pr-<group>` claim → `babysitting` PR cell, no merge/fix needs-you row — tests
-- [ ] `babysit` sub-command: `SUB_COMMANDS`, `PACK_MODES`, SKILL.md set/Dispatch/argument-hint, `skills/spec-babysit/SKILL.md` router; `skill-wiring.test.ts` and pack test green
-- [ ] `launch babysit <spec> <group>` resolves the group to a phase, places via `placeTree`, refuses a new tree — tests; one read-only live launch check (ledger `spec-spin-off/domain-verifying-a-terminal-launch`)
-- [ ] `skills/spec/babysit.md` procedure (flow, limits, rules, report copy)
-- [ ] execute §10 asks the question, handoff only when unanswered; on babysit, handoff first and `launch babysit` last; SKILL.md Remote rewritten; old "never merge"/"never waits" lines gone
-- [ ] README rows, ROADMAP section + 2.42.0 row, `python3 scripts/version.py --set 2.42.0`
+- [x] `pr-<group>` claims: `takeRefusal` accepts existing groups, refuses unknown ones; a live PR claim blocks placement in its tree — tests
+- [x] Board: live `pr-<group>` claim → `babysitting` PR cell, no merge/fix needs-you row — tests
+- [x] `babysit` sub-command: `SUB_COMMANDS`, `PACK_MODES`, SKILL.md set/Dispatch/argument-hint, `skills/spec-babysit/SKILL.md` router; `skill-wiring.test.ts` and pack test green
+- [x] `launch babysit <spec> <group>` resolves the group to a phase, places via `placeTree`, refuses a new tree — tests; one read-only live launch check (ledger `spec-spin-off/domain-verifying-a-terminal-launch`)
+- [x] `skills/spec/babysit.md` procedure (flow, limits, rules, report copy)
+- [x] execute §10 asks the question, handoff only when unanswered; on babysit, handoff first and `launch babysit` last; SKILL.md Remote rewritten; old "never merge"/"never waits" lines gone
+- [x] README rows, ROADMAP section + 2.42.0 row, `python3 scripts/version.py --set 2.42.0`
 
 ## Phase-local notes
 

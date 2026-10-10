@@ -10,6 +10,10 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/pr/checks/verdict.ts` | `checksVerdict`, `externalMatcher` — the one green verdict | 1 |
 | `skills/spec/tools/pr/check-table.ts` | `pr status` check table grouped by state | 1 |
 | `skills/spec/tools/commands/pr.ts` | `pr` group `ACTIONS` table; verbs in `commands/pr/<verb>.ts` | 1 |
+| `skills/spec/babysit.md` | the babysit procedure; execute §10 and handoff link it | 7 |
+| `skills/spec/tools/claims/pr-claim.ts` | `pr-<group>` claim ids: `prClaimId`, `prClaimGroup`, `isPrGroup` | 7 |
+| `skills/spec/tools/context/babysit-pack.ts` | babysit pack: the group's phases, settings, doctor | 7 |
+| `skills/spec/tools/commands/pr/log.ts` | `pr log`; `--start`/`--pushed`/`--stopped` write the procedure's events | 7 |
 | `skills/spec/tools/core/columns.ts` | `alignColumns` (lifted from `board/cells.ts`) | 1 |
 | `skills/spec/tools/tests/pr-factories.ts` | `prView()`, `check()`, `ghPrViewJson()` (rollup-shaped gh reply); `sequencedRunner` in `stub-runner.ts` | 1 |
 | `skills/spec/tools/pr/babysit/log.ts` | babysit log: `appendEvent`, `babysitLogger`, `readEvents`, `parseEvents`, `renderTimeline`; `EventKind` | 2 |

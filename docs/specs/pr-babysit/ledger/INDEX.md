@@ -29,5 +29,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-pr-claims-liveness-only.md` — [phase 7] — pr-<group> claims: takeRefusal only, no merged rule
 - `decision-merge-green-is-wait-green.md` — [phase 6, 7] — pr merge: waitStep green on the pinned head; line on main, never undo
 - `decision-agent-reads-saved-job-logs.md` — [phase 7, 8] — pr status saves each failed job's log; triage greps the file
+- `decision-babysit-events-written-by-pr-log.md` — [phase 7, 8] — start/pushed/stopped via pr log flags; conflict merge = note
 
 ## Workarounds
