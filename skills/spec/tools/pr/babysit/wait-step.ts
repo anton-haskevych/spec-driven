@@ -32,7 +32,7 @@ export function waitStep(view: PrView, context: WaitContext, nowMs: number): Wai
   if (view.state === "MERGED") return { settle: { event: "merged", ...(view.mergeCommit ? { detail: short(view.mergeCommit) } : {}) } };
   if (view.state === "CLOSED") return { settle: { event: "closed" } };
   if (context.sha && !view.headRefOid.startsWith(context.sha)) return { waiting: `head ${short(view.headRefOid)}, waiting for ${short(context.sha)}` };
-  if (view.mergeable === "CONFLICTING") return { settle: { event: "conflicting" } };
+  if (isConflicting(view)) return { settle: { event: "conflicting" } };
 
   const checks = withoutStaleFailures(view.checks, context.since);
   const verdict = checksVerdict(checks, context.isExternal);
@@ -99,6 +99,12 @@ function names(checks: readonly Check[]): string {
 function listed(items: readonly string[]): string {
   const shown = items.slice(0, LISTED_MAX).join(", ");
   return items.length > LISTED_MAX ? `${shown} +${items.length - LISTED_MAX} more` : shown;
+}
+
+// A conflicting PR runs no workflows, so waiting on its checks only ends in `none`; settle at once.
+// GitHub can report DIRTY while `mergeable` still reads UNKNOWN.
+function isConflicting(view: PrView): boolean {
+  return view.mergeable === "CONFLICTING" || view.mergeStateStatus === "DIRTY";
 }
 
 function short(sha: string): string {

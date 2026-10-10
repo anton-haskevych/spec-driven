@@ -28,7 +28,7 @@ Write the settle event to the log before printing the line, so a killed backgrou
 ## Deliverables
 
 - [x] `pr/babysit/poll.ts` `pollUntil` with injected sleep/now — tests
-- [ ] `waitStep` pure settle logic incl. `--sha` lag, `--since` stale-failure skip, 3-min `none`, all-skipped `none` — table tests over `sequencedRunner` replies (pending → green; pending → red; queued re-run beside the old failure stays waiting; no rows ×N → none; merged mid-wait; head lag)
+- [x] `waitStep` pure settle logic incl. `--sha` lag, `--since` stale-failure skip, 3-min `none`, all-skipped `none` — table tests over `sequencedRunner` replies (pending → green; pending → red; queued re-run beside the old failure stays waiting; no rows ×N → none; merged mid-wait; head lag)
 - [ ] Live probe in a launched `claude -n` tab (nobody typing): a background Bash `pr wait` on a real open PR re-invokes the idle session on exit; record what the notification carries (output, exit code) and whether a `--bg`/`-p` session cuts it at 30 min — `domain` ledger entry updated with the result
 - [ ] `pr wait [<target>]` prints exactly one result line (technical.md → Commands), logs `waiting` and one settle event; a smoke run on a real open PR of this repo prints green
 

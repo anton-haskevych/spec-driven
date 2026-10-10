@@ -72,6 +72,7 @@ describe("waitStep", () => {
     expect(step([], { sha: "x" }, at(0), { state: "MERGED", mergeCommit: "9b0c1d2e3f" })).toEqual({ settle: { event: "merged", detail: "9b0c1d2" } });
     expect(step([], {}, at(0), { state: "CLOSED" })).toEqual({ settle: { event: "closed" } });
     expect(step([check({ bucket: "running" })], {}, at(0), { mergeable: "CONFLICTING" })).toEqual({ settle: { event: "conflicting" } });
+    expect(step([], {}, at(0), { mergeable: "UNKNOWN", mergeStateStatus: "DIRTY" })).toEqual({ settle: { event: "conflicting" } });
   });
 });
 

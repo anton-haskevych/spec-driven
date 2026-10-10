@@ -16,6 +16,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `domain-claude-code-wait-primitives.md` — [phase 3, 4, 7, load-bearing] — fg 120s→bg; bg wakes once; 30m cap unattended
 
 ## Decisions
+- `decision-agent-resolves-merge-conflicts.md` — [phase 3, 5, 7, load-bearing] — conflict → resolve, never stop; not a fix push
 - `decision-babysit-runs-in-its-own-tab.md` — [phase 7] — on "babysit", launch a dedicated session in the PR's tree
 - `decision-flaky-tests-strict.md` — [phase 6, 7, 8] — re-run infra failures only (attempt ≤3); fix failing tests
 - `decision-checks-read-on-the-head.md` — [phase 1, 3, 5, 7] — statusCheckRollup on head; no code head; probe docs-only first
