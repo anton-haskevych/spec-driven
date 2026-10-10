@@ -11,10 +11,14 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/pr/check-table.ts` | `pr status` check table grouped by state | 1 |
 | `skills/spec/tools/commands/pr.ts` | `pr` group `ACTIONS` table; verbs in `commands/pr/<verb>.ts` | 1 |
 | `skills/spec/tools/core/columns.ts` | `alignColumns` (lifted from `board/cells.ts`) | 1 |
-| `skills/spec/tools/tests/pr-factories.ts` | `prView()`, `check()`; `sequencedRunner` in `stub-runner.ts` | 1 |
-| `skills/spec/tools/pr/babysit/log.ts` | babysit log: `appendEvent`, `readEvents`, `parseEvents`, `renderTimeline`; `EventKind` | 2 |
+| `skills/spec/tools/tests/pr-factories.ts` | `prView()`, `check()`, `ghPrViewJson()` (rollup-shaped gh reply); `sequencedRunner` in `stub-runner.ts` | 1 |
+| `skills/spec/tools/pr/babysit/log.ts` | babysit log: `appendEvent`, `babysitLogger`, `readEvents`, `parseEvents`, `renderTimeline`; `EventKind` | 2 |
 | `skills/spec/tools/commands/pr/log.ts` | `pr log [<target>] [--add]` | 2 |
-| `skills/spec/tools/pr/actions/gh-writes.ts` | `ghWrites`: exit-code-aware `create`, `ready`, own budget (merge/rerun join in 5–6) | 4 |
+| `skills/spec/tools/pr/actions/gh-writes.ts` | `ghWrites`: exit-code-aware `create`, `ready`, `merge` (PUT pinned to head → `MergeResult`), own budget (rerun joins in 6) | 4, 5 |
+| `skills/spec/tools/core/land-on-main.ts` | `landOnMain(git, branch, plan)` — one file onto origin's tip, push, retry once; `write \| unchanged \| refused` plans (focus + merge line) | 5 |
+| `skills/spec/tools/pr/actions/merge.ts` | `mergePr`: green via `waitStep`, method, PUT, merge line on main, already-merged path | 5 |
+| `skills/spec/tools/pr/actions/merge-line.ts` | `mergeLine`, `withMergeLine` — idempotent `PR #n merged …` at the end of Spec state | 5 |
+| `skills/spec/tools/commands/pr/merge.ts` | `pr merge` flags (`--now`, `--method`, `--date`) | 5 |
 | `skills/spec/tools/pr/actions/ready-race.ts` | `markReadySafely`: draft → ready keyed on new run ids, ≤90 s | 4 |
 | `skills/spec/tools/pr/actions/open.ts` | `openPr` orchestration; `pr-text.ts` title/body from Outcome lines | 4 |
 | `skills/spec/tools/pr/groups.ts` | `prGroups`, `pickGroup` — a spec's PR groups (resolve + open) | 4 |
@@ -34,8 +38,8 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/board/attention.ts` | needs-you merge/fix rows; suppressed while babysitting | `decision-pr-claims-liveness-only` |
 | `skills/spec/tools/claims/rules.ts` | `takeRefusal` (accepts `pr-<group>`), `claimStatus` (unchanged) | `decision-pr-claims-liveness-only` |
 | `skills/spec/tools/trees/find.ts` | `treeHolder` already blocks on any live claim in a tree | |
-| `skills/spec/tools/trees/naming.ts` | `treeName(spec, group).branch` — PR lookup by branch | `decision-pr-found-by-branch-merge-line-on-main` |
-| `skills/spec/tools/focus/land.ts` | commit-onto-origin-tip path lifted to `core/land-on-main.ts` | `decision-pr-found-by-branch-merge-line-on-main` |
+| `skills/spec/tools/trees/naming.ts` | `treeName(spec, group).branch` — PR lookup by branch; `specOfBranch` the inverse (merge line for a PR number) | `decision-pr-found-by-branch-merge-line-on-main` |
+| `skills/spec/tools/focus/land.ts` | `landFocus` = `landOnMain` + `planFocus` (lifted in phase 5) | `decision-pr-found-by-branch-merge-line-on-main` |
 | `skills/spec/tools/publish/push.ts` | `pathsOutsideSpecDocs` — docs-only test (checked-head fallback) | |
 | `skills/spec/tools/launch/command-line.ts` | `sessionLaunch` guard: group token for babysit | |
 | `skills/spec/tools/commands/context.ts` | `PACK_MODES` gains babysit | |

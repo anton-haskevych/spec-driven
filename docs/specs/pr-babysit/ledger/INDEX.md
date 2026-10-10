@@ -9,6 +9,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `gotcha-ghclient-caches-run-reads.md` — [phase 3, 5, 6] — GhClient caches run jobs; poll with uncached reads, pollUntil
 - `gotcha-rerun-leaves-a-stale-failed-row.md` — [phase 3, 6, 7] — queued re-run hides behind old failure; can't re-run a running run
 - `docs/specs/_ledger/gotcha-gh-run-list-cannot-name-the-trigger-action.md` — [general] — gh run list has no trigger action: key the ready run on new run ids
+- `docs/specs/_ledger/gotcha-gh-api-error-body-is-valid-json.md` — [general] — gh api 4xx exits 1 with a JSON body: branch on exit code, status from stderr
 
 ## Principles
 
@@ -24,5 +25,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-pr-found-by-branch-merge-line-on-main.md` — [phase 4, 5, 7] — PR by group branch; merge line landed on main
 - `decision-handoff-before-babysit-launch.md` — [phase 7] — hand off in full, then launch babysit last
 - `decision-pr-claims-liveness-only.md` — [phase 7] — pr-<group> claims: takeRefusal only, no merged rule
+- `decision-merge-green-is-wait-green.md` — [phase 6, 7] — pr merge: waitStep green on the pinned head; line on main, never undo
 
 ## Workarounds
