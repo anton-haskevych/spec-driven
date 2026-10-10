@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, statSync, utimesSync } from "node:fs";
 import { join } from "node:path";
-import type { Git } from "../core/git";
+import { stateDirIn, type Git } from "../core/git";
 import type { Result } from "../core/result";
 
 export const READ_SET = ["docs/specs/*/*.md", "docs/specs/*/phases/**/*.md", "*/docs/specs/*/*.md", "*/docs/specs/*/phases/**/*.md"];
@@ -8,7 +8,7 @@ export const BASE_CACHE_KEEP = 2;
 const TEMP_PREFIX = ".tmp-";
 
 export async function baseCache(git: Git, sha: string, commonDir: string): Promise<Result<string>> {
-  const root = join(commonDir, "spec-board", "base");
+  const root = stateDirIn(commonDir, "base");
   const dir = join(root, sha);
   if (existsSync(dir)) {
     markUsed(dir);

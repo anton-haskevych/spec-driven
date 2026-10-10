@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import type { Result } from "./result";
 import type { RunOptions, RunResult, Runner } from "./run";
 
@@ -39,4 +40,16 @@ export function authorName(git: Git): string | undefined {
 // Shared by the main checkout and every linked worktree: state kept here is per clone, never committed.
 export function gitCommonDir(git: Git): Result<string> {
   return git.out(["rev-parse", "--path-format=absolute", "--git-common-dir"]);
+}
+
+const STATE_FOLDER = "spec-board";
+
+// Tool state (claims, the base cache, babysit logs) under the common dir.
+export function stateDir(git: Git, ...segments: string[]): Result<string> {
+  const commonDir = gitCommonDir(git);
+  return commonDir.ok ? { ok: true, value: stateDirIn(commonDir.value, ...segments) } : commonDir;
+}
+
+export function stateDirIn(commonDir: string, ...segments: string[]): string {
+  return join(commonDir, STATE_FOLDER, ...segments);
 }
