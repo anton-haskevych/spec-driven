@@ -1,22 +1,28 @@
 import { BUCKETS, type Bucket, type Check, type PrView } from "./types";
+import { checksVerdict, externalMatcher, type Verdict, type VerdictKind } from "./verdict";
 
 export interface CheckSummary {
   counts: Record<Bucket, number>;
   external: number;
   failing: Check[];
+  verdict: Verdict;
 }
 
-export type PrState = "merged" | "closed" | "conflicting" | "draft" | "red" | "pending" | "green" | "unknown";
+export type PrState = "merged" | "closed" | "conflicting" | "draft" | VerdictKind | "unknown";
 
 const ACTIONS_JOB = /\/actions\/runs\/(\d+)\/job\/(\d+)/;
 
 export function summarizeChecks(checks: readonly Check[], externalPatterns: readonly string[]): CheckSummary {
-  const globs = externalPatterns.map((pattern) => new Bun.Glob(pattern));
-  const isExternal = (check: Check) => globs.some((glob) => glob.match(check.name));
+  const isExternal = externalMatcher(externalPatterns);
   const counted = checks.filter((check) => !isExternal(check));
   const counts = Object.fromEntries(BUCKETS.map((bucket) => [bucket, 0])) as Record<Bucket, number>;
   for (const check of counted) counts[check.bucket] += 1;
-  return { counts, external: checks.length - counted.length, failing: counted.filter((check) => check.bucket === "fail") };
+  return {
+    counts,
+    external: checks.length - counted.length,
+    failing: counted.filter((check) => check.bucket === "fail"),
+    verdict: checksVerdict(checks, isExternal),
+  };
 }
 
 export function prState(view: PrView, summary: CheckSummary | undefined): PrState {
@@ -25,9 +31,8 @@ export function prState(view: PrView, summary: CheckSummary | undefined): PrStat
   if (view.mergeable === "CONFLICTING") return "conflicting";
   if (view.isDraft) return "draft";
   if (!summary) return "unknown";
-  if (summary.counts.fail > 0) return "red";
-  if (summary.counts.queued + summary.counts.running > 0) return "pending";
-  return view.mergeable === "UNKNOWN" ? "unknown" : "green";
+  const { kind } = summary.verdict;
+  return kind === "green" && view.mergeable === "UNKNOWN" ? "unknown" : kind;
 }
 
 export function actionsJob(link: string): { runId: number; jobId: number } | undefined {

@@ -48,7 +48,7 @@ export function toPrCell(pr: PrRow): PrCell {
   if (pr.state !== "OPEN") return { ...base, state: pr.state === "MERGED" ? "merged" : "closed" };
   if (!pr.checks) return base;
   const { pass, fail, cancel, queued, running } = pr.checks.counts;
-  return { ...base, failing: fail + cancel, pending: queued + running, passing: pass };
+  return { ...base, failing: fail + cancel, pending: queued + running, passing: pass, verdict: pr.checks.verdict.kind };
 }
 
 function sessionCell(session: LiveSession): SessionCell {
@@ -70,7 +70,7 @@ function byLinks(prs: readonly PrRow[], links: readonly number[]): PrCell | unde
 }
 
 function nextFromChecks(cell: PrCell): FlightNext | undefined {
-  if (cell.state || cell.failing === undefined) return undefined;
-  if (cell.failing > 0) return "fix CI";
-  return !cell.draft && (cell.passing ?? 0) > 0 && cell.pending === 0 ? "merge" : undefined;
+  if (cell.state || !cell.verdict) return undefined;
+  if (cell.verdict === "red" || cell.verdict === "cancelled") return "fix CI";
+  return cell.verdict === "green" && !cell.draft ? "merge" : undefined;
 }

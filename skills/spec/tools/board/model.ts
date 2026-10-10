@@ -1,4 +1,5 @@
 import type { Priority } from "../core/schedule";
+import type { VerdictKind } from "../pr/checks/verdict";
 import type { FocusBand } from "../core/spec-meta";
 import type { SessionStatus } from "../sessions/live";
 import type { SpecStage } from "./inputs";
@@ -23,6 +24,8 @@ export interface PrCell {
   failing?: number;
   pending?: number;
   passing?: number;
+  // checksVerdict over the PR's checks; drives "merge" and "fix CI".
+  verdict?: VerdictKind;
   state?: "merged" | "closed";
 }
 

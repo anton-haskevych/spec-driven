@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { actionsJob, prState, summarizeChecks } from "../pr/checks/checks";
 import { toPrView } from "../pr/gh-records";
-import { prView } from "./pr-factories";
+import type { Check } from "../pr/checks/types";
+import { check, prView } from "./pr-factories";
 
 const CHECKS = toPrView(await Bun.file(join(import.meta.dir, "fixtures", "gh-pr-view-rollup-states.json")).json())?.checks ?? [];
 const OPEN = prView();
@@ -21,25 +22,28 @@ describe("summarizeChecks", () => {
 });
 
 describe("prState", () => {
-  const summary = (overrides: Partial<Record<"fail" | "queued", number>>) => {
-    const base = summarizeChecks([], []);
-    return { ...base, counts: { ...base.counts, ...overrides } };
-  };
+  const summary = (...buckets: Check["bucket"][]) => summarizeChecks(buckets.map((bucket, index) => check({ name: `c${index}`, bucket })), []);
 
-  test("follows merged/closed → conflicting → draft → red → pending → green", () => {
-    expect(prState({ ...OPEN, state: "MERGED", mergeable: "CONFLICTING" }, summary({ fail: 1 }))).toBe("merged");
-    expect(prState({ ...OPEN, state: "CLOSED" }, summary({}))).toBe("closed");
-    expect(prState({ ...OPEN, mergeable: "CONFLICTING", isDraft: true }, summary({ fail: 1 }))).toBe("conflicting");
-    expect(prState({ ...OPEN, isDraft: true }, summary({ fail: 1 }))).toBe("draft");
-    expect(prState(OPEN, summary({ fail: 1, queued: 3 }))).toBe("red");
-    expect(prState(OPEN, summary({ queued: 3 }))).toBe("pending");
-    expect(prState(OPEN, summary({}))).toBe("green");
+  test("PR-level states first, then the checks verdict", () => {
+    expect(prState({ ...OPEN, state: "MERGED", mergeable: "CONFLICTING" }, summary("fail"))).toBe("merged");
+    expect(prState({ ...OPEN, state: "CLOSED" }, summary())).toBe("closed");
+    expect(prState({ ...OPEN, mergeable: "CONFLICTING", isDraft: true }, summary("fail"))).toBe("conflicting");
+    expect(prState({ ...OPEN, isDraft: true }, summary("fail"))).toBe("draft");
+    expect(prState(OPEN, summary("fail", "queued"))).toBe("red");
+    expect(prState(OPEN, summary("pass", "cancel"))).toBe("cancelled");
+    expect(prState(OPEN, summary("pass", "queued"))).toBe("waiting");
+    expect(prState(OPEN, summary("pass", "skipping"))).toBe("green");
+  });
+
+  test("a PR CI never ran is none, not green", () => {
+    expect(prState(OPEN, summary())).toBe("none");
+    expect(prState(OPEN, summary("skipping"))).toBe("none");
   });
 
   test("unknown mergeability outranks only green", () => {
     const unknown = { ...OPEN, mergeable: "UNKNOWN" };
-    expect(prState(unknown, summary({}))).toBe("unknown");
-    expect(prState(unknown, summary({ fail: 1 }))).toBe("red");
+    expect(prState(unknown, summary("pass"))).toBe("unknown");
+    expect(prState(unknown, summary("fail"))).toBe("red");
   });
 
   test("unreadable checks never read as green", () => {
