@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { PR_USAGE, prCommand } from "../commands/pr";
 import { prStatus } from "../commands/pr/status";
 import { specPrNumbers } from "../pr/resolve";
-import { prView } from "./pr-factories";
+import { check, prView } from "./pr-factories";
 import { stubRunner } from "./stub-runner";
 import { createTree, type Tree } from "./tree";
 
@@ -49,6 +51,23 @@ describe("pr status", () => {
     expect(prStatus(tree.root, [], noPr)).toBe('pr status: no pull requests found for branch "feat/x"');
     expect(prStatus(tree.root, ["empty"], noPr)).toBe('pr status: no pull requests found for branch "feat/x"; pr-opening.md for empty links no PR');
     expect(prStatus(tree.root, ["nope"], noPr)).toBe("pr status: no spec named nope");
+  });
+
+  test("a failed job's log is saved under the clone's babysit folder; the triage gate comes from settings", () => {
+    tree = createTree();
+    tree.write("docs/specs/_playbook/settings.md", "---\ngates:\n  ci-triage: ci-triage\n---\n");
+    const failed = check({ name: "E2E Tests", bucket: "fail", link: "https://github.com/acme/app/actions/runs/3788/job/9921" });
+    const runner = stubRunner([
+      [["gh", "pr", "view", "921"], { stdout: JSON.stringify({ ...JSON.parse(view(921, "OPEN")), statusCheckRollup: [{ name: "E2E Tests", workflowName: "CI", status: "COMPLETED", conclusion: "FAILURE", detailsUrl: failed.link }] }) }],
+      [["gh", "api"], { stdout: "##[error]boom\n" }],
+      [["gh", "run", "view"], { stdout: JSON.stringify({ status: "completed", conclusion: "failure", attempt: 1, jobs: [{ databaseId: 9921, name: "E2E Tests", conclusion: "failure" }] }) }],
+      [["git", "rev-parse"], { stdout: `${join(tree.root, ".git")}\n` }],
+    ]);
+    const saved = join(tree.root, ".git", "spec-board", "babysit", "pr-921", "job-9921.log");
+    const lines = prStatus(tree.root, ["921"], runner).split("\n");
+    expect(lines).toContain(`         log ${saved}`);
+    expect(lines).toContain("triage   gate ci-triage (gates.ci-triage)");
+    expect(existsSync(saved)).toBe(true);
   });
 
   test("the pr group dispatches status and lists its usage otherwise", async () => {

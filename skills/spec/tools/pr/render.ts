@@ -14,7 +14,7 @@ const COUNTED: ReadonlyArray<[Bucket, string]> = [
 ];
 
 export function renderReport(report: PrReport, now: Date): string {
-  const table = report.summary ? checkTable(report.view.checks, externalMatcher(report.externalPatterns), report.failures, now) : [];
+  const table = report.summary ? checkTable(report.view.checks, externalMatcher(report.externalPatterns), report, now) : [];
   return [
     header(report),
     verdictLine(report),

@@ -42,21 +42,38 @@ describe("renderReport", () => {
     );
   });
 
-  test("red: the failed row carries run, job, main and the tail beneath it", () => {
+  test("red: the failed row carries run, job, main and infra; the saved log and tail beneath it; then the triage gate", () => {
     const e2e = check({ name: "E2E Tests", bucket: "fail", startedAt: at(0), completedAt: at(9, 3), ...job(3788, 9921) });
     const failure = {
       check: e2e,
       job: { runId: 3788, jobId: 9921 },
       main: { kind: "ran" as const, runId: 3700, day: "2026-10-09", conclusion: "success" },
+      infra: { ok: true as const, value: { infra: false as const } },
       tail: { ok: true as const, value: ["##[error] card-reader.spec.ts:41 Timeout 30000ms exceeded"] },
+      logPath: "/repo/.git/spec-board/babysit/pr-921/job-9921.log",
     };
-    const text = renderReport(report([e2e, passed("Lint", 2)], { failures: [failure] }), NOW).split("\n");
+    const text = renderReport(report([e2e, passed("Lint", 2)], { failures: [failure], triageGate: "ci-triage" }), NOW).split("\n");
     expect(text.slice(1)).toEqual([
       "verdict: red · 1 failed · 1 passed",
-      "failed   E2E Tests  9m03s  run 3788 job 9921 · main: last ran 10-09 (run 3700) → success — failure is this branch's",
+      "failed   E2E Tests  9m03s  run 3788 job 9921 · fails on main too: no (run 3700, 10-09) · infra: no",
+      "         log /repo/.git/spec-board/babysit/pr-921/job-9921.log",
       "         ##[error] card-reader.spec.ts:41 Timeout 30000ms exceeded",
+      "triage   gate ci-triage (gates.ci-triage)",
       "passed   Lint 2m",
     ]);
+  });
+
+  test("main fails too, infra with its reason, a cancelled row with facts, and no triage gate set", () => {
+    const backend = check({ name: "Backend Tests", bucket: "fail", ...job(3787, 2) });
+    const e2e = check({ name: "E2E Tests", bucket: "cancel", ...job(3787, 3) });
+    const failures = [
+      { check: backend, job: { runId: 3787, jobId: 2 }, main: { kind: "ran" as const, runId: 3701, day: "2026-10-09", conclusion: "failure" }, infra: { ok: true as const, value: { infra: true as const, reason: "runner lost" } } },
+      { check: e2e, job: { runId: 3787, jobId: 3 }, main: { kind: "unavailable" as const, reason: "no default branch" }, infra: { ok: false as const, reason: "gh call budget (30) spent" } },
+    ];
+    const lines = renderReport(report([backend, e2e], { failures }), NOW).split("\n");
+    expect(lines).toContain("failed   Backend Tests    run 3787 job 2 · fails on main too: yes (run 3701, 10-09) · infra: yes (runner lost)");
+    expect(lines).toContain("cancelled E2E Tests        run 3787 job 3 · fails on main too: unknown (no default branch) · infra: unknown (gh call budget (30) spent)");
+    expect(lines).toContain("triage   none — name a gates.md section in gates.ci-triage (docs/specs/_playbook/settings.md)");
   });
 
   test("failures that aren't Actions jobs, unavailable tails, cancelled checks and other PRs", () => {
@@ -68,6 +85,7 @@ describe("renderReport", () => {
         failures: [
           { check: results, job: undefined },
           { check: smoke, job: { runId: 1, jobId: 4 }, main: { kind: "not-run", runs: 15 }, tail: { ok: false, reason: "gh call budget (30) spent" } },
+          { check: lost, job: { runId: 1, jobId: 5 } },
         ],
         otherPrs: [779, 801],
       }),
@@ -75,7 +93,7 @@ describe("renderReport", () => {
     );
     expect(text).toContain("cancelled Deploy");
     expect(text).toContain("not an Actions job: https://github.com/acme/app/runs/5");
-    expect(text).toContain("run 1 job 4 · main: not run in the last 15 runs");
+    expect(text).toContain("run 1 job 4 · fails on main too: unknown (not run in the last 15 runs)");
     expect(text).toContain("         tail: unavailable (gh call budget (30) spent)");
     expect(text.split("\n").at(-1)).toBe("other PRs in this spec: #779, #801");
   });
@@ -99,9 +117,10 @@ describe("renderReport: none and many failures", () => {
 
   test("past the tailed failures, one note instead of a line per failure", () => {
     const failing = Array.from({ length: 5 }, (_, index) => check({ name: `Job ${index}`, bucket: "fail", ...job(1, index) }));
-    const failures = failing.map((one, index) => ({ check: one, job: { runId: 1, jobId: index }, ...(index < 3 ? { tail: { ok: true as const, value: ["boom"] } } : {}) }));
+    const failures = failing.map((one, index) => ({ check: one, job: { runId: 1, jobId: index }, tail: { ok: true as const, value: ["boom"] }, logPath: `/logs/job-${index}.log` }));
     const lines = renderReport(report(failing, { failures }), NOW).split("\n");
     expect(lines.filter((line) => line.trim() === "boom")).toHaveLength(3);
-    expect(lines.at(-1)).toBe("         (log tails for the first 3 failures only)");
+    expect(lines.filter((line) => line.trim().startsWith("log /logs/"))).toHaveLength(5);
+    expect(lines).toContain("         (log tails for the first 3 failures only; every log is saved)");
   });
 });

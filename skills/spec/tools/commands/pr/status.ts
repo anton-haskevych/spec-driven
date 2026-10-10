@@ -1,5 +1,7 @@
+import { gitAt } from "../../core/git";
 import { defaultBranch, systemRunner, type Runner } from "../../core/run";
 import { loadSettings } from "../../playbook/settings";
+import { jobLogDir, savedJobLogs } from "../../pr/failures/job-logs";
 import { ghClient } from "../../pr/gh";
 import { renderReport } from "../../pr/render";
 import { buildReport } from "../../pr/report";
@@ -12,10 +14,14 @@ export function prStatus(projectDir: string, args: readonly string[], runner: Ru
   const gh = ghClient(projectDir, runner);
   const resolved = resolvePr(gh, projectDir, args);
   if (!resolved.ok) return `pr status: ${resolved.reason}`;
-  const report = buildReport(gh, resolved.value.view, {
-    externalPatterns: loadSettings(projectDir).checks.external,
+  const { view, otherPrs } = resolved.value;
+  const settings = loadSettings(projectDir);
+  const report = buildReport(gh, view, {
+    externalPatterns: settings.checks.external,
     defaultBranch: defaultBranch(projectDir, runner),
-    otherPrs: resolved.value.otherPrs,
+    otherPrs,
+    jobLogs: savedJobLogs(gh.jobLog, jobLogDir(gitAt(projectDir, runner), view.number)),
+    ...(settings.gates.ciTriage ? { triageGate: settings.gates.ciTriage } : {}),
   });
   return renderReport(report, now);
 }

@@ -31,7 +31,7 @@ pr: A
 - [x] `pr/failures/triage.ts`: infra classification (startup_failure, cancelled without failed sibling or timeout text, signatures) — table tests incl. the cancelled-by-timeout log and a fail-fast sibling
 - [ ] `pr status` failure lines show `fails on main too` and `infra`, and the triage gate name
 - [ ] `pr/actions/rerun.ts` + `gh-writes.ts` reruns: infra-only, refuse in-progress runs, cap at `attempt` 3, logged — tests incl. refusal of a test failure, of a running run and of the third attempt
-- [ ] `gates.ci-triage` setting: parse, describe, doctor check, pack line
+- [x] `gates.ci-triage` setting: parse, describe, doctor check, pack line
 
 ## Phase-local notes
 
