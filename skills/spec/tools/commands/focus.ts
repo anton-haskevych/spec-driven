@@ -41,8 +41,8 @@ export async function focusCommand(projectDir: string, args: readonly string[], 
 }
 
 export function focusLine(action: FocusAction, outcome: LandOutcome): string {
-  if (outcome.kind === "refused") return `focus ${action.kind}: ${outcome.reason}`;
   if (outcome.kind === "failed") return `focus: ${outcome.reason}`;
+  if (outcome.kind !== "landed") return `focus ${action.kind}: ${outcome.reason}`;
   const { verb, spec, band } = outcome.landed;
   const sha = outcome.sha.slice(0, 7);
   return band ? `focus: ${verb} ${spec} to ${band} (${sha})` : `focus: ${verb} ${spec} (${sha})`;
