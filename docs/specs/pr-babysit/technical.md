@@ -25,7 +25,7 @@ babysit procedure pins the PR number `pr open` printed and passes it to every la
 | `pr open <spec> [<group>] [--draft]` | Creates the group's PR (title, body from Outcome lines), marks an existing draft ready race-safely, or reports one already open | `PR: #921 opened ready · <url>` / `PR: #921 opened as a draft · <url>` / `PR: #921 marked ready · CI started (run 3788)` / `PR: #921 already open · <url>` |
 | `pr rerun [<target>]` | Re-runs infra-failed jobs on the head; refuses when GitHub's `attempt` is already 3 | `Rerun: Backend Tests (runner lost) · attempt 2 of 3 · run 3787` |
 | `pr merge [<target>] [--now] [--method m]` | Merges with `pr.merge`, pinned to head; refuses unless green (or `--now`); lands the merge line on main; fetches | `Merged: #921 · merge · 9b0c1d2` |
-| `pr log [<target>] [--add "<text>"]` | Prints the babysit timeline; `--add` writes an agent note | timeline (design.md) |
+| `pr log [<target>] [--add "<text>" \| --start <spec> --group <g> \| --pushed \| --stopped "<why>"]` | Prints the babysit timeline; `--add` writes an agent note; `--start`, `--pushed` (HEAD sha + subject) and `--stopped` write the procedure's own events (phase 7: nothing else wrote them) | timeline (design.md) / `PR #921: note added` · `babysit started` · `push logged · 5e6f7a8` · `stop logged` |
 
 Refusals start `pr <verb>:` (`pr merge: not green — E2E Tests failed`, `pr rerun: E2E Tests failed in a test, not infra — fix it`, `pr rerun: run 3787 still running — wait`, `pr merge: pr.merge is not set; pass --method or set it in docs/specs/_playbook/settings.md`). Short SHAs are 7 characters.
 

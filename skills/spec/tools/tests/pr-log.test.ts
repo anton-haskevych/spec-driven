@@ -120,6 +120,28 @@ describe("pr log", () => {
     expect(prLog(repo.dir, [], withGh([[["gh", "pr", "view"], { code: 1, stderr: "no pull requests found" }]]), at)).toBe("pr log: no pull requests found");
   });
 
+  test("--start, --pushed and --stopped write the events the babysit limits count from", () => {
+    repo = repoWithOrigin("spec-pr-log-events-");
+    repo.write("a.txt", "a");
+    repo.commitAll("fix: reset the simulated reader");
+    const head = repo.git("rev-parse", "--short=7", "HEAD").trim();
+    expect(prLog(repo.dir, ["921", "--start", "fast-parallel-backend-tests", "--group", "B"], isolatedRunner, at)).toBe("PR #921: babysit started");
+    expect(prLog(repo.dir, ["921", "--pushed"], isolatedRunner, at)).toBe(`PR #921: push logged · ${head}`);
+    expect(prLog(repo.dir, ["921", "--stopped", "fails on main too"], isolatedRunner, at)).toBe("PR #921: stop logged");
+    expect(prLog(repo.dir, ["921"], isolatedRunner, at, ZONE).split("\n")).toEqual([
+      "PR #921 babysit · B · fast-parallel-backend-tests · started 21:18 · 0 reruns · 1 fix push",
+      "21:18 babysit-start",
+      `21:18 pushed · ${head} · fix: reset the simulated reader`,
+      "21:18 stopped · fails on main too",
+    ]);
+  });
+
+  test("--start needs its group, and one write per call", () => {
+    repo = repoWithOrigin("spec-pr-log-start-");
+    expect(prLog(repo.dir, ["921", "--start", "x"], isolatedRunner, at)).toBe("pr log: --start needs --group <group>");
+    expect(prLog(repo.dir, ["921", "--pushed", "--add", "n"], isolatedRunner, at)).toBe("pr log: one of --add, --start, --pushed, --stopped per call");
+  });
+
   test("refuses an empty note and unknown flags", () => {
     repo = repoWithOrigin("spec-pr-log-usage-");
     expect(prLog(repo.dir, ["921", "--add", " "], isolatedRunner, at)).toBe("pr log: --add needs the note's text");
