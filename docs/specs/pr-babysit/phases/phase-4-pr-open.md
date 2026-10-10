@@ -27,10 +27,10 @@ Ready race: before `gh pr ready`, wait (`pollUntil`) until runs for the head SHA
 
 ## Deliverables
 
-- [ ] `pr/actions/gh-writes.ts` with exit-code-aware `create` and `ready` — tests over stub replies incl. a gh error body that is valid JSON
-- [ ] `pr/resolve.ts`: `<spec> <group>` by branch; `<spec>` alone refuses with several groups — tests incl. two open groups
-- [ ] `pr/actions/open.ts`: create (ready or `--draft`) with Outcome-line body; existing draft → race-safe ready keyed on the `ready_for_review` run; already open and ready → reported; logs `opened`/`ready`
-- [ ] `pr open <spec> [<group>] [--draft]` result lines per technical.md
+- [x] `pr/actions/gh-writes.ts` with exit-code-aware `create` and `ready` — tests over stub replies incl. a gh error body that is valid JSON
+- [x] `pr/resolve.ts`: `<spec> <group>` by branch; `<spec>` alone refuses with several groups — tests incl. two open groups
+- [x] `pr/actions/open.ts`: create (ready or `--draft`) with Outcome-line body; existing draft → race-safe ready keyed on the `ready_for_review` run; already open and ready → reported; logs `opened`/`ready`
+- [x] `pr open <spec> [<group>] [--draft]` result lines per technical.md
 
 ## Phase-local notes
 

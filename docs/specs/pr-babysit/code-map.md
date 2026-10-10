@@ -14,6 +14,12 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/tests/pr-factories.ts` | `prView()`, `check()`; `sequencedRunner` in `stub-runner.ts` | 1 |
 | `skills/spec/tools/pr/babysit/log.ts` | babysit log: `appendEvent`, `readEvents`, `parseEvents`, `renderTimeline`; `EventKind` | 2 |
 | `skills/spec/tools/commands/pr/log.ts` | `pr log [<target>] [--add]` | 2 |
+| `skills/spec/tools/pr/actions/gh-writes.ts` | `ghWrites`: exit-code-aware `create`, `ready`, own budget (merge/rerun join in 5–6) | 4 |
+| `skills/spec/tools/pr/actions/ready-race.ts` | `markReadySafely`: draft → ready keyed on new run ids, ≤90 s | 4 |
+| `skills/spec/tools/pr/actions/open.ts` | `openPr` orchestration; `pr-text.ts` title/body from Outcome lines | 4 |
+| `skills/spec/tools/pr/groups.ts` | `prGroups`, `pickGroup` — a spec's PR groups (resolve + open) | 4 |
+| `skills/spec/tools/pr/babysit/poll.ts` | `pollUntil` + `systemClock` — the shared bounded poll loop (phase 3 reuses) | 4 |
+| `skills/spec/tools/tests/fake-clock.ts` | `fakeClock()`; `routeGh` (stub-runner.ts) for real git + stubbed gh; `phasedSpecFiles` (pr-factories.ts) | 4 |
 
 ## Existing files touched
 
@@ -32,8 +38,8 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/context.ts` | `PACK_MODES` gains babysit | |
 | `skills/spec/tools/doctor/settings.ts` | gate-name check; `gates.ci-triage` joins `named` | |
 | `skills/spec/tools/board/joins.ts` | board's PR verdict (`toPrCell`, `nextFromChecks`) | |
-| `skills/spec/tools/pr/gh.ts` | sync read client, 30-call budget, `PR_FIELDS`, `RUN_FIELDS` | |
-| `skills/spec/tools/pr/resolve.ts` | PR from spec's Spec state (`SPEC_STATE`, `PR_LINK`) | |
+| `skills/spec/tools/pr/gh.ts` | sync read client, 30-call budget, `PR_FIELDS` (+`url`), `prView(number \| branch)`, uncached `commitRuns` | `gotcha-ghclient-caches-run-reads` |
+| `skills/spec/tools/pr/resolve.ts` | `resolvePr(gh, dir, positionals)`: `<spec> <group>` by branch; Spec-state links only for a one-group spec | `decision-pr-found-by-branch-merge-line-on-main` |
 | `skills/spec/tools/playbook/settings.ts` | `pr.draft`, `pr.merge`, `checks.external`, new `gates.ci-triage` | |
 | `skills/spec/tools/claims/store.ts` | claim files; already accepts any id (no change) | |
 | `skills/spec/tools/core/git.ts` | `stateDir(git, …)` / `stateDirIn(commonDir, …)` — `<common-dir>/spec-board/<x>` | |

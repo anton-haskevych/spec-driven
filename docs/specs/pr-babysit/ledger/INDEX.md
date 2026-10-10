@@ -5,7 +5,9 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 
 ## Gotchas
 - `gotcha-e2e-tail-is-container-noise.md` — [phase 6] — CRM E2E tail is MySQL startup log, not the failing test
+- `gotcha-ghclient-caches-run-reads.md` — [phase 3, 5, 6] — GhClient caches run jobs; poll with uncached reads, pollUntil
 - `gotcha-rerun-leaves-a-stale-failed-row.md` — [phase 3, 6, 7] — queued re-run hides behind old failure; can't re-run a running run
+- `docs/specs/_ledger/gotcha-gh-run-list-cannot-name-the-trigger-action.md` — [general] — gh run list has no trigger action: key the ready run on new run ids
 
 ## Principles
 
