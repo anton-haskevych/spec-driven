@@ -1,11 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ago, alignColumns, prCell } from "../board/cells";
-
-describe("alignColumns", () => {
-  test("pads every column but the last to its widest cell, measuring glyphs by display width", () => {
-    expect(alignColumns([["★ a", "x", ""], ["bbbb", "yy", "end"]])).toEqual(["★ a   x", "bbbb  yy  end"]);
-  });
-});
+import { ago, prCell } from "../board/cells";
 
 describe("ago", () => {
   const now = new Date("2026-10-01T20:00:00Z");

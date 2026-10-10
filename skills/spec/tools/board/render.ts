@@ -1,4 +1,5 @@
-import { ago, alignColumns, clock, lane, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
+import { alignColumns } from "../core/columns";
+import { ago, clock, lane, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
 import type { AttentionRow, Board, FlightRow, ReadyRow } from "./model";
 import { focusSection } from "./render-focus";
 

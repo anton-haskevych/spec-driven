@@ -32,7 +32,7 @@ The verdict precedence and the "≥1 passed; zero or all-skipped is none" rule a
 - [x] Refactor: `pr/checks/`, `pr/failures/` subfolders; `stub-runner.ts`; `prView()`, `check()` in `tests/pr-factories.ts`; existing pr tests use them (no behaviour change)
 - [x] `pr status` reads `statusCheckRollup` via `gh pr view` through `rollupToChecks`; `Bucket` gains `queued`/`running`, `Check` gains `startedAt`/`completedAt`/`runId`/`jobId`; zero-time rows count as newest; `gh-records.ts` checks mapper deleted
 - [x] `pr/checks/verdict.ts`: `checksVerdict(checks, isExternal)` with red > cancelled > waiting > green, `none: no-checks | skipped`, green needs ≥1 passed — table tests over the rollup fixtures (states, vercel-pending, stale-rows, same-name-two-workflows, all-skipped, queued-rerun)
-- [ ] `prState` and the board's `nextFromChecks` use `checksVerdict`; goldens re-pinned
+- [x] `prState` and the board's `nextFromChecks` use `checksVerdict`; goldens re-pinned
 - [ ] `pr status` renders the grouped table (running with elapsed, failed with run/job, passed with durations folded after 4, skipped folded, external line) and a `verdict:` line
 - [ ] `commands/pr.ts` `ACTIONS` table + `commands/pr/status.ts`; `pr-status` removed and its prose callers updated; `commands-table.test.ts` green
 - [ ] Only if the probe found no checks on a docs-only head: `pr/checks/checked-head.ts` (docs-only walk via `pathsOutsideSpecDocs`, `git log --name-only -z`; REST check-runs `per_page=100` + statuses into `Check`) — real-git round-trip test
