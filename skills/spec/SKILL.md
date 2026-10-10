@@ -1,7 +1,7 @@
 ---
 name: spec
 description: Run pre-spec reconnaissance (prep), load an existing spec to resume work, execute the next chunk, update progress after implementation, review with the collegium panel, or create a new one. Also captures ideas into the backlog and lists what's open by priority. Use when starting a session around a feature, when the user mentions a spec by name, when asked to prep, scope, or review/critique a spec, after completing implementation work, when the user says "idea:", "add to the backlog" or "jot this down for later", or asks what's open, what's next or what matters most.
-argument-hint: "prep|create|resume|execute|review|update|handoff|status|list|idea [spec-name]"
+argument-hint: "prep|create|resume|execute|review|update|handoff|status|list|idea|babysit [spec-name]"
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
 hooks:
   PreToolUse:
@@ -35,7 +35,7 @@ true`
 
 Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-command token. With Bun, `spec.ts context` applies these same rules and a pack's `spec=` wins; apply them by hand when there is no pack.
 
-**Sub-command set:** `prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`, `idea`.
+**Sub-command set:** `prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`, `idea`, `babysit`.
 
 **Matching rule** (case-insensitive, whitespace-tokenized):
 
@@ -64,8 +64,9 @@ If `feature` is empty after extraction, resolve it as in the no-spec rule above.
 | `status` | Read [status.md](status.md) and follow it. |
 | `list` | Read [list.md](list.md) and follow it. The feature name is optional — when omitted, list open specs and the backlog; when present, treat it as a filter. |
 | `idea` | Read [idea.md](idea.md) and follow it. Captures an idea into `docs/specs/_backlog/`, or closes or drops one. |
+| `babysit` | Read [babysit.md](babysit.md) and follow it. `rest` is `<spec> <group>`: carries that PR group's PR to merged. Launched by execute's PR gate (`launch babysit`); the user doesn't type it. |
 
-`resume`, `execute`, `review`, `update`, `handoff`, and `status` each start by running *Preconditions* (below). `prep`, `create`, `list`, and `idea` carry their own checks.
+`resume`, `execute`, `review`, `update`, `handoff`, `status`, and `babysit` each start by running *Preconditions* (below). `prep`, `create`, `list`, and `idea` carry their own checks.
 
 After dispatching, **stop**. Do not also evaluate the routing section below.
 
@@ -122,7 +123,7 @@ Check if a spec folder exists at `docs/specs/$ARGUMENTS/`.
 
 ## Preconditions
 
-Every mode that works on an existing spec (`resume`, `execute`, `review`, `update`, `handoff`, `status`) runs this check first — one definition, referenced by name from each mode file. Resolve `docs/specs/<name>/`, then:
+Every mode that works on an existing spec (`resume`, `execute`, `review`, `update`, `handoff`, `status`, `babysit`) runs this check first — one definition, referenced by name from each mode file. Resolve `docs/specs/<name>/`, then:
 
 1. **Missing folder** → print `Spec '<name>' not found at docs/specs/<name>/.` and stop. Never offer to create — that is `create`'s job.
 2. **Prep stage** (folder exists, no `progress.md` — only `seed.md` / `product-brief.md` / `research/`) → the spec body isn't written yet. Take the mode's prep-stage action from the table and stop.
@@ -135,7 +136,7 @@ Check prep stage **before** legacy: a prep-stage folder also lacks `ledger/INDEX
 |---|---|
 | `resume`, `execute` | Read [prep.md](prep.md) instead — it resumes reconnaissance where it left off. |
 | `status` | Print `Spec '<name>' is in prep — no phases yet. See product-brief.md. Run /spec prep <name> to continue recon, or /spec create <name> to write the spec.` |
-| `update`, `handoff`, `review` | Print `Spec '<name>' is in prep — nothing to <update \| hand off \| review> yet. Run /spec prep <name> to continue recon, or /spec create <name> to write the spec.` |
+| `update`, `handoff`, `review`, `babysit` | Print `Spec '<name>' is in prep — nothing to <update \| hand off \| review \| babysit> yet. Run /spec prep <name> to continue recon, or /spec create <name> to write the spec.` |
 
 ## Next-chunk rule
 

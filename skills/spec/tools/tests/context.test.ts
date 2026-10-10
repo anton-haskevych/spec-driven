@@ -230,6 +230,20 @@ describe("contextPack", () => {
     rmSync(playbooks, { recursive: true });
   });
 
+  test("babysit pack lists the PR group's phases and sends the session to babysit.md", () => {
+    write("phases/phase-1.md", "---\npr: A\n---\n**Goal:** Harness.\n- [x] done\n");
+    write("phases/phase-2.md", "---\npr: A\n---\n**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+    const pack = contextPack(project, { mode: "babysit", name: "checkout", hint: "A" });
+    expect(pack).toContain('<spec-pack spec="checkout" mode="babysit">');
+    expect(pack).toContain("babysit.md");
+    expect(pack).toContain("### PR group A · branch feat/checkout-pr-a\n- [x] 1 — Harness\n- [ ] 2 — Aggregate");
+    expect(pack).toContain("Open phases in group A: 2.");
+    expect(contextPack(project, { mode: "babysit", name: "checkout", hint: "Z" })).toContain("No PR group Z in checkout; its groups: A.");
+    expect(contextPack(project, { mode: "babysit", name: "checkout" })).toContain("No PR group named; its groups: A.");
+    write("phases/phase-1.md", "**Goal:** Harness.\n- [x] done\n");
+    write("phases/phase-2.md", "**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
+  });
+
   test("prints nothing for modes without a pack or unknown specs", () => {
     expect(contextPack(project, { mode: "prep", name: "checkout" })).toBe("");
     expect(contextPack(project, { mode: "resume", name: "missing" })).toBe("");
@@ -294,6 +308,7 @@ describe("contextPack", () => {
       expect(contextPack(project, { mode: "execute" }, runner)).toBe("");
       expect(contextPack(project, { mode: "review" }, runner)).toBe("");
       expect(contextPack(project, { mode: "route" }, runner)).toBe("");
+      expect(contextPack(project, { mode: "babysit" }, runner)).toBe("");
       expect(runner.calls).toHaveLength(1);
     });
   });
