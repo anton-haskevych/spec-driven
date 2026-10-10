@@ -2,7 +2,7 @@ import { firstLine } from "../core/git";
 import type { Result } from "../core/result";
 import type { Runner } from "../core/run";
 import { parseJson, toChecks, toJobs, toPrView, toWorkflowId, toWorkflowRuns } from "./gh-records";
-import type { Check, Job, PrView, WorkflowRun } from "./types";
+import type { Check, Job, PrView, WorkflowRun } from "./checks/types";
 
 
 export interface GhClient {

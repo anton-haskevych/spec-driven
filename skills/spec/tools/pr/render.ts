@@ -1,4 +1,4 @@
-import type { MainComparison } from "./main-compare";
+import type { MainComparison } from "./failures/main-compare";
 import type { FailedCheckReport, PrReport } from "./report";
 
 const HEAD_LENGTH = 8;

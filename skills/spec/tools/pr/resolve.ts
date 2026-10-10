@@ -3,7 +3,7 @@ import { readTextIfExists } from "../core/files";
 import { findSpecs } from "../core/spec-folders";
 import type { Result } from "../core/result";
 import type { GhClient } from "./gh";
-import type { PrView } from "./types";
+import type { PrView } from "./checks/types";
 
 export interface ResolvedPr {
   view: PrView;

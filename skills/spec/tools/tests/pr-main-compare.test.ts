@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import type { Result } from "../core/result";
 import type { GhClient } from "../pr/gh";
-import { compareOnMain, MAIN_RUNS_PER_JOB } from "../pr/main-compare";
-import type { Job, WorkflowRun } from "../pr/types";
+import { compareOnMain, MAIN_RUNS_PER_JOB } from "../pr/failures/main-compare";
+import type { Job, WorkflowRun } from "../pr/checks/types";
 
 const unused = (): Result<never> => {
   throw new Error("not used by compareOnMain");

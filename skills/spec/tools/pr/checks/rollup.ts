@@ -1,4 +1,4 @@
-import { booleanField, isRecord, numberField, stringField, type FrontmatterData } from "../core/frontmatter";
+import { booleanField, isRecord, numberField, stringField, type FrontmatterData } from "../../core/frontmatter";
 import { summarizeChecks, type CheckSummary } from "./checks";
 import type { Bucket, Check } from "./types";
 

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { RunResult, Runner } from "../core/run";
 import { ghClient } from "../pr/gh";
 import { buildReport, TAILS_SHOWN } from "../pr/report";
-import type { PrView } from "../pr/types";
+import type { PrView } from "../pr/checks/types";
 
 const fixture = (name: string) => Bun.file(join(import.meta.dir, "fixtures", name)).text();
 const CHECKS = await fixture("gh-pr-checks.json");

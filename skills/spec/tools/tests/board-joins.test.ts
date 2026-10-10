@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import type { BoardInputs } from "../board/inputs";
 import { attachPrs, attachSessions, linkedPrs, toPrCell } from "../board/joins";
-import type { CheckSummary } from "../pr/checks";
-import type { PrRow } from "../pr/rollup";
+import type { CheckSummary } from "../pr/checks/checks";
+import type { PrRow } from "../pr/checks/rollup";
 import type { LiveSession } from "../sessions/live";
 import { boardInputs, flightRow, prRow, workspaceView } from "./board-factories";
 import { liveSession } from "./factories";

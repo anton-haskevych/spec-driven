@@ -1,4 +1,4 @@
-import type { PrRow } from "../pr/rollup";
+import type { PrRow } from "../pr/checks/rollup";
 import { sessionsByWorkspace } from "../sessions/by-workspace";
 import type { LiveSession } from "../sessions/live";
 import { claimsOnBoard } from "./flight";

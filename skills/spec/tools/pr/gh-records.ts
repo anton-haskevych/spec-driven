@@ -1,5 +1,5 @@
 import { booleanField, isRecord, numberField, stringField, type FrontmatterData } from "../core/frontmatter";
-import { BUCKETS, type Bucket, type Check, type Job, type PrView, type WorkflowRun } from "./types";
+import { BUCKETS, type Bucket, type Check, type Job, type PrView, type WorkflowRun } from "./checks/types";
 
 export function parseJson(text: string): unknown {
   try {

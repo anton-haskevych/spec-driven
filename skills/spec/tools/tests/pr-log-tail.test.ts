@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
-import { failureTail } from "../pr/log-tail";
+import { failureTail } from "../pr/failures/log-tail";
 
 const LOG = await Bun.file(join(import.meta.dir, "fixtures", "gh-job-log.txt")).text();
 

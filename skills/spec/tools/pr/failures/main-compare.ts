@@ -1,4 +1,4 @@
-import type { GhClient } from "./gh";
+import type { GhClient } from "../gh";
 
 export type MainComparison =
   | { kind: "ran"; runId: number; day: string; conclusion: string }

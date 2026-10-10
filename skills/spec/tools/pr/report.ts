@@ -1,9 +1,9 @@
-import { actionsJob, prState, summarizeChecks, type CheckSummary, type PrState } from "./checks";
+import { actionsJob, prState, summarizeChecks, type CheckSummary, type PrState } from "./checks/checks";
 import type { Result } from "../core/result";
 import type { GhClient } from "./gh";
-import { failureTail } from "./log-tail";
-import { compareOnMain, type MainComparison } from "./main-compare";
-import type { Check, PrView } from "./types";
+import { failureTail } from "./failures/log-tail";
+import { compareOnMain, type MainComparison } from "./failures/main-compare";
+import type { Check, PrView } from "./checks/types";
 
 export interface FailedCheckReport {
   check: Check;

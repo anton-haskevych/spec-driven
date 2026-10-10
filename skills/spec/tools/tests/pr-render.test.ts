@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { summarizeChecks } from "../pr/checks";
+import { summarizeChecks } from "../pr/checks/checks";
 import { renderReport } from "../pr/render";
 import type { PrReport } from "../pr/report";
-import type { Check } from "../pr/types";
+import type { Check } from "../pr/checks/types";
 
 const check = (name: string, bucket: Check["bucket"], workflow = "Landing Tests", link = ""): Check => ({ name, bucket, workflow, link });
 const VIEW = { number: 871, state: "OPEN", isDraft: false, mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", headRefOid: "084ec54f1be9c7c7" };

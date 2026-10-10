@@ -7,7 +7,7 @@ import type { SpecState } from "../core/spec-state";
 import { loadMainline } from "../mainline/load";
 import { fetchPrLists, type PrLists } from "../pr/gh-lists";
 import { specPrNumbers } from "../pr/resolve";
-import { toPrRows, type PrRow } from "../pr/rollup";
+import { toPrRows, type PrRow } from "../pr/checks/rollup";
 import { heldClaims, remoteHeldClaims, withoutTakenOver } from "../claims/held";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
 import { psProcStarts } from "../sessions/proc-starts";

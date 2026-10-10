@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
-import { checkBucket, rollupToChecks, toPrRows } from "../pr/rollup";
-import type { Bucket } from "../pr/types";
+import { checkBucket, rollupToChecks, toPrRows } from "../pr/checks/rollup";
+import type { Bucket } from "../pr/checks/types";
 
 const fixture = async (name: string) => JSON.parse(await Bun.file(join(import.meta.dir, "fixtures", name)).text());
 
