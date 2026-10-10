@@ -6,7 +6,7 @@ import type { Job, PrView, WorkflowRun } from "./checks/types";
 
 
 export interface GhClient {
-  prView(pr?: number): Result<PrView>;
+  prView(target?: number | string): Result<PrView>;
   runWorkflowId(runId: number): Result<number>;
   runJobs(runId: number): Result<Job[]>;
   jobLog(jobId: number): Result<string>;
@@ -14,7 +14,7 @@ export interface GhClient {
 }
 
 export const GH_CALL_BUDGET = 30;
-const PR_FIELDS = "number,state,isDraft,mergeable,mergeStateStatus,headRefOid,statusCheckRollup";
+const PR_FIELDS = "number,state,isDraft,mergeable,mergeStateStatus,headRefOid,url,statusCheckRollup";
 const RUN_FIELDS = "databaseId,conclusion,createdAt";
 
 export function ghClient(cwd: string, runner: Runner, budget = GH_CALL_BUDGET): GhClient {
@@ -36,7 +36,7 @@ export function ghClient(cwd: string, runner: Runner, budget = GH_CALL_BUDGET): 
 
   const json = <T>(convert: (value: unknown) => T | undefined) => (stdout: string) => convert(parseJson(stdout));
   return {
-    prView: (pr) => call(["pr", "view", ...(pr === undefined ? [] : [String(pr)]), "--json", PR_FIELDS], json(toPrView)),
+    prView: (target) => call(["pr", "view", ...(target === undefined ? [] : [String(target)]), "--json", PR_FIELDS], json(toPrView)),
     runWorkflowId: (runId) => call(["run", "view", String(runId), "--json", "workflowDatabaseId"], json(toWorkflowId), true),
     runJobs: (runId) => call(["run", "view", String(runId), "--json", "jobs"], json(toJobs), true),
     jobLog: (jobId) => call(["api", `repos/{owner}/{repo}/actions/jobs/${jobId}/logs`], (stdout) => stdout || undefined),

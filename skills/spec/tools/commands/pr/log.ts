@@ -6,7 +6,7 @@ import { appendEvent, readEvents, renderTimeline } from "../../pr/babysit/log";
 import { ghClient } from "../../pr/gh";
 import { parsePrNumber, resolvePr } from "../../pr/resolve";
 
-export const PR_LOG_USAGE = 'pr log [<pr> | <spec-name>] [--add "<text>"]';
+export const PR_LOG_USAGE = 'pr log [<pr> | <spec-name> [<group>]] [--add "<text>"]';
 
 export function prLog(
   projectDir: string,
@@ -26,20 +26,20 @@ export function prLog(
   return `PR #${pr.value}: note added`;
 }
 
-function parseLogArgs(args: readonly string[]): { target?: string; note?: string } | string {
+function parseLogArgs(args: readonly string[]): { target: string[]; note?: string } | string {
   try {
     const { values, positionals } = parseArgs({ args: [...args], options: { add: { type: "string" } }, allowPositionals: true, strict: true });
-    if (positionals.length > 1) return `usage: ${PR_LOG_USAGE}`;
+    if (positionals.length > 2) return `usage: ${PR_LOG_USAGE}`;
     const note = values.add?.trim();
     if (values.add !== undefined && !note) return "pr log: --add needs the note's text";
-    return { ...(positionals[0] === undefined ? {} : { target: positionals[0] }), ...(note ? { note } : {}) };
+    return { target: positionals, ...(note ? { note } : {}) };
   } catch {
     return `usage: ${PR_LOG_USAGE}`;
   }
 }
 
-function prNumber(projectDir: string, target: string | undefined, runner: Runner): Result<number> {
-  const number = target === undefined ? undefined : parsePrNumber(target);
+function prNumber(projectDir: string, target: readonly string[], runner: Runner): Result<number> {
+  const number = target.length === 1 ? parsePrNumber(target[0]!) : undefined;
   if (number !== undefined) return { ok: true, value: number };
   const resolved = resolvePr(ghClient(projectDir, runner), projectDir, target);
   return resolved.ok ? { ok: true, value: resolved.value.view.number } : resolved;

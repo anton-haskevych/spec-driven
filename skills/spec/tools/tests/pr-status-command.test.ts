@@ -47,14 +47,14 @@ describe("pr status", () => {
     tree.spec("empty", { "pr-opening.md": "## Spec state\n\nNo PR yet.\n" });
     const noPr = stubRunner([[["gh", "pr", "view"], { code: 1, stderr: 'no pull requests found for branch "feat/x"' }]]);
     expect(prStatus(tree.root, [], noPr)).toBe('pr status: no pull requests found for branch "feat/x"');
-    expect(prStatus(tree.root, ["empty"], noPr)).toBe("pr status: pr-opening.md for empty links no PR");
-    expect(prStatus(tree.root, ["nope"], noPr)).toBe("pr status: no PR number or spec named nope");
+    expect(prStatus(tree.root, ["empty"], noPr)).toBe('pr status: no pull requests found for branch "feat/x"; pr-opening.md for empty links no PR');
+    expect(prStatus(tree.root, ["nope"], noPr)).toBe("pr status: no spec named nope");
   });
 
   test("the pr group dispatches status and lists its usage otherwise", async () => {
     tree = createTree();
     expect(await prCommand(tree.root, ["nope"])).toBe(`usage: ${PR_USAGE}`);
-    expect(PR_USAGE).toStartWith("pr status [<pr> | <spec-name>] | pr log ");
+    expect(PR_USAGE).toStartWith("pr status [<pr> | <spec-name> [<group>]] | pr log ");
     expect(await prCommand(tree.root, [])).toBe(`usage: ${PR_USAGE}`);
   });
 });

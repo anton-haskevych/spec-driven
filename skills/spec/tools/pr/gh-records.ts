@@ -22,6 +22,7 @@ export function toPrView(value: unknown): PrView | undefined {
     mergeable: stringField(value, "mergeable") ?? "UNKNOWN",
     mergeStateStatus: stringField(value, "mergeStateStatus") ?? "UNKNOWN",
     headRefOid: stringField(value, "headRefOid") ?? "",
+    url: stringField(value, "url") ?? "",
     checks: rollupToChecks(value.statusCheckRollup),
   };
 }

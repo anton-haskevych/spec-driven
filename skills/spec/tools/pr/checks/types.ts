@@ -19,6 +19,7 @@ export interface PrView {
   mergeable: string;
   mergeStateStatus: string;
   headRefOid: string;
+  url: string;
   checks: Check[];
 }
 
