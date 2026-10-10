@@ -52,3 +52,8 @@ export function sequencedRunner(replies: Array<[readonly string[], Partial<RunRe
     },
   };
 }
+
+// gh answers from `gh` (a stub), everything else from `other` (real git), so a test pushes for real but never reaches GitHub.
+export function routeGh(gh: Runner, other: Runner): Runner {
+  return { run: (argv, options) => (argv[0] === "gh" ? gh.run(argv, options) : other.run(argv, options)) };
+}

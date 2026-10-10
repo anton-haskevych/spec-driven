@@ -8,7 +8,7 @@ import type { Runner } from "../core/run";
 import { appendEvent, parseEvents, readEvents, renderTimeline, type BabysitEvent } from "../pr/babysit/log";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { prView } from "./pr-factories";
-import { stubRunner, type CannedRuns } from "./stub-runner";
+import { routeGh, stubRunner, type CannedRuns } from "./stub-runner";
 
 const ZONE = "America/Los_Angeles";
 
@@ -102,10 +102,7 @@ describe("pr log", () => {
   let repo: TestRepo;
   afterEach(() => repo?.cleanup());
   const at = new Date("2026-10-11T04:18:00Z");
-  const withGh = (canned: CannedRuns): Runner => {
-    const gh = stubRunner(canned);
-    return { run: (argv, options) => (argv[0] === "gh" ? gh.run(argv, options) : isolatedRunner.run(argv, options)) };
-  };
+  const withGh = (canned: CannedRuns): Runner => routeGh(stubRunner(canned), isolatedRunner);
 
   test("--add writes a note that every worktree's pr log reads", () => {
     repo = repoWithOrigin("spec-pr-log-");
