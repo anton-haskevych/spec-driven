@@ -62,6 +62,7 @@ export function prCell(pr: PrCell | "unknown" | undefined): string {
   const number = `#${pr.number}${pr.draft ? " draft" : ""}`;
   if (!pr.listed) return `${number} ${UNKNOWN}`;
   if (pr.state) return `${number} ${pr.state}`;
+  if (pr.babysitting) return `${number} babysitting`;
   if (pr.failing) return `${number} ✗ ${pr.failing}`;
   if (pr.pending) return `${number} … ${pr.pending}`;
   return pr.passing ? `${number} ✓` : number;

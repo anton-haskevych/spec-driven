@@ -6,7 +6,7 @@ import type { PrRow } from "../pr/checks/rollup";
 import { BUCKETS } from "../pr/checks/types";
 import type { LiveSession } from "../sessions/live";
 import { boardInputs, flightRow, prRow, workspaceView } from "./board-factories";
-import { liveSession } from "./factories";
+import { heldClaim, liveSession } from "./factories";
 import { check } from "./pr-factories";
 
 function session(cwd: string, overrides: Partial<LiveSession> = {}): LiveSession {
@@ -98,6 +98,22 @@ describe("attachPrs", () => {
   test("gh failing makes every PR cell ?; --local leaves them empty", () => {
     expect(attachPrs([flightRow({ workspace: FOO })], boardInputs([], { workspaces, prs: { ok: false, reason: "offline" } }))[0]?.pr).toBe("unknown");
     expect(attachPrs([flightRow({ workspace: FOO })], boardInputs([], { workspaces, prs: "local" }))[0]?.pr).toBeUndefined();
+  });
+});
+
+describe("attachPrs while a babysitter holds the PR group", () => {
+  const groupRow = (prGroup: string) => flightRow({ workspace: FOO, prGroup, next: "ticked on branch, not merged" });
+  const green = [pr(1, "foo", { checks: checks({ pass: 2 }) })];
+  const joined = (status: Parameters<typeof heldClaim>[0], row = groupRow("A")) =>
+    attachPrs([row], boardInputs([], { workspaces, prs: { ok: true, value: green }, claims: [heldClaim(status, { spec: "alpha", phase: "pr-A" })] }))[0];
+
+  test("a live, remote or unreadable PR claim shows the PR as babysitting, not to merge", () => {
+    for (const status of ["live", "remote", "unknown"] as const) expect(joined(status)).toMatchObject({ next: "babysitting", pr: { number: 1, babysitting: true } });
+  });
+
+  test("a closed claim, or another group's, leaves the verdict as it is", () => {
+    expect(joined("closed")?.next).toBe("merge");
+    expect(joined("live", groupRow("B"))?.next).toBe("merge");
   });
 });
 

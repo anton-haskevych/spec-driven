@@ -1,3 +1,5 @@
+import { prClaimGroup } from "../claims/pr-claim";
+import type { ClaimStatus } from "../claims/rules";
 import type { PrRow } from "../pr/checks/rollup";
 import { sessionsByWorkspace } from "../sessions/by-workspace";
 import type { LiveSession } from "../sessions/live";
@@ -30,11 +32,30 @@ export function attachPrs(rows: readonly FlightRow[], inputs: BoardInputs): Flig
   const { prs } = inputs;
   if (prs === "local") return [...rows];
   if (!prs.ok) return rows.map((row) => ({ ...row, pr: "unknown" }));
+  const babysat = babysatGroups(inputs);
   return rows.map((row) => {
     const branch = inputs.workspaces.find((workspace) => workspace.path === row.workspace)?.branch;
     const cell = byBranch(prs.value, branch) ?? byLinks(prs.value, inputs.prLinks.get(row.spec) ?? []);
-    return cell ? { ...row, pr: cell, next: nextFromChecks(cell) ?? row.next } : { ...row };
+    if (!cell) return { ...row };
+    if (!cell.state && row.prGroup && babysat.has(groupKey(row.spec, row.prGroup))) return { ...row, pr: { ...cell, babysitting: true }, next: "babysitting" };
+    return { ...row, pr: cell, next: nextFromChecks(cell) ?? row.next };
   });
+}
+
+// Unknown counts: unreadable session files must not turn a babysat PR into a "merge" row.
+const BABYSITTING: ReadonlySet<ClaimStatus> = new Set(["live", "remote", "unknown"]);
+
+function babysatGroups(inputs: BoardInputs): Set<string> {
+  return new Set(
+    inputs.claims.flatMap(({ claim, status }) => {
+      const group = prClaimGroup(claim.phase);
+      return group !== undefined && BABYSITTING.has(status) ? [groupKey(claim.spec, group)] : [];
+    }),
+  );
+}
+
+function groupKey(spec: string, group: string): string {
+  return `${spec}\0${group}`;
 }
 
 // pr-opening.md lists links oldest first.

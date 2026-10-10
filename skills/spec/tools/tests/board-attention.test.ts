@@ -24,6 +24,10 @@ describe("prAttention", () => {
     expect(prAttention(rows)).toEqual([]);
   });
 
+  test("a PR being babysat asks nothing of you", () => {
+    expect(prAttention([flightRow({ next: "babysitting", pr: { number: 7, listed: true, passing: 1, babysitting: true } })])).toEqual([]);
+  });
+
   test("two rows on one PR list it once", () => {
     const pr = { number: 7, listed: true, failing: 0, pending: 0, passing: 1 };
     expect(prAttention([flightRow({ phase: "1", next: "merge", pr }), flightRow({ phase: "2", next: "merge", pr })])).toEqual([{ kind: "merge", spec: "alpha", phase: "1", pr: 7 }]);
