@@ -7,7 +7,7 @@ import { stubRunner } from "./stub-runner";
 const fixture = (name: string) => Bun.file(join(import.meta.dir, "fixtures", name)).text();
 const UNKNOWN = prView({ mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN" });
 const PR_VIEW = JSON.stringify(UNKNOWN);
-const CHECKS = await fixture("gh-pr-checks.json");
+const ROLLUP_VIEW = await fixture("gh-pr-view-rollup-states.json");
 const RUN_JOBS = await fixture("gh-run-jobs.json");
 const RUN_LIST = await fixture("gh-run-list.json");
 
@@ -15,14 +15,15 @@ describe("ghClient", () => {
   test("parses pr view, checks, jobs and runs into typed records", () => {
     const gh = ghClient("/repo", stubRunner([
       [["gh", "pr", "view", "875"], { stdout: PR_VIEW }],
-      [["gh", "pr", "checks", "875"], { stdout: CHECKS, code: 1 }],
       [["gh", "run", "view", "36796809320", "--json", "jobs"], { stdout: RUN_JOBS }],
       [["gh", "run", "view", "36796809320", "--json", "workflowDatabaseId"], { stdout: RUN_JOBS }],
       [["gh", "run", "list"], { stdout: RUN_LIST }],
     ]));
     expect(gh.prView(875)).toEqual({ ok: true, value: UNKNOWN });
-    const checks = gh.prChecks(875);
-    expect(checks.ok && checks.value.find((check) => check.name === "Vercel – site-a")).toMatchObject({ bucket: "pending", workflow: "" });
+    const withChecks = ghClient("/repo", stubRunner([[["gh", "pr", "view"], { stdout: ROLLUP_VIEW }]])).prView(875);
+    const checks = withChecks.ok ? withChecks.value.checks : [];
+    expect(checks.find((check) => check.name === "Vercel – site-a")).toMatchObject({ bucket: "queued", workflow: "" });
+    expect(checks.find((check) => check.name === "Backend Tests")).toMatchObject({ bucket: "fail", runId: 36796809320, jobId: 110162211428, completedAt: "2026-10-01T17:09:03Z" });
     expect(gh.runJobs(36796809320)).toMatchObject({ ok: true, value: [{ name: "Ops Tests" }, { name: "Backend Tests", id: 110162211428, conclusion: "failure" }, { name: "Landing Tests" }] });
     expect(gh.runWorkflowId(36796809320)).toEqual({ ok: true, value: 208544398 });
     expect(gh.branchRuns("main", 208544398, 15)).toMatchObject({ ok: true, value: [{ id: 36715144973, conclusion: "success" }, {}, {}] });

@@ -47,8 +47,8 @@ export function toPrCell(pr: PrRow): PrCell {
   const base: PrCell = { number: pr.number, listed: true, ...(pr.draft ? { draft: true } : {}) };
   if (pr.state !== "OPEN") return { ...base, state: pr.state === "MERGED" ? "merged" : "closed" };
   if (!pr.checks) return base;
-  const { pass, fail, cancel, pending } = pr.checks.counts;
-  return { ...base, failing: fail + cancel, pending, passing: pass };
+  const { pass, fail, cancel, queued, running } = pr.checks.counts;
+  return { ...base, failing: fail + cancel, pending: queued + running, passing: pass };
 }
 
 function sessionCell(session: LiveSession): SessionCell {

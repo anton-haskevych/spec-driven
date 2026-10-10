@@ -18,11 +18,10 @@ function header({ view }: PrReport): string {
   return `PR #${view.number} ${status} · mergeable ${view.mergeStateStatus} · head ${view.headRefOid.slice(0, HEAD_LENGTH)}`;
 }
 
-function checksLine({ summary, checksError, externalPatterns }: PrReport): string[] {
-  if (checksError) return [`checks: unavailable (${checksError})`];
+function checksLine({ summary, externalPatterns }: PrReport): string[] {
   if (!summary) return [];
-  const { pass, fail, skipping, pending, cancel } = summary.counts;
-  const parts = [`${pass} pass`, `${fail} fail`, `${skipping} skipped`, `${pending} pending`];
+  const { pass, fail, skipping, queued, running, cancel } = summary.counts;
+  const parts = [`${pass} pass`, `${fail} fail`, `${skipping} skipped`, `${queued + running} pending`];
   if (cancel > 0) parts.push(`${cancel} cancelled`);
   if (externalPatterns.length > 0) parts.push(`${summary.external} external (${externalPatterns.join(", ")})`);
   return [`checks: ${parts.join(" · ")}`];

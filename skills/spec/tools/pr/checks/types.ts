@@ -1,4 +1,4 @@
-export const BUCKETS = ["pass", "fail", "pending", "skipping", "cancel"] as const;
+export const BUCKETS = ["pass", "fail", "queued", "running", "skipping", "cancel"] as const;
 export type Bucket = (typeof BUCKETS)[number];
 
 export interface Check {
@@ -6,6 +6,10 @@ export interface Check {
   bucket: Bucket;
   workflow: string;
   link: string;
+  startedAt?: string;
+  completedAt?: string;
+  runId?: number;
+  jobId?: number;
 }
 
 export interface PrView {
@@ -15,6 +19,7 @@ export interface PrView {
   mergeable: string;
   mergeStateStatus: string;
   headRefOid: string;
+  checks: Check[];
 }
 
 export interface Job {

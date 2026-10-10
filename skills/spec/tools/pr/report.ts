@@ -1,4 +1,4 @@
-import { actionsJob, prState, summarizeChecks, type CheckSummary, type PrState } from "./checks/checks";
+import { prState, summarizeChecks, type CheckSummary, type PrState } from "./checks/checks";
 import type { Result } from "../core/result";
 import type { GhClient } from "./gh";
 import { failureTail } from "./failures/log-tail";
@@ -16,7 +16,6 @@ export interface PrReport {
   view: PrView;
   state: PrState;
   summary: CheckSummary | undefined;
-  checksError?: string;
   externalPatterns: readonly string[];
   failures: FailedCheckReport[];
   otherPrs: readonly number[];
@@ -35,9 +34,7 @@ export function buildReport(gh: GhClient, firstView: PrView, options: ReportOpti
   const base = { view, externalPatterns: options.externalPatterns, otherPrs: options.otherPrs ?? [], failures: [] };
   if (view.state !== "OPEN") return { ...base, state: prState(view, undefined), summary: undefined };
 
-  const checks = gh.prChecks(view.number);
-  if (!checks.ok) return { ...base, state: prState(view, undefined), summary: undefined, checksError: checks.reason };
-  const summary = summarizeChecks(checks.value, options.externalPatterns);
+  const summary = summarizeChecks(view.checks, options.externalPatterns);
   const failures = summary.failing.map((check, index) => failedCheck(gh, check, options.defaultBranch, index < TAILS_SHOWN));
   return { ...base, state: prState(view, summary), summary, failures };
 }
@@ -50,7 +47,7 @@ function settledView(gh: GhClient, view: PrView): PrView {
 }
 
 function failedCheck(gh: GhClient, check: Check, defaultBranch: string | undefined, withTail: boolean): FailedCheckReport {
-  const job = actionsJob(check.link);
+  const job = check.runId !== undefined && check.jobId !== undefined ? { runId: check.runId, jobId: check.jobId } : undefined;
   if (!job) return { check, job };
   const tail = withTail ? jobTail(gh, job.jobId) : { ok: false as const, reason: `only the first ${TAILS_SHOWN} failures get a tail` };
   const main: MainComparison = defaultBranch

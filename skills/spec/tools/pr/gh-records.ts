@@ -1,5 +1,6 @@
 import { booleanField, isRecord, numberField, stringField, type FrontmatterData } from "../core/frontmatter";
-import { BUCKETS, type Bucket, type Check, type Job, type PrView, type WorkflowRun } from "./checks/types";
+import { rollupToChecks } from "./checks/rollup";
+import type { Job, PrView, WorkflowRun } from "./checks/types";
 
 export function parseJson(text: string): unknown {
   try {
@@ -21,17 +22,8 @@ export function toPrView(value: unknown): PrView | undefined {
     mergeable: stringField(value, "mergeable") ?? "UNKNOWN",
     mergeStateStatus: stringField(value, "mergeStateStatus") ?? "UNKNOWN",
     headRefOid: stringField(value, "headRefOid") ?? "",
+    checks: rollupToChecks(value.statusCheckRollup),
   };
-}
-
-export function toChecks(value: unknown): Check[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  return value.filter(isRecord).map((check) => ({
-    name: stringField(check, "name") ?? "(unnamed check)",
-    bucket: toBucket(stringField(check, "bucket")),
-    workflow: stringField(check, "workflow") ?? "",
-    link: stringField(check, "link") ?? "",
-  }));
 }
 
 export function toJobs(value: unknown): Job[] | undefined {
@@ -55,9 +47,4 @@ export function toWorkflowRuns(value: unknown): WorkflowRun[] | undefined {
     if (id === undefined) return [];
     return [{ id, conclusion: stringField(run, "conclusion") ?? "", createdAt: stringField(run, "createdAt") ?? "" }];
   });
-}
-
-// An unrecognised bucket counts as pending: it must never read as green.
-function toBucket(value: string | undefined): Bucket {
-  return BUCKETS.find((bucket) => bucket === value) ?? "pending";
 }

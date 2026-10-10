@@ -53,11 +53,9 @@ describe("renderReport", () => {
     expect(text.split("\n").at(-1)).toBe("other PRs in this spec: #779, #801");
   });
 
-  test("merged PRs and unreadable checks", () => {
+  test("a merged PR has no check line", () => {
     const merged = renderReport(report({ view: { ...VIEW, state: "MERGED" }, state: "merged", summary: undefined }));
     expect(merged.split("\n").slice(0, 2)).toEqual(["PR #871 merged · mergeable CLEAN · head 084ec54f", "state: merged"]);
     expect(merged).not.toContain("checks:");
-    const blind = renderReport(report({ state: "unknown", summary: undefined, checksError: "HTTP 502" }));
-    expect(blind).toContain("checks: unavailable (HTTP 502)");
   });
 });

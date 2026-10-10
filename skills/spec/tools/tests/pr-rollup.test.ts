@@ -10,31 +10,40 @@ interface ListedPr {
   statusCheckRollup: unknown;
 }
 
-const tally = (buckets: readonly Bucket[]) => buckets.toSorted().join(",");
+const tally = (buckets: readonly string[]) => buckets.toSorted().join(",");
+
+// gh pr checks has one "pending" bucket; we split it into queued and running.
+const GH_BUCKET: Record<Bucket, string> = { pass: "pass", fail: "fail", queued: "pending", running: "pending", skipping: "skipping", cancel: "cancel" };
 
 describe("checkBucket", () => {
   test("agrees with gh's own bucket for every state gh pr checks reported", async () => {
-    const reported: { state: string; bucket: Bucket }[] = [
+    const reported: { state: string; bucket: string }[] = [
       ...(await fixture("gh-pr-checks.json")),
-      ...Object.values((await fixture("gh-pr-checks-by-pr.json")) as Record<string, { state: string; bucket: Bucket }[]>).flat(),
+      ...Object.values((await fixture("gh-pr-checks-by-pr.json")) as Record<string, { state: string; bucket: string }[]>).flat(),
     ];
-    for (const { state, bucket } of reported) expect([state, checkBucket(state)]).toEqual([state, bucket]);
+    for (const { state, bucket } of reported) expect([state, GH_BUCKET[checkBucket(state)]]).toEqual([state, bucket]);
+  });
+
+  test("maps every unfinished state to queued or running", () => {
+    for (const state of ["QUEUED", "WAITING", "REQUESTED", "PENDING", "EXPECTED"]) expect([state, checkBucket(state)]).toEqual([state, "queued"]);
+    expect(checkBucket("IN_PROGRESS")).toBe("running");
+    expect(checkBucket("STARTUP_FAILURE")).toBe("fail");
   });
 
   test("never reads an unknown or cancelled state as passing", () => {
     expect(checkBucket("CANCELLED")).toBe("cancel");
-    expect(checkBucket("STALE")).toBe("pending");
-    expect(checkBucket("SOMETHING_NEW")).toBe("pending");
+    expect(checkBucket("STALE")).toBe("queued");
+    expect(checkBucket("SOMETHING_NEW")).toBe("queued");
   });
 });
 
 describe("rollupToChecks", () => {
   test("gives the same buckets as gh pr checks on the same PR", async () => {
     const open: ListedPr[] = await fixture("gh-pr-list-open.json");
-    const reported: Record<string, { bucket: Bucket }[]> = await fixture("gh-pr-checks-by-pr.json");
+    const reported: Record<string, { bucket: string }[]> = await fixture("gh-pr-checks-by-pr.json");
     for (const [number, checks] of Object.entries(reported)) {
       const pr = open.find((candidate) => candidate.number === Number(number));
-      expect(tally(rollupToChecks(pr?.statusCheckRollup).map((check) => check.bucket))).toBe(tally(checks.map((check) => check.bucket)));
+      expect(tally(rollupToChecks(pr?.statusCheckRollup).map((check) => GH_BUCKET[check.bucket]))).toBe(tally(checks.map((check) => check.bucket)));
     }
   });
 
@@ -47,17 +56,23 @@ describe("rollupToChecks", () => {
   test("a failed run followed by a passing re-run is green", () => {
     const run = (conclusion: string, startedAt: string) => ({ __typename: "CheckRun", name: "build", workflowName: "CI", status: "COMPLETED", conclusion, startedAt, detailsUrl: `https://x/${startedAt}` });
     const checks = rollupToChecks([run("FAILURE", "2026-10-01T10:00:00Z"), run("SUCCESS", "2026-10-01T11:00:00Z")]);
-    expect(checks).toEqual([{ name: "build", bucket: "pass", workflow: "CI", link: "https://x/2026-10-01T11:00:00Z" }]);
+    expect(checks).toEqual([{ name: "build", bucket: "pass", workflow: "CI", link: "https://x/2026-10-01T11:00:00Z", startedAt: "2026-10-01T11:00:00Z" }]);
+  });
+
+  test("a queued re-run with no start yet replaces the failure it repeats", () => {
+    const run = (status: string, conclusion: string, startedAt: string) => ({ __typename: "CheckRun", name: "build", workflowName: "CI", status, conclusion, startedAt });
+    const checks = rollupToChecks([run("COMPLETED", "FAILURE", "2026-10-01T10:00:00Z"), run("QUEUED", "", "0001-01-01T00:00:00Z")]);
+    expect(checks).toEqual([{ name: "build", bucket: "queued", workflow: "CI", link: "" }]);
   });
 
   test("an unfinished check run is pending whatever its stale conclusion says", () => {
     const checks = rollupToChecks([{ __typename: "CheckRun", name: "e2e", status: "IN_PROGRESS", conclusion: "", startedAt: "2026-10-01T10:00:00Z" }]);
-    expect(checks.map((check) => check.bucket)).toEqual(["pending"]);
+    expect(checks.map((check) => check.bucket)).toEqual(["running"]);
   });
 
   test("status contexts use context, state and targetUrl", () => {
     const checks = rollupToChecks([{ __typename: "StatusContext", context: "Vercel", state: "PENDING", targetUrl: "https://vercel.com/x", startedAt: "2026-10-01T10:00:00Z" }]);
-    expect(checks).toEqual([{ name: "Vercel", bucket: "pending", workflow: "", link: "https://vercel.com/x" }]);
+    expect(checks).toEqual([{ name: "Vercel", bucket: "queued", workflow: "", link: "https://vercel.com/x", startedAt: "2026-10-01T10:00:00Z" }]);
   });
 
   test("a missing or malformed rollup has no checks", () => {

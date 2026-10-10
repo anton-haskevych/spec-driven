@@ -6,7 +6,7 @@ import { check, prView } from "./pr-factories";
 import { sequencedRunner } from "./stub-runner";
 
 const fixture = (name: string) => Bun.file(join(import.meta.dir, "fixtures", name)).text();
-const CHECKS = await fixture("gh-pr-checks.json");
+const VIEW = await fixture("gh-pr-view-rollup-states.json");
 const RUN_JOBS = await fixture("gh-run-jobs.json");
 const RUN_LIST = await fixture("gh-run-list.json");
 const LOG = await fixture("gh-job-log.txt");
@@ -15,8 +15,7 @@ const UNKNOWN = prView({ mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN", head
 describe("buildReport", () => {
   test("re-polls mergeability once, then reports failing jobs with tail and main comparison", () => {
     const runner = sequencedRunner([
-      [["gh", "pr", "view"], [{ stdout: JSON.stringify({ ...UNKNOWN, mergeable: "MERGEABLE", mergeStateStatus: "UNSTABLE" }) }]],
-      [["gh", "pr", "checks"], [{ stdout: CHECKS }]],
+      [["gh", "pr", "view"], [{ stdout: VIEW }]],
       [["gh", "api"], [{ stdout: LOG }]],
       [["gh", "run", "view"], [{ stdout: RUN_JOBS }]],
       [["gh", "run", "list"], [{ stdout: RUN_LIST }]],
@@ -40,21 +39,12 @@ describe("buildReport", () => {
     expect(runner.calls).toEqual([]);
   });
 
-  test("checks gh can't read leave the state unknown", () => {
-    const runner = sequencedRunner([[["gh", "pr", "checks"], [{ code: 1, stderr: "HTTP 502" }]]]);
-    const report = buildReport(ghClient("/repo", runner), { ...UNKNOWN, mergeable: "MERGEABLE" }, { externalPatterns: [], defaultBranch: "main" });
-    expect(report).toMatchObject({ state: "unknown", checksError: "HTTP 502" });
-  });
-
   test("fetches tails for the first few failures only; each log is a large download", () => {
     const failing = Array.from({ length: TAILS_SHOWN + 2 }, (_, index) =>
-      check({ name: `Job ${index}`, bucket: "fail", link: `https://github.com/acme/app/actions/runs/1/job/${index}` }),
+      check({ name: `Job ${index}`, bucket: "fail", runId: 1, jobId: index }),
     );
-    const runner = sequencedRunner([
-      [["gh", "pr", "checks"], [{ stdout: JSON.stringify(failing) }]],
-      [["gh", "api"], [{ stdout: LOG }]],
-    ]);
-    const report = buildReport(ghClient("/repo", runner), { ...UNKNOWN, mergeable: "MERGEABLE" }, { externalPatterns: [], defaultBranch: undefined });
+    const runner = sequencedRunner([[["gh", "api"], [{ stdout: LOG }]]]);
+    const report = buildReport(ghClient("/repo", runner), prView({ checks: failing }), { externalPatterns: [], defaultBranch: undefined });
     expect(runner.calls.filter((call) => call[1] === "api")).toHaveLength(TAILS_SHOWN);
     expect(report.failures.at(-1)?.tail).toEqual({ ok: false, reason: `only the first ${TAILS_SHOWN} failures get a tail` });
   });

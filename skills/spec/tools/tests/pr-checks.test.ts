@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { actionsJob, prState, summarizeChecks } from "../pr/checks/checks";
-import type { Check } from "../pr/checks/types";
+import { toPrView } from "../pr/gh-records";
 import { prView } from "./pr-factories";
 
-const CHECKS: Check[] = await Bun.file(join(import.meta.dir, "fixtures", "gh-pr-checks.json")).json();
+const CHECKS = toPrView(await Bun.file(join(import.meta.dir, "fixtures", "gh-pr-view-rollup-states.json")).json())?.checks ?? [];
 const OPEN = prView();
 
 describe("summarizeChecks", () => {
   test("counts buckets and sets external checks apart", () => {
     const summary = summarizeChecks(CHECKS, ["Vercel*"]);
-    expect(summary.counts).toEqual({ pass: 2, fail: 2, pending: 1, skipping: 1, cancel: 0 });
+    expect(summary.counts).toEqual({ pass: 2, fail: 2, queued: 1, running: 1, skipping: 1, cancel: 1 });
     expect(summary.external).toBe(2);
     expect(summary.failing.map((check) => check.name)).toEqual(["Backend Tests", "Backend Test Results"]);
   });
@@ -21,7 +21,7 @@ describe("summarizeChecks", () => {
 });
 
 describe("prState", () => {
-  const summary = (overrides: Partial<Record<"fail" | "pending", number>>) => {
+  const summary = (overrides: Partial<Record<"fail" | "queued", number>>) => {
     const base = summarizeChecks([], []);
     return { ...base, counts: { ...base.counts, ...overrides } };
   };
@@ -31,8 +31,8 @@ describe("prState", () => {
     expect(prState({ ...OPEN, state: "CLOSED" }, summary({}))).toBe("closed");
     expect(prState({ ...OPEN, mergeable: "CONFLICTING", isDraft: true }, summary({ fail: 1 }))).toBe("conflicting");
     expect(prState({ ...OPEN, isDraft: true }, summary({ fail: 1 }))).toBe("draft");
-    expect(prState(OPEN, summary({ fail: 1, pending: 3 }))).toBe("red");
-    expect(prState(OPEN, summary({ pending: 3 }))).toBe("pending");
+    expect(prState(OPEN, summary({ fail: 1, queued: 3 }))).toBe("red");
+    expect(prState(OPEN, summary({ queued: 3 }))).toBe("pending");
     expect(prState(OPEN, summary({}))).toBe("green");
   });
 

@@ -12,7 +12,7 @@ function session(cwd: string, overrides: Partial<LiveSession> = {}): LiveSession
 }
 
 function checks(counts: Partial<CheckSummary["counts"]>): CheckSummary {
-  return { counts: { pass: 0, fail: 0, pending: 0, skipping: 0, cancel: 0, ...counts }, external: 0, failing: [] };
+  return { counts: { pass: 0, fail: 0, queued: 0, running: 0, skipping: 0, cancel: 0, ...counts }, external: 0, failing: [] };
 }
 
 function pr(number: number, branch: string, overrides: Partial<PrRow> = {}): PrRow {
@@ -59,7 +59,7 @@ describe("attachPrs", () => {
     attachPrs([row], boardInputs([], { workspaces, prs: { ok: true, value: prs }, prLinks }))[0];
 
   test("joins by the worktree's branch, open PR first", () => {
-    const joined = prsFor([pr(5, "foo", { state: "MERGED" }), pr(4, "foo", { draft: true, checks: checks({ pass: 2, pending: 1 }) })]);
+    const joined = prsFor([pr(5, "foo", { state: "MERGED" }), pr(4, "foo", { draft: true, checks: checks({ pass: 2, queued: 1 }) })]);
     expect(joined?.pr).toEqual({ number: 4, listed: true, draft: true, failing: 0, pending: 1, passing: 2 });
   });
 
@@ -88,7 +88,7 @@ describe("attachPrs", () => {
   test("a ready PR with at least one check, all passing, is next to merge", () => {
     expect(prsFor([pr(1, "foo", { checks: checks({ pass: 2, skipping: 4 }) })], undefined, flightRow({ workspace: FOO, next: "ticked on branch, not merged" }))?.next).toBe("merge");
     expect(prsFor([pr(1, "foo", { draft: true, checks: checks({ pass: 2 }) })])?.next).toBe("executing");
-    expect(prsFor([pr(1, "foo", { checks: checks({ pass: 2, pending: 1 }) })])?.next).toBe("executing");
+    expect(prsFor([pr(1, "foo", { checks: checks({ pass: 2, running: 1 }) })])?.next).toBe("executing");
     expect(prsFor([pr(1, "foo", { checks: checks({ skipping: 2 }) })])?.next).toBe("executing");
   });
 
@@ -100,7 +100,7 @@ describe("attachPrs", () => {
 
 describe("toPrCell", () => {
   test("an open PR carries its check counts, failing including cancelled", () => {
-    expect(toPrCell(pr(4, "foo", { draft: true, checks: checks({ pass: 2, fail: 1, cancel: 1, pending: 3 }) }))).toEqual({ number: 4, listed: true, draft: true, failing: 2, pending: 3, passing: 2 });
+    expect(toPrCell(pr(4, "foo", { draft: true, checks: checks({ pass: 2, fail: 1, cancel: 1, queued: 1, running: 2 }) }))).toEqual({ number: 4, listed: true, draft: true, failing: 2, pending: 3, passing: 2 });
   });
 
   test("an open PR without checks is just its number", () => {

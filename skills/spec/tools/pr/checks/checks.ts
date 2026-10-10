@@ -26,7 +26,7 @@ export function prState(view: PrView, summary: CheckSummary | undefined): PrStat
   if (view.isDraft) return "draft";
   if (!summary) return "unknown";
   if (summary.counts.fail > 0) return "red";
-  if (summary.counts.pending > 0) return "pending";
+  if (summary.counts.queued + summary.counts.running > 0) return "pending";
   return view.mergeable === "UNKNOWN" ? "unknown" : "green";
 }
 

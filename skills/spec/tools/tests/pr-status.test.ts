@@ -34,7 +34,6 @@ describe("pr-status", () => {
     const runner = stubRunner([
       [["gh", "pr", "view", "812"], { stdout: view(812, "CLOSED") }],
       [["gh", "pr", "view", "801"], { stdout: view(801, "OPEN") }],
-      [["gh", "pr", "checks", "801"], { stdout: "[]" }],
       GIT_MAIN,
     ]);
     const lines = prStatusReport(tree.root, ["billing"], runner).split("\n");

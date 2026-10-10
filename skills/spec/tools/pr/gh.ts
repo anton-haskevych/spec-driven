@@ -1,13 +1,12 @@
 import { firstLine } from "../core/git";
 import type { Result } from "../core/result";
 import type { Runner } from "../core/run";
-import { parseJson, toChecks, toJobs, toPrView, toWorkflowId, toWorkflowRuns } from "./gh-records";
-import type { Check, Job, PrView, WorkflowRun } from "./checks/types";
+import { parseJson, toJobs, toPrView, toWorkflowId, toWorkflowRuns } from "./gh-records";
+import type { Job, PrView, WorkflowRun } from "./checks/types";
 
 
 export interface GhClient {
   prView(pr?: number): Result<PrView>;
-  prChecks(pr: number): Result<Check[]>;
   runWorkflowId(runId: number): Result<number>;
   runJobs(runId: number): Result<Job[]>;
   jobLog(jobId: number): Result<string>;
@@ -15,8 +14,7 @@ export interface GhClient {
 }
 
 export const GH_CALL_BUDGET = 30;
-const PR_FIELDS = "number,state,isDraft,mergeable,mergeStateStatus,headRefOid";
-const CHECK_FIELDS = "name,state,bucket,workflow,link";
+const PR_FIELDS = "number,state,isDraft,mergeable,mergeStateStatus,headRefOid,statusCheckRollup";
 const RUN_FIELDS = "databaseId,conclusion,createdAt";
 
 export function ghClient(cwd: string, runner: Runner, budget = GH_CALL_BUDGET): GhClient {
@@ -39,7 +37,6 @@ export function ghClient(cwd: string, runner: Runner, budget = GH_CALL_BUDGET): 
   const json = <T>(convert: (value: unknown) => T | undefined) => (stdout: string) => convert(parseJson(stdout));
   return {
     prView: (pr) => call(["pr", "view", ...(pr === undefined ? [] : [String(pr)]), "--json", PR_FIELDS], json(toPrView)),
-    prChecks: (pr) => call(["pr", "checks", String(pr), "--json", CHECK_FIELDS], json(toChecks)),
     runWorkflowId: (runId) => call(["run", "view", String(runId), "--json", "workflowDatabaseId"], json(toWorkflowId), true),
     runJobs: (runId) => call(["run", "view", String(runId), "--json", "jobs"], json(toJobs), true),
     jobLog: (jobId) => call(["api", `repos/{owner}/{repo}/actions/jobs/${jobId}/logs`], (stdout) => stdout || undefined),
