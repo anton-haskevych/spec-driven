@@ -4,6 +4,7 @@ import type { Result } from "../core/result";
 import type { SpecState } from "../core/spec-state";
 import { sessionLabel } from "../sessions/label";
 import type { LiveSession } from "../sessions/live";
+import { prClaimGroup } from "./pr-claim";
 import { remoteHolderName, type Holder } from "./remote-payload";
 import type { Claim } from "./store";
 
@@ -47,6 +48,8 @@ export function isStale(status: ClaimStatus): boolean {
 export function takeRefusal(spec: string, phase: string, view: TakeView): string | undefined {
   const states = [view.baseState, view.ownState].filter((state) => state !== undefined);
   if (states.length === 0) return `no spec named ${spec}`;
+  const group = prClaimGroup(phase);
+  if (group !== undefined) return states.some((state) => state.phases.some((candidate) => candidate.edges.pr === group)) ? undefined : `PR group ${group} is not in ${spec}`;
   if (!states.some((state) => state.phases.some((candidate) => candidate.id === phase))) return `phase ${phase} is not in ${spec}`;
   const activity = view.activity.get(rowKey({ spec, phase }));
   const elsewhere = [...(activity?.wipIn ?? []), ...(activity?.tickedIn ?? [])].find((path) => path !== view.currentPath);

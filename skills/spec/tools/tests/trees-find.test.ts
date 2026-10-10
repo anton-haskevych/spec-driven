@@ -64,6 +64,10 @@ describe("treeHolder: may another session work in this tree?", () => {
     expect(treeHolder("/t/old", view("unreadable", [held("unknown", claim("3", "/t/old"))]))).toEqual({ kind: "claim", spec: "s", phase: "3", who: "s execute 3" });
   });
 
+  test("a babysitter's live PR claim holds its tree like a phase claim", () => {
+    expect(treeHolder("/t/old", view([], [held("live", claim("pr-B", "/t/old"))]))).toEqual({ kind: "claim", spec: "s", phase: "pr-B", who: "s execute pr-B" });
+  });
+
   test("a session mid-turn in the tree holds it", () => {
     expect(treeHolder("/t/old", view([session("/t/old/src")]), clean)).toEqual({ kind: "mid-task", who: "s execute 2" });
   });

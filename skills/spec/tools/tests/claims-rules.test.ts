@@ -5,7 +5,7 @@ import type { Result } from "../core/result";
 import type { LiveSession } from "../sessions/live";
 import { claimStatus, isStale, takeRefusal, type ClaimContext } from "../claims/rules";
 import type { Claim } from "../claims/store";
-import { claim, liveSession, phaseState } from "./factories";
+import { claim, liveSession, phaseEdges, phaseState } from "./factories";
 
 const holder: Claim = claim({ phase: "4", sessionId: "s1", sessionName: "alpha execute 4", workspace: "/wt/alpha" });
 
@@ -78,5 +78,22 @@ describe("takeRefusal", () => {
   test("work in the caller's own workspace is no reason to refuse", () => {
     const own = activity([["alpha#4", { tickedIn: [], wipIn: ["/wt/a"] }]]);
     expect(takeRefusal("alpha", "4", { baseState: base, activity: own, currentPath: "/wt/a" })).toBeUndefined();
+  });
+});
+
+describe("takeRefusal for a PR claim", () => {
+  const grouped = specState("alpha", [phaseState({ id: "4", edges: phaseEdges({ pr: "A" }) }), phaseState({ id: "5", edges: phaseEdges({ pr: "B" }) })]);
+
+  test("pr-<group> can be taken when a phase of the spec is in that group", () => {
+    expect(takeRefusal("alpha", "pr-A", { baseState: grouped, activity: new Map(), currentPath: "/wt/a" })).toBeUndefined();
+  });
+
+  test("a group the branch added is known too", () => {
+    const own = specState("alpha", [...grouped.phases, phaseState({ id: "6", edges: phaseEdges({ pr: "C" }) })]);
+    expect(takeRefusal("alpha", "pr-C", { baseState: grouped, ownState: own, activity: new Map(), currentPath: "/wt/a" })).toBeUndefined();
+  });
+
+  test("an unknown group is refused", () => {
+    expect(takeRefusal("alpha", "pr-Z", { baseState: grouped, activity: new Map(), currentPath: "/wt/a" })).toBe("PR group Z is not in alpha");
   });
 });
