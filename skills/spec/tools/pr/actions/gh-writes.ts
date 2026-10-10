@@ -26,6 +26,7 @@ export interface GhWrites {
   create(pr: NewPr): Result<CreatedPr>;
   ready(pr: number): Result<void>;
   merge(pr: number, method: MergeMethod, headSha: string): MergeResult;
+  rerun(runId: number, jobIds: readonly number[]): Result<void>;
 }
 
 export const GH_WRITE_BUDGET = 10;
@@ -58,6 +59,12 @@ export function ghWrites(cwd: string, runner: Runner, budget = GH_WRITE_BUDGET):
     ready(pr) {
       const marked = call(["pr", "ready", String(pr)]);
       return marked.ok ? { ok: true, value: undefined } : marked;
+    },
+    // Once one job re-runs the run is in progress and GitHub refuses a second --job, so several go as --failed.
+    rerun(runId, jobIds) {
+      const which = jobIds.length === 1 ? ["--job", String(jobIds[0])] : ["--failed"];
+      const rerun = call(["run", "rerun", String(runId), ...which]);
+      return rerun.ok ? { ok: true, value: undefined } : rerun;
     },
     merge(pr, method, headSha) {
       const argv = ["api", "-X", "PUT", `repos/{owner}/{repo}/pulls/${pr}/merge`, "-f", `merge_method=${method}`, "-f", `sha=${headSha}`];

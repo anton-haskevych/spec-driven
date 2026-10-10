@@ -99,3 +99,22 @@ describe("ghWrites limits", () => {
     expect(GH_WRITE_BUDGET).toBe(10);
   });
 });
+
+describe("ghWrites.rerun", () => {
+  test("one job re-runs with --job, several failed jobs of one run with --failed", () => {
+    const runner = stubRunner([[["gh", "run", "rerun"], { stdout: "" }]]);
+    const writes = ghWrites("/repo", runner);
+    expect(writes.rerun(3787, [9921])).toEqual({ ok: true, value: undefined });
+    expect(writes.rerun(3788, [1, 2])).toEqual({ ok: true, value: undefined });
+    expect(runner.calls).toEqual([
+      ["gh", "run", "rerun", "3787", "--job", "9921"],
+      ["gh", "run", "rerun", "3788", "--failed"],
+    ]);
+  });
+
+  test("GitHub's refusal of a run still in progress comes back as the reason", () => {
+    const stderr = readFileSync(join(import.meta.dir, "fixtures", "gh-rerun-in-progress.txt"), "utf8");
+    const runner = stubRunner([[["gh", "run", "rerun"], { code: 1, stderr }]]);
+    expect(ghWrites("/repo", runner).rerun(3787, [9921])).toEqual({ ok: false, reason: stderr.trim() });
+  });
+});
