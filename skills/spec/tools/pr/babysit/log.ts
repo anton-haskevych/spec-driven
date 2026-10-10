@@ -4,7 +4,7 @@ import { readTextIfExists } from "../../core/files";
 import { isRecord, stringField } from "../../core/frontmatter";
 import { parseJson } from "../gh-records";
 
-const EVENT_KINDS = ["babysit-start", "opened", "ready", "waiting", "green", "red", "cancelled", "rerun", "none", "timeout", "note", "pushed", "merged", "closed", "stopped"] as const;
+const EVENT_KINDS = ["babysit-start", "opened", "ready", "waiting", "green", "red", "cancelled", "rerun", "none", "conflicting", "timeout", "note", "pushed", "merged", "closed", "stopped"] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 
 // `spec` and `group` are written on babysit-start only: the timeline header names them.
