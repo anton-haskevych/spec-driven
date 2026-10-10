@@ -1,12 +1,12 @@
 import { relative } from "node:path";
-import { gitAt, stateDir, type Git } from "../../core/git";
+import { gitAt, type Git } from "../../core/git";
 import { resolveSpec } from "../../core/spec-folders";
 import { loadSpecState } from "../../core/spec-state";
 import { defaultBranch, type Runner } from "../../core/run";
 import type { Result } from "../../core/result";
 import { pushBranch } from "../../publish/push";
 import { treeName } from "../../trees/naming";
-import { appendEvent, type BabysitEvent } from "../babysit/log";
+import { babysitLogger, type BabysitLogger } from "../babysit/log";
 import type { PollClock } from "../babysit/poll";
 import type { PrView } from "../checks/types";
 import { ghClient } from "../gh";
@@ -88,14 +88,4 @@ function createPr(projectDir: string, git: Git, branch: string, spec: SpecForPr,
   const sha = git.out(["rev-parse", `--short=${SHORT_SHA}`, "HEAD"]);
   const created = ghWrites(projectDir, runner).create({ base, head: branch, title: prTitle(spec.name, spec.group), body: prBody(spec.path, spec.group), draft });
   return created.ok ? { ok: true, value: { ...created.value, sha: sha.ok ? sha.value : "" } } : created;
-}
-
-type BabysitLogger = (pr: number, event: Omit<BabysitEvent, "at">) => void;
-
-// The log is for reading only; a clone where it can't be written still opens the PR.
-function babysitLogger(git: Git, now: () => Date): BabysitLogger {
-  const dir = stateDir(git, "babysit");
-  return (pr, event) => {
-    if (dir.ok) appendEvent(dir.value, pr, { at: now().toISOString(), ...event });
-  };
 }

@@ -1,6 +1,7 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { readTextIfExists } from "../../core/files";
+import { stateDir, type Git } from "../../core/git";
 import { isRecord, stringField } from "../../core/frontmatter";
 import { parseJson } from "../gh-records";
 
@@ -32,6 +33,16 @@ export function logFile(dir: string, pr: number): string {
 export function appendEvent(dir: string, pr: number, event: BabysitEvent): void {
   mkdirSync(dir, { recursive: true });
   appendFileSync(logFile(dir, pr), `${JSON.stringify(event)}\n`);
+}
+
+export type BabysitLogger = (pr: number, event: Omit<BabysitEvent, "at">) => void;
+
+// The log is for reading only; a clone where it can't be written still opens or merges the PR.
+export function babysitLogger(git: Git, now: () => Date): BabysitLogger {
+  const dir = stateDir(git, "babysit");
+  return (pr, event) => {
+    if (dir.ok) appendEvent(dir.value, pr, { at: now().toISOString(), ...event });
+  };
 }
 
 export function readEvents(dir: string, pr: number): BabysitLog {

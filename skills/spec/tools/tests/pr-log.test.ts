@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { prCommand } from "../commands/pr";
 import { PR_LOG_USAGE, prLog } from "../commands/pr/log";
 import type { Runner } from "../core/run";
-import { appendEvent, parseEvents, readEvents, renderTimeline, type BabysitEvent } from "../pr/babysit/log";
+import { gitAt, stateDir } from "../core/git";
+import { appendEvent, babysitLogger, parseEvents, readEvents, renderTimeline, type BabysitEvent } from "../pr/babysit/log";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { prView } from "./pr-factories";
 import { routeGh, stubRunner, type CannedRuns } from "./stub-runner";
@@ -123,5 +124,18 @@ describe("pr log", () => {
     repo = repoWithOrigin("spec-pr-log-usage-");
     expect(prLog(repo.dir, ["921", "--add", " "], isolatedRunner, at)).toBe("pr log: --add needs the note's text");
     expect(prLog(repo.dir, ["921", "--tail"], isolatedRunner, at)).toBe(`usage: ${PR_LOG_USAGE}`);
+  });
+});
+
+describe("babysitLogger", () => {
+  let repo: TestRepo | undefined;
+  afterEach(() => repo?.cleanup());
+
+  test("stamps each event and appends it to the clone's shared log", () => {
+    repo = repoWithOrigin("spec-babysit-logger-");
+    const git = gitAt(repo.dir, isolatedRunner);
+    babysitLogger(git, () => new Date("2026-10-11T04:58:00Z"))(921, { event: "merged", sha: "9b0c1d2", detail: "merge · 9b0c1d2" });
+    const dir = stateDir(git, "babysit");
+    expect(dir.ok && readEvents(dir.value, 921).events).toEqual([{ at: "2026-10-11T04:58:00.000Z", event: "merged", sha: "9b0c1d2", detail: "merge · 9b0c1d2" }]);
   });
 });
