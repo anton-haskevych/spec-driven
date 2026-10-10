@@ -25,6 +25,13 @@ describe("waitStep", () => {
     expect(step([check(), failed, check({ name: "Docs", bucket: "fail" })])).toEqual({ settle: { event: "red", detail: "E2E Tests failed (9m03s), Docs failed" } });
   });
 
+  test("long lists show three names and count the rest", () => {
+    const failed = ["A", "B", "C", "D", "E"].map((name) => check({ name, bucket: "fail" }));
+    expect(step(failed)).toEqual({ settle: { event: "red", detail: "A failed, B failed, C failed +2 more" } });
+    const queued = ["A", "B", "C", "D"].map((name) => check({ name, bucket: "queued" }));
+    expect(step(queued)).toEqual({ waiting: "queued: A, B, C +1 more" });
+  });
+
   test("a cancelled check with no newer run settles cancelled", () => {
     expect(step([check(), check({ name: "Backend Tests", bucket: "cancel" })])).toEqual({ settle: { event: "cancelled", detail: "Backend Tests cancelled, no newer run" } });
   });

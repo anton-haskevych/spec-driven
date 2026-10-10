@@ -21,6 +21,7 @@ export type WaitStep = { settle: Settle } | { waiting: string };
 // Right after a push GitHub may list no checks for a while; a skip-only start may still grow real runs.
 export const NO_CHECKS_GRACE_MS = 180_000;
 const SHORT_SHA = 7;
+const LISTED_MAX = 3;
 const STALE_NOTE = " (re-run not started)";
 
 export function settleLine(pr: number, settle: Settle): string {
@@ -43,7 +44,7 @@ export function waitStep(view: PrView, context: WaitContext, nowMs: number): Wai
     case "green":
       return { settle: { event: "green", detail: greenDetail(verdict.passed, verdict.skipped, checks.filter(context.isExternal)) } };
     case "red":
-      return { settle: { event: "red", detail: verdict.failed.map(failedText).join(", ") } };
+      return { settle: { event: "red", detail: listed(verdict.failed.map(failedText)) } };
     case "cancelled":
       return { settle: { event: "cancelled", detail: `${names(verdict.cancelled)} cancelled, no newer run` } };
     case "none":
@@ -67,7 +68,7 @@ function pendingSummary(running: readonly Check[], queued: readonly Check[], now
     const ms = spanMs(check.startedAt, new Date(nowMs));
     return ms === undefined ? check.name : `${check.name} ${shortDuration(ms)}`;
   };
-  const parts = [running.length > 0 ? `running: ${running.map(ranFor).join(", ")}` : "", queued.length > 0 ? `queued: ${names(queued)}` : ""];
+  const parts = [running.length > 0 ? `running: ${listed(running.map(ranFor))}` : "", queued.length > 0 ? `queued: ${names(queued)}` : ""];
   return parts.filter(Boolean).join(" · ");
 }
 
@@ -91,7 +92,13 @@ function failedText(check: Check): string {
 }
 
 function names(checks: readonly Check[]): string {
-  return checks.map((check) => check.name).join(", ");
+  return listed(checks.map((check) => check.name));
+}
+
+// The settle line is one line an agent reads; pr status has the full table.
+function listed(items: readonly string[]): string {
+  const shown = items.slice(0, LISTED_MAX).join(", ");
+  return items.length > LISTED_MAX ? `${shown} +${items.length - LISTED_MAX} more` : shown;
 }
 
 function short(sha: string): string {
