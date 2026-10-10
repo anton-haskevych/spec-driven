@@ -46,6 +46,6 @@ describe("buildReport", () => {
     const runner = sequencedRunner([[["gh", "api"], [{ stdout: LOG }]]]);
     const report = buildReport(ghClient("/repo", runner), prView({ checks: failing }), { externalPatterns: [], defaultBranch: undefined });
     expect(runner.calls.filter((call) => call[1] === "api")).toHaveLength(TAILS_SHOWN);
-    expect(report.failures.at(-1)?.tail).toEqual({ ok: false, reason: `only the first ${TAILS_SHOWN} failures get a tail` });
+    expect(report.failures.at(-1)?.tail).toBeUndefined();
   });
 });

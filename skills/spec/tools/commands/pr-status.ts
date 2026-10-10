@@ -7,7 +7,7 @@ import { resolvePr } from "../pr/resolve";
 
 export const PR_STATUS_USAGE = "pr-status [<pr> | <spec-name>]";
 
-export function prStatusReport(projectDir: string, args: readonly string[], runner: Runner = systemRunner): string {
+export function prStatusReport(projectDir: string, args: readonly string[], runner: Runner = systemRunner, now = new Date()): string {
   const gh = ghClient(projectDir, runner);
   const resolved = resolvePr(gh, projectDir, args[0]);
   if (!resolved.ok) return `pr-status: ${resolved.reason}`;
@@ -16,5 +16,5 @@ export function prStatusReport(projectDir: string, args: readonly string[], runn
     defaultBranch: defaultBranch(projectDir, runner),
     otherPrs: resolved.value.otherPrs,
   });
-  return renderReport(report);
+  return renderReport(report, now);
 }

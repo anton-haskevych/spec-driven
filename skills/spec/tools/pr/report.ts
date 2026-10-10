@@ -49,11 +49,10 @@ function settledView(gh: GhClient, view: PrView): PrView {
 function failedCheck(gh: GhClient, check: Check, defaultBranch: string | undefined, withTail: boolean): FailedCheckReport {
   const job = check.runId !== undefined && check.jobId !== undefined ? { runId: check.runId, jobId: check.jobId } : undefined;
   if (!job) return { check, job };
-  const tail = withTail ? jobTail(gh, job.jobId) : { ok: false as const, reason: `only the first ${TAILS_SHOWN} failures get a tail` };
   const main: MainComparison = defaultBranch
     ? compareOnMain(gh, { name: check.name, runId: job.runId }, defaultBranch)
     : { kind: "unavailable", reason: "no default branch" };
-  return { check, job, main, tail };
+  return withTail ? { check, job, main, tail: jobTail(gh, job.jobId) } : { check, job, main };
 }
 
 // Each job log is a full download (often over 1 MB), so only the first few failures get one.

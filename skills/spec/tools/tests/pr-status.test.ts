@@ -19,12 +19,12 @@ describe("pr-status", () => {
   let tree: Tree;
   afterEach(() => tree?.cleanup());
 
-  test("a PR number goes straight to gh; the state line follows the header", () => {
+  test("a PR number goes straight to gh; the verdict line follows the header", () => {
     tree = createTree();
     const runner = stubRunner([[["gh", "pr", "view", "871"], { stdout: view(871, "MERGED") }], GIT_MAIN]);
     expect(prStatusReport(tree.root, ["#871"], runner).split("\n").slice(0, 2)).toEqual([
-      "PR #871 merged · mergeable CLEAN · head abcdef01",
-      "state: merged",
+      "PR #871 merged · mergeable CLEAN · head abcdef0",
+      "verdict: merged",
     ]);
   });
 
