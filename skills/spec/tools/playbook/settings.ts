@@ -5,8 +5,8 @@ import { isRecord, parseFrontmatter, type FrontmatterData } from "../core/frontm
 export const SETTINGS_FILE = join("docs", "specs", "_playbook", "settings.md");
 
 const DOCS_HOMES = ["main", "branch"] as const;
-const MERGE_METHODS = ["squash", "merge", "rebase"] as const;
-type MergeMethod = (typeof MERGE_METHODS)[number];
+export const MERGE_METHODS = ["squash", "merge", "rebase"] as const;
+export type MergeMethod = (typeof MERGE_METHODS)[number];
 
 export interface ProjectSettings {
   file?: string;

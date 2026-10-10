@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { RunOptions } from "../core/run";
 import { ghWrites, GH_WRITE_BUDGET } from "../pr/actions/gh-writes";
 import { GH_TIMEOUT_MS } from "../pr/gh-lists";
@@ -44,6 +46,38 @@ describe("ghWrites.ready", () => {
     expect(ghWrites("/repo", ok).ready(921)).toEqual({ ok: true, value: undefined });
     const refused = stubRunner([[["gh", "pr", "ready", "921"], { code: 1, stderr: "GraphQL: Pull request #921 is closed\n" }]]);
     expect(ghWrites("/repo", refused).ready(921)).toEqual({ ok: false, reason: "GraphQL: Pull request #921 is closed" });
+  });
+});
+
+const fixture = (name: string) => readFileSync(join(import.meta.dir, "fixtures", name), "utf8");
+const SHA = "08bb7dbd47fa14537ef4";
+
+describe("ghWrites.merge", () => {
+  test("PUTs the method pinned to the head and reads the merge commit", () => {
+    const runner = stubRunner([[["gh", "api"], { stdout: fixture("gh-merge-200.json") }]]);
+    expect(ghWrites("/repo", runner).merge(921, "merge", SHA)).toEqual({ merged: true, sha: "9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c" });
+    expect(runner.calls[0]).toEqual(["gh", "api", "-X", "PUT", "repos/{owner}/{repo}/pulls/921/merge", "-f", "merge_method=merge", "-f", `sha=${SHA}`]);
+  });
+
+  test.each([
+    ["gh-merge-405.json", 405, "Pull Request is not mergeable"],
+    ["gh-merge-409.json", 409, "Head branch was modified. Review and try the merge again."],
+  ])("a refused merge (%s) is not merged, even though its body is valid JSON", (name, status, message) => {
+    const runner = stubRunner([[["gh", "api"], { code: 1, stdout: fixture(name), stderr: `gh: ${message} (HTTP ${status})\n` }]]);
+    expect(ghWrites("/repo", runner).merge(921, "squash", SHA)).toEqual({ merged: false, status, message });
+  });
+
+  test("the status comes from gh's stderr when the body has none, and is absent when nothing names one", () => {
+    const body = JSON.stringify({ message: "Base branch was modified. Review and try the merge again." });
+    const fromStderr = stubRunner([[["gh", "api"], { code: 1, stdout: body, stderr: "gh: Base branch was modified. (HTTP 405)\n" }]]);
+    expect(ghWrites("/repo", fromStderr).merge(921, "merge", SHA)).toEqual({ merged: false, status: 405, message: "Base branch was modified. Review and try the merge again." });
+    const offline = stubRunner([[["gh", "api"], { code: 1, stderr: "error connecting to api.github.com\n" }]]);
+    expect(ghWrites("/repo", offline).merge(921, "merge", SHA)).toEqual({ merged: false, message: "error connecting to api.github.com" });
+  });
+
+  test("exit 0 without merged: true is not a merge", () => {
+    const runner = stubRunner([[["gh", "api"], { stdout: "{}" }]]);
+    expect(ghWrites("/repo", runner).merge(921, "merge", SHA)).toEqual({ merged: false, message: "GitHub's merge reply had no merge commit" });
   });
 });
 
