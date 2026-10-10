@@ -26,3 +26,6 @@ background shell exits (2-minute sleep; woke 2 s after exit). The `<task-notific
 (`completed` on exit 0, `failed` otherwise), the exit code in its summary, the command's description and
 the **output-file path — not the output**. So the procedure, on the notification, `Read`s that file and
 takes its last line as the verdict; `pr wait` exits 0, so a `failed` status means the wait itself broke.
+
+Not verified (dropped by Anton, 2026-10-10): whether `-p`/`--bg` sessions cut a background shell at 30 min.
+Seen only that `claude -p` stays alive after its turn while its background shell runs. `pr wait`'s 25m default stays.
