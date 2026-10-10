@@ -7,13 +7,18 @@ needs to know exist to navigate the code — not every file that's touched.
 
 | File | Role | Phase |
 |------|------|-------|
+| `skills/spec/tools/pr/checks/verdict.ts` | `checksVerdict`, `externalMatcher` — the one green verdict | 1 |
+| `skills/spec/tools/pr/check-table.ts` | `pr status` check table grouped by state | 1 |
+| `skills/spec/tools/commands/pr.ts` | `pr` group `ACTIONS` table; verbs in `commands/pr/<verb>.ts` | 1 |
+| `skills/spec/tools/core/columns.ts` | `alignColumns` (lifted from `board/cells.ts`) | 1 |
+| `skills/spec/tools/tests/pr-factories.ts` | `prView()`, `check()`; `sequencedRunner` in `stub-runner.ts` | 1 |
 
 ## Existing files touched
 
 | File | Why we care | Ledger |
 |------|-------------|--------|
-| `skills/spec/tools/pr/checks.ts` | `prState`, `summarizeChecks` — today's pr-status verdict | |
-| `skills/spec/tools/pr/rollup.ts` | `rollupToChecks` — the one mapper + workflow+name dedupe (becomes the shared source) | `decision-checks-read-on-the-head` |
+| `skills/spec/tools/pr/checks/checks.ts` | `prState`, `summarizeChecks` (carries the verdict) | |
+| `skills/spec/tools/pr/checks/rollup.ts` | `rollupToChecks` — the one mapper + workflow+name dedupe, shared by pr status and the board | `decision-checks-read-on-the-head` |
 | `skills/spec/tools/pr/gh-lists.ts` | board's `statusCheckRollup` read, `GH_TIMEOUT_MS` | |
 | `skills/spec/tools/board/attention.ts` | needs-you merge/fix rows; suppressed while babysitting | `decision-pr-claims-liveness-only` |
 | `skills/spec/tools/claims/rules.ts` | `takeRefusal` (accepts `pr-<group>`), `claimStatus` (unchanged) | `decision-pr-claims-liveness-only` |

@@ -34,8 +34,8 @@ The verdict precedence and the "≥1 passed; zero or all-skipped is none" rule a
 - [x] `pr/checks/verdict.ts`: `checksVerdict(checks, isExternal)` with red > cancelled > waiting > green, `none: no-checks | skipped`, green needs ≥1 passed — table tests over the rollup fixtures (states, vercel-pending, stale-rows, same-name-two-workflows, all-skipped, queued-rerun)
 - [x] `prState` and the board's `nextFromChecks` use `checksVerdict`; goldens re-pinned
 - [x] `pr status` renders the grouped table (running with elapsed, failed with run/job, passed with durations folded after 4, skipped folded, external line) and a `verdict:` line
-- [ ] `commands/pr.ts` `ACTIONS` table + `commands/pr/status.ts`; `pr-status` removed and its prose callers updated; `commands-table.test.ts` green
-- [ ] Only if the probe found no checks on a docs-only head: `pr/checks/checked-head.ts` (docs-only walk via `pathsOutsideSpecDocs`, `git log --name-only -z`; REST check-runs `per_page=100` + statuses into `Check`) — real-git round-trip test
+- [x] `commands/pr.ts` `ACTIONS` table + `commands/pr/status.ts`; `pr-status` removed and its prose callers updated; `commands-table.test.ts` green
+- [x] Only if the probe found no checks on a docs-only head: `pr/checks/checked-head.ts` (docs-only walk via `pathsOutsideSpecDocs`, `git log --name-only -z`; REST check-runs `per_page=100` + statuses into `Check`) — real-git round-trip test — not built: the probe found checks on docs-only heads (`ledger/domain-docs-only-head-gets-checks.md`)
 
 ## Phase-local notes
 

@@ -4,11 +4,13 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 `[applies-to]` scope tag. See `SKILL.md` for entry format and filtering rules.
 
 ## Gotchas
+- `gotcha-e2e-tail-is-container-noise.md` — [phase 6] — CRM E2E tail is MySQL startup log, not the failing test
 - `gotcha-rerun-leaves-a-stale-failed-row.md` — [phase 3, 6, 7] — queued re-run hides behind old failure; can't re-run a running run
 
 ## Principles
 
 ## Domain
+- `domain-crm-sets-no-external-checks.md` — [phase 3, 5, 8] — CRM settings lack checks.external; Vercel blocks verdict
 - `domain-docs-only-head-gets-checks.md` — [phase 1, 3, 5, 7] — docs-only tip on code gets pull_request checks; no fallback
 - `domain-claude-code-wait-primitives.md` — [phase 3, 4, 7, load-bearing] — fg 120s→bg; bg wakes once; 30m cap unattended
 
