@@ -10,6 +10,7 @@ const PR_VIEW = JSON.stringify(UNKNOWN);
 const ROLLUP_VIEW = await fixture("gh-pr-view-rollup-states.json");
 const RUN_JOBS = await fixture("gh-run-jobs.json");
 const RUN_LIST = await fixture("gh-run-list.json");
+const RUN_VIEW = await fixture("gh-run-view.json");
 
 describe("ghClient", () => {
   test("parses pr view, checks, jobs and runs into typed records", () => {
@@ -27,6 +28,17 @@ describe("ghClient", () => {
     expect(gh.runJobs(36796809320)).toMatchObject({ ok: true, value: [{ name: "Ops Tests" }, { name: "Backend Tests", id: 110162211428, conclusion: "failure" }, { name: "Landing Tests" }] });
     expect(gh.runWorkflowId(36796809320)).toEqual({ ok: true, value: 208544398 });
     expect(gh.branchRuns("main", 208544398, 15)).toMatchObject({ ok: true, value: [{ id: 36715144973, conclusion: "success" }, {}, {}] });
+  });
+
+  test("run reads the run's status, conclusion, attempt and jobs in one call", () => {
+    const runner = stubRunner([[["gh", "run", "view", "36796809320", "--json", "status,conclusion,attempt,jobs"], { stdout: RUN_VIEW }]]);
+    const gh = ghClient("/repo", runner);
+    expect(gh.run(36796809320)).toMatchObject({
+      ok: true,
+      value: { id: 36796809320, status: "completed", conclusion: "failure", attempt: 1, jobs: [{ name: "Ops Tests" }, { id: 110162211428, conclusion: "failure" }, { name: "E2E Tests", conclusion: "cancelled" }] },
+    });
+    gh.run(36796809320);
+    expect(runner.calls).toHaveLength(1);
   });
 
   test("pr view carries the head branch and, once merged, the merge commit", () => {

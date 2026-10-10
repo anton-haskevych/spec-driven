@@ -31,6 +31,15 @@ export interface Job {
   conclusion: string;
 }
 
+// One attempt of a workflow run: `status` is "completed" once every job finished; `attempt` counts re-runs from 1.
+export interface RunDetail {
+  id: number;
+  status: string;
+  conclusion: string;
+  attempt: number;
+  jobs: Job[];
+}
+
 export interface WorkflowRun {
   id: number;
   conclusion: string;

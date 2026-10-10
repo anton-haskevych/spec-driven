@@ -14,6 +14,7 @@ function fakeGh(runs: WorkflowRun[], jobsByRun: Record<number, Job[]>, workflowI
     prView: unused,
     commitRuns: unused,
     jobLog: unused,
+    run: unused,
     runWorkflowId: () => workflowId,
     branchRuns: (branch, id, limit) => {
       calls.push(`runs ${branch} ${id} ${limit}`);

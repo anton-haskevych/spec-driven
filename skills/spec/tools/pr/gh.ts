@@ -1,14 +1,15 @@
 import { firstLine } from "../core/git";
 import type { Result } from "../core/result";
 import type { Runner } from "../core/run";
-import { parseJson, toCommitRuns, toJobs, toPrView, toWorkflowId, toWorkflowRuns } from "./gh-records";
-import type { CommitRun, Job, PrView, WorkflowRun } from "./checks/types";
+import { parseJson, toCommitRuns, toJobs, toPrView, toRunDetail, toWorkflowId, toWorkflowRuns } from "./gh-records";
+import type { CommitRun, Job, PrView, RunDetail, WorkflowRun } from "./checks/types";
 
 
 export interface GhClient {
   prView(target?: number | string): Result<PrView>;
   runWorkflowId(runId: number): Result<number>;
   runJobs(runId: number): Result<Job[]>;
+  run(runId: number): Result<RunDetail>;
   jobLog(jobId: number): Result<string>;
   branchRuns(branch: string, workflowId: number, limit: number): Result<WorkflowRun[]>;
   commitRuns(sha: string): Result<CommitRun[]>;
@@ -17,6 +18,7 @@ export interface GhClient {
 export const GH_CALL_BUDGET = 30;
 export const PR_FIELDS = "number,state,isDraft,mergeable,mergeStateStatus,headRefOid,headRefName,url,mergeCommit,statusCheckRollup";
 const RUN_FIELDS = "databaseId,conclusion,createdAt";
+const RUN_DETAIL_FIELDS = "status,conclusion,attempt,jobs";
 const COMMIT_RUN_FIELDS = "databaseId,status,conclusion";
 const COMMIT_RUN_LIMIT = "50";
 
@@ -42,6 +44,7 @@ export function ghClient(cwd: string, runner: Runner, budget = GH_CALL_BUDGET): 
     prView: (target) => call(["pr", "view", ...(target === undefined ? [] : [String(target)]), "--json", PR_FIELDS], json(toPrView)),
     runWorkflowId: (runId) => call(["run", "view", String(runId), "--json", "workflowDatabaseId"], json(toWorkflowId), true),
     runJobs: (runId) => call(["run", "view", String(runId), "--json", "jobs"], json(toJobs), true),
+    run: (runId) => call(["run", "view", String(runId), "--json", RUN_DETAIL_FIELDS], json((value) => toRunDetail(runId, value)), true),
     jobLog: (jobId) => call(["api", `repos/{owner}/{repo}/actions/jobs/${jobId}/logs`], (stdout) => stdout || undefined),
     branchRuns: (branch, workflowId, limit) =>
       call(["run", "list", "--branch", branch, "--workflow", String(workflowId), "--limit", String(limit), "--json", RUN_FIELDS], json(toWorkflowRuns), true),
