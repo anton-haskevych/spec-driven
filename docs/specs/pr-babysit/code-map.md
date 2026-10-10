@@ -12,6 +12,8 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/pr.ts` | `pr` group `ACTIONS` table; verbs in `commands/pr/<verb>.ts` | 1 |
 | `skills/spec/tools/core/columns.ts` | `alignColumns` (lifted from `board/cells.ts`) | 1 |
 | `skills/spec/tools/tests/pr-factories.ts` | `prView()`, `check()`; `sequencedRunner` in `stub-runner.ts` | 1 |
+| `skills/spec/tools/pr/babysit/log.ts` | babysit log: `appendEvent`, `readEvents`, `parseEvents`, `renderTimeline`; `EventKind` | 2 |
+| `skills/spec/tools/commands/pr/log.ts` | `pr log [<target>] [--add]` | 2 |
 
 ## Existing files touched
 
@@ -34,6 +36,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/pr/resolve.ts` | PR from spec's Spec state (`SPEC_STATE`, `PR_LINK`) | |
 | `skills/spec/tools/playbook/settings.ts` | `pr.draft`, `pr.merge`, `checks.external`, new `gates.ci-triage` | |
 | `skills/spec/tools/claims/store.ts` | claim files; already accepts any id (no change) | |
+| `skills/spec/tools/core/git.ts` | `stateDir(git, …)` / `stateDirIn(commonDir, …)` — `<common-dir>/spec-board/<x>` | |
 | `skills/spec/execute.md` | §10 PR gate — the question lands here | |
 | `skills/spec/handoff.md` | push/publish/claim release — runs in full before `launch babysit` | `decision-handoff-before-babysit-launch` |
 

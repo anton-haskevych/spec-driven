@@ -186,9 +186,10 @@ already 3 (two re-runs). The babysit log records reruns for reading, never for e
 ## Babysit log (`pr/babysit/log.ts`)
 
 - File: `<git-common-dir>/spec-board/babysit/pr-<n>.jsonl` (per clone, every worktree sees it, never
-  committed — next to `spec-board/claims/`). Lift a `stateDir(git, ...segments)` helper into
-  `core/git.ts` (claims, base cache, babysit: third use).
+  committed — next to `spec-board/claims/`) via `stateDir(git, "babysit")` (`core/git.ts`).
 - Line: `{"at":"2026-10-10T21:16:04Z","event":"red","sha":"1a2b3c4","detail":"E2E Tests failed (9m03s)"}`.
+  `babysit-start` also carries `spec` and `group` (the header names them). A line renders as
+  `HH:MM <event> · <detail>`: writers put whatever the reader needs (a pushed SHA, a run id) in `detail`.
 - Events: `babysit-start`, `opened`, `ready`, `waiting`, `green`, `red`, `cancelled`, `rerun`, `none`,
   `timeout`, `note` (agent text via `pr log --add`), `pushed`, `merged`, `closed`, `stopped`.
 - Limits (3 fix pushes, 3 hours) count from the latest `babysit-start`.

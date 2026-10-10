@@ -17,7 +17,7 @@
 ## Phases
 
 - [x] Phase 1 — One green verdict and the full check table → `phases/phase-1-one-green-verdict.md`
-- [ ] Phase 2 — Babysit log and `pr log` → `phases/phase-2-babysit-log.md`
+- [x] Phase 2 — Babysit log and `pr log` → `phases/phase-2-babysit-log.md`
 - [ ] Phase 3 — `pr wait` → `phases/phase-3-pr-wait.md`
 - [ ] Phase 4 — `pr open` → `phases/phase-4-pr-open.md`
 - [ ] Phase 5 — `pr merge` and the merge line → `phases/phase-5-pr-merge.md`
