@@ -171,6 +171,10 @@ Unblocked: <specs whose needs point at phases finished this session, from `spec.
 ---
 ```
 
-Then print SKILL.md → *Next sessions*, with this spec's next ready phase at 1 when it has one.
+Then, in this order:
+
+- **This handoff answers "Babysit it"** (execute.md §10): run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch babysit <spec-name> <group>` as the very last act, after the push and the claim release above, and reply with §10's babysitting line. No *Next sessions* block.
+- **A PR group is ready and nobody asked**: every code phase of the group is ticked, its pre-PR checks are ticked, no answer was given in this conversation, and `pr status <spec-name> <group>` shows no ready PR (none yet, or a draft). Ask execute.md §10's question in place of *Next sessions* and act on the answer as §10 says; [babysit.md](babysit.md) is what the babysit session follows.
+- **Otherwise** print SKILL.md → *Next sessions*, with this spec's next ready phase at 1 when it has one.
 
 Do not ask other follow-up questions or suggest work outside that block. When the user approves rows, launch them as the block says; otherwise the session is ending.
