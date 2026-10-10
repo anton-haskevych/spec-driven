@@ -6,33 +6,33 @@ pr: A
 
 # Phase 6 — Failure facts, `pr rerun` and the triage gate setting
 
-**Goal:** For every failed check, `pr status` states whether it's infrastructure, fails on main too, or is already fixed on main; `pr rerun` re-runs infrastructure failures only, at most twice per commit; projects name their triage steps with `pr.triage`.
+**Goal:** For every failed check, `pr status` states whether it's infrastructure and whether it fails on main too; `pr rerun` re-runs infrastructure failures only, within GitHub's attempt cap; projects name their triage steps with `gates.ci-triage`.
 
-**Outcome:** The babysitter knows which kind of failure it's looking at before touching code, never re-runs a real test failure, and runs the project's own triage steps · medium · risk: misclassifying a real failure as infra — the signature list is small and explicit.
+**Outcome:** The babysitter knows which kind of failure it's looking at before touching code, never re-runs a real test failure, and runs the project's own triage steps · medium · risk: misclassifying a real failure as infra — the signature list is small and explicit, and timeouts don't count.
 
 **Files to touch:**
-- `skills/spec/tools/pr/triage.ts`, `pr/main-fixed.ts`, `pr/rerun.ts` (new)
-- `skills/spec/tools/pr/main-compare.ts` (shared history walk), `pr/types.ts`, `pr/gh.ts` (`RUN_FIELDS`), `pr/gh-writes.ts` (reruns), `pr/render.ts`, `pr/report.ts`
+- `skills/spec/tools/pr/failures/triage.ts`, `pr/actions/rerun.ts` (new)
+- `skills/spec/tools/pr/checks/types.ts`, `pr/gh.ts` (`RUN_FIELDS`), `pr/actions/gh-writes.ts` (reruns), `pr/render.ts`, `pr/report.ts`
 - `skills/spec/tools/playbook/settings.ts`, `doctor/settings.ts`, `commands/context.ts` (Settings line)
-- tests: `pr-triage.test.ts`, `pr-main-fixed.test.ts`, `pr-rerun.test.ts`, `settings.test.ts`, `context.test.ts`
+- `skills/spec/tools/commands/pr.ts`, `commands/pr/rerun.ts`
+- tests: `pr-triage.test.ts`, `pr-rerun.test.ts`, `settings.test.ts`, `doctor-*.test.ts`, `context.test.ts`
 
 ## Implementation guidance
 
-Facts are pure functions over fetched data (technical.md → Failure facts). Extract a `mainJobHistory` walk from `main-compare.ts` that returns the list instead of the first match; `compareOnMain` and the new `fixedOnMain` both read it. `fixedOnMain` also needs the branch's behind count. Infra signatures are a constant list in `triage.ts`; job conclusions `cancelled`/`startup_failure` count too. The failure line in `pr status` gains `fails on main too · fixed on main · infra` (design.md red example).
+`infra` is a pure function over the job and its run (technical.md → Failure facts): conclusion `startup_failure`; `cancelled` only when no sibling job in the run failed and the tail lacks `exceeded the maximum execution time`; or a built-in log signature (constant list in `triage.ts`). The failure line in `pr status` gains `fails on main too · infra` (design.md red example) and the triage gate name. `failsOnMain` already exists (`main-compare.ts`); no `fixedOnMain` — "already fixed on main" is a step in the project's triage gate.
 
-`pr rerun` re-runs only infra rows and cancelled rows with no newer run, one `gh run rerun <run> --job <job>` each; it counts reruns per code-head SHA from the babysit log and the run's `attempt`, and refuses the third. A test failure gets `pr rerun: <check> failed in a test, not infra — fix it` (Anton, 2026-10-10: strict, `ledger/decision-flaky-tests-strict.md`).
+`pr rerun` re-runs only infra rows and `cancelled` verdict rows, one `gh run rerun <run> --job <job>` each. It refuses while the run is still in progress (`pr rerun: run <id> still running — wait`) and when the run's `attempt` is already 3. A test failure gets `pr rerun: <check> failed in a test, not infra — fix it` (Anton, 2026-10-10: strict, `ledger/decision-flaky-tests-strict.md`). It logs `rerun`; the log is not read for the cap.
 
-`pr.triage` is one `SECTION_KEYS` row: a `gates.md` section name; the doctor errors when the section is missing (as for `gates.per-commit`); the pack's `Settings:` line adds `CI triage: gate <name>`.
+`gates.ci-triage` is one more row in `SECTION_KEYS.gates` (`playbook/settings.ts:29`), one `gateName` line, and one entry in the doctor's `named` map (`doctor/settings.ts:20-23`), so the existing missing-section error covers it; the pack's `Settings:` line adds `CI triage: gate <name>`.
 
 ## Deliverables
 
-- [ ] `pr/triage.ts`: infra classification (conclusions + log signatures) — table tests
-- [ ] `mainJobHistory` extracted; `pr/main-fixed.ts` `fixedOnMain` (failed after merge-base, passed later, branch behind) — tests; `compareOnMain` unchanged in behaviour
-- [ ] `pr status` failure lines show the three facts and the triage gate name; `--json` carries them
-- [ ] `pr/rerun.ts` + `gh-writes.ts` reruns: infra-only, ≤2 per code-head SHA, logged — tests incl. refusal of a test failure and of the third rerun
-- [ ] `pr.triage` setting: parse, describe, doctor check, pack line
+- [ ] `pr/failures/triage.ts`: infra classification (startup_failure, cancelled without failed sibling or timeout text, signatures) — table tests incl. the cancelled-by-timeout log and a fail-fast sibling
+- [ ] `pr status` failure lines show `fails on main too` and `infra`, and the triage gate name
+- [ ] `pr/actions/rerun.ts` + `gh-writes.ts` reruns: infra-only, refuse in-progress runs, cap at `attempt` 3, logged — tests incl. refusal of a test failure, of a running run and of the third attempt
+- [ ] `gates.ci-triage` setting: parse, describe, doctor check, pack line
 
 ## Phase-local notes
 
-- `RUN_FIELDS` needs `headSha` and `attempt` (`pr/types.ts:26-30`).
-- After a squash merge, ancestry checks lie (`docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md`); `fixedOnMain` compares run history, not ancestry of the fix.
+- `RUN_FIELDS` needs `headSha`, `status` and `attempt` (`pr/checks/types.ts`).
+- After a squash merge, ancestry checks lie (`docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md`); the triage gate's "already on main" step should compare history, not ancestry of the fix.

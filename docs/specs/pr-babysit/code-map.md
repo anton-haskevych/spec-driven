@@ -13,13 +13,24 @@ needs to know exist to navigate the code — not every file that's touched.
 | File | Why we care | Ledger |
 |------|-------------|--------|
 | `skills/spec/tools/pr/checks.ts` | `prState`, `summarizeChecks` — today's pr-status verdict | |
+| `skills/spec/tools/pr/rollup.ts` | `rollupToChecks` — the one mapper + workflow+name dedupe (becomes the shared source) | `decision-checks-read-on-the-head` |
+| `skills/spec/tools/pr/gh-lists.ts` | board's `statusCheckRollup` read, `GH_TIMEOUT_MS` | |
+| `skills/spec/tools/board/attention.ts` | needs-you merge/fix rows; suppressed while babysitting | `decision-pr-claims-liveness-only` |
+| `skills/spec/tools/claims/rules.ts` | `takeRefusal` (accepts `pr-<group>`), `claimStatus` (unchanged) | `decision-pr-claims-liveness-only` |
+| `skills/spec/tools/trees/find.ts` | `treeHolder` already blocks on any live claim in a tree | |
+| `skills/spec/tools/trees/naming.ts` | `treeName(spec, group).branch` — PR lookup by branch | `decision-pr-found-by-branch-merge-line-on-main` |
+| `skills/spec/tools/focus/land.ts` | commit-onto-origin-tip path lifted to `core/land-on-main.ts` | `decision-pr-found-by-branch-merge-line-on-main` |
+| `skills/spec/tools/publish/push.ts` | `pathsOutsideSpecDocs` — docs-only test (checked-head fallback) | |
+| `skills/spec/tools/launch/command-line.ts` | `sessionLaunch` guard: group token for babysit | |
+| `skills/spec/tools/commands/context.ts` | `PACK_MODES` gains babysit | |
+| `skills/spec/tools/doctor/settings.ts` | gate-name check; `gates.ci-triage` joins `named` | |
 | `skills/spec/tools/board/joins.ts` | board's PR verdict (`toPrCell`, `nextFromChecks`) | |
 | `skills/spec/tools/pr/gh.ts` | sync read client, 30-call budget, `PR_FIELDS`, `RUN_FIELDS` | |
 | `skills/spec/tools/pr/resolve.ts` | PR from spec's Spec state (`SPEC_STATE`, `PR_LINK`) | |
-| `skills/spec/tools/playbook/settings.ts` | `pr.draft`, `pr.merge`, `checks.external`, new `pr.triage` | |
-| `skills/spec/tools/claims/store.ts` | per-phase claims; gains `pr-<group>` | |
+| `skills/spec/tools/playbook/settings.ts` | `pr.draft`, `pr.merge`, `checks.external`, new `gates.ci-triage` | |
+| `skills/spec/tools/claims/store.ts` | claim files; already accepts any id (no change) | |
 | `skills/spec/execute.md` | §10 PR gate — the question lands here | |
-| `skills/spec/handoff.md` | push/publish/claim release — the question lands here too | |
+| `skills/spec/handoff.md` | push/publish/claim release — runs in full before `launch babysit` | `decision-handoff-before-babysit-launch` |
 
 ## External references
 
