@@ -9,6 +9,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 ## Principles
 
 ## Domain
+- `domain-docs-only-head-gets-checks.md` — [phase 1, 3, 5, 7] — docs-only tip on code gets pull_request checks; no fallback
 - `domain-claude-code-wait-primitives.md` — [phase 3, 4, 7, load-bearing] — fg 120s→bg; bg wakes once; 30m cap unattended
 
 ## Decisions
