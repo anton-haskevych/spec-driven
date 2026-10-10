@@ -1,6 +1,6 @@
 ---
 created: 2026-10-10T12:36:13-07:00
-updated: 2026-10-10T12:36:13-07:00
+updated: 2026-10-10T13:18:00-07:00
 status: prep
 area: [tools, sub-commands]
 domain: [spec-workflow]
