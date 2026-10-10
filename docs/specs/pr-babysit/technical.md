@@ -21,7 +21,7 @@ babysit procedure pins the PR number `pr open` printed and passes it to every la
 | Command | Does | One-line result |
 |---|---|---|
 | `pr status [<target>]` | Full check table + verdict + per-failure facts (today's pr-status, extended) | multi-line report (design.md) |
-| `pr wait [<target>] [--sha <sha>] [--since <iso>] [--timeout 25m] [--interval 30s]` | Blocks until the verdict settles; meant for background Bash | `PR #921: green · 21 passed · 6 skipped · external 1 pending (not blocking)` / `PR #921: red · E2E Tests failed (9m03s)` / `PR #921: none · no checks on 1a2b3c4 after 3m` / `PR #921: none · CI skipped itself on 1a2b3c4 — push a new commit` / `PR #921: conflicting` / `PR #921: merged as 9b0c1d2` / `PR #921: timeout after 25m · running: E2E Tests 24m` |
+| `pr wait [<target>] [--sha <sha>] [--since <iso>] [--timeout 25m] [--interval 30s]` | Blocks until the verdict settles; meant for background Bash | `PR #921: green · 21 passed · 6 skipped · external 1 pending (not blocking)` / `PR #921: red · E2E Tests failed (9m03s)` / `PR #921: none · no checks on 1a2b3c4 after 3m` / `PR #921: none · CI skipped itself on 1a2b3c4 — push a new commit` / `PR #921: conflicting` / `PR #921: merged · 9b0c1d2` / `PR #921: timeout · after 25m · running: E2E Tests 24m` |
 | `pr open <spec> [<group>] [--draft]` | Creates the group's PR (title, body from Outcome lines), marks an existing draft ready race-safely, or reports one already open | `PR: #921 opened ready · <url>` / `PR: #921 opened as a draft · <url>` / `PR: #921 marked ready · CI started (run 3788)` / `PR: #921 already open · <url>` |
 | `pr rerun [<target>]` | Re-runs infra-failed jobs on the head; refuses when GitHub's `attempt` is already 3 | `Rerun: Backend Tests (runner lost) · attempt 2 of 3 · run 3787` |
 | `pr merge [<target>] [--now] [--method m]` | Merges with `pr.merge`, pinned to head; refuses unless green (or `--now`); lands the merge line on main; fetches | `Merged: #921 · merge · 9b0c1d2` |
@@ -191,7 +191,7 @@ already 3 (two re-runs). The babysit log records reruns for reading, never for e
   `babysit-start` also carries `spec` and `group` (the header names them). A line renders as
   `HH:MM <event> · <detail>`: writers put whatever the reader needs (a pushed SHA, a run id) in `detail`.
 - Events: `babysit-start`, `opened`, `ready`, `waiting`, `green`, `red`, `cancelled`, `rerun`, `none`,
-  `timeout`, `note` (agent text via `pr log --add`), `pushed`, `merged`, `closed`, `stopped`.
+  `conflicting`, `timeout`, `note` (agent text via `pr log --add`), `pushed`, `merged`, `closed`, `stopped`.
 - Limits (3 fix pushes, 3 hours) count from the latest `babysit-start`.
 - `pr log` renders local times, one line per event, header from the latest `babysit-start`.
 - Appends are single `appendFileSync` writes (atomic per line on POSIX for small writes).
