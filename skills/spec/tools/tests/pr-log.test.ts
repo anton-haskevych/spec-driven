@@ -2,7 +2,13 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { appendFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { prCommand } from "../commands/pr";
+import { PR_LOG_USAGE, prLog } from "../commands/pr/log";
+import type { Runner } from "../core/run";
 import { appendEvent, parseEvents, readEvents, renderTimeline, type BabysitEvent } from "../pr/babysit/log";
+import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
+import { prView } from "./pr-factories";
+import { stubRunner, type CannedRuns } from "./stub-runner";
 
 const ZONE = "America/Los_Angeles";
 
@@ -89,5 +95,36 @@ describe("appendEvent and readEvents", () => {
     appendFileSync(join(dir, "pr-921.jsonl"), "garbage\n");
     expect(readEvents(dir, 921)).toEqual({ events: [timeline[0]!, timeline[1]!], skipped: 1 });
     expect(readEvents(dir, 922).events).toEqual([timeline[2]!]);
+  });
+});
+
+describe("pr log", () => {
+  let repo: TestRepo;
+  afterEach(() => repo?.cleanup());
+  const at = new Date("2026-10-11T04:18:00Z");
+  const withGh = (canned: CannedRuns): Runner => {
+    const gh = stubRunner(canned);
+    return { run: (argv, options) => (argv[0] === "gh" ? gh.run(argv, options) : isolatedRunner.run(argv, options)) };
+  };
+
+  test("--add writes a note that every worktree's pr log reads", () => {
+    repo = repoWithOrigin("spec-pr-log-");
+    const tree = repo.addWorktree("tree", "feat/tree");
+    expect(prCommand(repo.dir, ["log", "921"])).toBe("PR #921: no babysit log on this machine");
+    expect(prLog(tree.dir, ["#921", "--add", "test failure · ours"], isolatedRunner, at)).toBe("PR #921: note added");
+    expect(prLog(repo.dir, ["921"], isolatedRunner, at, ZONE)).toBe("PR #921 babysit log · no babysit started\n21:18 note · test failure · ours");
+  });
+
+  test("no target is the current branch's PR", () => {
+    repo = repoWithOrigin("spec-pr-log-branch-");
+    const runner = withGh([[["gh", "pr", "view"], { stdout: JSON.stringify(prView({ number: 930 })) }]]);
+    expect(prLog(repo.dir, ["--add", "stopped by hand"], runner, at)).toBe("PR #930: note added");
+    expect(prLog(repo.dir, [], withGh([[["gh", "pr", "view"], { code: 1, stderr: "no pull requests found" }]]), at)).toBe("pr log: no pull requests found");
+  });
+
+  test("refuses an empty note and unknown flags", () => {
+    repo = repoWithOrigin("spec-pr-log-usage-");
+    expect(prLog(repo.dir, ["921", "--add", " "], isolatedRunner, at)).toBe("pr log: --add needs the note's text");
+    expect(prLog(repo.dir, ["921", "--tail"], isolatedRunner, at)).toBe(`usage: ${PR_LOG_USAGE}`);
   });
 });

@@ -20,10 +20,15 @@ export function specPrNumbers(prOpening: string): number[] {
   return [...new Set(numbers)];
 }
 
+export function parsePrNumber(target: string): number | undefined {
+  const number = PR_NUMBER.exec(target)?.[1];
+  return number === undefined ? undefined : Number(number);
+}
+
 export function resolvePr(gh: GhClient, projectDir: string, target: string | undefined): Result<ResolvedPr> {
   if (target === undefined) return withoutOthers(gh.prView());
-  const number = PR_NUMBER.exec(target)?.[1];
-  if (number) return withoutOthers(gh.prView(Number(number)));
+  const number = parsePrNumber(target);
+  if (number !== undefined) return withoutOthers(gh.prView(number));
 
   const [spec] = findSpecs(projectDir, target);
   if (!spec) return { ok: false, reason: `no PR number or spec named ${target}` };

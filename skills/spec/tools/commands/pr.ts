@@ -1,3 +1,4 @@
+import { PR_LOG_USAGE, prLog } from "./pr/log";
 import { PR_STATUS_USAGE, prStatus } from "./pr/status";
 
 interface PrAction {
@@ -7,6 +8,7 @@ interface PrAction {
 
 const ACTIONS: Record<string, PrAction> = {
   status: { usage: PR_STATUS_USAGE, run: (dir, args) => prStatus(dir, args) },
+  log: { usage: PR_LOG_USAGE, run: (dir, args) => prLog(dir, args) },
 };
 
 export const PR_USAGE = Object.values(ACTIONS)

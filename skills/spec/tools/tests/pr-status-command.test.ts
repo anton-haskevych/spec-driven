@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { prCommand } from "../commands/pr";
+import { PR_USAGE, prCommand } from "../commands/pr";
 import { prStatus } from "../commands/pr/status";
 import { specPrNumbers } from "../pr/resolve";
 import { prView } from "./pr-factories";
@@ -53,7 +53,8 @@ describe("pr status", () => {
 
   test("the pr group dispatches status and lists its usage otherwise", async () => {
     tree = createTree();
-    expect(await prCommand(tree.root, ["nope"])).toBe("usage: pr status [<pr> | <spec-name>]");
-    expect(await prCommand(tree.root, [])).toBe("usage: pr status [<pr> | <spec-name>]");
+    expect(await prCommand(tree.root, ["nope"])).toBe(`usage: ${PR_USAGE}`);
+    expect(PR_USAGE).toStartWith("pr status [<pr> | <spec-name>] | pr log ");
+    expect(await prCommand(tree.root, [])).toBe(`usage: ${PR_USAGE}`);
   });
 });
