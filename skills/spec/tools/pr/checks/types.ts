@@ -34,3 +34,9 @@ export interface WorkflowRun {
   conclusion: string;
   createdAt: string;
 }
+
+export interface CommitRun {
+  id: number;
+  status: string;
+  conclusion: string;
+}

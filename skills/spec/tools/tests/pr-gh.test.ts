@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { ghClient } from "../pr/gh";
 import { prView } from "./pr-factories";
-import { stubRunner } from "./stub-runner";
+import { sequencedRunner, stubRunner } from "./stub-runner";
 
 const fixture = (name: string) => Bun.file(join(import.meta.dir, "fixtures", name)).text();
 const UNKNOWN = prView({ mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN" });
@@ -27,6 +27,15 @@ describe("ghClient", () => {
     expect(gh.runJobs(36796809320)).toMatchObject({ ok: true, value: [{ name: "Ops Tests" }, { name: "Backend Tests", id: 110162211428, conclusion: "failure" }, { name: "Landing Tests" }] });
     expect(gh.runWorkflowId(36796809320)).toEqual({ ok: true, value: 208544398 });
     expect(gh.branchRuns("main", 208544398, 15)).toMatchObject({ ok: true, value: [{ id: 36715144973, conclusion: "success" }, {}, {}] });
+  });
+
+  test("commitRuns lists the head's runs, uncached, so a poll sees new ones", () => {
+    const runs = (rows: object[]) => ({ stdout: JSON.stringify(rows) });
+    const runner = sequencedRunner([[["gh", "run", "list", "--commit", "1a2b3c4d"], [runs([]), runs([{ databaseId: 3788, status: "queued", conclusion: "" }])]]]);
+    const gh = ghClient("/repo", runner);
+    expect(gh.commitRuns("1a2b3c4d")).toEqual({ ok: true, value: [] });
+    expect(gh.commitRuns("1a2b3c4d")).toEqual({ ok: true, value: [{ id: 3788, status: "queued", conclusion: "" }] });
+    expect(runner.calls[0]).toEqual(["gh", "run", "list", "--commit", "1a2b3c4d", "--limit", "50", "--json", "databaseId,status,conclusion"]);
   });
 
   test("a gh failure comes back as the first stderr line", () => {

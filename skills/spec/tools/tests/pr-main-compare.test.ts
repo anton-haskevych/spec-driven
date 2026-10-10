@@ -12,6 +12,7 @@ function fakeGh(runs: WorkflowRun[], jobsByRun: Record<number, Job[]>, workflowI
   const calls: string[] = [];
   const gh: GhClient = {
     prView: unused,
+    commitRuns: unused,
     jobLog: unused,
     runWorkflowId: () => workflowId,
     branchRuns: (branch, id, limit) => {

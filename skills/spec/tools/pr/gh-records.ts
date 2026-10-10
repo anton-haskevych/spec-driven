@@ -1,6 +1,6 @@
 import { booleanField, isRecord, numberField, stringField, type FrontmatterData } from "../core/frontmatter";
 import { rollupToChecks } from "./checks/rollup";
-import type { Job, PrView, WorkflowRun } from "./checks/types";
+import type { CommitRun, Job, PrView, WorkflowRun } from "./checks/types";
 
 export function parseJson(text: string): unknown {
   try {
@@ -47,5 +47,14 @@ export function toWorkflowRuns(value: unknown): WorkflowRun[] | undefined {
     const id = numberField(run, "databaseId");
     if (id === undefined) return [];
     return [{ id, conclusion: stringField(run, "conclusion") ?? "", createdAt: stringField(run, "createdAt") ?? "" }];
+  });
+}
+
+export function toCommitRuns(value: unknown): CommitRun[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter(isRecord).flatMap((run: FrontmatterData) => {
+    const id = numberField(run, "databaseId");
+    if (id === undefined) return [];
+    return [{ id, status: stringField(run, "status") ?? "", conclusion: stringField(run, "conclusion") ?? "" }];
   });
 }
