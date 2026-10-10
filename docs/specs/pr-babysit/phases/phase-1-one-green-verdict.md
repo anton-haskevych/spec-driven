@@ -28,9 +28,9 @@ The verdict precedence and the "≥1 passed; zero or all-skipped is none" rule a
 
 ## Deliverables
 
-- [ ] Probe: docs-only push on a live CRM PR → does the head get checks? Result in a `domain` ledger entry
-- [ ] Refactor: `pr/checks/`, `pr/failures/` subfolders; `stub-runner.ts`; `prView()`, `check()` in `tests/pr-factories.ts`; existing pr tests use them (no behaviour change)
-- [ ] `pr status` reads `statusCheckRollup` via `gh pr view` through `rollupToChecks`; `Bucket` gains `queued`/`running`, `Check` gains `startedAt`/`completedAt`/`runId`/`jobId`; zero-time rows count as newest; `gh-records.ts` checks mapper deleted
+- [x] Probe: docs-only push on a live CRM PR → does the head get checks? Result in a `domain` ledger entry
+- [x] Refactor: `pr/checks/`, `pr/failures/` subfolders; `stub-runner.ts`; `prView()`, `check()` in `tests/pr-factories.ts`; existing pr tests use them (no behaviour change)
+- [x] `pr status` reads `statusCheckRollup` via `gh pr view` through `rollupToChecks`; `Bucket` gains `queued`/`running`, `Check` gains `startedAt`/`completedAt`/`runId`/`jobId`; zero-time rows count as newest; `gh-records.ts` checks mapper deleted
 - [ ] `pr/checks/verdict.ts`: `checksVerdict(checks, isExternal)` with red > cancelled > waiting > green, `none: no-checks | skipped`, green needs ≥1 passed — table tests over the rollup fixtures (states, vercel-pending, stale-rows, same-name-two-workflows, all-skipped, queued-rerun)
 - [ ] `prState` and the board's `nextFromChecks` use `checksVerdict`; goldens re-pinned
 - [ ] `pr status` renders the grouped table (running with elapsed, failed with run/job, passed with durations folded after 4, skipped folded, external line) and a `verdict:` line

@@ -1,0 +1,54 @@
+{
+ "number": 921,
+ "state": "OPEN",
+ "isDraft": false,
+ "mergeable": "MERGEABLE",
+ "mergeStateStatus": "CLEAN",
+ "headRefOid": "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
+ "statusCheckRollup": [
+  {
+   "__typename": "CheckRun",
+   "name": "Backend Tests",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "SUCCESS",
+   "startedAt": "2026-10-10T21:01:00Z",
+   "completedAt": "2026-10-10T21:06:40Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/3788/job/9901"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "Frontend Lint",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "SUCCESS",
+   "startedAt": "2026-10-10T21:01:00Z",
+   "completedAt": "2026-10-10T21:03:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/3788/job/9902"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "Infra Build & Test",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "SKIPPED",
+   "startedAt": "2026-10-10T21:01:00Z",
+   "completedAt": "2026-10-10T21:01:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/3788/job/9903"
+  },
+  {
+   "__typename": "StatusContext",
+   "context": "Vercel – crm-dance-landing",
+   "state": "PENDING",
+   "targetUrl": "https://vercel.com/acme/crm-dance-landing/x1",
+   "startedAt": "2026-10-10T21:00:30Z"
+  },
+  {
+   "__typename": "StatusContext",
+   "context": "Vercel – allstars-academy",
+   "state": "SUCCESS",
+   "targetUrl": "https://vercel.com/acme/allstars-academy/x1",
+   "startedAt": "2026-10-10T21:00:30Z"
+  }
+ ]
+}

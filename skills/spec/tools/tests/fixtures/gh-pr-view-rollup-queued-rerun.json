@@ -1,0 +1,40 @@
+{
+ "number": 921,
+ "state": "OPEN",
+ "isDraft": false,
+ "mergeable": "MERGEABLE",
+ "mergeStateStatus": "CLEAN",
+ "headRefOid": "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
+ "statusCheckRollup": [
+  {
+   "__typename": "CheckRun",
+   "name": "Frontend Lint",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "SUCCESS",
+   "startedAt": "2026-10-10T21:01:00Z",
+   "completedAt": "2026-10-10T21:01:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/3788/job/9902"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "Backend Tests",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "FAILURE",
+   "startedAt": "2026-10-10T21:01:00Z",
+   "completedAt": "2026-10-10T21:06:40Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/3788/job/9901"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "Backend Tests",
+   "workflowName": "Monorepo CI",
+   "status": "QUEUED",
+   "conclusion": "",
+   "startedAt": "0001-01-01T00:00:00Z",
+   "completedAt": "0001-01-01T00:00:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/3788/job/9990"
+  }
+ ]
+}
