@@ -15,6 +15,18 @@ export function prView({ checks = [], ...overrides }: Partial<PrView> = {}): PrV
   };
 }
 
+// What `gh pr view --json` prints for this view: checks as statusCheckRollup rows, mergeCommit as { oid }.
+export function ghPrViewJson(overrides: Partial<PrView> = {}): string {
+  const { checks, mergeCommit, ...view } = prView(overrides);
+  return JSON.stringify({ ...view, statusCheckRollup: checks.map(rollupRow), ...(mergeCommit ? { mergeCommit: { oid: mergeCommit } } : {}) });
+}
+
+function rollupRow(row: Check): object {
+  const status = row.bucket === "running" ? "IN_PROGRESS" : row.bucket === "queued" ? "QUEUED" : "COMPLETED";
+  const conclusion = { pass: "SUCCESS", fail: "FAILURE", skipping: "SKIPPED", cancel: "CANCELLED", running: "", queued: "" }[row.bucket];
+  return { __typename: "CheckRun", name: row.name, workflowName: row.workflow, status, conclusion, startedAt: row.startedAt ?? "", completedAt: row.completedAt ?? "", detailsUrl: row.link };
+}
+
 export function check(overrides: Partial<Check> = {}): Check {
   return { name: "Backend Tests", bucket: "pass", workflow: "CI", link: "", ...overrides };
 }

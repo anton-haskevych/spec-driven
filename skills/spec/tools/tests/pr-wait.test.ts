@@ -7,17 +7,11 @@ import { appendEvent, readEvents } from "../pr/babysit/log";
 import type { Check, PrView } from "../pr/checks/types";
 import { fakeClock } from "./fake-clock";
 import { isolatedRunner, repoWithOrigin, type TestRepo, type WorkingCopy } from "./git-repo";
-import { check, prView } from "./pr-factories";
+import { check, ghPrViewJson, prView } from "./pr-factories";
 import { routeGh, sequencedRunner } from "./stub-runner";
 
 const START = Date.parse("2026-10-10T21:00:00Z");
 const BRANCH = "feat/billing-pr-a";
-
-function rollupRow(row: Check): object {
-  const status = row.bucket === "running" ? "IN_PROGRESS" : row.bucket === "queued" ? "QUEUED" : "COMPLETED";
-  const conclusion = { pass: "SUCCESS", fail: "FAILURE", skipping: "SKIPPED", cancel: "CANCELLED", running: "", queued: "" }[row.bucket];
-  return { __typename: "CheckRun", name: row.name, workflowName: row.workflow, status, conclusion, startedAt: row.startedAt ?? "", completedAt: row.completedAt ?? "", detailsUrl: row.link };
-}
 
 describe("pr wait", () => {
   let repo: TestRepo;
@@ -33,10 +27,7 @@ describe("pr wait", () => {
   }
 
   function waitWith(views: Array<Partial<PrView>>, args: string[] = ["921"], head = tree.git("rev-parse", "HEAD").trim()) {
-    const reply = (view: Partial<PrView>): Partial<RunResult> => {
-      const { checks = [], mergeCommit, ...rest } = view;
-      return { stdout: JSON.stringify({ ...prView({ number: 921, headRefOid: head, headRefName: BRANCH, ...rest }), statusCheckRollup: checks.map(rollupRow), ...(mergeCommit ? { mergeCommit: { oid: mergeCommit } } : {}) }) };
-    };
+    const reply = (view: Partial<PrView>): Partial<RunResult> => ({ stdout: ghPrViewJson({ number: 921, headRefOid: head, headRefName: BRANCH, ...view }) });
     const gh = sequencedRunner([[["gh", "pr", "view"], views.map(reply)]]);
     const clock = fakeClock(START);
     const run = () => prWait(tree.dir, args, { runner: routeGh(gh, isolatedRunner), clock });
