@@ -13,7 +13,7 @@ export interface ProjectSettings {
   docs: (typeof DOCS_HOMES)[number];
   pr: { draft: boolean; merge?: MergeMethod };
   checks: { external: string[] };
-  gates: { afterMergeMain?: string; bootstrap?: string; perCommit?: string };
+  gates: { afterMergeMain?: string; bootstrap?: string; perCommit?: string; ciTriage?: string };
 }
 
 export interface ParsedSettings {
@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS: ProjectSettings = { docs: "branch", pr: { draft: 
 const SECTION_KEYS: Record<string, readonly string[]> = {
   pr: ["draft", "merge"],
   checks: ["external"],
-  gates: ["after-merge-main", "bootstrap", "per-commit"],
+  gates: ["after-merge-main", "bootstrap", "per-commit", "ci-triage"],
 };
 const TOP_KEYS = new Set(["docs", ...Object.keys(SECTION_KEYS)]);
 
@@ -55,6 +55,7 @@ export function parseSettings(text: string): ParsedSettings {
       ...optional("afterMergeMain", gateName(gates["after-merge-main"], "gates.after-merge-main", problems)),
       ...optional("bootstrap", gateName(gates.bootstrap, "gates.bootstrap", problems)),
       ...optional("perCommit", gateName(gates["per-commit"], "gates.per-commit", problems)),
+      ...optional("ciTriage", gateName(gates["ci-triage"], "gates.ci-triage", problems)),
     },
   };
   problems.push(...Object.keys(data).filter((key) => !TOP_KEYS.has(key)).map((key) => `unknown key: ${key}`));
@@ -71,6 +72,7 @@ export function describeSettings(settings: ProjectSettings): string {
     ...(gates.perCommit ? [`each commit: gate ${gates.perCommit}`] : []),
     ...(gates.afterMergeMain ? [`after merging main: gate ${gates.afterMergeMain}`] : []),
     ...(gates.bootstrap ? [`fresh worktree: gate ${gates.bootstrap}`] : []),
+    ...(gates.ciTriage ? [`CI triage: gate ${gates.ciTriage}`] : []),
   ].join(" · ");
 }
 

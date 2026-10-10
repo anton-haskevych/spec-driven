@@ -18,13 +18,14 @@ describe("checkSettings", () => {
   });
 
   test("a gate name that gates.md lacks is an error", () => {
-    const text = "---\ngates:\n  after-merge-main: merge-main\n  bootstrap: setup\n  per-commit: quick\n---\n";
+    const text = "---\ngates:\n  after-merge-main: merge-main\n  bootstrap: setup\n  per-commit: quick\n  ci-triage: triage\n---\n";
     expect(checkSettings("settings.md", text, GATES).map((issue) => [issue.severity, issue.problem])).toEqual([
       ["error", "gates.bootstrap: setup is not defined in docs/specs/_playbook/gates.md"],
       ["error", "gates.per-commit: quick is not defined in docs/specs/_playbook/gates.md"],
+      ["error", "gates.ci-triage: triage is not defined in docs/specs/_playbook/gates.md"],
     ]);
     expect(checkSettings("settings.md", text, undefined).map((issue) => issue.problem)).toEqual([
-      "names gates (merge-main, setup, quick) but docs/specs/_playbook/gates.md does not exist",
+      "names gates (merge-main, setup, quick, triage) but docs/specs/_playbook/gates.md does not exist",
     ]);
   });
 
