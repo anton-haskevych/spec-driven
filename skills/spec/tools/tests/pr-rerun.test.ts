@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type { RunResult } from "../core/run";
 import type { Check, Job, RunDetail } from "../pr/checks/types";
 import { planRerun, rerunLine, type RerunCandidate } from "../pr/actions/rerun-plan";
+import type { InfraFact } from "../pr/failures/triage";
 import { rerunPr } from "../pr/actions/rerun";
 import { prCommand } from "../commands/pr";
 import { PR_RERUN_USAGE } from "../commands/pr/rerun";
@@ -12,7 +13,7 @@ import { stubRunner } from "./stub-runner";
 import { createTree, type Tree } from "./tree";
 
 const run = (overrides: Partial<RunDetail> = {}, jobs: Job[] = []): RunDetail => ({ id: 3787, status: "completed", conclusion: "failure", attempt: 1, jobs, ...overrides });
-const candidate = (name: string, jobId: number, fact: RerunCandidate["fact"], detail: RunDetail = run()): RerunCandidate => ({ check: check({ name, bucket: "fail" }), jobId, run: detail, fact });
+const candidate = (name: string, jobId: number, fact: InfraFact, detail: RunDetail = run()): RerunCandidate => ({ check: check({ name, bucket: "fail" }), jobId, run: detail, fact: { ok: true, value: fact } });
 const LOST = { infra: true, reason: "runner lost" } as const;
 
 describe("planRerun", () => {
@@ -38,6 +39,7 @@ describe("planRerun", () => {
     ["a run still in progress", [candidate("Backend Tests", 1, LOST, run({ status: "in_progress" }))], "pr rerun: run 3787 still running — wait"],
     ["the third attempt", [candidate("Backend Tests", 1, LOST, run({ attempt: 3 }))], "pr rerun: run 3787 already ran 3 times (Backend Tests) — stop and ask"],
     ["nothing to re-run", [], "pr rerun: nothing failed or cancelled"],
+    ["a job whose log couldn't be read", [{ ...candidate("E2E Tests", 2, LOST), fact: { ok: false, reason: "no log (gh call budget (30) spent)" } }], "pr rerun: E2E Tests can't be classified: no log (gh call budget (30) spent)"],
   ] as const)("refuses %s", (_name, candidates, refusal) => {
     expect(planRerun(candidates)).toEqual({ kind: "refuse", reason: refusal });
   });

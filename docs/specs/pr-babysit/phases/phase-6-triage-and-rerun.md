@@ -30,7 +30,7 @@ pr: A
 - [x] `pr/failures/job-logs.ts`: every failed or cancelled job's full log saved once to `<git-common-dir>/spec-board/babysit/pr-<n>/job-<jobId>.log` (re-read from disk, never re-downloaded); `pr status` prints the path so the agent reads and greps the file instead of querying GitHub again (Anton, 2026-10-10)
 - [x] `pr/failures/triage.ts`: infra classification (startup_failure, cancelled without failed sibling or timeout text, signatures) — table tests incl. the cancelled-by-timeout log and a fail-fast sibling
 - [x] `pr status` failure lines show `fails on main too` and `infra`, and the triage gate name
-- [ ] `pr/actions/rerun.ts` + `gh-writes.ts` reruns: infra-only, refuse in-progress runs, cap at `attempt` 3, logged — tests incl. refusal of a test failure, of a running run and of the third attempt
+- [x] `pr/actions/rerun.ts` + `gh-writes.ts` reruns: infra-only, refuse in-progress runs, cap at `attempt` 3, logged — tests incl. refusal of a test failure, of a running run and of the third attempt
 - [x] `gates.ci-triage` setting: parse, describe, doctor check, pack line
 
 ## Phase-local notes

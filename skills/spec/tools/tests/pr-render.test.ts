@@ -121,6 +121,6 @@ describe("renderReport: none and many failures", () => {
     const lines = renderReport(report(failing, { failures }), NOW).split("\n");
     expect(lines.filter((line) => line.trim() === "boom")).toHaveLength(3);
     expect(lines.filter((line) => line.trim().startsWith("log /logs/"))).toHaveLength(5);
-    expect(lines).toContain("         (log tails for the first 3 failures only; every log is saved)");
+    expect(lines).toContain("         (log tails for the first 3 failures only)");
   });
 });

@@ -7,7 +7,7 @@ import { failedOrCancelled } from "../checks/checks";
 import type { PrView } from "../checks/types";
 import { externalMatcher } from "../checks/verdict";
 import { jobLogDir, savedJobLogs, type JobLogs } from "../failures/job-logs";
-import { infraFact } from "../failures/triage";
+import { infraFromLog } from "../failures/triage";
 import { ghClient, type GhClient } from "../gh";
 import { SHORT_SHA } from "../render";
 import { resolvePr } from "../resolve";
@@ -52,7 +52,7 @@ function rerunCandidates(gh: GhClient, view: PrView, externalPatterns: readonly 
     const run = gh.run(check.runId);
     if (!run.ok) return run;
     const log = jobLogs(check.jobId);
-    candidates.push({ check, jobId: check.jobId, run: run.value, fact: infraFact(check.jobId, run.value, log.ok ? log.value.text : undefined) });
+    candidates.push({ check, jobId: check.jobId, run: run.value, fact: infraFromLog(check.jobId, run.value, log.ok ? { ok: true, value: log.value.text } : log) });
   }
   return { ok: true, value: candidates };
 }

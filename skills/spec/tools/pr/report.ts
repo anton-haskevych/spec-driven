@@ -4,7 +4,7 @@ import type { GhClient } from "./gh";
 import { savedJobLogs, type JobLogs } from "./failures/job-logs";
 import { failureTail } from "./failures/log-tail";
 import { compareOnMain, type MainComparison } from "./failures/main-compare";
-import { infraFact, type InfraFact } from "./failures/triage";
+import { infraFromLog, type InfraFact } from "./failures/triage";
 import type { Check, PrView } from "./checks/types";
 import { externalMatcher } from "./checks/verdict";
 
@@ -71,7 +71,7 @@ function failedCheck(gh: GhClient, jobLogs: JobLogs, check: Check, defaultBranch
     check,
     job,
     main,
-    infra: run.ok ? { ok: true, value: infraFact(job.jobId, run.value, log.ok ? log.value.text : undefined) } : run,
+    infra: run.ok ? infraFromLog(job.jobId, run.value, log.ok ? { ok: true, value: log.value.text } : log) : run,
     tail: log.ok ? { ok: true, value: failureTail(log.value.text) } : log,
     ...(log.ok && log.value.path ? { logPath: log.value.path } : {}),
   };

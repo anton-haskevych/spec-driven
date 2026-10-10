@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import type { Job, RunDetail } from "../pr/checks/types";
-import { infraFact } from "../pr/failures/triage";
+import { infraFact, infraFromLog } from "../pr/failures/triage";
 
 const fixture = (name: string) => Bun.file(join(import.meta.dir, "fixtures", name)).text();
 const TEST_FAILURE_LOG = await fixture("gh-job-log.txt");
@@ -27,6 +27,13 @@ describe("infraFact", () => {
     ["cancelled with no log to rule out a timeout", run([job("cancelled")], "cancelled"), undefined, { infra: false, reason: "cancelled; no log to rule out a timeout" }],
   ] as const)("%s", (_name, detail, log, expected) => {
     expect(infraFact(JOB, detail, log)).toEqual(expected);
+  });
+
+  test("without the log, only a job that never started can be told apart; anything else is unknown", () => {
+    const noLog = { ok: false as const, reason: "gh call budget (30) spent" };
+    expect(infraFromLog(JOB, run([job("failure")]), noLog)).toEqual({ ok: false, reason: "no log (gh call budget (30) spent)" });
+    expect(infraFromLog(JOB, run([job("startup_failure")]), noLog)).toEqual({ ok: true, value: { infra: true, reason: "never started" } });
+    expect(infraFromLog(JOB, run([job("failure")]), { ok: true, value: RUNNER_LOST_LOG })).toEqual({ ok: true, value: { infra: true, reason: "runner lost" } });
   });
 
   test("signatures are found anywhere in the log, not only in the tail", () => {

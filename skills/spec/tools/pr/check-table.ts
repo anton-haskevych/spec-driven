@@ -33,7 +33,7 @@ export function checkTable(checks: readonly Check[], isExternal: (check: Check) 
     ...(failures.some((failure) => failure.check.bucket === "fail") || counted.length === 0 ? [] : [{ label: "failed", cells: [EMPTY] }]),
     ...failures.map((failure, index) => failedRow(failure, index < TAILS_SHOWN)),
   ];
-  const untailed = failures.length > TAILS_SHOWN ? [`${DETAIL_INDENT}(log tails for the first ${TAILS_SHOWN} failures only; every log is saved)`] : [];
+  const untailed = failures.length > TAILS_SHOWN ? [`${DETAIL_INDENT}(log tails for the first ${TAILS_SHOWN} failures only)`] : [];
   const aligned = alignColumns(rows.map((row) => row.cells));
   return [
     ...rows.flatMap((row, index) => [labelled(row.label, aligned[index] ?? ""), ...(row.details ?? []).map((line) => DETAIL_INDENT + line)]),

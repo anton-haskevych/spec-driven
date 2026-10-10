@@ -1,3 +1,4 @@
+import type { Result } from "../../core/result";
 import type { RunDetail } from "../checks/types";
 
 export type InfraFact = { infra: true; reason: string } | { infra: false; reason?: string };
@@ -20,6 +21,12 @@ export function infraFact(jobId: number, run: RunDetail, log: string | undefined
   const signature = log === undefined ? undefined : INFRA_LOG_SIGNATURES.find(([text]) => log.includes(text));
   if (signature) return { infra: true, reason: signature[1] };
   return job?.conclusion === "cancelled" ? cancelledFact(jobId, run, log) : { infra: false };
+}
+
+// A job that never started has no log to read; for anything else, no log means no answer.
+export function infraFromLog(jobId: number, run: RunDetail, log: Result<string>): Result<InfraFact> {
+  const fact = infraFact(jobId, run, log.ok ? log.value : undefined);
+  return log.ok || fact.infra ? { ok: true, value: fact } : { ok: false, reason: `no log (${log.reason})` };
 }
 
 function cancelledFact(jobId: number, run: RunDetail, log: string | undefined): InfraFact {

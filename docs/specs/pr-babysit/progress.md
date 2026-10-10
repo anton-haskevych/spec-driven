@@ -21,6 +21,6 @@
 - [x] Phase 3 — `pr wait` → `phases/phase-3-pr-wait.md`
 - [x] Phase 4 — `pr open` → `phases/phase-4-pr-open.md`
 - [x] Phase 5 — `pr merge` and the merge line → `phases/phase-5-pr-merge.md`
-- [ ] Phase 6 — Failure facts, `pr rerun` and the triage gate setting → `phases/phase-6-triage-and-rerun.md`
+- [x] Phase 6 — Failure facts, `pr rerun` and the triage gate setting → `phases/phase-6-triage-and-rerun.md`
 - [ ] Phase 7 — The question and the babysit procedure → `phases/phase-7-babysit-procedure.md`
 - [ ] Phase 8 — CRM adopts PR babysit → `phases/phase-8-crm-adoption.md`
