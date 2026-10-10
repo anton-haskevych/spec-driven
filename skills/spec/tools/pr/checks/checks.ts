@@ -25,6 +25,12 @@ export function summarizeChecks(checks: readonly Check[], externalPatterns: read
   };
 }
 
+// Failed rows first: they are the ones a fix is for; cancelled ones may be re-run.
+export function failedOrCancelled(checks: readonly Check[], isExternal: (check: Check) => boolean): Check[] {
+  const counted = checks.filter((check) => !isExternal(check));
+  return [...counted.filter((check) => check.bucket === "fail"), ...counted.filter((check) => check.bucket === "cancel")];
+}
+
 export function prState(view: PrView, summary: CheckSummary | undefined): PrState {
   if (view.state === "MERGED") return "merged";
   if (view.state === "CLOSED") return "closed";

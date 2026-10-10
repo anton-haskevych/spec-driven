@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
-import { actionsJob, prState, summarizeChecks } from "../pr/checks/checks";
+import { actionsJob, failedOrCancelled, prState, summarizeChecks } from "../pr/checks/checks";
 import { toPrView } from "../pr/gh-records";
 import type { Check } from "../pr/checks/types";
 import { check, prView } from "./pr-factories";
@@ -18,6 +18,13 @@ describe("summarizeChecks", () => {
 
   test("without external patterns every check counts", () => {
     expect(summarizeChecks(CHECKS, []).counts.fail).toBe(3);
+  });
+});
+
+describe("failedOrCancelled", () => {
+  test("failed rows, then cancelled ones; external checks never", () => {
+    const rows = [check({ name: "Gone", bucket: "cancel" }), check({ name: "Red", bucket: "fail" }), check({ name: "Vercel", bucket: "fail" }), check({ name: "Ok" })];
+    expect(failedOrCancelled(rows, (row) => row.name === "Vercel").map((row) => row.name)).toEqual(["Red", "Gone"]);
   });
 });
 

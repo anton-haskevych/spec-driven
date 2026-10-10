@@ -1,4 +1,4 @@
-import { prState, summarizeChecks, type CheckSummary, type PrState } from "./checks/checks";
+import { failedOrCancelled, prState, summarizeChecks, type CheckSummary, type PrState } from "./checks/checks";
 import type { Result } from "../core/result";
 import type { GhClient } from "./gh";
 import { savedJobLogs, type JobLogs } from "./failures/job-logs";
@@ -48,14 +48,8 @@ export function buildReport(gh: GhClient, firstView: PrView, options: ReportOpti
 
   const summary = summarizeChecks(view.checks, options.externalPatterns);
   const jobLogs = options.jobLogs ?? savedJobLogs(gh.jobLog, undefined);
-  const failures = failedOrCancelled(view.checks, options.externalPatterns).map((check) => failedCheck(gh, jobLogs, check, options.defaultBranch));
+  const failures = failedOrCancelled(view.checks, externalMatcher(options.externalPatterns)).map((check) => failedCheck(gh, jobLogs, check, options.defaultBranch));
   return { ...base, state: prState(view, summary), summary, failures };
-}
-
-function failedOrCancelled(checks: readonly Check[], externalPatterns: readonly string[]): Check[] {
-  const isExternal = externalMatcher(externalPatterns);
-  const counted = checks.filter((check) => !isExternal(check));
-  return [...counted.filter((check) => check.bucket === "fail"), ...counted.filter((check) => check.bucket === "cancel")];
 }
 
 // GitHub computes mergeability lazily; one re-poll usually settles it.
