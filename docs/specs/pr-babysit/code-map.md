@@ -19,6 +19,9 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/pr/actions/open.ts` | `openPr` orchestration; `pr-text.ts` title/body from Outcome lines | 4 |
 | `skills/spec/tools/pr/groups.ts` | `prGroups`, `pickGroup` — a spec's PR groups (resolve + open) | 4 |
 | `skills/spec/tools/pr/babysit/poll.ts` | `pollUntil` + `systemClock` — the shared bounded poll loop (phase 3 reuses) | 4 |
+| `skills/spec/tools/pr/babysit/wait-step.ts` | `waitStep` — pure settle rules (head lag, stale failures, 3-min grace, conflicts) + `settleLine` | 3 |
+| `skills/spec/tools/pr/babysit/wait.ts` | `waitForPr` — resolve, timed `gh pr view` per poll, log waiting + settle | 3 |
+| `skills/spec/tools/commands/pr/wait.ts` | `pr wait` flags and defaults | 3 |
 | `skills/spec/tools/tests/fake-clock.ts` | `fakeClock()`; `routeGh` (stub-runner.ts) for real git + stubbed gh; `phasedSpecFiles` (pr-factories.ts) | 4 |
 
 ## Existing files touched

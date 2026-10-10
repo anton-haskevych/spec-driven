@@ -21,5 +21,8 @@ tools-reference, headless, scheduled-tasks; claude-code-guide brief 2026-10-10):
 - **/loop, CronCreate, ScheduleWakeup:** each fire is a model turn; fire only while idle; no catch-up.
   Wrong tool for a CI wait.
 
-Unverified, settled by phase 3's live probe: that an idle `claude -n` tab (nobody typing) is woken by
-the background exit, and what the notification contains.
+**Probed 2026-10-10 (phase 3):** an idle `claude -n` tab, nobody typing, *is* re-invoked when its
+background shell exits (2-minute sleep; woke 2 s after exit). The `<task-notification>` carries `status`
+(`completed` on exit 0, `failed` otherwise), the exit code in its summary, the command's description and
+the **output-file path — not the output**. So the procedure, on the notification, `Read`s that file and
+takes its last line as the verdict; `pr wait` exits 0, so a `failed` status means the wait itself broke.
