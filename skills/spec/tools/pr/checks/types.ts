@@ -19,7 +19,9 @@ export interface PrView {
   mergeable: string;
   mergeStateStatus: string;
   headRefOid: string;
+  headRefName: string;
   url: string;
+  mergeCommit?: string;
   checks: Check[];
 }
 

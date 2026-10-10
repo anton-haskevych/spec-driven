@@ -29,6 +29,13 @@ describe("ghClient", () => {
     expect(gh.branchRuns("main", 208544398, 15)).toMatchObject({ ok: true, value: [{ id: 36715144973, conclusion: "success" }, {}, {}] });
   });
 
+  test("pr view carries the head branch and, once merged, the merge commit", () => {
+    const merged = JSON.stringify({ ...prView({ state: "MERGED" }), headRefName: "feat/x-pr-a", mergeCommit: { oid: "9b0c1d2e3f" } });
+    const gh = ghClient("/repo", stubRunner([[["gh", "pr", "view"], { stdout: merged }]]));
+    expect(gh.prView(875)).toMatchObject({ ok: true, value: { headRefName: "feat/x-pr-a", mergeCommit: "9b0c1d2e3f" } });
+    expect(ghClient("/repo", stubRunner([[["gh", "pr", "view"], { stdout: PR_VIEW }]])).prView(875)).toEqual({ ok: true, value: UNKNOWN });
+  });
+
   test("commitRuns lists the head's runs, uncached, so a poll sees new ones", () => {
     const runs = (rows: object[]) => ({ stdout: JSON.stringify(rows) });
     const runner = sequencedRunner([[["gh", "run", "list", "--commit", "1a2b3c4d"], [runs([]), runs([{ databaseId: 3788, status: "queued", conclusion: "" }])]]]);

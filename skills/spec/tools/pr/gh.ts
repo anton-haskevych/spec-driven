@@ -15,7 +15,7 @@ export interface GhClient {
 }
 
 export const GH_CALL_BUDGET = 30;
-const PR_FIELDS = "number,state,isDraft,mergeable,mergeStateStatus,headRefOid,url,statusCheckRollup";
+export const PR_FIELDS = "number,state,isDraft,mergeable,mergeStateStatus,headRefOid,headRefName,url,mergeCommit,statusCheckRollup";
 const RUN_FIELDS = "databaseId,conclusion,createdAt";
 const COMMIT_RUN_FIELDS = "databaseId,status,conclusion";
 const COMMIT_RUN_LIMIT = "50";

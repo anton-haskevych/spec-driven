@@ -22,9 +22,16 @@ export function toPrView(value: unknown): PrView | undefined {
     mergeable: stringField(value, "mergeable") ?? "UNKNOWN",
     mergeStateStatus: stringField(value, "mergeStateStatus") ?? "UNKNOWN",
     headRefOid: stringField(value, "headRefOid") ?? "",
+    headRefName: stringField(value, "headRefName") ?? "",
     url: stringField(value, "url") ?? "",
     checks: rollupToChecks(value.statusCheckRollup),
+    ...mergeCommit(value.mergeCommit),
   };
+}
+
+function mergeCommit(value: unknown): Pick<PrView, "mergeCommit"> {
+  const oid = isRecord(value) ? stringField(value, "oid") : undefined;
+  return oid ? { mergeCommit: oid } : {};
 }
 
 export function toJobs(value: unknown): Job[] | undefined {

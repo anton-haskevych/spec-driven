@@ -8,6 +8,7 @@ export function prView({ checks = [], ...overrides }: Partial<PrView> = {}): PrV
     mergeable: "MERGEABLE",
     mergeStateStatus: "CLEAN",
     headRefOid: "08bb7dbd47fa14537ef4",
+    headRefName: "feat/billing-pr-a",
     url: "https://github.com/acme/app/pull/875",
     checks,
     ...overrides,
