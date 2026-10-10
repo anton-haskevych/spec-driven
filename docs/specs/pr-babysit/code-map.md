@@ -14,7 +14,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/tests/pr-factories.ts` | `prView()`, `check()`, `ghPrViewJson()` (rollup-shaped gh reply); `sequencedRunner` in `stub-runner.ts` | 1 |
 | `skills/spec/tools/pr/babysit/log.ts` | babysit log: `appendEvent`, `babysitLogger`, `readEvents`, `parseEvents`, `renderTimeline`; `EventKind` | 2 |
 | `skills/spec/tools/commands/pr/log.ts` | `pr log [<target>] [--add]` | 2 |
-| `skills/spec/tools/pr/actions/gh-writes.ts` | `ghWrites`: exit-code-aware `create`, `ready`, `merge` (PUT pinned to head → `MergeResult`), own budget (rerun joins in 6) | 4, 5 |
+| `skills/spec/tools/pr/actions/gh-writes.ts` | `ghWrites`: exit-code-aware `create`, `ready`, `merge` (PUT pinned to head → `MergeResult`), own budget, `rerun` (`--job` one / `--failed` several) | 4, 5, 6 |
 | `skills/spec/tools/core/land-on-main.ts` | `landOnMain(git, branch, plan)` — one file onto origin's tip, push, retry once; `write \| unchanged \| refused` plans (focus + merge line) | 5 |
 | `skills/spec/tools/pr/actions/merge.ts` | `mergePr`: green via `waitStep`, method, PUT, merge line on main, already-merged path | 5 |
 | `skills/spec/tools/pr/actions/merge-line.ts` | `mergeLine`, `withMergeLine` — idempotent `PR #n merged …` at the end of Spec state | 5 |
@@ -27,12 +27,16 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/pr/babysit/wait.ts` | `waitForPr` — resolve, timed `gh pr view` per poll, log waiting + settle | 3 |
 | `skills/spec/tools/commands/pr/wait.ts` | `pr wait` flags and defaults | 3 |
 | `skills/spec/tools/tests/fake-clock.ts` | `fakeClock()`; `routeGh` (stub-runner.ts) for real git + stubbed gh; `phasedSpecFiles` (pr-factories.ts) | 4 |
+| `skills/spec/tools/pr/failures/triage.ts` | `infraFact`, `infraFromLog` — infra or not, signatures over the whole log | 6 |
+| `skills/spec/tools/pr/failures/job-logs.ts` | `savedJobLogs`, `jobLogDir`, `jobLogFile` — each failed job's log saved once under `babysit/pr-<n>/` | 6 |
+| `skills/spec/tools/pr/actions/rerun-plan.ts` | `planRerun` (pure: all-or-nothing infra, in-progress, `MAX_ATTEMPTS`), `rerunLine` | 6 |
+| `skills/spec/tools/pr/actions/rerun.ts` | `rerunPr` — classify, write per run, log `rerun`; `commands/pr/rerun.ts` | 6 |
 
 ## Existing files touched
 
 | File | Why we care | Ledger |
 |------|-------------|--------|
-| `skills/spec/tools/pr/checks/checks.ts` | `prState`, `summarizeChecks` (carries the verdict) | |
+| `skills/spec/tools/pr/checks/checks.ts` | `prState`, `summarizeChecks` (carries the verdict), `failedOrCancelled` | |
 | `skills/spec/tools/pr/checks/rollup.ts` | `rollupToChecks` — the one mapper + workflow+name dedupe, shared by pr status and the board | `decision-checks-read-on-the-head` |
 | `skills/spec/tools/pr/gh-lists.ts` | board's `statusCheckRollup` read, `GH_TIMEOUT_MS` | |
 | `skills/spec/tools/board/attention.ts` | needs-you merge/fix rows; suppressed while babysitting | `decision-pr-claims-liveness-only` |

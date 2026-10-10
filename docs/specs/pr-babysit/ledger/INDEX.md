@@ -11,6 +11,8 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `docs/specs/_ledger/gotcha-gh-run-list-cannot-name-the-trigger-action.md` — [general] — gh run list has no trigger action: key the ready run on new run ids
 - `docs/specs/_ledger/gotcha-gh-api-error-body-is-valid-json.md` — [general] — gh api 4xx exits 1 with a JSON body: branch on exit code, status from stderr
 
+- `gotcha-many-failures-spend-the-gh-budget.md` — [phase 7] — 19 failures spend the 30 gh calls; re-run pr status, saved logs are free
+
 ## Principles
 
 ## Domain
@@ -26,5 +28,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-handoff-before-babysit-launch.md` — [phase 7] — hand off in full, then launch babysit last
 - `decision-pr-claims-liveness-only.md` — [phase 7] — pr-<group> claims: takeRefusal only, no merged rule
 - `decision-merge-green-is-wait-green.md` — [phase 6, 7] — pr merge: waitStep green on the pinned head; line on main, never undo
+- `decision-agent-reads-saved-job-logs.md` — [phase 7, 8] — pr status saves each failed job's log; triage greps the file
 
 ## Workarounds
