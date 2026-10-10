@@ -1,10 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { ghClient } from "../pr/gh";
+import { prView } from "./pr-factories";
 import { stubRunner } from "./stub-runner";
 
 const fixture = (name: string) => Bun.file(join(import.meta.dir, "fixtures", name)).text();
-const PR_VIEW = '{"headRefOid":"08bb7dbd47fa14537ef4","isDraft":false,"mergeStateStatus":"UNKNOWN","mergeable":"UNKNOWN","number":875,"state":"OPEN"}';
+const UNKNOWN = prView({ mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN" });
+const PR_VIEW = JSON.stringify(UNKNOWN);
 const CHECKS = await fixture("gh-pr-checks.json");
 const RUN_JOBS = await fixture("gh-run-jobs.json");
 const RUN_LIST = await fixture("gh-run-list.json");
@@ -18,7 +20,7 @@ describe("ghClient", () => {
       [["gh", "run", "view", "36796809320", "--json", "workflowDatabaseId"], { stdout: RUN_JOBS }],
       [["gh", "run", "list"], { stdout: RUN_LIST }],
     ]));
-    expect(gh.prView(875)).toEqual({ ok: true, value: { number: 875, state: "OPEN", isDraft: false, mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN", headRefOid: "08bb7dbd47fa14537ef4" } });
+    expect(gh.prView(875)).toEqual({ ok: true, value: UNKNOWN });
     const checks = gh.prChecks(875);
     expect(checks.ok && checks.value.find((check) => check.name === "Vercel – site-a")).toMatchObject({ bucket: "pending", workflow: "" });
     expect(gh.runJobs(36796809320)).toMatchObject({ ok: true, value: [{ name: "Ops Tests" }, { name: "Backend Tests", id: 110162211428, conclusion: "failure" }, { name: "Landing Tests" }] });

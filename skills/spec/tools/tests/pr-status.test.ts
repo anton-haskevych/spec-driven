@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { prStatusReport } from "../commands/pr-status";
 import { specPrNumbers } from "../pr/resolve";
+import { prView } from "./pr-factories";
 import { stubRunner } from "./stub-runner";
 import { createTree, type Tree } from "./tree";
 
-const view = (number: number, state: string) =>
-  JSON.stringify({ number, state, isDraft: false, mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", headRefOid: "abcdef0123" });
+const view = (number: number, state: string) => JSON.stringify(prView({ number, state, headRefOid: "abcdef0123" }));
 const GIT_MAIN = [["git", "symbolic-ref"], { stdout: "origin/main\n" }] as const;
 
 describe("specPrNumbers", () => {

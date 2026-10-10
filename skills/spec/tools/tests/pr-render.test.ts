@@ -3,9 +3,10 @@ import { summarizeChecks } from "../pr/checks/checks";
 import { renderReport } from "../pr/render";
 import type { PrReport } from "../pr/report";
 import type { Check } from "../pr/checks/types";
+import { check as checkOf, prView } from "./pr-factories";
 
-const check = (name: string, bucket: Check["bucket"], workflow = "Landing Tests", link = ""): Check => ({ name, bucket, workflow, link });
-const VIEW = { number: 871, state: "OPEN", isDraft: false, mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", headRefOid: "084ec54f1be9c7c7" };
+const check = (name: string, bucket: Check["bucket"], workflow = "Landing Tests", link = ""): Check => checkOf({ name, bucket, workflow, link });
+const VIEW = prView({ number: 871, headRefOid: "084ec54f1be9c7c7" });
 const CHECKS = [check("Unit tests", "fail"), check("Lint", "pass"), check("E2E", "skipping"), check("Vercel – a", "pass", "")];
 
 function report(overrides: Partial<PrReport> = {}): PrReport {

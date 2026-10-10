@@ -1,30 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
-import type { RunResult, Runner } from "../core/run";
 import { ghClient } from "../pr/gh";
 import { buildReport, TAILS_SHOWN } from "../pr/report";
-import type { PrView } from "../pr/checks/types";
+import { check, prView } from "./pr-factories";
+import { sequencedRunner } from "./stub-runner";
 
 const fixture = (name: string) => Bun.file(join(import.meta.dir, "fixtures", name)).text();
 const CHECKS = await fixture("gh-pr-checks.json");
 const RUN_JOBS = await fixture("gh-run-jobs.json");
 const RUN_LIST = await fixture("gh-run-list.json");
 const LOG = await fixture("gh-job-log.txt");
-const UNKNOWN: PrView = { number: 875, state: "OPEN", isDraft: false, mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN", headRefOid: "08bb7dbd" };
-
-// Answers each argv prefix from a queue, so a repeated call can get a different reply.
-function sequencedRunner(replies: Array<[readonly string[], Partial<RunResult>[]]>): Runner & { calls: string[][] } {
-  const calls: string[][] = [];
-  return {
-    calls,
-    run(argv) {
-      calls.push([...argv]);
-      const entry = replies.find(([prefix]) => prefix.every((part, index) => argv[index] === part));
-      const reply = entry && (entry[1].length > 1 ? entry[1].shift() : entry[1][0]);
-      return { code: 0, stdout: "", stderr: "", ...(reply ?? { code: 1, stderr: "no canned result" }) };
-    },
-  };
-}
+const UNKNOWN = prView({ mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN", headRefOid: "08bb7dbd" });
 
 describe("buildReport", () => {
   test("re-polls mergeability once, then reports failing jobs with tail and main comparison", () => {
@@ -61,9 +47,9 @@ describe("buildReport", () => {
   });
 
   test("fetches tails for the first few failures only; each log is a large download", () => {
-    const failing = Array.from({ length: TAILS_SHOWN + 2 }, (_, index) => ({
-      name: `Job ${index}`, bucket: "fail", workflow: "CI", link: `https://github.com/acme/app/actions/runs/1/job/${index}`,
-    }));
+    const failing = Array.from({ length: TAILS_SHOWN + 2 }, (_, index) =>
+      check({ name: `Job ${index}`, bucket: "fail", link: `https://github.com/acme/app/actions/runs/1/job/${index}` }),
+    );
     const runner = sequencedRunner([
       [["gh", "pr", "checks"], [{ stdout: JSON.stringify(failing) }]],
       [["gh", "api"], [{ stdout: LOG }]],

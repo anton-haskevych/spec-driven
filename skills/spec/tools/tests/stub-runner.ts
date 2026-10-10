@@ -38,3 +38,17 @@ export function cannedGh(runner: AsyncRunner, canned: CannedRuns): AsyncRunner {
   const gh = asyncStubRunner(canned);
   return { run: (argv, options) => (argv[0] === "gh" ? gh.run(argv, options) : runner.run(argv, options)) };
 }
+
+// Answers each argv prefix from a queue, so a repeated call can get a different reply; the last reply repeats.
+export function sequencedRunner(replies: Array<[readonly string[], Partial<RunResult>[]]>): Runner & { calls: string[][] } {
+  const calls: string[][] = [];
+  return {
+    calls,
+    run(argv) {
+      calls.push([...argv]);
+      const entry = replies.find(([prefix]) => prefix.every((part, index) => argv[index] === part));
+      const reply = entry && (entry[1].length > 1 ? entry[1].shift() : entry[1][0]);
+      return { code: 0, stdout: "", stderr: "", ...(reply ?? { code: 1, stderr: "no canned result" }) };
+    },
+  };
+}

@@ -1,10 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import { actionsJob, prState, summarizeChecks } from "../pr/checks/checks";
-import type { Check, PrView } from "../pr/checks/types";
+import type { Check } from "../pr/checks/types";
+import { prView } from "./pr-factories";
 
 const CHECKS: Check[] = await Bun.file(join(import.meta.dir, "fixtures", "gh-pr-checks.json")).json();
-const OPEN: PrView = { number: 875, state: "OPEN", isDraft: false, mergeable: "MERGEABLE", mergeStateStatus: "CLEAN", headRefOid: "08bb7dbd47fa" };
+const OPEN = prView();
 
 describe("summarizeChecks", () => {
   test("counts buckets and sets external checks apart", () => {
