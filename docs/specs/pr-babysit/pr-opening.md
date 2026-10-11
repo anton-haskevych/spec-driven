@@ -6,6 +6,7 @@ Spec written 2026-10-10 from prep (`research/2026-10-10-wave-1-pr-moment-ci-real
 Done: phase 1 (verdict, rollup source, `pr status` table, `pr` group), phase 2 (babysit log, `pr log`), phase 3 (`pr wait`; smoke green on CRM #923), phase 4 (`pr open`, race-safe ready, `<spec> <group>` by branch), phase 5 (`pr merge`, merge line on main via `core/land-on-main.ts`), phase 6 (failure facts + saved job logs in `pr status`, `pr rerun`, `gates.ci-triage`; smoke on CRM #922), phase 7 (the PR question, `babysit` sub-command + `babysit.md`, `launch babysit`, `pr-<group>` claims, `babysitting` board cell, `pr log --start/--pushed/--stopped`, 2.42.0). Left: PR A (pre-PR checks green, awaiting the PR question), then 8 in CRM (its `checks.external: ["Vercel*"]` already landed on CRM main, `d59712d`).
 Split: **PR A: phases 1–7**, one PR (Anton prefers the fewest PRs), release 2.42.0. Phases 1 and 2 start in parallel; 3, 4 and 6 follow; 5 after 4; 7 last.
 Phase 8 (task) runs in CRM once 2.42.0 is installed.
+PR #22 merged 2026-10-10 as c7a01e8 (squash).
 
 ## Pre-PR checks
 
