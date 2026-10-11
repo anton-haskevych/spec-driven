@@ -9,7 +9,7 @@ import { attributeSessions } from "./attribution";
 import { deployWaits } from "./deploy-waits";
 import type { BoardInputs } from "./inputs";
 import { linkedPrs, toPrCell } from "./joins";
-import type { PrRow } from "../pr/rollup";
+import type { PrRow } from "../pr/checks/rollup";
 import type { BlockedRow, FlightRow, FocusNow, FocusRow, FocusSession, ReadyRow } from "./model";
 import { focusWork, type PersonClaim } from "./people";
 import { splitKey } from "./phase-keys";

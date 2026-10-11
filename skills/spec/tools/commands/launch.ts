@@ -3,22 +3,24 @@ import { systemRunner, type Runner } from "../core/run";
 import { sessionLaunch } from "../launch/command-line";
 import type { Env } from "../core/env";
 import { launchArgv, pickTerminal } from "../launch/terminal";
-import { placeTree, type Placement } from "../trees/place";
+import { prClaimId } from "../claims/pr-claim";
+import { placeTree, type Placement, type PlaceOptions } from "../trees/place";
 import { renderPlacement, systemPlaceDeps } from "./trees";
 
 export { LAUNCH_USAGE } from "../launch/command-line";
 
-export type PlaceFn = (spec: string, phase: string) => Promise<Result<Placement>>;
+export type PlaceFn = (spec: string, phase: string, options: PlaceOptions) => Promise<Result<Placement>>;
 
-// `launch execute <spec> <phase>` opens the session in the tree placement picks; anything else opens here.
+// `launch execute <spec> <phase>` opens the session in the tree placement picks, and `launch babysit
+// <spec> <group>` in the group's existing tree (the PR's code lives there); anything else opens here.
 export async function launchCommand(projectDir: string, args: readonly string[], place?: PlaceFn, env: Env = process.env, runner: Runner = systemRunner): Promise<string> {
   const launch = sessionLaunch(projectDir, args);
   if (!launch.ok) return `launch: ${launch.reason}`;
-  const [, spec, phase] = args;
-  if (!spec || phase === undefined) return launchReport(projectDir, args, env, runner);
+  const [subCommand, spec, target] = args;
+  if (!spec || target === undefined) return launchReport(projectDir, args, env, runner);
 
-  const placeIt = place ?? ((name, id) => placeTree(projectDir, name, id, systemPlaceDeps()));
-  const placed = await placeIt(spec, phase);
+  const placeIt = place ?? ((name, id, options) => placeTree(projectDir, name, id, systemPlaceDeps(), options));
+  const placed = subCommand === "babysit" ? await placeIt(spec, prClaimId(target), { existingOnly: true }) : await placeIt(spec, target, {});
   if (!placed.ok) return `launch: ${placed.reason}`;
   if (placed.value.kind === "busy") return `launch: ${placed.value.path} is busy, ${placed.value.holder}; not launched`;
   return [renderPlacement(placed), launchReport(placed.value.path, args, env, runner)].join("\n");

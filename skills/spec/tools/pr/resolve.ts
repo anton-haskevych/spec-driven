@@ -1,9 +1,12 @@
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
-import { findSpecs } from "../core/spec-folders";
+import { resolveSpec, type SpecFolder } from "../core/spec-folders";
+import { loadSpecState } from "../core/spec-state";
 import type { Result } from "../core/result";
+import { treeName } from "../trees/naming";
 import type { GhClient } from "./gh";
-import type { PrView } from "./types";
+import type { PrView } from "./checks/types";
+import { pickGroup, prGroups } from "./groups";
 
 export interface ResolvedPr {
   view: PrView;
@@ -20,16 +23,35 @@ export function specPrNumbers(prOpening: string): number[] {
   return [...new Set(numbers)];
 }
 
-export function resolvePr(gh: GhClient, projectDir: string, target: string | undefined): Result<ResolvedPr> {
-  if (target === undefined) return withoutOthers(gh.prView());
+export function parsePrNumber(target: string): number | undefined {
   const number = PR_NUMBER.exec(target)?.[1];
-  if (number) return withoutOthers(gh.prView(Number(number)));
+  return number === undefined ? undefined : Number(number);
+}
 
-  const [spec] = findSpecs(projectDir, target);
-  if (!spec) return { ok: false, reason: `no PR number or spec named ${target}` };
-  const numbers = specPrNumbers(readTextIfExists(join(spec.dir, "pr-opening.md")) ?? "");
-  if (numbers.length === 0) return { ok: false, reason: `pr-opening.md for ${target} links no PR` };
-  return latestOpenPr(gh, numbers);
+// `target` is [], [<pr>], [<spec>] or [<spec>, <group>].
+export function resolvePr(gh: GhClient, projectDir: string, target: readonly string[]): Result<ResolvedPr> {
+  const [first, group] = target;
+  if (first === undefined) return withoutOthers(gh.prView());
+  const number = parsePrNumber(first);
+  if (number !== undefined) return withoutOthers(gh.prView(number));
+
+  const spec = resolveSpec(projectDir, first);
+  if (typeof spec === "string") return { ok: false, reason: spec };
+  return resolveGroupPr(gh, spec, group);
+}
+
+// By branch, so a command aimed at group A never lands on group B's PR. Spec-state links are the
+// fallback only for a single-group spec, where the newest-open rule can't pick another group's PR.
+function resolveGroupPr(gh: GhClient, spec: SpecFolder, requested: string | undefined): Result<ResolvedPr> {
+  const state = loadSpecState(spec);
+  const group = pickGroup(state, requested);
+  if (!group.ok) return group;
+  const linked = specPrNumbers(readTextIfExists(join(spec.dir, "pr-opening.md")) ?? "");
+  const byBranch = gh.prView(treeName(spec.name, group.value.name).branch);
+  if (byBranch.ok) return withOthers(byBranch.value, linked);
+  if (prGroups(state).length > 1) return byBranch;
+  if (linked.length === 0) return { ok: false, reason: `${byBranch.reason}; pr-opening.md for ${spec.name} links no PR` };
+  return latestOpenPr(gh, linked);
 }
 
 // A spec often lists several PRs; the newest open one is the one being worked on.

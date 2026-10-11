@@ -1,18 +1,21 @@
 import { describe, expect, test } from "bun:test";
 import type { BoardInputs } from "../board/inputs";
 import { attachPrs, attachSessions, linkedPrs, toPrCell } from "../board/joins";
-import type { CheckSummary } from "../pr/checks";
-import type { PrRow } from "../pr/rollup";
+import { summarizeChecks, type CheckSummary } from "../pr/checks/checks";
+import type { PrRow } from "../pr/checks/rollup";
+import { BUCKETS } from "../pr/checks/types";
 import type { LiveSession } from "../sessions/live";
 import { boardInputs, flightRow, prRow, workspaceView } from "./board-factories";
-import { liveSession } from "./factories";
+import { heldClaim, liveSession } from "./factories";
+import { check } from "./pr-factories";
 
 function session(cwd: string, overrides: Partial<LiveSession> = {}): LiveSession {
   return liveSession({ sessionId: cwd, cwd, status: "busy", ...overrides });
 }
 
 function checks(counts: Partial<CheckSummary["counts"]>): CheckSummary {
-  return { counts: { pass: 0, fail: 0, pending: 0, skipping: 0, cancel: 0, ...counts }, external: 0, failing: [] };
+  const rows = BUCKETS.flatMap((bucket) => Array.from({ length: counts[bucket] ?? 0 }, (_, index) => check({ name: `${bucket} ${index}`, bucket })));
+  return summarizeChecks(rows, []);
 }
 
 function pr(number: number, branch: string, overrides: Partial<PrRow> = {}): PrRow {
@@ -59,8 +62,8 @@ describe("attachPrs", () => {
     attachPrs([row], boardInputs([], { workspaces, prs: { ok: true, value: prs }, prLinks }))[0];
 
   test("joins by the worktree's branch, open PR first", () => {
-    const joined = prsFor([pr(5, "foo", { state: "MERGED" }), pr(4, "foo", { draft: true, checks: checks({ pass: 2, pending: 1 }) })]);
-    expect(joined?.pr).toEqual({ number: 4, listed: true, draft: true, failing: 0, pending: 1, passing: 2 });
+    const joined = prsFor([pr(5, "foo", { state: "MERGED" }), pr(4, "foo", { draft: true, checks: checks({ pass: 2, queued: 1 }) })]);
+    expect(joined?.pr).toEqual({ number: 4, listed: true, draft: true, failing: 0, pending: 1, passing: 2, verdict: "waiting" });
   });
 
   test("without an open PR, the newest one shows with its state", () => {
@@ -88,7 +91,7 @@ describe("attachPrs", () => {
   test("a ready PR with at least one check, all passing, is next to merge", () => {
     expect(prsFor([pr(1, "foo", { checks: checks({ pass: 2, skipping: 4 }) })], undefined, flightRow({ workspace: FOO, next: "ticked on branch, not merged" }))?.next).toBe("merge");
     expect(prsFor([pr(1, "foo", { draft: true, checks: checks({ pass: 2 }) })])?.next).toBe("executing");
-    expect(prsFor([pr(1, "foo", { checks: checks({ pass: 2, pending: 1 }) })])?.next).toBe("executing");
+    expect(prsFor([pr(1, "foo", { checks: checks({ pass: 2, running: 1 }) })])?.next).toBe("executing");
     expect(prsFor([pr(1, "foo", { checks: checks({ skipping: 2 }) })])?.next).toBe("executing");
   });
 
@@ -98,9 +101,25 @@ describe("attachPrs", () => {
   });
 });
 
+describe("attachPrs while a babysitter holds the PR group", () => {
+  const groupRow = (prGroup: string) => flightRow({ workspace: FOO, prGroup, next: "ticked on branch, not merged" });
+  const green = [pr(1, "foo", { checks: checks({ pass: 2 }) })];
+  const joined = (status: Parameters<typeof heldClaim>[0], row = groupRow("A")) =>
+    attachPrs([row], boardInputs([], { workspaces, prs: { ok: true, value: green }, claims: [heldClaim(status, { spec: "alpha", phase: "pr-A" })] }))[0];
+
+  test("a live, remote or unreadable PR claim shows the PR as babysitting, not to merge", () => {
+    for (const status of ["live", "remote", "unknown"] as const) expect(joined(status)).toMatchObject({ next: "babysitting", pr: { number: 1, babysitting: true } });
+  });
+
+  test("a closed claim, or another group's, leaves the verdict as it is", () => {
+    expect(joined("closed")?.next).toBe("merge");
+    expect(joined("live", groupRow("B"))?.next).toBe("merge");
+  });
+});
+
 describe("toPrCell", () => {
   test("an open PR carries its check counts, failing including cancelled", () => {
-    expect(toPrCell(pr(4, "foo", { draft: true, checks: checks({ pass: 2, fail: 1, cancel: 1, pending: 3 }) }))).toEqual({ number: 4, listed: true, draft: true, failing: 2, pending: 3, passing: 2 });
+    expect(toPrCell(pr(4, "foo", { draft: true, checks: checks({ pass: 2, fail: 1, cancel: 1, queued: 1, running: 2 }) }))).toEqual({ number: 4, listed: true, draft: true, failing: 2, pending: 3, passing: 2, verdict: "red" });
   });
 
   test("an open PR without checks is just its number", () => {

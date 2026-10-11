@@ -1,6 +1,6 @@
 import type { HeldClaim } from "../claims/rules";
 import type { Result } from "../core/result";
-import type { PrRow } from "../pr/rollup";
+import type { PrRow } from "../pr/checks/rollup";
 import type { LiveSession } from "../sessions/live";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";

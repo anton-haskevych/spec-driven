@@ -10,13 +10,13 @@ pr: A
 **Outcome:** Waiting on CI costs the agent one notification instead of dozens of polling turns, and website previews never hold it up · small to medium · risk: a stuck wait — bounded by `--timeout` and a per-call gh timeout.
 
 **Files to touch:**
-- `skills/spec/tools/pr/babysit/wait.ts`, `pr/babysit/poll.ts` (new)
+- `skills/spec/tools/pr/babysit/wait.ts`, `pr/babysit/wait-step.ts` (new; `pollUntil` in `poll.ts` landed in phase 4)
 - `skills/spec/tools/commands/pr.ts`, `commands/pr/wait.ts`
 - `skills/spec/tools/tests/pr-wait.test.ts` (new)
 
 ## Implementation guidance
 
-Split the logic from the loop. `waitStep(prev, view, checks, elapsed) → { events, settle? }` is pure: it decides whether this poll settles (`green`, `red`, `cancelled`, `none`, `merged`, `closed`, `conflicting`) and what to log. `pollUntil(read, settled, { interval, deadline, sleep, now })` is the one polling helper (phase 4's ready check uses it too). `wait.ts` wires them: each poll is one `gh pr view <n> --json …,statusCheckRollup` through the async runner with `GH_TIMEOUT_MS` — no failure facts, no log tails, no `buildReport`.
+Split the logic from the loop. `waitStep(view, context, nowMs) → { settle } | { waiting }` is pure (`pr/babysit/wait-step.ts`): it decides whether this poll settles (`green`, `red`, `cancelled`, `none`, `merged`, `closed`, `conflicting`) and what to log. `pollUntil(read, settled, { interval, deadline, sleep, now })` is the one polling helper (phase 4's ready check uses it too). `wait.ts` wires them: each poll is one `gh pr view <n> --json …,statusCheckRollup` with `GH_TIMEOUT_MS` through the sync `Runner` every pr module takes (not `ghClient`: its 30-call budget runs out mid-wait) — no failure facts, no log tails, no `buildReport`.
 
 Inputs that keep it from settling on stale data:
 - `--sha` (default: the tree's `HEAD` when run in the PR's tree): while `headRefOid` ≠ it, keep polling.
@@ -27,10 +27,10 @@ Write the settle event to the log before printing the line, so a killed backgrou
 
 ## Deliverables
 
-- [ ] `pr/babysit/poll.ts` `pollUntil` with injected sleep/now — tests
-- [ ] `waitStep` pure settle logic incl. `--sha` lag, `--since` stale-failure skip, 3-min `none`, all-skipped `none` — table tests over `sequencedRunner` replies (pending → green; pending → red; queued re-run beside the old failure stays waiting; no rows ×N → none; merged mid-wait; head lag)
-- [ ] Live probe in a launched `claude -n` tab (nobody typing): a background Bash `pr wait` on a real open PR re-invokes the idle session on exit; record what the notification carries (output, exit code) and whether a `--bg`/`-p` session cuts it at 30 min — `domain` ledger entry updated with the result
-- [ ] `pr wait [<target>]` prints exactly one result line (technical.md → Commands), logs `waiting` and one settle event; a smoke run on a real open PR of this repo prints green
+- [x] `pr/babysit/poll.ts` `pollUntil` with injected sleep/now — tests
+- [x] `waitStep` pure settle logic incl. `--sha` lag, `--since` stale-failure skip, 3-min `none`, all-skipped `none` — table tests over `sequencedRunner` replies (pending → green; pending → red; queued re-run beside the old failure stays waiting; no rows ×N → none; merged mid-wait; head lag)
+- [x] Live probe in a launched `claude -n` tab (nobody typing): a background Bash `pr wait` on a real open PR re-invokes the idle session on exit; record what the notification carries (output, exit code) and whether a `--bg`/`-p` session cuts it at 30 min — `domain` ledger entry updated with the result — idle-tab wake verified 2026-10-10 (ledger domain-claude-code-wait-primitives); -p 30-min cap dropped by Anton
+- [x] `pr wait [<target>]` prints exactly one result line (technical.md → Commands), logs `waiting` and one settle event; a smoke run on a real open PR of this repo prints green
 
 ## Phase-local notes
 

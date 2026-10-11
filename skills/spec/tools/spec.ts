@@ -12,7 +12,7 @@ import { FOCUS_USAGE, focusCommand } from "./commands/focus";
 import { LIST_USAGE, listCommand } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
-import { PR_STATUS_USAGE, prStatusReport } from "./commands/pr-status";
+import { PR_USAGE, prCommand } from "./commands/pr";
 import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
 import { PUSH_USAGE, pushReport } from "./commands/push";
 import { readyReport } from "./commands/ready";
@@ -40,7 +40,7 @@ export const COMMANDS: Record<string, Command> = {
   playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
   phase: { usage: PHASE_USAGE, run: phaseCommand },
   settings: { usage: "settings", run: (dir) => settingsReport(dir) },
-  "pr-status": { usage: PR_STATUS_USAGE, run: (dir, args) => prStatusReport(dir, args) },
+  pr: { usage: PR_USAGE, run: (dir, args) => prCommand(dir, args) },
   push: { usage: PUSH_USAGE, run: (dir, args) => pushReport(dir, args) },
   "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
   claim: { usage: CLAIM_USAGE, run: (dir, args) => claimCommand(dir, args) },

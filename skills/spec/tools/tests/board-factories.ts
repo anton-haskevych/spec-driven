@@ -3,7 +3,7 @@ import { BOARD_VERSION, type Board, type FlightRow, type ReadyRow } from "../boa
 import type { SpecMeta } from "../core/spec-meta";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
-import type { PrRow } from "../pr/rollup";
+import type { PrRow } from "../pr/checks/rollup";
 import { specMeta, specNode } from "./factories";
 
 export const NOW = new Date("2026-10-01T20:00:00Z");

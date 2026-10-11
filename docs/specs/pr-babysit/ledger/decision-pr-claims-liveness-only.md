@@ -10,7 +10,10 @@ created: 2026-10-10T13:30:36-07:00
 already accepts any id; `trees/find.ts:84-86` already blocks a tree with any live claim. The claim is
 released at the end of babysit and reads `closed` (stale) once the session is gone. It mirrors to
 origin like a phase claim. A live PR claim makes the board show the PR as `babysitting` with no
-merge/fix needs-you row.
+merge/fix needs-you row; `remote` and `unknown` (unreadable session files) count too, so the board never
+asks you to merge a PR a babysitter may be merging (`board/joins.ts` `babysatGroups`). Placement for
+`launch babysit` passes `pr-<group>` and `existingOnly`: `placeTree` would otherwise cut a fresh tree
+before launch could refuse it.
 
 Rejected: "done when the PR is merged or closed" — needs GitHub data inside the pure, offline
 `claimStatus` that board, place and prune share, for a case liveness already covers. Rejected for now:

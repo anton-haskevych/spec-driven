@@ -1,44 +1,54 @@
-import { actionsJob, prState, summarizeChecks, type CheckSummary, type PrState } from "./checks";
+import { failedOrCancelled, prState, summarizeChecks, type CheckSummary, type PrState } from "./checks/checks";
 import type { Result } from "../core/result";
 import type { GhClient } from "./gh";
-import { failureTail } from "./log-tail";
-import { compareOnMain, type MainComparison } from "./main-compare";
-import type { Check, PrView } from "./types";
+import { savedJobLogs, type JobLogs } from "./failures/job-logs";
+import { failureTail } from "./failures/log-tail";
+import { compareOnMain, type MainComparison } from "./failures/main-compare";
+import { infraFromLog, type InfraFact } from "./failures/triage";
+import type { Check, PrView } from "./checks/types";
+import { externalMatcher } from "./checks/verdict";
 
 export interface FailedCheckReport {
   check: Check;
   job: { runId: number; jobId: number } | undefined;
   main?: MainComparison;
+  infra?: Result<InfraFact>;
   tail?: Result<string[]>;
+  logPath?: string;
 }
 
 export interface PrReport {
   view: PrView;
   state: PrState;
   summary: CheckSummary | undefined;
-  checksError?: string;
   externalPatterns: readonly string[];
   failures: FailedCheckReport[];
   otherPrs: readonly number[];
+  triageGate?: string;
 }
-
-export const TAILS_SHOWN = 3;
 
 export interface ReportOptions {
   externalPatterns: readonly string[];
   defaultBranch: string | undefined;
   otherPrs?: readonly number[];
+  jobLogs?: JobLogs;
+  triageGate?: string;
 }
 
 export function buildReport(gh: GhClient, firstView: PrView, options: ReportOptions): PrReport {
   const view = settledView(gh, firstView);
-  const base = { view, externalPatterns: options.externalPatterns, otherPrs: options.otherPrs ?? [], failures: [] };
+  const base = {
+    view,
+    externalPatterns: options.externalPatterns,
+    otherPrs: options.otherPrs ?? [],
+    failures: [],
+    ...(options.triageGate ? { triageGate: options.triageGate } : {}),
+  };
   if (view.state !== "OPEN") return { ...base, state: prState(view, undefined), summary: undefined };
 
-  const checks = gh.prChecks(view.number);
-  if (!checks.ok) return { ...base, state: prState(view, undefined), summary: undefined, checksError: checks.reason };
-  const summary = summarizeChecks(checks.value, options.externalPatterns);
-  const failures = summary.failing.map((check, index) => failedCheck(gh, check, options.defaultBranch, index < TAILS_SHOWN));
+  const summary = summarizeChecks(view.checks, options.externalPatterns);
+  const jobLogs = options.jobLogs ?? savedJobLogs(gh.jobLog, undefined);
+  const failures = failedOrCancelled(view.checks, externalMatcher(options.externalPatterns)).map((check) => failedCheck(gh, jobLogs, check, options.defaultBranch));
   return { ...base, state: prState(view, summary), summary, failures };
 }
 
@@ -49,18 +59,20 @@ function settledView(gh: GhClient, view: PrView): PrView {
   return again.ok ? again.value : view;
 }
 
-function failedCheck(gh: GhClient, check: Check, defaultBranch: string | undefined, withTail: boolean): FailedCheckReport {
-  const job = actionsJob(check.link);
+function failedCheck(gh: GhClient, jobLogs: JobLogs, check: Check, defaultBranch: string | undefined): FailedCheckReport {
+  const job = check.runId !== undefined && check.jobId !== undefined ? { runId: check.runId, jobId: check.jobId } : undefined;
   if (!job) return { check, job };
-  const tail = withTail ? jobTail(gh, job.jobId) : { ok: false as const, reason: `only the first ${TAILS_SHOWN} failures get a tail` };
+  const log = jobLogs(job.jobId);
+  const run = gh.run(job.runId);
   const main: MainComparison = defaultBranch
     ? compareOnMain(gh, { name: check.name, runId: job.runId }, defaultBranch)
     : { kind: "unavailable", reason: "no default branch" };
-  return { check, job, main, tail };
-}
-
-// Each job log is a full download (often over 1 MB), so only the first few failures get one.
-function jobTail(gh: GhClient, jobId: number): Result<string[]> {
-  const log = gh.jobLog(jobId);
-  return log.ok ? { ok: true, value: failureTail(log.value) } : log;
+  return {
+    check,
+    job,
+    main,
+    infra: run.ok ? infraFromLog(job.jobId, run.value, log.ok ? { ok: true, value: log.value.text } : log) : run,
+    tail: log.ok ? { ok: true, value: failureTail(log.value.text) } : log,
+    ...(log.ok && log.value.path ? { logPath: log.value.path } : {}),
+  };
 }

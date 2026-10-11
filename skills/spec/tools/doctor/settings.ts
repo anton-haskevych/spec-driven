@@ -17,8 +17,8 @@ export function checkSettings(file: string, text: string, gates: Gates): Issue[]
   const frontmatter = parseFrontmatter(text);
   if (frontmatter.kind === "invalid") return [error(file, frontmatter.error)];
   const { settings, problems } = parseSettings(text);
-  const { afterMergeMain, bootstrap, perCommit } = settings.gates;
-  const named = Object.entries({ "after-merge-main": afterMergeMain, bootstrap, "per-commit": perCommit })
+  const { afterMergeMain, bootstrap, perCommit, ciTriage } = settings.gates;
+  const named = Object.entries({ "after-merge-main": afterMergeMain, bootstrap, "per-commit": perCommit, "ci-triage": ciTriage })
     .flatMap(([key, name]) => (name ? [{ key, name }] : []));
   return [...problems.map((problem) => warning(file, problem)), ...gateNameIssues(file, named, gates)];
 }

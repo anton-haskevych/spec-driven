@@ -1,0 +1,5 @@
+﻿2026-10-01T00:35:16.4164631Z Current runner version: '2.337.0'
+2026-10-01T00:36:45.1336646Z ##[group]Run pnpm test:backend --all --workers 4
+2026-10-01T00:36:45.1338000Z ##[endgroup]
+2026-10-01T00:40:00.0000000Z progress line 0
+2026-10-01T00:52:00.0000000Z ##[error]The hosted runner: GitHub Actions 12 lost communication with the server. Anything in your workflow that terminates the runner process, starves it for CPU/Memory, or blocks its network access can cause this error.

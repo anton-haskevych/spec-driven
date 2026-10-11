@@ -1,4 +1,5 @@
-import { ago, alignColumns, EMPTY, lane, monthDay, prCell } from "./cells";
+import { alignColumns } from "../core/columns";
+import { ago, EMPTY, lane, monthDay, prCell } from "./cells";
 import type { Board, FlightNext, FocusClaim, FocusNow, FocusRow, FocusSession, FocusWork } from "./model";
 import { ME, personKey } from "./people";
 

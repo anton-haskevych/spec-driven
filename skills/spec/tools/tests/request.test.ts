@@ -7,6 +7,7 @@ describe("parseContextRequest", () => {
     [["checkout resume"], { mode: "resume", name: "checkout" }],
     [["checkout"], { mode: "route", name: "checkout" }],
     [["EXECUTE checkout\n"], { mode: "execute", name: "checkout" }],
+    [["babysit pr-babysit A"], { mode: "babysit", name: "pr-babysit", hint: "A" }],
   ])("keeps today's forms: %p", (argv, expected) => {
     expect(parseContextRequest(argv)).toEqual({ hint: undefined, ...expected });
   });

@@ -82,6 +82,8 @@ PR B is ready: phases 11–13 (fast-parallel-backend-tests), 14 commits, pre-PR 
   └─────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+Conflicts are frequent and never stop the babysit: the agent merges main, resolves, gates, pushes and waits again (`ledger/decision-agent-resolves-merge-conflicts.md`); a conflict merge is not a fix push.
+
 Limits: 2 re-runs per run (GitHub's `attempt`), 3 fix pushes per babysit, 3 hours total (counted from
 the latest `babysit-start` log event). Hitting one stops and asks. Every arrow is a log event.
 After a `pr rerun` or a push, the next `pr wait` ignores failed rows that completed before it.
@@ -140,7 +142,7 @@ Next: phase 14 is ready in tree …-pr-c3.
 
 ## Edge cases
 
-- **No checks yet right after a push:** `pr wait` keeps waiting until GitHub's head is the pushed SHA (`--sha`) and it has checks (up to 3 min), then reports `none · no checks on <sha>` and the babysitter checks why: conflicting PR (no workflows run), a draft, or paths outside CI.
+- **No checks yet right after a push:** `pr wait` keeps waiting until GitHub's head is the pushed SHA (`--sha`) and it has checks (up to 3 min), then reports `none · no checks on <sha>` and the babysitter checks why, conflict with main first (`git merge-tree`; a conflicting PR runs no workflows), then a draft, then paths outside CI. `pr wait` already settles `conflicting` at once when GitHub reports it (`mergeable: CONFLICTING` or `mergeStateStatus: DIRTY`).
 - **All checks skipped:** `none · CI skipped itself` — push a new commit; a re-run doesn't fix it.
 - **Right after a re-run:** the re-run is queued with no start time; it counts as newest, so the old failed row doesn't settle the wait red. A re-run of a run still in progress is refused (`still running — wait`).
 - **Draft-skip race** (CRM `git-workflow.md:23-34`): `pr open` marks a draft ready only after the head's push-triggered runs have registered; afterwards it confirms a non-skipped run started. If CI skipped itself, it says so; the fix is a new commit, not a re-run.

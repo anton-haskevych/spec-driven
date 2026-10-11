@@ -1,5 +1,5 @@
-import { booleanField, isRecord, numberField, stringField, type FrontmatterData } from "../core/frontmatter";
-import { summarizeChecks, type CheckSummary } from "./checks";
+import { booleanField, isRecord, numberField, stringField, type FrontmatterData } from "../../core/frontmatter";
+import { actionsJob, summarizeChecks, type CheckSummary } from "./checks";
 import type { Bucket, Check } from "./types";
 
 export type PrListState = "OPEN" | "MERGED" | "CLOSED";
@@ -24,7 +24,9 @@ export function checkBucket(state: string): Bucket {
   if (PASS.has(state)) return "pass";
   if (SKIPPING.has(state)) return "skipping";
   if (FAIL.has(state)) return "fail";
-  return state === "CANCELLED" ? "cancel" : "pending";
+  if (state === "CANCELLED") return "cancel";
+  // QUEUED, WAITING, PENDING, EXPECTED… and any state gh adds later: unfinished, never green.
+  return state === "IN_PROGRESS" ? "running" : "queued";
 }
 
 interface RollupItem {
@@ -33,14 +35,19 @@ interface RollupItem {
   startedAt: string;
 }
 
-// gh keeps the latest run per check name and workflow, so a re-run replaces the run it repeats.
+// The newest run per workflow + check name wins, so a re-run replaces the run it repeats.
 export function rollupToChecks(rollup: unknown): Check[] {
   const latest = new Map<string, RollupItem>();
   for (const item of Array.isArray(rollup) ? rollup.filter(isRecord).map(toRollupItem) : []) {
     const seen = latest.get(item.key);
-    if (!seen || item.startedAt > seen.startedAt) latest.set(item.key, item);
+    if (!seen || startOrder(item.startedAt) >= startOrder(seen.startedAt)) latest.set(item.key, item);
   }
   return [...latest.values()].map((item) => item.check);
+}
+
+// A queued re-run has no start yet (empty or 0001-01-01): it is newer than the run it repeats.
+function startOrder(startedAt: string): string {
+  return startedAt === "" || startedAt.startsWith("0001-") ? "9999" : startedAt;
 }
 
 function toRollupItem(record: FrontmatterData): RollupItem {
@@ -49,7 +56,16 @@ function toRollupItem(record: FrontmatterData): RollupItem {
   const name = stringField(record, "name") || stringField(record, "context") || "(unnamed check)";
   const workflow = stringField(record, "workflowName") ?? "";
   const link = stringField(record, "detailsUrl") || stringField(record, "targetUrl") || "";
-  return { check: { name, bucket: checkBucket(state), workflow, link }, key: `${workflow}\u0000${name}`, startedAt: stringField(record, "startedAt") ?? "" };
+  const startedAt = stringField(record, "startedAt") ?? "";
+  const check: Check = { name, bucket: checkBucket(state), workflow, link, ...timestamps(startedAt, stringField(record, "completedAt")), ...actionsJob(link) };
+  return { check, key: `${workflow}\u0000${name}`, startedAt };
+}
+
+function timestamps(startedAt: string, completedAt: string | undefined): Pick<Check, "startedAt" | "completedAt"> {
+  const real = (iso: string | undefined) => (iso && !iso.startsWith("0001-") ? iso : undefined);
+  const started = real(startedAt);
+  const completed = real(completedAt);
+  return { ...(started ? { startedAt: started } : {}), ...(completed ? { completedAt: completed } : {}) };
 }
 
 export function toPrRows(open: unknown, recent: unknown, externalPatterns: readonly string[]): PrRow[] {

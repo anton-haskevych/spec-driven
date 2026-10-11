@@ -21,11 +21,11 @@ babysit procedure pins the PR number `pr open` printed and passes it to every la
 | Command | Does | One-line result |
 |---|---|---|
 | `pr status [<target>]` | Full check table + verdict + per-failure facts (today's pr-status, extended) | multi-line report (design.md) |
-| `pr wait [<target>] [--sha <sha>] [--since <iso>] [--timeout 25m] [--interval 30s]` | Blocks until the verdict settles; meant for background Bash | `PR #921: green · 21 passed · 6 skipped · external 1 pending (not blocking)` / `PR #921: red · E2E Tests failed (9m03s)` / `PR #921: none · no checks on 1a2b3c4 after 3m` / `PR #921: none · CI skipped itself on 1a2b3c4 — push a new commit` / `PR #921: conflicting` / `PR #921: merged as 9b0c1d2` / `PR #921: timeout after 25m · running: E2E Tests 24m` |
+| `pr wait [<target>] [--sha <sha>] [--since <iso>] [--timeout 25m] [--interval 30s]` | Blocks until the verdict settles; meant for background Bash | `PR #921: green · 21 passed · 6 skipped · external 1 pending (not blocking)` / `PR #921: red · E2E Tests failed (9m03s)` / `PR #921: none · no checks on 1a2b3c4 after 3m` / `PR #921: none · CI skipped itself on 1a2b3c4 — push a new commit` / `PR #921: conflicting` / `PR #921: merged · 9b0c1d2` / `PR #921: timeout · after 25m · running: E2E Tests 24m` |
 | `pr open <spec> [<group>] [--draft]` | Creates the group's PR (title, body from Outcome lines), marks an existing draft ready race-safely, or reports one already open | `PR: #921 opened ready · <url>` / `PR: #921 opened as a draft · <url>` / `PR: #921 marked ready · CI started (run 3788)` / `PR: #921 already open · <url>` |
 | `pr rerun [<target>]` | Re-runs infra-failed jobs on the head; refuses when GitHub's `attempt` is already 3 | `Rerun: Backend Tests (runner lost) · attempt 2 of 3 · run 3787` |
 | `pr merge [<target>] [--now] [--method m]` | Merges with `pr.merge`, pinned to head; refuses unless green (or `--now`); lands the merge line on main; fetches | `Merged: #921 · merge · 9b0c1d2` |
-| `pr log [<target>] [--add "<text>"]` | Prints the babysit timeline; `--add` writes an agent note | timeline (design.md) |
+| `pr log [<target>] [--add "<text>" \| --start <spec> --group <g> \| --pushed \| --stopped "<why>"]` | Prints the babysit timeline; `--add` writes an agent note; `--start`, `--pushed` (HEAD sha + subject) and `--stopped` write the procedure's own events (phase 7: nothing else wrote them) | timeline (design.md) / `PR #921: note added` · `babysit started` · `push logged · 5e6f7a8` · `stop logged` |
 
 Refusals start `pr <verb>:` (`pr merge: not green — E2E Tests failed`, `pr rerun: E2E Tests failed in a test, not infra — fix it`, `pr rerun: run 3787 still running — wait`, `pr merge: pr.merge is not set; pass --method or set it in docs/specs/_playbook/settings.md`). Short SHAs are 7 characters.
 
@@ -117,7 +117,7 @@ Per failed row, computed by `pr status` only (never by `pr wait`):
 
 | Fact | From |
 |---|---|
-| `infra` | job conclusion `startup_failure`; `cancelled` only when the run has no failed sibling and the tail lacks `exceeded the maximum execution time`; or the log tail matches a built-in signature: `The self-hosted runner lost communication`, `The runner has received a shutdown signal`, `No space left on device`, `The job was not acquired by Runner` |
+| `infra` | job conclusion `startup_failure`; `cancelled` only when the run has no failed sibling and the tail lacks `exceeded the maximum execution time`; or the log tail matches a built-in signature: `lost communication with the server` (hosted and self-hosted runners word the start differently), `The runner has received a shutdown signal`, `No space left on device`, `The job was not acquired by Runner` |
 | `failsOnMain` | `pr/failures/main-compare.ts` (same job, latest main run) |
 | `tail` | `pr/failures/log-tail.ts` via `gh api …/actions/jobs/<id>/logs` (doesn't wait for the run) |
 
@@ -186,11 +186,12 @@ already 3 (two re-runs). The babysit log records reruns for reading, never for e
 ## Babysit log (`pr/babysit/log.ts`)
 
 - File: `<git-common-dir>/spec-board/babysit/pr-<n>.jsonl` (per clone, every worktree sees it, never
-  committed — next to `spec-board/claims/`). Lift a `stateDir(git, ...segments)` helper into
-  `core/git.ts` (claims, base cache, babysit: third use).
+  committed — next to `spec-board/claims/`) via `stateDir(git, "babysit")` (`core/git.ts`).
 - Line: `{"at":"2026-10-10T21:16:04Z","event":"red","sha":"1a2b3c4","detail":"E2E Tests failed (9m03s)"}`.
+  `babysit-start` also carries `spec` and `group` (the header names them). A line renders as
+  `HH:MM <event> · <detail>`: writers put whatever the reader needs (a pushed SHA, a run id) in `detail`.
 - Events: `babysit-start`, `opened`, `ready`, `waiting`, `green`, `red`, `cancelled`, `rerun`, `none`,
-  `timeout`, `note` (agent text via `pr log --add`), `pushed`, `merged`, `closed`, `stopped`.
+  `conflicting`, `timeout`, `note` (agent text via `pr log --add`), `pushed`, `merged`, `closed`, `stopped`.
 - Limits (3 fix pushes, 3 hours) count from the latest `babysit-start`.
 - `pr log` renders local times, one line per event, header from the latest `babysit-start`.
 - Appends are single `appendFileSync` writes (atomic per line on POSIX for small writes).

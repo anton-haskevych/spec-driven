@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { buildBoard } from "../board/lanes";
 import type { PhaseState } from "../core/spec-state";
 import { boardInputs, NOW, specFixture, workspaceView, type SpecFixture } from "./board-factories";
-import { phaseEdges, phaseState } from "./factories";
+import { heldClaim, phaseEdges, phaseState } from "./factories";
 
 const open = (id: string, needs: string[] = [], extra: Partial<PhaseState> = {}) =>
   phaseState({ id, edges: phaseEdges({ declared: true, needs }), ...extra });
@@ -19,6 +19,12 @@ describe("in-flight lane", () => {
     const board = boardOf([BASE], workspaceView("/wt/a", [alpha(done("1"), done("2", ["1"]), open("3", ["2"]), open("4", ["2"]))]));
     expect(board.lanes.inFlight).toEqual([{ spec: "alpha", phase: "2", workspace: "/wt/a", target: { workspace: "/wt/a" }, next: "ticked on branch, not merged" }]);
     expect(keys(board.lanes.ready)).not.toContain("alpha#2");
+  });
+
+  test("a babysitter's PR claim is a row of its PR group", () => {
+    const claims = [heldClaim("live", { spec: "alpha", phase: "pr-B", workspace: "/wt/a" })];
+    const board = buildBoard(boardInputs([BASE], { workspaces: [workspaceView("/wt/a", [BASE])], claims }), NOW);
+    expect(board.lanes.inFlight).toMatchObject([{ spec: "alpha", phase: "pr-B", prGroup: "B", workspace: "/wt/a" }]);
   });
 
   test("a half-done phase is in flight and executing", () => {

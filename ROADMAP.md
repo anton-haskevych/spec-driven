@@ -99,6 +99,17 @@ Spec: `docs/specs/spec-board/`. Parallel sessions across worktrees had no shared
 | 2.36.2 | **A tree is held by work, not an open tab.** A session left open after its handoff no longer blocks the next phase in its tree; refusals name the reason (claim, mid-task, uncommitted changes). Prune still keeps any tree with a tab open, and every tree when sessions can't be read. The board knows its caller. One winner on a stale claim (per-claim lock) | 2.36.1 |
 | 2.36.1 | **No project ledger INDEX.** `lessons add` stops writing `docs/specs/_ledger/INDEX.md`; prep, review and the doctor read the lesson files. GitHub's PR check ignores `merge=union`, so that one file made every spec PR conflict and skip CI | shipped |
 
+## PR babysit (2.42)
+
+Spec: `docs/specs/pr-babysit/`. Every PR went through CI differently: hand-made wait loops, crons on
+non-required checks, drafts that never ran CI, failing checks pasted back by hand, and merges on heads CI
+never checked. The PR step becomes one owned procedure (`skills/spec/babysit.md`) with tools under it, and
+one decision from the user.
+
+| Version | Change | Status |
+|---|---|---|
+| 2.42.0 | **PR babysit.** The PR gate asks one question per PR group: babysit it, draft, or merge now. On babysit the handoff runs in full, then `launch babysit <spec> <group>` opens a session in the group's existing tree that holds a `pr-<group>` claim, waits with a background `pr wait`, re-runs infrastructure failures only (`pr rerun`), runs `gates.ci-triage` and fixes failing tests, resolves conflicts with main, merges pinned to the green head (`pr merge`, merge line on main) and reports once. `pr status` shows every check by state with one verdict shared with the board; `pr log` is the timeline; the board shows a babysat PR as `babysitting` with no merge/fix row | shipped |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through

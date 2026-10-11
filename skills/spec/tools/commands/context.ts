@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { samePhase } from "../core/phase-title";
 import { findSpecs } from "../core/spec-folders";
 import { loadSpecState, type SpecState } from "../core/spec-state";
+import { babysitPack } from "../context/babysit-pack";
 import { executePack, resumePack, type PackInput } from "../context/packs";
 import { renderReadySet } from "../ready/render";
 import { neighborhoodReport } from "./graph";
@@ -21,7 +22,8 @@ import { defaultClaudeHome } from "../sessions/live";
 import { systemClaimsHere, type ClaimsHereReader } from "../context/claims-here";
 
 const DOCTOR_LINES = 6;
-const PACK_MODES = new Set(["resume", "status", "execute", "route"]);
+const PACK_MODES = new Set(["resume", "status", "execute", "route", "babysit"]);
+// babysit never infers: `launch babysit` always names the spec and its PR group.
 const INFERRING_MODES = new Set(["resume", "status", "execute"]);
 const CONVERSATION_FIRST = "If this conversation already resumed or executed another spec, use that one instead (re-run `spec.ts context <mode> <that spec>`).";
 const NOTHING_HERE = "No spec named, and nothing in this tree points at one (no claim here, no changed spec files).";
@@ -68,6 +70,7 @@ function specPack(projectDir: string, request: ContextRequest, name: string, inf
 
   const doctor = doctorReport(projectDir, name).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
+  if (mode === "babysit") return packBlock(state.spec.name, mode, inferredFrom, babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
   const nodes = loadNodes(projectDir);
   const held = readHeld(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir, specsInFlight(held, state.spec.name));
@@ -77,7 +80,11 @@ function specPack(projectDir: string, request: ContextRequest, name: string, inf
   const body = mode === "execute"
     ? executeBody(projectDir, { state, doctor, relations, ready, held, playbooks, settings, lessons: loadProjectLessons(projectDir) }, request.hint)
     : resumePack({ state, doctor, relations, ready, held, playbooks, settings, lessons: [] });
-  const header = `<spec-pack spec="${state.spec.name}" mode="${mode}"${inferredFrom ? ' inferred="true"' : ""}>`;
+  return packBlock(state.spec.name, mode, inferredFrom, body);
+}
+
+function packBlock(spec: string, mode: string, inferredFrom: string | undefined, body: string): string {
+  const header = `<spec-pack spec="${spec}" mode="${mode}"${inferredFrom ? ' inferred="true"' : ""}>`;
   const note = inferredFrom ? `Spec inferred from ${inferredFrom}. ${CONVERSATION_FIRST} Otherwise say which spec you are working on in one line, then carry on.\n\n` : "";
   return `${header}\n${note}${body}\n</spec-pack>`;
 }

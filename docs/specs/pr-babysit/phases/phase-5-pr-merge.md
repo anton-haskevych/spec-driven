@@ -27,7 +27,7 @@ Retry-safe: on an already-merged PR, read `mergeCommit` from `gh pr view`, land 
 
 ## Deliverables
 
-- [ ] `core/land-on-main.ts` lifted from `focus/land.ts`; focus uses it (refactor, green)
-- [ ] `gh-writes.ts` `merge(n, method, sha)` → merged with sha, or refused with status and GitHub's message — fixture-driven tests for 200/405/409
-- [ ] `pr/actions/merge.ts`: green check (skipped with `--now`), method resolution, head pin, fetch, merge line on main (idempotent, `specPrNumbers` round-trip), already-merged path — tests incl. "head moved", "not green", "landing refused"
-- [ ] `pr merge [<target>] [--now] [--method m]` result and refusal lines per technical.md; logs `merged`
+- [x] `core/land-on-main.ts` lifted from `focus/land.ts`; focus uses it (refactor, green)
+- [x] `gh-writes.ts` `merge(n, method, sha)` → merged with sha, or refused with status and GitHub's message — fixture-driven tests for 200/405/409
+- [x] `pr/actions/merge.ts`: green check (skipped with `--now`), method resolution, head pin, fetch, merge line on main (idempotent, `specPrNumbers` round-trip), already-merged path — tests incl. "head moved", "not green", "landing refused"
+- [x] `pr merge [<target>] [--now] [--method m]` result and refusal lines per technical.md; logs `merged`

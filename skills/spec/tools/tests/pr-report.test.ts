@@ -1,37 +1,29 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
-import type { RunResult, Runner } from "../core/run";
 import { ghClient } from "../pr/gh";
-import { buildReport, TAILS_SHOWN } from "../pr/report";
-import type { PrView } from "../pr/types";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { jobLogFile, savedJobLogs } from "../pr/failures/job-logs";
+import { buildReport } from "../pr/report";
+import { check, prView } from "./pr-factories";
+import { sequencedRunner } from "./stub-runner";
 
 const fixture = (name: string) => Bun.file(join(import.meta.dir, "fixtures", name)).text();
-const CHECKS = await fixture("gh-pr-checks.json");
+const VIEW = await fixture("gh-pr-view-rollup-states.json");
 const RUN_JOBS = await fixture("gh-run-jobs.json");
 const RUN_LIST = await fixture("gh-run-list.json");
 const LOG = await fixture("gh-job-log.txt");
-const UNKNOWN: PrView = { number: 875, state: "OPEN", isDraft: false, mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN", headRefOid: "08bb7dbd" };
-
-// Answers each argv prefix from a queue, so a repeated call can get a different reply.
-function sequencedRunner(replies: Array<[readonly string[], Partial<RunResult>[]]>): Runner & { calls: string[][] } {
-  const calls: string[][] = [];
-  return {
-    calls,
-    run(argv) {
-      calls.push([...argv]);
-      const entry = replies.find(([prefix]) => prefix.every((part, index) => argv[index] === part));
-      const reply = entry && (entry[1].length > 1 ? entry[1].shift() : entry[1][0]);
-      return { code: 0, stdout: "", stderr: "", ...(reply ?? { code: 1, stderr: "no canned result" }) };
-    },
-  };
-}
+const RUN_VIEW = await fixture("gh-run-view.json");
+const TIMEOUT_LOG = await fixture("gh-job-log-timeout.txt");
+const RUN_DETAIL: readonly string[] = ["gh", "run", "view", "36796809320", "--json", "status,conclusion,attempt,jobs"];
+const UNKNOWN = prView({ mergeable: "UNKNOWN", mergeStateStatus: "UNKNOWN", headRefOid: "08bb7dbd" });
 
 describe("buildReport", () => {
   test("re-polls mergeability once, then reports failing jobs with tail and main comparison", () => {
     const runner = sequencedRunner([
-      [["gh", "pr", "view"], [{ stdout: JSON.stringify({ ...UNKNOWN, mergeable: "MERGEABLE", mergeStateStatus: "UNSTABLE" }) }]],
-      [["gh", "pr", "checks"], [{ stdout: CHECKS }]],
+      [["gh", "pr", "view"], [{ stdout: VIEW }]],
       [["gh", "api"], [{ stdout: LOG }]],
+      [RUN_DETAIL, [{ stdout: RUN_VIEW }]],
       [["gh", "run", "view"], [{ stdout: RUN_JOBS }]],
       [["gh", "run", "list"], [{ stdout: RUN_LIST }]],
     ]);
@@ -39,10 +31,12 @@ describe("buildReport", () => {
 
     expect(report.view.mergeStateStatus).toBe("UNSTABLE");
     expect(report.state).toBe("red");
-    expect(report.failures.map((failure) => failure.check.name)).toEqual(["Backend Tests", "Backend Test Results"]);
+    expect(report.failures.map((failure) => failure.check.name)).toEqual(["Backend Tests", "Backend Test Results", "Infra Build"]);
     const [backend, results] = report.failures;
     expect(backend?.tail?.ok && backend.tail.value.at(-1)).toBe("##[error]Process completed with exit code 1.");
     expect(backend?.main).toMatchObject({ kind: "ran", conclusion: "failure" });
+    expect(backend?.infra).toEqual({ ok: true, value: { infra: false } });
+    expect(backend?.logPath).toBeUndefined();
     expect(results?.job).toBeUndefined();
     expect(runner.calls.length).toBeLessThanOrEqual(30);
   });
@@ -54,22 +48,33 @@ describe("buildReport", () => {
     expect(runner.calls).toEqual([]);
   });
 
-  test("checks gh can't read leave the state unknown", () => {
-    const runner = sequencedRunner([[["gh", "pr", "checks"], [{ code: 1, stderr: "HTTP 502" }]]]);
-    const report = buildReport(ghClient("/repo", runner), { ...UNKNOWN, mergeable: "MERGEABLE" }, { externalPatterns: [], defaultBranch: "main" });
-    expect(report).toMatchObject({ state: "unknown", checksError: "HTTP 502" });
+  test("every failed or cancelled job's log is read once and saved; each gets its own facts", () => {
+    const dir = mkdtempSync(join(tmpdir(), "report-logs-"));
+    const run = 36796809320;
+    const failing = [
+      check({ name: "Backend Tests", bucket: "fail", runId: run, jobId: 110162211428 }),
+      ...Array.from({ length: 4 }, (_, index) => check({ name: `Job ${index}`, bucket: "fail", runId: run, jobId: index })),
+      check({ name: "E2E Tests", bucket: "cancel", runId: run, jobId: 110162212390 }),
+    ];
+    const runner = sequencedRunner([
+      [["gh", "api", "repos/{owner}/{repo}/actions/jobs/110162212390/logs"], [{ stdout: TIMEOUT_LOG }]],
+      [["gh", "api"], [{ stdout: LOG }]],
+      [RUN_DETAIL, [{ stdout: RUN_VIEW }]],
+    ]);
+    const gh = ghClient("/repo", runner);
+    const report = buildReport(gh, prView({ checks: failing }), { externalPatterns: [], defaultBranch: undefined, jobLogs: savedJobLogs(gh.jobLog, dir) });
+
+    expect(runner.calls.filter((call) => call[1] === "api")).toHaveLength(failing.length);
+    expect(runner.calls.filter((call) => call[1] === "run")).toHaveLength(1);
+    expect(report.failures.map((failure) => failure.check.name)).toEqual(failing.map((one) => one.name));
+    expect(report.failures.every((failure) => failure.tail?.ok)).toBe(true);
+    const e2e = report.failures.at(-1);
+    expect(e2e?.logPath).toBe(jobLogFile(dir, 110162212390));
+    expect(e2e?.infra).toEqual({ ok: true, value: { infra: false, reason: "cancelled after Backend Tests failed" } });
   });
 
-  test("fetches tails for the first few failures only; each log is a large download", () => {
-    const failing = Array.from({ length: TAILS_SHOWN + 2 }, (_, index) => ({
-      name: `Job ${index}`, bucket: "fail", workflow: "CI", link: `https://github.com/acme/app/actions/runs/1/job/${index}`,
-    }));
-    const runner = sequencedRunner([
-      [["gh", "pr", "checks"], [{ stdout: JSON.stringify(failing) }]],
-      [["gh", "api"], [{ stdout: LOG }]],
-    ]);
-    const report = buildReport(ghClient("/repo", runner), { ...UNKNOWN, mergeable: "MERGEABLE" }, { externalPatterns: [], defaultBranch: undefined });
-    expect(runner.calls.filter((call) => call[1] === "api")).toHaveLength(TAILS_SHOWN);
-    expect(report.failures.at(-1)?.tail).toEqual({ ok: false, reason: `only the first ${TAILS_SHOWN} failures get a tail` });
+  test("the triage gate is carried for the render", () => {
+    const report = buildReport(ghClient("/repo", sequencedRunner([])), prView(), { externalPatterns: [], defaultBranch: undefined, triageGate: "ci-triage" });
+    expect(report.triageGate).toBe("ci-triage");
   });
 });

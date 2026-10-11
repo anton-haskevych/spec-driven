@@ -1,5 +1,6 @@
 import { booleanField, isRecord, numberField, stringField, type FrontmatterData } from "../core/frontmatter";
-import { BUCKETS, type Bucket, type Check, type Job, type PrView, type WorkflowRun } from "./types";
+import { rollupToChecks } from "./checks/rollup";
+import type { CommitRun, Job, PrView, RunDetail, WorkflowRun } from "./checks/types";
 
 export function parseJson(text: string): unknown {
   try {
@@ -21,17 +22,16 @@ export function toPrView(value: unknown): PrView | undefined {
     mergeable: stringField(value, "mergeable") ?? "UNKNOWN",
     mergeStateStatus: stringField(value, "mergeStateStatus") ?? "UNKNOWN",
     headRefOid: stringField(value, "headRefOid") ?? "",
+    headRefName: stringField(value, "headRefName") ?? "",
+    url: stringField(value, "url") ?? "",
+    checks: rollupToChecks(value.statusCheckRollup),
+    ...mergeCommit(value.mergeCommit),
   };
 }
 
-export function toChecks(value: unknown): Check[] | undefined {
-  if (!Array.isArray(value)) return undefined;
-  return value.filter(isRecord).map((check) => ({
-    name: stringField(check, "name") ?? "(unnamed check)",
-    bucket: toBucket(stringField(check, "bucket")),
-    workflow: stringField(check, "workflow") ?? "",
-    link: stringField(check, "link") ?? "",
-  }));
+function mergeCommit(value: unknown): Pick<PrView, "mergeCommit"> {
+  const oid = isRecord(value) ? stringField(value, "oid") : undefined;
+  return oid ? { mergeCommit: oid } : {};
 }
 
 export function toJobs(value: unknown): Job[] | undefined {
@@ -42,6 +42,15 @@ export function toJobs(value: unknown): Job[] | undefined {
     const name = stringField(job, "name");
     return id === undefined || name === undefined ? [] : [{ id, name, conclusion: stringField(job, "conclusion") ?? "" }];
   });
+}
+
+export function toRunDetail(id: number, value: unknown): RunDetail | undefined {
+  const jobs = toJobs(value);
+  if (!isRecord(value) || !jobs) return undefined;
+  const status = stringField(value, "status");
+  const attempt = numberField(value, "attempt");
+  if (status === undefined || attempt === undefined) return undefined;
+  return { id, status, conclusion: stringField(value, "conclusion") ?? "", attempt, jobs };
 }
 
 export function toWorkflowId(value: unknown): number | undefined {
@@ -57,7 +66,11 @@ export function toWorkflowRuns(value: unknown): WorkflowRun[] | undefined {
   });
 }
 
-// An unrecognised bucket counts as pending: it must never read as green.
-function toBucket(value: string | undefined): Bucket {
-  return BUCKETS.find((bucket) => bucket === value) ?? "pending";
+export function toCommitRuns(value: unknown): CommitRun[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter(isRecord).flatMap((run: FrontmatterData) => {
+    const id = numberField(run, "databaseId");
+    if (id === undefined) return [];
+    return [{ id, status: stringField(run, "status") ?? "", conclusion: stringField(run, "conclusion") ?? "" }];
+  });
 }

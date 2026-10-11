@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { isRecord, stringField } from "../core/frontmatter";
-import { gitCommonDir, type Git } from "../core/git";
+import { stateDir, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { parseJson } from "../pr/gh-records";
 import { createExclusive, readIfPresent, removeIfUnchanged, sweepLeftovers } from "./atomic-file";
@@ -31,8 +31,7 @@ const MAX_ATTEMPTS = 5;
 
 // Under the common dir, so every worktree of a clone sees the same claims and none are committed.
 export function claimsDir(git: Git): Result<string> {
-  const commonDir = gitCommonDir(git);
-  return commonDir.ok ? { ok: true, value: join(commonDir.value, "spec-board", "claims") } : commonDir;
+  return stateDir(git, "claims");
 }
 
 export function claimFile(dir: string, spec: string, phase: string): string {

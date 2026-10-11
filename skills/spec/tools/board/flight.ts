@@ -2,6 +2,7 @@ import type { SpecState } from "../core/spec-state";
 import { isFinished, type SpecNode } from "../graph/nodes";
 import { phaseNeeds, readySet } from "../ready/ready-set";
 import type { PhaseActivity } from "./activity";
+import { prClaimGroup } from "../claims/pr-claim";
 import { heldName } from "../claims/rules";
 import type { BoardInputs, HeldClaim } from "./inputs";
 import type { FlightRow } from "./model";
@@ -24,7 +25,7 @@ export function flightRows(activity: ReadonlyMap<string, PhaseActivity>, inputs:
     .toSorted((a, b) => KEY_ORDER.compare(rowKey(a), rowKey(b)))
     .map(({ spec, phase, tickedIn, wipIn, held }): FlightRow => {
       const [workspace = held?.status === "remote" ? "" : (held?.claim.workspace ?? ""), ...alsoIn] = tickedIn.length > 0 ? tickedIn : wipIn;
-      const prGroup = workspaceState(spec, workspace, inputs)?.phases.find((candidate) => candidate.id === phase)?.edges.pr;
+      const prGroup = workspaceState(spec, workspace, inputs)?.phases.find((candidate) => candidate.id === phase)?.edges.pr ?? (phase === undefined ? undefined : prClaimGroup(phase));
       return {
         spec,
         phase,

@@ -27,12 +27,14 @@ pr: A
 
 ## Deliverables
 
-- [ ] `pr/failures/triage.ts`: infra classification (startup_failure, cancelled without failed sibling or timeout text, signatures) — table tests incl. the cancelled-by-timeout log and a fail-fast sibling
-- [ ] `pr status` failure lines show `fails on main too` and `infra`, and the triage gate name
-- [ ] `pr/actions/rerun.ts` + `gh-writes.ts` reruns: infra-only, refuse in-progress runs, cap at `attempt` 3, logged — tests incl. refusal of a test failure, of a running run and of the third attempt
-- [ ] `gates.ci-triage` setting: parse, describe, doctor check, pack line
+- [x] `pr/failures/job-logs.ts`: every failed or cancelled job's full log saved once to `<git-common-dir>/spec-board/babysit/pr-<n>/job-<jobId>.log` (re-read from disk, never re-downloaded); `pr status` prints the path so the agent reads and greps the file instead of querying GitHub again (Anton, 2026-10-10)
+- [x] `pr/failures/triage.ts`: infra classification (startup_failure, cancelled without failed sibling or timeout text, signatures) — table tests incl. the cancelled-by-timeout log and a fail-fast sibling
+- [x] `pr status` failure lines show `fails on main too` and `infra`, and the triage gate name
+- [x] `pr/actions/rerun.ts` + `gh-writes.ts` reruns: infra-only, refuse in-progress runs, cap at `attempt` 3, logged — tests incl. refusal of a test failure, of a running run and of the third attempt
+- [x] `gates.ci-triage` setting: parse, describe, doctor check, pack line
 
 ## Phase-local notes
 
-- `RUN_FIELDS` needs `headSha`, `status` and `attempt` (`pr/checks/types.ts`).
+- The run read needs `status`, `conclusion`, `attempt` and `jobs`: one `gh run view <run> --json status,conclusion,attempt,jobs` (`GhClient.run`) serves triage (siblings, startup_failure) and rerun (in progress, attempt cap). `RUN_FIELDS` (main's run list) is unchanged.
+- Infra signatures are matched over the whole saved log, not the 30-line tail.
 - After a squash merge, ancestry checks lie (`docs/specs/_ledger/gotcha-squash-merged-branch-is-not-an-ancestor.md`); the triage gate's "already on main" step should compare history, not ancestry of the fix.

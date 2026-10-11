@@ -1,11 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ago, alignColumns, prCell } from "../board/cells";
-
-describe("alignColumns", () => {
-  test("pads every column but the last to its widest cell, measuring glyphs by display width", () => {
-    expect(alignColumns([["★ a", "x", ""], ["bbbb", "yy", "end"]])).toEqual(["★ a   x", "bbbb  yy  end"]);
-  });
-});
+import { ago, prCell } from "../board/cells";
 
 describe("ago", () => {
   const now = new Date("2026-10-01T20:00:00Z");
@@ -20,6 +14,7 @@ describe("ago", () => {
 describe("prCell", () => {
   test("marks failing, pending, passing, unknown checks and PRs missing from the lists", () => {
     expect(prCell({ number: 1, listed: true, failing: 2, pending: 1, passing: 4 })).toBe("#1 ✗ 2");
+    expect(prCell({ number: 1, listed: true, failing: 1, passing: 4, babysitting: true })).toBe("#1 babysitting");
     expect(prCell({ number: 1, listed: true, failing: 0, pending: 3, passing: 4 })).toBe("#1 … 3");
     expect(prCell({ number: 1, listed: true, draft: true, failing: 0, pending: 0, passing: 4 })).toBe("#1 draft ✓");
     expect(prCell({ number: 1, listed: true, failing: 0, pending: 0, passing: 0 })).toBe("#1");

@@ -3,20 +3,8 @@ import type { PrCell, SessionCell } from "./model";
 
 export const EMPTY = "—";
 const UNKNOWN = "?";
-const COLUMN_GAP = "  ";
 const MINUTE_MS = 60_000;
 const DURATION = new Intl.DurationFormat("en", { style: "narrow" });
-
-export function alignColumns(rows: ReadonlyArray<readonly string[]>): string[] {
-  const widths: number[] = [];
-  for (const row of rows) row.forEach((cell, index) => (widths[index] = Math.max(widths[index] ?? 0, Bun.stringWidth(cell))));
-  return rows.map((row) =>
-    row
-      .map((cell, index) => (index === row.length - 1 ? cell : cell + " ".repeat((widths[index] ?? 0) - Bun.stringWidth(cell))))
-      .join(COLUMN_GAP)
-      .trimEnd(),
-  );
-}
 
 export function lane(title: string, lines: readonly string[]): string {
   return [title, ...(lines.length > 0 ? lines : ["none"]).map((line) => `  ${line}`)].join("\n");
@@ -74,6 +62,7 @@ export function prCell(pr: PrCell | "unknown" | undefined): string {
   const number = `#${pr.number}${pr.draft ? " draft" : ""}`;
   if (!pr.listed) return `${number} ${UNKNOWN}`;
   if (pr.state) return `${number} ${pr.state}`;
+  if (pr.babysitting) return `${number} babysitting`;
   if (pr.failing) return `${number} ✗ ${pr.failing}`;
   if (pr.pending) return `${number} … ${pr.pending}`;
   return pr.passing ? `${number} ✓` : number;

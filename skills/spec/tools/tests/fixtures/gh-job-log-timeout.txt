@@ -1,0 +1,7 @@
+﻿2026-10-01T00:35:12.1000000Z Current runner version: '2.337.0'
+2026-10-01T00:36:00.0000000Z ##[group]Run pnpm e2e --shard 1/2
+2026-10-01T00:36:00.0000000Z ##[endgroup]
+2026-10-01T01:05:12.0000000Z   ✓ 41 card-reader.spec.ts:12 reads a card (3.1s)
+2026-10-01T01:06:12.0000000Z ##[error]The job running on runner GitHub Actions 3 has exceeded the maximum execution time of 30 minutes.
+2026-10-01T01:06:12.5000000Z ##[error]The operation was canceled.
+2026-10-01T01:06:13.0000000Z Cleaning up orphan processes

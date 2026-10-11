@@ -149,20 +149,36 @@ If the chunk completes a phase, run `update.md` → *Close the phase* — it cap
 
 ## 10. The PR gate (not a phase)
 
-When the code phases this PR covers are all done, opening the PR is gated by `pr-opening.md` — it is **not** a phase:
+When every code phase of a PR group is done, opening its PR is gated by `pr-opening.md`. It is **not** a phase:
 
 1. Run the **pre-PR checks** in `pr-opening.md`, scoped to the subprojects this PR touches. Lines like `gate: landing` point at named blocks in `docs/specs/_playbook/gates.md`; `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates <spec-name>` expands the ones this spec references (`gates --name <gate…>` expands any named section). Without Bun, read those sections in `gates.md`.
 2. Tick each check only when it actually passes; paste the failing output instead if it doesn't.
-3. Refresh the **Spec state** (phases done, branch, PR link once it exists).
-4. Open the PR **off a feature branch — never to `main`**, following the PR split recorded in `pr-opening.md`. It is a draft unless project settings say `pr.draft: false` (the pack's `Settings:` line reads `PRs ready`); no `Settings:` line means draft. The PR body opens with the **Outcome** line of each phase it ships, one bullet per phase, before any technical detail.
+3. Refresh the **Spec state** (phases done, branch). The PR is found by its branch, so no PR link is needed.
+4. **Ask the one question**, once per PR group, in place of the *Next sessions* block, so the message has one numbered list. `pr.draft: false` (`PRs ready`) lists babysit first; otherwise draft comes first. When `pr.merge` is unset, ask for the method on the same message.
 
-**Checking on the PR.** Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts pr-status [<pr>|<spec>]` (no argument: the current branch's PR). It prints the `state:` line (`merged`, `closed`, `conflicting`, `draft`, `red`, `pending`, `green`, `unknown`), the check counts, and for each failing job the failure's tail and whether it fails on main too. It never waits: run it again later rather than looping on `gh`. Without Bun: `gh pr view <n> --json state,isDraft,mergeable`, `gh pr checks <n>`, and for a failed job `gh api repos/{owner}/{repo}/actions/jobs/<job id>/logs` (`gh run view --log-failed` waits for the whole run).
+```
+PR <group> is ready: phases <ids> (<spec>), <N> commits, pre-PR checks green.
+
+  1. Babysit it   open it ready, wait for CI, fix what breaks, merge when green (<pr.merge method>)
+  2. Draft        open it as a draft for now; CI won't run until it leaves draft
+  3. Merge now    open and merge without waiting for CI. Risk: merging deploys; CI hasn't run
+```
+
+The answer is the user's explicit instruction, so it is the only way this session opens or merges a PR:
+
+- **1 — Babysit.** Run `/spec handoff` in full first (commit, push or publish-docs, claim release); its last act is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch babysit <spec> <group>`. Never launch first: a docs push from this tree after CI starts would cancel or skip the babysat run. Reply: `Babysitting PR <group> in <terminal and tab from the Launched: line>. You'll hear back once: merged, or what it needs from you.` A `launch: run this in a new terminal:` line goes to the user as is. The babysit session follows [babysit.md](babysit.md).
+- **2 — Draft.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts pr open <spec> <group> --draft`. Reply with its `PR:` line. Asking again later (handoff, or the user) marks it ready via babysit.
+- **3 — Merge now.** `pr open <spec> <group>`, then `pr merge <n> --now`. Reply: `Merged #<n> without CI · <method> · <sha>`.
+
+Without Bun, open the PR off the feature branch with `gh pr create` (draft unless settings say `pr.draft: false`), never to `main`, its body opening with each phase's **Outcome** line; merge only on the user's word with `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=<method>` (`gh pr merge` fails in a worktree).
+
+**Checking on a PR.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts pr status [<pr>|<spec> [<group>]]` (no argument: the current branch's PR) prints the `verdict:` line (`merged`, `closed`, `conflicting`, `draft`, `red`, `cancelled`, `waiting`, `green`, `none`, `unknown`; green needs one passed check, so a PR whose CI never ran reads `none`), then every check by state, and for each failing job its tail, saved log and facts. To wait on CI, use babysit.md's background `pr wait`; never poll `gh` in a loop. Without Bun: `gh pr view <n> --json state,isDraft,mergeable,statusCheckRollup`, and for a failed job `gh api repos/{owner}/{repo}/actions/jobs/<job id>/logs`.
 
 **After merging main into the branch**, when settings name `gates.after-merge-main` (`after merging main: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and work through it before pushing.
 
-**Merging the PR** is the user's call; never merge on your own. When they say merge, use the method in `pr.merge` (`merge squash|merge|rebase`); unset → ask which. From a worktree, `gh pr merge` fails trying to check out the default branch, so merge with `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=<method>`.
+**When the user says merge** outside the question, `pr merge <n>` merges with `pr.merge` pinned to the green head (refuses otherwise; `--now` skips the green check only on their word) and lands the merge line on main.
 
-Without Bun, read `docs/specs/_playbook/settings.md` for these keys and `gates.md` for the named section. No settings file → draft PRs, no after-merge gate, ask for the merge method.
+Without Bun, read `docs/specs/_playbook/settings.md` for these keys and `gates.md` for the named section. No settings file → draft first, no after-merge gate, ask for the merge method.
 
 Never invent a "verification" or "open PR" phase to hold this — that's what `pr-opening.md` is for.
 

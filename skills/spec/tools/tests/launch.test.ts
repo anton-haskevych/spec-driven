@@ -109,7 +109,7 @@ describe("sessionLaunch", () => {
   });
 
   test("refuses an unknown sub-command or a spec name that isn't kebab-case", () => {
-    expect(sessionLaunch("/w", ["deploy", "billing"])).toEqual({ ok: false, reason: "unknown sub-command deploy (prep, create, resume, execute, review, update, handoff, status, list, idea)" });
+    expect(sessionLaunch("/w", ["deploy", "billing"])).toEqual({ ok: false, reason: "unknown sub-command deploy (prep, create, resume, execute, review, update, handoff, status, list, idea, babysit)" });
     expect(sessionLaunch("/w", ["prep", "Gift Cards"])).toEqual({ ok: false, reason: "spec name must be kebab-case: Gift Cards" });
     expect(sessionLaunch("/w", ["prep"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase>]" });
   });
@@ -126,6 +126,20 @@ describe("sessionLaunch with a phase", () => {
     expect(sessionLaunch("/w", ["execute", "spec-board", "six"])).toEqual({ ok: false, reason: "not a phase id: six" });
     expect(sessionLaunch("/w", ["prep", "spec-board", "6"])).toEqual({ ok: false, reason: "a phase only goes with execute" });
     expect(sessionLaunch("/w", ["execute", "spec-board", "6", "now"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase>]" });
+  });
+});
+
+describe("sessionLaunch for babysit", () => {
+  test("babysit carries the PR group in the prompt and the title", () => {
+    const launch = sessionLaunch("/trees/pr-babysit-pr-a", ["babysit", "pr-babysit", "A"]);
+    expect(launch.ok && launch.value.title).toBe("pr-babysit babysit A");
+    expect(launch.ok && launch.value.command).toBe("claude -n 'pr-babysit babysit A' '/spec-driven:spec babysit pr-babysit A'");
+  });
+
+  test("babysit needs a PR group token, and execute still takes only a phase", () => {
+    expect(sessionLaunch("/w", ["babysit", "pr-babysit"])).toEqual({ ok: false, reason: "babysit needs a PR group: launch babysit <spec-name> <group>" });
+    expect(sessionLaunch("/w", ["babysit", "pr-babysit", "a-b"])).toEqual({ ok: false, reason: "not a PR group: a-b" });
+    expect(sessionLaunch("/w", ["execute", "pr-babysit", "A"])).toEqual({ ok: false, reason: "not a phase id: A" });
   });
 });
 
@@ -154,6 +168,24 @@ describe("launchCommand", () => {
     }), { TERM_PROGRAM: "iTerm.app" }, runner);
     expect(report).toBe("launch: /trees/spec-board-pr-b is busy, after spec-board 5b (s-1); not launched");
     expect(runner.calls).toEqual([]);
+  });
+
+  test("babysit places the PR group's existing tree, then launches in it", async () => {
+    const places: unknown[] = [];
+    const report = await launchCommand("/w", ["babysit", "spec-board", "B"], async (spec, phase, options) => {
+      places.push([spec, phase, options]);
+      return { ok: true, value: { kind: "found", branch: "feat/spec-board-pr-b", path: "/trees/spec-board-pr-b" } };
+    }, {}, stubRunner([]));
+    expect(places).toEqual([["spec-board", "pr-B", { existingOnly: true }]]);
+    expect(report).toBe([
+      "Tree: /trees/spec-board-pr-b · feat/spec-board-pr-b · existing",
+      "launch: run this in a new terminal: cd '/trees/spec-board-pr-b' && claude -n 'spec-board babysit B' '/spec-driven:spec babysit spec-board B'",
+    ].join("\n"));
+  });
+
+  test("babysit with no tree for the group launches nothing", async () => {
+    const report = await launchCommand("/w", ["babysit", "spec-board", "B"], async () => ({ ok: false, reason: "no tree for feat/spec-board-pr-b" }), {}, stubRunner([]));
+    expect(report).toBe("launch: no tree for feat/spec-board-pr-b");
   });
 
   test("bad arguments never place a tree; without a phase it launches where it is", async () => {

@@ -1,0 +1,104 @@
+{
+ "number": 875,
+ "state": "OPEN",
+ "isDraft": false,
+ "mergeable": "MERGEABLE",
+ "mergeStateStatus": "UNSTABLE",
+ "headRefOid": "08bb7dbd47fa14537ef4",
+ "statusCheckRollup": [
+  {
+   "__typename": "CheckRun",
+   "name": "Ops Tests",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "SUCCESS",
+   "startedAt": "2026-10-01T17:00:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/36796809320/job/110162211167",
+   "completedAt": "2026-10-01T17:02:10Z"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "Frontend Tests (2/2)",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "SUCCESS",
+   "startedAt": "2026-10-01T17:00:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/36796809320/job/110162211244",
+   "completedAt": "2026-10-01T17:06:00Z"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "Backend Tests",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "FAILURE",
+   "startedAt": "2026-10-01T17:00:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/36796809320/job/110162211428",
+   "completedAt": "2026-10-01T17:09:03Z"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "Backend Test Results",
+   "workflowName": "E2E Tests",
+   "status": "COMPLETED",
+   "conclusion": "FAILURE",
+   "startedAt": "2026-10-01T17:10:00Z",
+   "detailsUrl": "https://github.com/acme/app/runs/110164445230",
+   "completedAt": "2026-10-01T17:10:05Z"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "Landing Tests",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "SKIPPED",
+   "startedAt": "2026-10-01T17:00:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/36796809320/job/110162212386",
+   "completedAt": "2026-10-01T17:00:00Z"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "Infra Build",
+   "workflowName": "Monorepo CI",
+   "status": "COMPLETED",
+   "conclusion": "CANCELLED",
+   "startedAt": "2026-10-01T17:00:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/36796809320/job/110162212400",
+   "completedAt": "2026-10-01T17:01:00Z"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "E2E Shard 1",
+   "workflowName": "E2E Tests",
+   "status": "IN_PROGRESS",
+   "conclusion": "",
+   "startedAt": "2026-10-01T17:05:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/36796809999/job/110162299999",
+   "completedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+   "__typename": "CheckRun",
+   "name": "E2E Shard 2",
+   "workflowName": "E2E Tests",
+   "status": "QUEUED",
+   "conclusion": "",
+   "startedAt": "0001-01-01T00:00:00Z",
+   "detailsUrl": "https://github.com/acme/app/actions/runs/36796809999/job/110162300000",
+   "completedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+   "__typename": "StatusContext",
+   "context": "Vercel – site-a",
+   "state": "PENDING",
+   "targetUrl": "https://vercel.com/acme/site-a/4nccAL4GtjNh7stHN5vyvsyoq6t2",
+   "startedAt": "2026-10-01T17:00:30Z"
+  },
+  {
+   "__typename": "StatusContext",
+   "context": "Vercel – site-b",
+   "state": "FAILURE",
+   "targetUrl": "https://vercel.com/acme/site-b/7fLz4HfuqXH4uMHDsBxDebWvXwES",
+   "startedAt": "2026-10-01T17:00:30Z"
+  }
+ ]
+}

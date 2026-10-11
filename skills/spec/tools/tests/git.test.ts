@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { realpathSync } from "node:fs";
 import { join } from "node:path";
-import { authorName, gitAt, gitCommonDir, gitFailureReason } from "../core/git";
+import { authorName, gitAt, gitCommonDir, gitFailureReason, stateDir, stateDirIn } from "../core/git";
 import { isolatedRunner, repoWithOrigin } from "./git-repo";
 import { stubRunner } from "./stub-runner";
 
@@ -81,5 +81,28 @@ describe("gitCommonDir", () => {
     } finally {
       repo.cleanup();
     }
+  });
+});
+
+describe("stateDir", () => {
+  test("is one folder of the common dir, so every worktree of a clone shares it", () => {
+    const repo = repoWithOrigin("spec-git-state-");
+    try {
+      const tree = repo.addWorktree("tree", "feat/tree");
+      const expected = join(realpathSync(join(repo.dir, ".git")), "spec-board", "babysit");
+      expect(stateDir(gitAt(repo.dir, isolatedRunner), "babysit")).toEqual({ ok: true, value: expected });
+      expect(stateDir(gitAt(tree.dir, isolatedRunner), "babysit")).toEqual({ ok: true, value: expected });
+    } finally {
+      repo.cleanup();
+    }
+  });
+
+  test("passes git's failure through", () => {
+    const git = gitAt("/nowhere", stubRunner([[["git", "rev-parse"], { code: 128, stderr: "fatal: not a git repository" }]]));
+    expect(stateDir(git, "claims")).toEqual({ ok: false, reason: "git rev-parse failed: fatal: not a git repository" });
+  });
+
+  test("stateDirIn joins segments under spec-board", () => {
+    expect(stateDirIn("/repo/.git", "base", "abc")).toBe("/repo/.git/spec-board/base/abc");
   });
 });

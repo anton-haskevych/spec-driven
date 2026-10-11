@@ -25,9 +25,9 @@ Times render in local time; tests pass a fixed zone (ledger `gotcha-bun-test-run
 
 ## Deliverables
 
-- [ ] `core/git.ts` `stateDir`; claims and base cache use it (refactor, green)
-- [ ] `pr/babysit/log.ts`: `appendEvent`, `readEvents` (skips malformed lines, says how many), `renderTimeline` with header from the latest `babysit-start` — tests over a temp dir
-- [ ] `pr log [<target>] [--add "<text>"]` in the `pr` group; empty log prints `PR #n: no babysit log on this machine`
+- [x] `core/git.ts` `stateDir`; claims and base cache use it (refactor, green)
+- [x] `pr/babysit/log.ts`: `appendEvent`, `readEvents` (skips malformed lines, says how many), `renderTimeline` with header from the latest `babysit-start` — tests over a temp dir
+- [x] `pr log [<target>] [--add "<text>"]` in the `pr` group; empty log prints `PR #n: no babysit log on this machine`
 
 ## Phase-local notes
 
