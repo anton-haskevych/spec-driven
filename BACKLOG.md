@@ -57,8 +57,12 @@ per-phase loop is driven entirely by hand.
   until done. The hard one: hooks can't trigger `/compact` or spawn agents; rides on
   Stop-hook + auto-compact + durable spec files. **Needs the compaction-trigger
   constraint verified first.** — Impact: High · Effort: High · Deps: L1, D1
+  → Taken up by `docs/specs/oversee-crew-spec` (2026-10-12): an overseer session launches a
+  fresh background worker per phase, so no session compacts or self-chains.
 - **D1 — Decision (not a task):** autonomy level — fully autonomous (reviews are the
   gates) vs. human ack at phase boundaries. Gates L1/L3.
+  → Decided in `docs/specs/oversee-crew-spec` (2026-10-12): workers run unattended; Anton
+  approves only the gates and PRs the spec or project settings reserve for him.
 
 ---
 
