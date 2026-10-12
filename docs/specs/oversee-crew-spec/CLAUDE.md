@@ -1,6 +1,6 @@
 ---
 created: 2026-10-12T14:06:26-07:00
-updated: 2026-10-12T14:06:26-07:00
+updated: 2026-10-12T14:26:25-07:00
 status: prep
 area: [tools, sub-commands]
 domain: [spec-workflow]
@@ -15,5 +15,5 @@ related:
 # Oversee Crew Spec — prep stage
 
 Reconnaissance in progress. See `product-brief.md` for the business intent and
-`research/` for verified codebase findings. `/spec create oversee-crew` writes the spec
+`research/` for verified codebase findings. `/spec create oversee-crew-spec` writes the spec
 body once recon is locked, and finalizes this metadata.
