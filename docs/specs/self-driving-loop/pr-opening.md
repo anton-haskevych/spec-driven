@@ -8,6 +8,7 @@ whoever lands second merges main.
 
 - PR B: phase 4 done on `feat/self-driving-loop-pr-b`; tests and typecheck green; no PR yet.
   CRM execute packs (92 open specs, 2026-10-12): median 20,963 → 16,708 chars, max 69,043 → 29,193, over 30K 20 → 0.
+PR #24 merged 2026-10-12 as afd223b (squash).
 
 ## Pre-PR checks
 
