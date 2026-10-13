@@ -5,6 +5,10 @@ export const FOCUS_BANDS = ["must", "should", "could"] as const;
 export type FocusBand = (typeof FOCUS_BANDS)[number];
 export const BAND_CHOICES = `${FOCUS_BANDS.slice(0, -1).join(", ")} or ${FOCUS_BANDS.at(-1)}`;
 
+// How a finished PR group ships: merged on green, or held green for Anton's review.
+export const SHIP_MODES = ["auto", "hold-for-review"] as const;
+export type ShipMode = (typeof SHIP_MODES)[number];
+
 // What a 2.37.0 numeric rank reads as until it is rewritten to a band.
 const LEGACY_RANK_BAND: FocusBand = "should";
 
@@ -17,6 +21,7 @@ export interface SpecMeta {
   due?: string;
   focus?: FocusBand;
   owner?: string;
+  ship?: ShipMode;
 }
 
 export interface FocusFields {
@@ -24,6 +29,11 @@ export interface FocusFields {
   owner?: string;
   problems: string[];
   warnings: string[];
+}
+
+export interface ShipField {
+  ship?: ShipMode;
+  problems: string[];
 }
 
 export function readSpecMeta(data: FrontmatterData): SpecMeta {
@@ -38,6 +48,7 @@ export function readSpecMeta(data: FrontmatterData): SpecMeta {
     due,
     focus,
     owner,
+    ship: readShipField(data).ship,
   };
 }
 
@@ -58,6 +69,18 @@ export function readFocusFields(data: FrontmatterData): FocusFields {
     else fields.problems.push(`owner ${JSON.stringify(data.owner)} is not a name`);
   }
   return fields;
+}
+
+export function readShipField(data: FrontmatterData): ShipField {
+  if (!Object.hasOwn(data, "ship")) return { problems: [] };
+  const ship = shipMode(data.ship);
+  return ship ? { ship, problems: [] } : { problems: [`ship ${JSON.stringify(data.ship)} is not one of ${SHIP_MODES.join(", ")}`] };
+}
+
+export function shipMode(value: unknown): ShipMode | undefined {
+  if (typeof value !== "string") return undefined;
+  const wanted = value.trim().toLowerCase();
+  return SHIP_MODES.find((mode) => mode === wanted);
 }
 
 export function focusBand(value: unknown): FocusBand | undefined {

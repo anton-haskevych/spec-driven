@@ -1,10 +1,11 @@
 import type { Priority } from "../core/schedule";
+import type { PrReview } from "../pr/checks/rollup";
 import type { VerdictKind } from "../pr/checks/verdict";
 import type { FocusBand } from "../core/spec-meta";
 import type { SessionStatus } from "../sessions/live";
 import type { SpecStage } from "./inputs";
 
-export const BOARD_VERSION = 1;
+export const BOARD_VERSION = 2;
 
 export type Target = { workspace: string } | { newWorktree: string };
 
@@ -29,9 +30,21 @@ export interface PrCell {
   state?: "merged" | "closed";
   // A live `pr-<group>` claim: a babysit session owns this PR until it merges.
   babysitting?: true;
+  // Labelled hold-for-review: green and waiting for the user's review on GitHub.
+  held?: true;
+  review?: Exclude<PrReview, "review-required">;
 }
 
-export type FlightNext = "executing" | "fix CI" | "merge" | "babysitting" | "ticked on branch, not merged" | "uncommitted";
+export type FlightNext =
+  | "executing"
+  | "fix CI"
+  | "merge"
+  | "babysitting"
+  | "awaiting review"
+  | "approved"
+  | "changes requested"
+  | "ticked on branch, not merged"
+  | "uncommitted";
 
 export interface FlightRow extends RowBase {
   prGroup?: string;
@@ -78,6 +91,8 @@ export type AttentionRow =
   | { kind: "deploy"; spec: string; phase: string; waiting: string[] }
   | { kind: "merge"; spec: string; phase?: string; prGroup?: string; pr: number }
   | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number }
+  // A held PR: waiting for the user's review, approved (merge it), or sent back (relaunch execute).
+  | { kind: "pr-review" | "pr-approved" | "pr-changes"; spec: string; phase?: string; prGroup?: string; pr: number }
   | { kind: "claim"; spec: string; phase: string; holder: string }
   | { kind: "remote-claim"; spec: string; phase: string; holder: string; since: string }
   // A live session holding claims has been idle since `since`: the user switches to it or takes it over.

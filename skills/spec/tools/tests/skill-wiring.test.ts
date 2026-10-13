@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { SUB_COMMANDS } from "../context/request";
 import { isRecord, parseFrontmatter, stringField } from "../core/frontmatter";
+import { SHIP_MODES } from "../core/spec-meta";
 import { phaseFileText } from "../phases/template";
 
 const SKILL_DIR = join(import.meta.dir, "..", "..");
@@ -109,6 +110,22 @@ describe("sub-command wiring", () => {
       expect(parsed.body).toContain(`\`spec-driven:spec\` with args \`${command} $ARGUMENTS\``);
       expect(parsed.body).toContain("../spec/SKILL.md");
     }
+  });
+});
+
+describe("ship mode wiring", () => {
+  const section = (file: string, from: string, to: string) => {
+    const text = readFileSync(join(SKILL_DIR, file), "utf8");
+    return text.slice(text.indexOf(from), text.indexOf(to, text.indexOf(from)));
+  };
+
+  test("the PR moment reads every ship mode before it asks: execute §10, handoff §4 and babysit", () => {
+    const readers = [
+      section("execute.md", "## 10. The PR gate", "**Checking on a PR.**"),
+      section("handoff.md", "## 4. Signal completion", "Do not ask other follow-up questions"),
+      section("babysit.md", "**Mode**", "## How to run the commands"),
+    ];
+    for (const text of readers) for (const mode of SHIP_MODES) expect(text).toContain(`\`ship: ${mode}\``);
   });
 });
 

@@ -160,7 +160,8 @@ When every code phase of a PR group is done, opening its PR is gated by `pr-open
 1. Run the **pre-PR checks** in `pr-opening.md`, scoped to the subprojects this PR touches. Lines like `gate: landing` point at named blocks in `docs/specs/_playbook/gates.md`; `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates <spec-name>` expands the ones this spec references (`gates --name <gate…>` expands any named section). Without Bun, read those sections in `gates.md`.
 2. Tick each check only when it actually passes; paste the failing output instead if it doesn't.
 3. Refresh the **Spec state** (phases done, branch). The PR is found by its branch, so no PR link is needed.
-4. **Ask the one question**, once per PR group, in place of the *Next sessions* block, so the message has one numbered list. `pr.draft: false` (`PRs ready`) lists babysit first; otherwise draft comes first. When `pr.merge` is unset, ask for the method on the same message.
+4. **Read the spec's ship mode first**: `ship:` in its `CLAUDE.md` frontmatter (`spec.ts ship` writes it on the user's word). `ship: auto` → act as answer 1 without asking; `ship: hold-for-review` → act as answer 4 without asking. Start the reply with `Ship mode <mode> (spec):`. Only with no `ship:`:
+5. **Ask the one question**, once per PR group, in place of the *Next sessions* block, so the message has one numbered list. `pr.draft: false` (`PRs ready`) lists babysit first; otherwise draft comes first. When `pr.merge` is unset, ask for the method on the same message.
 
 ```
 PR <group> is ready: phases <ids> (<spec>), <N> commits, pre-PR checks green.

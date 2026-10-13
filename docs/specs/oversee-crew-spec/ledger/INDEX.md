@@ -10,6 +10,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `gotcha-session-id-can-change-mid-session.md` — [phase 1+] — overseer: id can go stale under a live overseer
 - `docs/specs/_ledger/gotcha-pr-status-verdict-none-is-not-no-pr.md` — [general] — pr status verdict none = PR without CI, not no PR; use gh pr view
 - `docs/specs/_ledger/gotcha-spec-ts-exits-0-on-refusal.md` — [general] — spec.ts exits 0 on refusals; read the last line, don't chain on &&
+- `docs/specs/_ledger/gotcha-changes-requested-outlives-the-fix.md` — [general] — CHANGES_REQUESTED outlives the fix; act once per REST review id
 
 ## Principles
 
@@ -20,5 +21,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-one-home-per-crew-state.md` — [general, load-bearing] — roster+claims, in-flight.md, minimal run.md, Launched ids
 - `decision-phase-1-ships-small-tools.md` — [general] — launch --bg, pr hold, deployed --land; fix rot as you go
 - `decision-roster-wait-not-monitor.md` — [general] — background-Bash roster wait, no Monitor or /loop
+- `decision-review-state-comes-from-the-pr.md` — [phase 3+] — held = label + reviewDecision; exhaustive needs-you switch
 
 ## Workarounds

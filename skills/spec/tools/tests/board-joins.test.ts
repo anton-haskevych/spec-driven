@@ -57,6 +57,18 @@ describe("attachSessions", () => {
   });
 });
 
+describe("toPrCell", () => {
+  test("an open PR labelled hold-for-review is held, and carries an approval or a changes request", () => {
+    expect(toPrCell(pr(1, "a", { labels: ["ui", "hold-for-review"], review: "approved" }))).toEqual({ number: 1, listed: true, held: true, review: "approved" });
+    expect(toPrCell(pr(2, "b", { review: "changes-requested" }))).toEqual({ number: 2, listed: true, review: "changes-requested" });
+  });
+
+  test("a required review adds nothing, and a merged PR keeps only its state", () => {
+    expect(toPrCell(pr(3, "c", { review: "review-required" }))).toEqual({ number: 3, listed: true });
+    expect(toPrCell(pr(4, "d", { state: "MERGED", labels: ["hold-for-review"], review: "approved" }))).toEqual({ number: 4, listed: true, state: "merged" });
+  });
+});
+
 describe("attachPrs", () => {
   const prsFor = (prs: PrRow[], prLinks = new Map<string, number[]>(), row = flightRow({ workspace: FOO })) =>
     attachPrs([row], boardInputs([], { workspaces, prs: { ok: true, value: prs }, prLinks }))[0];
@@ -93,6 +105,20 @@ describe("attachPrs", () => {
     expect(prsFor([pr(1, "foo", { draft: true, checks: checks({ pass: 2 }) })])?.next).toBe("executing");
     expect(prsFor([pr(1, "foo", { checks: checks({ pass: 2, running: 1 }) })])?.next).toBe("executing");
     expect(prsFor([pr(1, "foo", { checks: checks({ skipping: 2 }) })])?.next).toBe("executing");
+  });
+
+  test("a held PR waits for review instead of saying merge; approval or a changes request says what comes next", () => {
+    const held = (overrides: Partial<PrRow>) => prsFor([pr(1, "foo", { labels: ["hold-for-review"], checks: checks({ pass: 2 }), ...overrides })])?.next;
+    expect(held({})).toBe("awaiting review");
+    expect(held({ checks: checks({ pass: 1, running: 1 }) })).toBe("awaiting review");
+    expect(held({ review: "approved" })).toBe("approved");
+    expect(held({ checks: checks({ pass: 1, fail: 1 }) })).toBe("fix CI");
+    expect(held({ review: "changes-requested", checks: checks({ fail: 1 }) })).toBe("changes requested");
+  });
+
+  test("changes requested wins on any PR; an approval alone changes nothing on a PR that isn't held", () => {
+    expect(prsFor([pr(1, "foo", { review: "changes-requested", checks: checks({ pass: 2 }) })])?.next).toBe("changes requested");
+    expect(prsFor([pr(1, "foo", { review: "approved", checks: checks({ pass: 2 }) })])?.next).toBe("merge");
   });
 
   test("gh failing makes every PR cell ?; --local leaves them empty", () => {

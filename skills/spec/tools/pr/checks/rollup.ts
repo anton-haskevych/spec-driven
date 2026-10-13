@@ -3,6 +3,7 @@ import { actionsJob, summarizeChecks, type CheckSummary } from "./checks";
 import type { Bucket, Check } from "./types";
 
 export type PrListState = "OPEN" | "MERGED" | "CLOSED";
+export type PrReview = "approved" | "changes-requested" | "review-required";
 
 export interface PrRow {
   number: number;
@@ -12,6 +13,9 @@ export interface PrRow {
   url: string;
   // The author's gh login; only the open list asks for it.
   author?: string;
+  // gh's reviewDecision and label names; only the open list asks for them.
+  review?: PrReview;
+  labels?: string[];
   checks?: CheckSummary;
 }
 
@@ -19,6 +23,7 @@ const PASS = new Set(["SUCCESS"]);
 const SKIPPING = new Set(["SKIPPED", "NEUTRAL"]);
 const FAIL = new Set(["ERROR", "FAILURE", "TIMED_OUT", "ACTION_REQUIRED", "STARTUP_FAILURE"]);
 const LIST_STATES: readonly PrListState[] = ["OPEN", "MERGED", "CLOSED"];
+const REVIEWS: Record<string, PrReview> = { APPROVED: "approved", CHANGES_REQUESTED: "changes-requested", REVIEW_REQUIRED: "review-required" };
 
 export function checkBucket(state: string): Bucket {
   if (PASS.has(state)) return "pass";
@@ -87,7 +92,22 @@ function toPrRow(record: FrontmatterData): PrRow | undefined {
   const state = LIST_STATES.find((candidate) => candidate === stringField(record, "state"));
   if (number === undefined || !branch || !state) return undefined;
   const author = isRecord(record.author) ? stringField(record.author, "login") : undefined;
-  return { number, branch, state, draft: booleanField(record, "isDraft") ?? false, url: stringField(record, "url") ?? "", ...(author ? { author } : {}) };
+  const review = REVIEWS[stringField(record, "reviewDecision") ?? ""];
+  const labels = labelNames(record.labels);
+  return {
+    number,
+    branch,
+    state,
+    draft: booleanField(record, "isDraft") ?? false,
+    url: stringField(record, "url") ?? "",
+    ...(author ? { author } : {}),
+    ...(review ? { review } : {}),
+    ...(labels.length > 0 ? { labels } : {}),
+  };
+}
+
+function labelNames(labels: unknown): string[] {
+  return records(labels).flatMap((label) => stringField(label, "name") ?? []);
 }
 
 function records(value: unknown): FrontmatterData[] {

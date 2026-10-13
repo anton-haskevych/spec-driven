@@ -109,6 +109,21 @@ describe("toPrRows", () => {
     expect(toPrRows([{ number: 1, headRefName: "x", author: null }, { number: 2, headRefName: "y", author: { login: 3 } }], [], []).map((row) => row.author)).toEqual([undefined, undefined]);
   });
 
+  test("open PRs carry their review decision and label names; an empty decision or label list adds nothing", () => {
+    const open = [
+      { number: 1, headRefName: "a", reviewDecision: "APPROVED", labels: [{ name: "hold-for-review" }, { name: "ui" }] },
+      { number: 2, headRefName: "b", reviewDecision: "CHANGES_REQUESTED", labels: [{ id: 7 }] },
+      { number: 3, headRefName: "c", reviewDecision: "REVIEW_REQUIRED" },
+      { number: 4, headRefName: "d", reviewDecision: "", labels: [] },
+    ];
+    expect(toPrRows(open, [], []).map(({ review, labels }) => ({ review, labels }))).toEqual([
+      { review: "approved", labels: ["hold-for-review", "ui"] },
+      { review: "changes-requested", labels: undefined },
+      { review: "review-required", labels: undefined },
+      { review: undefined, labels: undefined },
+    ]);
+  });
+
   test("records without a number or branch are dropped", () => {
     expect(toPrRows([{ headRefName: "x" }, { number: 1 }], [{ number: 2, state: "MERGED" }], [])).toEqual([]);
   });
