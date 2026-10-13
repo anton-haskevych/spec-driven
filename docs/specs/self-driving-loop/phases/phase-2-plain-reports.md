@@ -24,9 +24,9 @@ technical.md → Phase 2. Two short SKILL.md sections: one 3-line example plus f
 
 ## Deliverables
 
-- [ ] SKILL.md *Reports*: header from Outcome lines, gloss rule, scope (work reports only, handoff once); wiring pins the three labels and a loop pin over execute, handoff, update, review
-- [ ] execute, handoff, update, review point at *Reports*
-- [ ] SKILL.md *Say if wrong*: criteria from review.md §3 + examples; review.md §3 and phase-preflight point at it; update.md:22 applies the claim's phase; wiring pin
+- [x] SKILL.md *Reports*: header from Outcome lines, gloss rule, scope (work reports only, handoff once); wiring pins the three labels and a loop pin over execute, handoff, update, review
+- [x] execute, handoff, update, review point at *Reports*
+- [x] SKILL.md *Say if wrong*: criteria from review.md §3 + examples; review.md §3 and phase-preflight point at it; update.md:22 applies the claim's phase; wiring pin
 
 ## Phase-local notes
 

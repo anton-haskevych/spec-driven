@@ -9,6 +9,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `docs/specs/_ledger/gotcha-execute-pack-predates-a-main-merge.md` — [general] — execute pack predates a main merge: re-run context after merging
 - `docs/specs/_ledger/gotcha-macos-tmpdir-is-a-symlink-for-spawned-shells.md` — [general] — macOS temp paths gain /private in spawned shells; compare realpaths
 - `docs/specs/_ledger/gotcha-execute-pack-headroom-is-thin.md` — [general] — capped execute-pack blocks sum ~28K of 30K; cap and measure new ones
+- `docs/specs/_ledger/gotcha-session-runs-the-cached-plugin-not-the-branch.md` — [general] — a session runs the cached plugin release, not the branch's skills
 
 ## Principles
 

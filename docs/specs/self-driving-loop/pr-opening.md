@@ -6,7 +6,7 @@
 phase), PR B = phase 4 (project dir, hooks, pack budget). pr-babysit edits the same mode files:
 whoever lands second merges main.
 
-- PR A: phase 1 done on `feat/self-driving-loop-pr-a`; phases 2–3 left.
+- PR A: phases 1–2 done on `feat/self-driving-loop-pr-a`; phase 3 left.
 - PR B: phase 4 done on `feat/self-driving-loop-pr-b`; tests and typecheck green; no PR yet.
   CRM execute packs (92 open specs, 2026-10-12): median 20,963 → 16,708 chars, max 69,043 → 29,193, over 30K 20 → 0.
 PR #24 merged 2026-10-12 as afd223b (squash).
