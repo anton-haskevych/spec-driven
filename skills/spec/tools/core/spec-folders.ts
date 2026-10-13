@@ -39,6 +39,18 @@ export function specRoots(projectDir: string): string[] {
   return existsSync(join(projectDir, TOP_SPEC_ROOT)) ? [TOP_SPEC_ROOT, ...nested] : nested;
 }
 
+// The outermost folder holding docs/specs, from `start` up to the git root (a `.git` directory, or a
+// worktree's `.git` file). Outermost, not nearest: a subproject's own docs/specs must not hide the root's
+// _playbook settings and _ledger lessons.
+export function findProjectDir(start: string, exists: (path: string) => boolean = existsSync): string {
+  let outermost: string | undefined;
+  for (let dir = start; ; dir = dirname(dir)) {
+    if (exists(join(dir, TOP_SPEC_ROOT))) outermost = dir;
+    if (exists(join(dir, ".git")) || dirname(dir) === dir) break;
+  }
+  return outermost ?? start;
+}
+
 export function findSpecs(projectDir: string, name: string): SpecFolder[] {
   return listSpecs(projectDir).filter((spec) => spec.name === name);
 }
