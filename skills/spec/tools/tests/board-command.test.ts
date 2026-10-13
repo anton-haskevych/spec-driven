@@ -32,7 +32,7 @@ describe("board and list commands (real git)", () => {
 
   test("board --json prints the versioned model for agents", async () => {
     const { board } = JSON.parse(await boardCommand(repo.dir, ["--json", "--local"], deps));
-    expect(board.version).toBe(1);
+    expect(board.version).toBe(2);
     expect(board.base.mode).toBe("local");
     expect(board.lanes.ready.map((row: { spec: string; phase: string }) => `${row.spec}#${row.phase}`)).toEqual(["a#1"]);
     expect(board.lanes.blocked).toEqual([{ spec: "a", phase: "2", reasons: ["needs 1"] }]);

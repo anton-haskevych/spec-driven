@@ -34,6 +34,22 @@ describe("prAttention", () => {
   });
 });
 
+describe("prAttention: review state", () => {
+  test("a held PR awaiting review, an approved one and one with changes requested each get their row", () => {
+    const pr = (number: number) => ({ number, listed: true, held: true as const });
+    const rows = [
+      flightRow({ spec: "a", phase: "3", prGroup: "A", next: "awaiting review", pr: pr(930) }),
+      flightRow({ spec: "b", phase: "2", next: "approved", pr: pr(931) }),
+      flightRow({ spec: "c", phase: "5", next: "changes requested", pr: pr(932) }),
+    ];
+    expect(prAttention(rows)).toEqual([
+      { kind: "pr-review", spec: "a", phase: "3", prGroup: "A", pr: 930 },
+      { kind: "pr-approved", spec: "b", phase: "2", pr: 931 },
+      { kind: "pr-changes", spec: "c", phase: "5", pr: 932 },
+    ]);
+  });
+});
+
 describe("needsYou: merged trees", () => {
   test("merged trees become one prune row, last; none → no row", () => {
     const inputs = (merged: number) => boardInputs([], { counts: { merged, unknownBase: 0, unreadable: 0, duplicates: [] } });

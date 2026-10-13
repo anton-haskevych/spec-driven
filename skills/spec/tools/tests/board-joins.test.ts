@@ -107,6 +107,20 @@ describe("attachPrs", () => {
     expect(prsFor([pr(1, "foo", { checks: checks({ skipping: 2 }) })])?.next).toBe("executing");
   });
 
+  test("a held PR waits for review instead of saying merge; approval or a changes request says what comes next", () => {
+    const held = (overrides: Partial<PrRow>) => prsFor([pr(1, "foo", { labels: ["hold-for-review"], checks: checks({ pass: 2 }), ...overrides })])?.next;
+    expect(held({})).toBe("awaiting review");
+    expect(held({ checks: checks({ pass: 1, running: 1 }) })).toBe("awaiting review");
+    expect(held({ review: "approved" })).toBe("approved");
+    expect(held({ checks: checks({ pass: 1, fail: 1 }) })).toBe("fix CI");
+    expect(held({ review: "changes-requested", checks: checks({ fail: 1 }) })).toBe("changes requested");
+  });
+
+  test("changes requested wins on any PR; an approval alone changes nothing on a PR that isn't held", () => {
+    expect(prsFor([pr(1, "foo", { review: "changes-requested", checks: checks({ pass: 2 }) })])?.next).toBe("changes requested");
+    expect(prsFor([pr(1, "foo", { review: "approved", checks: checks({ pass: 2 }) })])?.next).toBe("merge");
+  });
+
   test("gh failing makes every PR cell ?; --local leaves them empty", () => {
     expect(attachPrs([flightRow({ workspace: FOO })], boardInputs([], { workspaces, prs: { ok: false, reason: "offline" } }))[0]?.pr).toBe("unknown");
     expect(attachPrs([flightRow({ workspace: FOO })], boardInputs([], { workspaces, prs: "local" }))[0]?.pr).toBeUndefined();

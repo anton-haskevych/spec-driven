@@ -6,7 +6,7 @@ import { heldName, holderName, type HeldClaim } from "../claims/rules";
 import { sessionLabel } from "../sessions/label";
 import type { LiveSession } from "../sessions/live";
 import type { BoardInputs } from "./inputs";
-import type { AttentionRow, FlightRow } from "./model";
+import type { AttentionRow, FlightNext, FlightRow } from "./model";
 import { deployWaits } from "./deploy-waits";
 import { rowKey, splitKey } from "./phase-keys";
 
@@ -28,11 +28,19 @@ export function prAttention(inFlight: readonly FlightRow[]): AttentionRow[] {
   return [...byPr.values()];
 }
 
+const PR_KINDS: Partial<Record<FlightNext, "merge" | "pr-review" | "pr-approved" | "pr-changes">> = {
+  merge: "merge",
+  "awaiting review": "pr-review",
+  approved: "pr-approved",
+  "changes requested": "pr-changes",
+};
+
 function prVerdictRow(row: FlightRow): AttentionRow | undefined {
   if (!row.pr || row.pr === "unknown") return undefined;
   const where = { spec: row.spec, ...(row.phase ? { phase: row.phase } : {}), ...(row.prGroup ? { prGroup: row.prGroup } : {}) };
   if (row.next === "fix CI") return { kind: "fix", ...where, pr: row.pr.number, failing: row.pr.failing ?? 0 };
-  return row.next === "merge" ? { kind: "merge", ...where, pr: row.pr.number } : undefined;
+  const kind = PR_KINDS[row.next];
+  return kind ? { kind, ...where, pr: row.pr.number } : undefined;
 }
 
 function closedClaims(inputs: BoardInputs, inFlight: readonly FlightRow[]): AttentionRow[] {
