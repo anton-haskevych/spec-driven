@@ -51,7 +51,7 @@ because a kind with no data adds no line.
   - changes requested → relaunch execute with the review comments in the brief
   - ship answers go through `spec.ts ship`
   - relaunch once per review: GitHub keeps changes requested until Anton reviews again
-- [ ] 2.6 `spec.ts ship <spec> <mode>` lands `ship:` on main through `landOnMain`; refuses a spec only on a branch; tests (real git, few)
+- [x] 2.6 `spec.ts ship <spec> <mode>` lands `ship:` on main through `landOnMain`; refuses a spec only on a branch; tests (real git, few)
 
 ## Phase-local notes
 
