@@ -14,6 +14,13 @@ export interface ProjectSettings {
   pr: { draft: boolean; merge?: MergeMethod };
   checks: { external: string[] };
   gates: { afterMergeMain?: string; bootstrap?: string; perCommit?: string; ciTriage?: string };
+  deploy?: DeploySetting;
+}
+
+// Only infra deploys are babysat: a merged PR touching `paths` goes through the `gate` section.
+export interface DeploySetting {
+  paths: string[];
+  gate: string;
 }
 
 export interface ParsedSettings {
@@ -27,6 +34,7 @@ const SECTION_KEYS: Record<string, readonly string[]> = {
   pr: ["draft", "merge"],
   checks: ["external"],
   gates: ["after-merge-main", "bootstrap", "per-commit", "ci-triage"],
+  deploy: ["paths", "gate"],
 };
 const TOP_KEYS = new Set(["docs", ...Object.keys(SECTION_KEYS)]);
 
@@ -47,6 +55,7 @@ export function parseSettings(text: string): ParsedSettings {
   const pr = section("pr");
   const checks = section("checks");
   const gates = section("gates");
+  const deploy = deploySetting(section("deploy"), data.deploy !== undefined, problems);
   const settings: ProjectSettings = {
     docs: oneOf(data.docs, DOCS_HOMES, "docs", problems) ?? DEFAULT_SETTINGS.docs,
     pr: { draft: draftFlag(pr.draft, problems), ...optional("merge", oneOf(pr.merge, MERGE_METHODS, "pr.merge", problems)) },
@@ -57,13 +66,14 @@ export function parseSettings(text: string): ParsedSettings {
       ...optional("perCommit", gateName(gates["per-commit"], "gates.per-commit", problems)),
       ...optional("ciTriage", gateName(gates["ci-triage"], "gates.ci-triage", problems)),
     },
+    ...optional("deploy", deploy),
   };
   problems.push(...Object.keys(data).filter((key) => !TOP_KEYS.has(key)).map((key) => `unknown key: ${key}`));
   return { settings, problems };
 }
 
 export function describeSettings(settings: ProjectSettings): string {
-  const { pr, checks, gates } = settings;
+  const { pr, checks, gates, deploy } = settings;
   return [
     `docs on ${settings.docs}`,
     `PRs ${pr.draft ? "draft" : "ready"}`,
@@ -73,7 +83,16 @@ export function describeSettings(settings: ProjectSettings): string {
     ...(gates.afterMergeMain ? [`after merging main: gate ${gates.afterMergeMain}`] : []),
     ...(gates.bootstrap ? [`fresh worktree: gate ${gates.bootstrap}`] : []),
     ...(gates.ciTriage ? [`CI triage: gate ${gates.ciTriage}`] : []),
+    ...(deploy ? [`deploy: gate ${deploy.gate} for ${deploy.paths.length} ${deploy.paths.length === 1 ? "path" : "paths"}`] : []),
   ].join(" · ");
+}
+
+function deploySetting(section: FrontmatterData, present: boolean, problems: string[]): DeploySetting | undefined {
+  const paths = stringArray(section.paths, "deploy.paths", problems);
+  const gate = gateName(section.gate, "deploy.gate", problems);
+  if (paths.length > 0 && gate) return { paths, gate };
+  if (present) problems.push("deploy needs both paths and gate");
+  return undefined;
 }
 
 function sectionOf(data: FrontmatterData, key: string, problems: string[]): FrontmatterData {
