@@ -118,15 +118,15 @@ Babysit's own fix pushes stay as they are.
   - the one start message (design.md → Copy)
   - brief template, run-file skeleton, roster-wait script
 - [x] 1.9 `oversee-crew.md` *Fill a slot*: the pick rule, `launch … --bg --brief`, `## Launched`
-- [ ] 1.10 `oversee-crew.md` *Wait and act*:
+- [x] 1.10 `oversee-crew.md` *Wait and act*:
   - the roster wait in background Bash and the state → action table (incl. babysitter rows)
   - close-out, `stop` + `rm`
   - only launched ids
-- [ ] 1.11 `oversee-crew.md` *PR moment* and *Needs you*:
+- [x] 1.11 `oversee-crew.md` *PR moment* and *Needs you*:
   - `pr status` first; ship-mode lookup; babysitter launch; one infra deploy at a time
   - questions from `in-flight.md` *Needs you*, asked once, answers in `run.md` and the relaunch brief
   - `claude attach <id>` plus PushNotification
-- [ ] 1.12 `oversee-crew.md` *Pause, resume, rotate*:
+- [x] 1.12 `oversee-crew.md` *Pause, resume, rotate*:
   - "Hand off now" by launch name; prompt-blocked workers go to needs you; babysitters finish
   - `## Stood down`; resume relaunches those first
   - rotation on compaction

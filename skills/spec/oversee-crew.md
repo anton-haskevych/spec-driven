@@ -87,3 +87,105 @@ A worker slot is free when fewer than `workers` of the `## Launched` ids are wor
    - Any other `launch:` refusal → one `## Log` line, next row.
 4. Repeat until the slots are full or no row fits. A slot with nothing to take stays empty; the
    next change in the roster or the board fills it.
+
+## 3. Wait and act
+
+Start the roster wait (crew-brief.md) with the `## Launched` ids. On its notification, act on each line,
+then refill slots (§2) and start the next wait.
+
+| Line | Session | Do |
+|---|---|---|
+| `heartbeat` | – | re-read `board --json` and `claim list`; refill slots |
+| `<id> working` | any | nothing |
+| `<id> done` | worker | close-out (below) |
+| `<id> blocked (<waitingFor>)` | any | *Needs you* (§5): `claude attach <id>` plus a push notification |
+| `<id> blocked` | worker | SendMessage to its title: `Hand off now`; close it out once it reads `done` |
+| any | babysitter whose `pr-<group>` claim is `live` in `claim list` | nothing: it is waiting on CI. Never stop it |
+| `<id> done` | babysitter, claim released | report its last message as one line (§4), then `claude stop <id>` + `claude rm <id>` |
+| `<id> stopped` or `<id> gone` | any | close-out; a dirty tree or a live claim → *Needs you*, never a silent relaunch |
+
+A worker that ended its turn on text is never stopped over a dirty tree: the next worker inherits it.
+
+**Close-out** of a worker, all four from its tree and branch:
+
+| Check | How |
+|---|---|
+| tree clean | `git -C <tree> status --porcelain` prints nothing |
+| pushed | `git -C <tree> fetch -q origin <branch>`, then `rev-parse HEAD` equals `rev-parse origin/<branch>` |
+| handed off | a `[handoff]` commit on `origin/<branch>` newer than the launch, and the transcript's last assistant message has the `Crew:` line |
+| claim released | `claim list` shows no `live` claim for `<spec>#<phase>` |
+
+The transcript is `~/.claude/projects/*/<sessionId>.jsonl` (`claude agents --json --all` gives the
+`sessionId`); `claude rm` keeps it. All four pass → read the `Crew:` line, then `claude stop <id>` +
+`claude rm <id>`, drop the id from `## Launched`, add a `## Log` line, and act on the line:
+- `next same phase` → relaunch that phase now with a fresh brief: it is in flight on the board, so §2
+  won't pick it.
+- `PR group ready <group>` → §4.
+- `needs you <n>` above 0 → §5. The phase stays parked until Anton answers.
+- `say if wrong <n>` → its items join the next *Needs you* batch as FYI.
+
+A check fails on a live session → SendMessage its title once, naming what's missing. Still failing, or
+the session is gone → *Needs you*.
+
+## 4. The PR moment
+
+1. A `Crew:` line says `PR group ready <group>`. Cross-check with `ready <spec>`: every phase of the group
+   ticked.
+2. `pr status <spec> <group>`: `merged` or `closed` → nothing to launch; log it once.
+3. **Ship mode**: the spec's `ship:`, else `run.md` `## Ship modes`, else ask in the *Needs you* batch
+   and launch once Anton answers. Record his answer with its time.
+4. **A babysitter slot** must be free (`babysitters` cap). **Infra**: when settings have `deploy:` and
+   the group's files (`git diff --name-only origin/<default>...origin/<branch>`) match `deploy.paths`,
+   launch it only while no other auto babysitter of an infra PR is running: one deploy gate at a time.
+5. **Launch**: brief to `<crew>/briefs/<spec>#pr-<group>.md`, then
+   `launch babysit <spec> <group> [hold] --bg --brief <file>` (`hold` for hold-for-review). Add the
+   `Launched:` id to `## Launched`.
+6. **Report** the babysitter's final message as one line:
+   ```
+   Merged #929 lifecycle-email-foundation A
+   Merged #931 infra-alarms A · deploy gate passed (crm-prod) · phases 1–2 marked deployed
+   Held #930 multi-location-studios A for your review · green · How to review is in the PR
+   ```
+   A stop-and-ask message goes to *Needs you* instead.
+
+## 5. Needs you
+
+Sources: a worker's `## Needs you` in `in-flight.md`, read from origin after a fetch
+(`git show origin/<branch>:docs/specs/<spec>/in-flight.md`, or `origin/<default>` in a `docs: main`
+project); a session `blocked` on a prompt; a refused launch; a failed close-out; a babysitter's
+stop-and-ask; a ship mode to choose.
+
+- Give each item an id in `## Questions` with the time asked. Ask it **once**: never repeat an asked
+  item unless Anton asks what's open.
+- One batch message, numbered, recommendation first:
+  ```
+  Needs you (3)
+  1. multi-location-studios 5a asks: show parking notes in booking emails at every studio? I'd say no for now.
+  2. #930 is green and labelled hold-for-review. How to review is in the PR.
+  3. cross-studio 9 is stuck on a permission prompt. Open it: claude attach 2c555dd2
+  ```
+- A session stuck on a prompt also gets a push notification (PushNotification, when this session has it).
+  Its slot stays held until it moves.
+- **An answer**: quote it with its time under the question, then relaunch the parked phase with the
+  answer quoted in the brief's *Notes*. Ship-mode answers go to `## Ship modes`.
+
+## 6. Pause, resume, rotate
+
+**"Time to pause"**: SendMessage `Hand off now` to the title of every worker that is `working` or `done`;
+workers stuck on a prompt go to *Needs you*; babysitters finish on their own. Close each out as it lands
+(§3). When none are left, set `state: stood-down`, list each phase under `## Stood down` with its tree
+and progress, and say:
+```
+Paused. 3 workers handed off, pushed and stopped:
+  multi-location-studios 6a (4 of 9 done) · cross-studio 9 (recon only) · lifecycle-email-foundation 4 (done)
+Saved to the run file. Say "resume" to pick up.
+```
+
+**"Resume"** (or `/spec oversee-crew` on a stood-down run): relaunch the `## Stood down` phases first.
+They are in flight on the board, not ready, so launch them by name. Then phases whose questions are
+answered, then fill from the board. Set `state: running` and clear `## Stood down`.
+
+**Rotate.** If this conversation has been compacted (a summary of earlier turns is present), don't act on
+the summary. `run.md`, the roster and the claims already hold the state, since every step writes as it
+happens. Print `Overseer rotated: type /spec oversee-crew in a fresh session` and stop. Workers and
+babysitters keep running, and so they do when this session closes.
