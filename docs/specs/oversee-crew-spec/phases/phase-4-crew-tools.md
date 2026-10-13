@@ -68,7 +68,7 @@ Logic in pure functions with fast tests; real git only where git must prove it
 - [x] 4.3 `crew wait <id…>`: ids as argv; exits on the first change, a gone id or the heartbeat, on an injected clock; tests
 - [x] 4.4 `crew check <id>`: the close-out checks, including the babysitter rows; tests
 - [x] 4.4a `LaunchTitle.group` for babysit titles (own commit), then `crew launch execute <spec> <phase> | babysit <spec> <group> [hold] [--note <text>]`: brief from the template, placement, `--bg` launch, `## Launched` entry; tests
-- [ ] 4.5 `crew tick`: fixed transitions, judgement items printed; never touches a live-claim or foreign session, never removes a tree; tests
+- [x] 4.5 `crew tick`: fixed transitions, judgement items printed; never touches a live-claim or foreign session, never removes a tree; tests
 - [ ] 4.6 `oversee-crew.md` and `crew-brief.md` use the commands instead of the written recipes
 
 ## Phase-local notes
