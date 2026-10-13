@@ -26,3 +26,10 @@ The pick rule skips:
 - `code: false` task phases (`board/lanes.ts:145` puts `next: "execute"` on every row)
 - `readyIn` / `onlyOn` rows
 - a second worker on the same spec (phase 1)
+
+**Phase 4 (2026-10-13): one writer.** `crew start` (frontmatter on "go"), `crew launch` (brief +
+`## Launched`) and `crew tick` (removals, `## Log`, `overseer:`) are the only writers of `run.md`'s
+machine parts; the overseer never hand-edits them (the first run duplicated hand-edited lines).
+`crew tick` never launches a babysitter: the PR moment (ship mode, one infra deploy gate at a time)
+stays the overseer's judgement, so tick prints `PR group ready: <spec> <group>`.
+

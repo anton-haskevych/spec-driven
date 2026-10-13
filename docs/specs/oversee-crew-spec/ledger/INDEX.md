@@ -11,6 +11,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `docs/specs/_ledger/gotcha-pr-status-verdict-none-is-not-no-pr.md` — [general] — pr status verdict none = PR without CI, not no PR; use gh pr view
 - `docs/specs/_ledger/gotcha-spec-ts-exits-0-on-refusal.md` — [general] — spec.ts exits 0 on refusals; read the last line, don't chain on &&
 - `docs/specs/_ledger/gotcha-changes-requested-outlives-the-fix.md` — [general] — CHANGES_REQUESTED outlives the fix; act once per REST review id
+- `docs/specs/_ledger/gotcha-git-since-ignores-a-date-it-cannot-parse.md` — [general] — git --since ignores a date it can't parse; old commits match
 
 ## Principles
 
