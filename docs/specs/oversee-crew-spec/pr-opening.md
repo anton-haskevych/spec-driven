@@ -13,6 +13,9 @@ Order: 1 first; then 2, 4 and 6 in parallel (4 re-planned after the first crew r
 board files) and self-driving-loop phase 1; 5 after 3. The crew builds 2–5 once phase 1's release is installed.
 Ship mode for this spec: not set; the first overseer run asks.
 PR #23 merged 2026-10-12 as 9702d6b (squash).
+Phase 2 done (2026-10-12) on `feat/oversee-crew-spec-pr-b`, pushed, no PR yet; version 2.44.0 + ROADMAP row
+set on the branch. PR B checks re-run after merging main: 1120 tests pass, typecheck clean, lockfile clean,
+touched files under 250 lines, doctor clean.
 
 ## Pre-PR checks
 

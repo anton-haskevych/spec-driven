@@ -46,7 +46,7 @@ because a kind with no data adds no line.
   - `nextFromChecks` stops saying merge for a held PR
   - exhaustive render switch, `BOARD_VERSION` bump
   - tests; golden unchanged
-- [ ] 2.5 `oversee-crew.md`:
+- [x] 2.5 `oversee-crew.md`:
   - an approved held PR goes to a babysitter in auto mode
   - changes requested → relaunch execute with the review comments in the brief
   - ship answers go through `spec.ts ship`
