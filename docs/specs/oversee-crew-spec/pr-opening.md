@@ -12,6 +12,7 @@ version each, picked at merge (main's minor + 1). Phase 6 runs in CRM (task phas
 Order: 1 first; then 2, 4 and 6 in parallel (4 re-planned after the first crew run); 3 after 2 (same
 board files) and self-driving-loop phase 1; 5 after 3. The crew builds 2–5 once phase 1's release is installed.
 Ship mode for this spec: not set; the first overseer run asks.
+PR #23 merged 2026-10-12 as 9702d6b (squash).
 
 ## Pre-PR checks
 
