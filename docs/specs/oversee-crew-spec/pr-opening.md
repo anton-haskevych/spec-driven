@@ -22,6 +22,7 @@ crew brief; the overseer runs the PR moment). Version 2.46.0 + ROADMAP row set o
 2.45.0). Checks after merging main: 1248 pass; real-git claim/board tests timed out at load average ~48
 (hook timeouts, a different set each run; board-inputs passes on rerun), typecheck, lockfile and doctor
 clean, new tool files under 250 lines.
+PR #27 merged 2026-10-13 as 968cafa (squash).
 
 ## Pre-PR checks
 
