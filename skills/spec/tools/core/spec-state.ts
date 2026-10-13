@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { readTextIfExists } from "./files";
 import { parseFrontmatter, stringField } from "./frontmatter";
@@ -27,12 +28,14 @@ export interface SpecState {
   hasProgress: boolean;
   phases: PhaseState[];
   inFlight?: string;
+  // Has a reviews/ folder. Only a load from disk knows; undefined counts as reviewed.
+  reviewed?: boolean;
 }
 
 export type ReadSpecFile = (pathInSpec: string) => string | undefined;
 
 export function loadSpecState(spec: SpecFolder): SpecState {
-  return specStateFrom(spec, diskReader(spec.dir));
+  return { ...specStateFrom(spec, diskReader(spec.dir)), reviewed: existsSync(join(spec.dir, "reviews")) };
 }
 
 export function diskReader(specDir: string): ReadSpecFile {
