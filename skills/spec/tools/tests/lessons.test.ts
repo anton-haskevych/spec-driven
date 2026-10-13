@@ -7,7 +7,7 @@ import { checkProjectLesson } from "../doctor/project-lesson";
 import { recallResponse, type RecallMemory } from "../hooks/lesson-recall";
 import { hookResponse } from "../hooks/spec-file-check";
 import { lessonFileName, loadProjectLessons } from "../lessons/project-ledger";
-import { lessonsForFiles } from "../lessons/recall";
+import { lessonsForFiles, pointToLesson } from "../lessons/recall";
 import { addSeenIn } from "../lessons/seen-in";
 import { similarLessons } from "../lessons/similar";
 
@@ -53,6 +53,13 @@ describe("lessonsForFiles", () => {
       "gotcha-migration-numbers-collide.md",
     ]);
     expect(lessonsForFiles(lessons, ["ops/src/run.ts"])).toEqual([]);
+  });
+});
+
+describe("pointToLesson", () => {
+  test("one line: the title, the file and how many specs hit it, no summary", () => {
+    const [lesson] = lessonsForFiles(loadProjectLessons(project), ["backend/db/migration/V1__a.sql"]);
+    expect(lesson && pointToLesson(lesson)).toBe("- Migration numbers collide on merge (`gotcha-migration-numbers-collide.md`, seen in 2 specs)");
   });
 });
 
