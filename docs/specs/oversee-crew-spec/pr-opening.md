@@ -16,6 +16,7 @@ PR #23 merged 2026-10-12 as 9702d6b (squash).
 Phase 2 done (2026-10-12) on `feat/oversee-crew-spec-pr-b`, pushed, no PR yet; version 2.44.0 + ROADMAP row
 set on the branch. PR B checks re-run after merging main: 1120 tests pass, typecheck clean, lockfile clean,
 touched files under 250 lines, doctor clean.
+PR #25 merged 2026-10-12 as f6ce4d0 (squash).
 
 ## Pre-PR checks
 
