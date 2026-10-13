@@ -103,7 +103,7 @@ Babysit's own fix pushes stay as they are.
   - `deploy: { paths, gate }`: parser row, typed field, `Settings:` line, doctor gate check
   - `phase deployed --land` through `landOnMain`
   - tests
-- [ ] 1.5 execute.md:
+- [x] 1.5 execute.md:
   - §1 push decision after `claim take`, plus §6 step 5 push
   - the *Crew worker* paragraph (the single list of crew rules)
   - §10 answer 4 → `launch babysit … hold`
