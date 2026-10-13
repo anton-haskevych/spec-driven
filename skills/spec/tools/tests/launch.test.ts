@@ -33,13 +33,14 @@ describe("launchReport", () => {
   });
 
   test("bad arguments come back as one launch line", () => {
-    expect(launchReport("/w", ["prep"], iTerm, stubRunner([]))).toBe("launch: usage: launch <sub-command> <spec-name> [<phase>]");
+    expect(launchReport("/w", ["prep"], iTerm, stubRunner([]))).toBe("launch: usage: launch <sub-command> <spec-name> [<phase> | <group> [hold]] [--bg --brief <file>]");
   });
 });
 
 const giftCards: SessionLaunch = {
   title: "gift-cards prep",
   projectDir: "/work/crm",
+  prompt: "/spec-driven:spec prep gift-cards",
   command: `claude -n 'gift-cards prep' '/spec-driven:spec prep gift-cards'`,
   shellLine: `cd '/work/crm' && claude -n 'gift-cards prep' '/spec-driven:spec prep gift-cards'`,
 };
@@ -97,6 +98,7 @@ describe("sessionLaunch", () => {
       value: {
         title: "gift-cards prep",
         projectDir: "/work/crm",
+        prompt: "/spec-driven:spec prep gift-cards",
         command: "claude -n 'gift-cards prep' '/spec-driven:spec prep gift-cards'",
         shellLine: "cd '/work/crm' && claude -n 'gift-cards prep' '/spec-driven:spec prep gift-cards'",
       },
@@ -111,7 +113,7 @@ describe("sessionLaunch", () => {
   test("refuses an unknown sub-command or a spec name that isn't kebab-case", () => {
     expect(sessionLaunch("/w", ["deploy", "billing"])).toEqual({ ok: false, reason: "unknown sub-command deploy (prep, create, resume, execute, review, update, handoff, status, list, idea, babysit, oversee-crew)" });
     expect(sessionLaunch("/w", ["prep", "Gift Cards"])).toEqual({ ok: false, reason: "spec name must be kebab-case: Gift Cards" });
-    expect(sessionLaunch("/w", ["prep"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase>]" });
+    expect(sessionLaunch("/w", ["prep"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase> | <group> [hold]] [--bg --brief <file>]" });
   });
 });
 
@@ -129,7 +131,7 @@ describe("sessionLaunch with a phase", () => {
   test("refuses a bad phase id, a phase on another sub-command, and extra words", () => {
     expect(sessionLaunch("/w", ["execute", "spec-board", "six"])).toEqual({ ok: false, reason: "not a phase id: six" });
     expect(sessionLaunch("/w", ["prep", "spec-board", "6"])).toEqual({ ok: false, reason: "a phase only goes with execute" });
-    expect(sessionLaunch("/w", ["execute", "spec-board", "6", "now"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase>]" });
+    expect(sessionLaunch("/w", ["execute", "spec-board", "6", "now"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase> | <group> [hold]] [--bg --brief <file>]" });
   });
 });
 
@@ -138,6 +140,12 @@ describe("sessionLaunch for babysit", () => {
     const launch = sessionLaunch("/trees/pr-babysit-pr-a", ["babysit", "pr-babysit", "A"]);
     expect(launch.ok && launch.value.title).toBe("pr-babysit babysit A");
     expect(launch.ok && launch.value.command).toBe("claude -n 'pr-babysit babysit A' '/spec-driven:spec babysit pr-babysit A'");
+  });
+
+  test("babysit hold carries hold into the prompt, keeps the title, and only babysit takes it", () => {
+    const launch = sessionLaunch("/trees/pr-babysit-pr-a", ["babysit", "pr-babysit", "A", "hold"]);
+    expect(launch.ok && launch.value.command).toBe("claude -n 'pr-babysit babysit A' '/spec-driven:spec babysit pr-babysit A hold'");
+    expect(sessionLaunch("/w", ["execute", "pr-babysit", "6", "hold"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase> | <group> [hold]] [--bg --brief <file>]" });
   });
 
   test("babysit needs a PR group token, and execute still takes only a phase", () => {

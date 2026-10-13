@@ -86,12 +86,12 @@ Babysit's own fix pushes stay as they are.
   - whether `CLAUDE_CODE_DISABLE_BG_EXIT_HANDOFF=1` stops background shells on `claude stop`
   - whether `claude rm` deletes the transcript
   - Update technical.md's state table from the answers.
-- [ ] 1.1 Register `oversee-crew`:
+- [x] 1.1 Register `oversee-crew`:
   - `SUB_COMMANDS`; SKILL.md argument-hint, set line, dispatch row and exceptions (no spec inferred)
   - the thin skill `skills/spec-oversee-crew/SKILL.md`
   - `launchTarget` refuses `oversee-crew`
   - widen the wiring-test regexes to accept `-`; update the launch-test sub-command list
-- [ ] 1.2 `launch execute|babysit … --bg --brief <file>`:
+- [x] 1.2 `launch execute|babysit … --bg --brief <file>`:
   - background argv run from the placed tree
   - appends the placement's fresh-tree and setup lines to the brief
   - parses `backgrounded · <id> · <name>` and prints `Launched: background <id> · <title>`
