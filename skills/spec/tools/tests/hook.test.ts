@@ -101,6 +101,14 @@ describe("hookResponse", () => {
     rmSync(playbook);
   });
 
+  test("blocks a phase whose gate is not a known kind", () => {
+    const phase = write("phases/phase-1-harness.md", "---\ngate: someday\n---\n- [ ] Gate: agreed\n");
+    expect(JSON.parse(hookResponse(payload(phase), project) ?? "{}").reason).toContain('gate must be design or outward, not "someday"');
+    write("phases/phase-1-harness.md", "---\ngate: design\n---\n- [ ] Gate: agreed\n");
+    expect(hookResponse(payload(phase), project)).toBeUndefined();
+    write("phases/phase-1-harness.md", "- [ ] build it\n");
+  });
+
   test("stays silent for valid spec files, code files, other tools and malformed input", () => {
     expect(hookResponse(payload(join(spec(), "ledger", "gotcha-a.md")), project)).toBeUndefined();
     expect(hookResponse(payload(join(project, "src", "app.ts")), project)).toBeUndefined();

@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { readTextIfExists } from "./files";
+import { isGateKind, type GateKind } from "./gate";
 import { readInFlight, type InFlightNote } from "./in-flight";
 import { parseFrontmatter, stringField } from "./frontmatter";
 import { parsePhaseEdges, type PhaseEdges } from "./phase-edges";
@@ -22,6 +23,8 @@ export interface PhaseState {
   schedule: Schedule;
   code: boolean;
   playbook?: string;
+  // Metadata like code and playbook, never an edge: it doesn't decide whether a spec uses declared edges.
+  gate?: GateKind;
 }
 
 export interface SpecState {
@@ -65,6 +68,7 @@ function loadPhase(read: ReadSpecFile, line: PhaseLine, index: number): PhaseSta
     schedule: data ? readSchedule(data) : { problems: [] },
     code: data?.code !== false,
     playbook: data ? stringField(data, "playbook") : undefined,
+    ...(isGateKind(data?.gate) ? { gate: data.gate } : {}),
   };
 }
 

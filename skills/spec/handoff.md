@@ -55,7 +55,7 @@ If the item is cross-phase, a standing rule, a domain fact, or a decision that f
 
 If the item is half-built code, session-specific "pick up from here" instructions, open questions, or environment state that only matters until the pending work is resumed:
 
-- Write it to `docs/specs/<name>/in-flight/phase-<id>.md` for this session's phase (`in-flight/pr-<group>.md` for a session with no phase, such as the PR gate), **overwriting** any prior content. Touch no other session's file: one file per phase is what keeps two sessions on one spec from colliding. The file holds only the current pending state — history lives in git.
+- Write it to `docs/specs/<name>/in-flight/phase-<id>.md` for this session's phase (`in-flight/pr-<group>.md` for a session with no phase, such as the PR gate), **overwriting** any prior content except its `## Needs you` section, which you keep as it is: `phase park` writes the questions there and `phase unpark` their answers, and the board reads them. Touch no other session's file: one file per phase is what keeps two sessions on one spec from colliding. The file holds only the current pending state — history lives in git.
 - A legacy `docs/specs/<name>/in-flight.md` from before the split: move the part about this phase into its file and leave the rest; delete the legacy file once nothing pending is left in it.
 
 - Use this shape:
@@ -93,7 +93,7 @@ If the session ended at a **clean boundary**, don't write new pending state — 
 
 1. All current-phase sub-checkboxes in the phase entry are checked (the phase is fully done)
 2. No staged-but-uncommitted spec changes
-3. No open questions or blockers flagged during this session
+3. No open questions or blockers flagged during this session, and no unanswered `- Parked …` question under the file's `## Needs you`
 
 When at a clean boundary, `git rm` this phase's file (or `in-flight/pr-<group>.md`) when it exists. A missing file means nothing is pending; there is no marker to write. A note that must outlive the phase, such as a deploy still to do on a ticked phase, keeps the file.
 

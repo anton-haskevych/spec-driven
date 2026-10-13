@@ -103,3 +103,33 @@ describe("phase tick (task phase)", () => {
     expect(taskPhaseIssues(loadSpecState(spec))).toEqual([]);
   });
 });
+
+describe("phase tick (Gate: items)", () => {
+  function design() {
+    tree = createTree("spec-tick-gate-");
+    return tree.spec("studio", {
+      "progress.md": "- [ ] Phase 1 — Design → `phases/phase-1-design.md`\n",
+      "phases/phase-1-design.md": "---\nneeds: []\ngate: design\n---\n- [ ] Gate: design agreed with Anton\n- [ ] Gateway wired\n",
+    });
+  }
+
+  test("refuses a Gate: item without --evidence, by prefix or by number, and writes nothing", () => {
+    const spec = design();
+    const refusal = 'phase tick: "Gate: design agreed with Anton" records an approval; tick it with --evidence "<who approved, when>"';
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "Gate: design"])).toBe(refusal);
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "#1"])).toBe(refusal);
+    expect(read(spec.dir, "phases/phase-1-design.md")).toContain("- [ ] Gate: design agreed with Anton");
+  });
+
+  test("refuses evidence that names no date, link or file", () => {
+    design();
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "#1", "--evidence", "Anton said yes"])).toStartWith('phase tick: "Anton said yes" is not evidence');
+  });
+
+  test("ticks a Gate: item with evidence, and other items of a gated phase without", () => {
+    const spec = design();
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "#1", "--evidence", "Anton, 2026-10-13"])).toBe('ticked "Gate: design agreed with Anton" in Phase 1');
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "Gateway"])).toStartWith('ticked "Gateway wired"');
+    expect(read(spec.dir, "phases/phase-1-design.md")).toContain("- [x] Gate: design agreed with Anton — Anton, 2026-10-13\n");
+  });
+});

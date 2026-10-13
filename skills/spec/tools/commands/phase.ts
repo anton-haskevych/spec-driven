@@ -1,10 +1,11 @@
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util";
 import { applyEdits } from "../core/apply-edits";
 import { resolveSpec } from "../core/spec-folders";
-import { isoDay } from "../core/schedule";
+import { isoDay, isoTimestamp } from "../core/schedule";
 import { loadNodes } from "../graph/nodes";
 import { planAdd } from "../phases/add";
 import { planDeployed } from "../phases/deployed";
+import { planPark, planUnpark } from "../phases/park";
 import { deployedOnMain } from "../phases/deployed-land";
 import { parseItemAssignments } from "../phases/move-items";
 import { refsToPhase } from "../phases/review-refs";
@@ -24,6 +25,8 @@ const ACTIONS: Record<string, PhaseAction> = {
     usage: 'phase add <spec> "<title>" [--after <id>] [--needs a,b] [--pr X] [--code false]',
     run: add,
   },
+  park: { usage: 'phase park <spec> <phase> "<question>" [--recommend "<answer>"]', run: park },
+  unpark: { usage: 'phase unpark <spec> <phase> "<answer>"', run: unpark },
   split: {
     usage: 'phase split <spec> <id> "<title b>" ["<title c>"…] [--items "b:1,2 c:3"]',
     run: split,
@@ -54,6 +57,36 @@ function tick(projectDir: string, args: string[]): string {
   applyEdits(result.plan);
   const ticked = `ticked "${result.item}" in Phase ${result.phaseId}`;
   return result.phaseComplete ? `${ticked}\nPhase ${result.phaseId} complete — run update.md → Close the phase` : ticked;
+}
+
+function park(projectDir: string, args: string[]): string {
+  const usage = `usage: ${ACTIONS.park?.usage}`;
+  const parsed = parseFlags(args, { recommend: { type: "string" } });
+  const [specName, phase, question] = parsed?.positionals ?? [];
+  if (!parsed || !specName || !phase || !question?.trim()) return usage;
+
+  const spec = resolveSpec(projectDir, specName);
+  if (typeof spec === "string") return `phase park: ${spec}`;
+  const recommend = parsed.values.recommend;
+  const result = planPark(spec, { phase, question, recommend, at: isoTimestamp(new Date()) });
+  if (result.plan.kind !== "ok") return `phase park: ${result.plan.reason}`;
+  applyEdits(result.plan);
+  const advice = recommend?.trim() ? ` · recommend: ${recommend.trim()}` : "";
+  return `parked Phase ${result.phaseId} in ${result.file}: "${question.trim()}"${advice}\nCommit and push the note, then hand off.`;
+}
+
+function unpark(projectDir: string, args: string[]): string {
+  const usage = `usage: ${ACTIONS.unpark?.usage}`;
+  const parsed = parseFlags(args, {});
+  const [specName, phase, answer] = parsed?.positionals ?? [];
+  if (!parsed || !specName || !phase || !answer?.trim()) return usage;
+
+  const spec = resolveSpec(projectDir, specName);
+  if (typeof spec === "string") return `phase unpark: ${spec}`;
+  const result = planUnpark(spec, { phase, answer, at: isoTimestamp(new Date()) });
+  if (result.plan.kind !== "ok") return `phase unpark: ${result.plan.reason}`;
+  applyEdits(result.plan);
+  return `answered Phase ${result.phaseId}: "${answer.trim()}"`;
 }
 
 function deployed(projectDir: string, args: string[]): string | Promise<string> {

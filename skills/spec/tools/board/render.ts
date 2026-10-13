@@ -88,6 +88,8 @@ function blockedCells(board: Board): string[][] {
 
 function attentionCells(row: AttentionRow, now: Date): string[] {
   switch (row.kind) {
+    case "question":
+      return [`${rowName(row)} asks: ${row.question}`, row.recommend ? `I'd say ${row.recommend}` : "answer it"];
     case "merge":
       return [`#${row.pr} checks pass → merge`, rowName(row)];
     case "fix":

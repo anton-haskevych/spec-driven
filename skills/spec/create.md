@@ -103,6 +103,7 @@ Draft the implementation phases, **then stop and agree on them with the user bef
 For each planned phase, prepare:
 - **Phase goal** — what ships at the end of this phase
 - **Edges** — `needs`, `needs-deployed`, `same-files-as`, and a `pr` group, in the phase file's frontmatter (SKILL.md → *Phase edges*). Parallelism is computed from these; don't list it by hand.
+- **Gate** — `gate: design` when the user must agree a design before it's built, `gate: outward` when the phase publishes, sends or deploys on their word (SKILL.md → *Phase edges*). Add a `- [ ] Gate: <what is approved, by whom>` deliverable at the point the approval is needed. Most phases have no gate.
 - **Shape** — read [archetypes.md](archetypes.md), plus `docs/specs/_playbook/archetypes.md` if the project has one. When a phase follows a known shape (harness-first, guardrail-alone, expand-bake-contract, …), set `shape: <name>` in its frontmatter and apply that shape's edges and traps.
 - **Files to touch** — paths that will be edited or created
 - **Implementation guidance** — prose: how to approach the work, how the files relate, phase-specific nuances
@@ -289,6 +290,7 @@ same-files-as: [<phases editing the same files; omit if none>]
 pr: <PR group label; omit for a task phase>
 shape: <archetype name from archetypes.md; omit if none fits>
 code: false   # only for a task phase; omit for code phases
+gate: <design | outward; omit unless a person must approve>
 ---
 
 # Phase <N> — <Name>

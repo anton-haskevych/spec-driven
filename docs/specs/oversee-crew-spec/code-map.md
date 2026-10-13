@@ -19,6 +19,10 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/crew/` | Pure crew logic: `run-state.ts` (run.md read/write), `overseer.ts` (follows a parked tab), `roster.ts`, `close-out.ts`, `crew-line.ts`, `tick-step.ts`, `pick.ts`, `brief.ts`; `close-out-run.ts` gathers close-out facts (git, claims by key) | 4 |
 | `skills/spec/tools/commands/crew.ts`, `commands/crew/*` | `spec.ts crew overseer\|start\|wait\|check\|launch\|tick`; `launch-session.ts` is brief + placement + `--bg` + `## Launched`; `tick.ts` composes it all behind injectable ports | 4 |
 | `skills/spec/tools/launch/place-for-launch.ts` | Placement step shared by `launch` and `crew launch` | 4 |
+| `skills/spec/tools/core/gate.ts`, `doctor/phase-gates.ts` | `gate: design \| outward` kinds and `Gate:` items; the doctor/spec-file check | 3 |
+| `skills/spec/tools/core/park.ts`, `phases/park.ts` | Park entries under `## Needs you` in `in-flight/phase-<id>.md`; `phase park` / `phase unpark` | 3 |
+| `skills/spec/tools/board/parked.ts` | Parked phases (worktree copy before base): out of ready, `question` needs-you rows | 3 |
+| `skills/spec/tools/core/markdown-sections.ts` | `## <heading>` section read/replace, shared by the run file and park entries | 3 |
 
 ## Existing files touched
 

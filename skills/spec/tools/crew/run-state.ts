@@ -1,5 +1,6 @@
 import { numberField, parseFrontmatter, stringField } from "../core/frontmatter";
 import { setFrontmatterLine } from "../core/frontmatter-patch";
+import { childLines, sectionLines, withSection } from "../core/markdown-sections";
 
 // `<git-common-dir>/spec-board/crew/run.md`, written only by the overseer (crew-brief.md → Run file).
 // Writers replace one section and leave the rest byte-identical, so nothing is hand-edited twice.
@@ -87,31 +88,4 @@ function unansweredQuestions(lines: readonly string[]): OpenQuestion[] {
     if (!match?.[1] || !match[2] || !match[3]) return [];
     return childLines(lines, index).some((child) => ANSWER.test(child)) ? [] : [{ id: match[1], spec: match[2], phase: match[3] }];
   });
-}
-
-function childLines(lines: readonly string[], parent: number): readonly string[] {
-  const following = lines.slice(parent + 1);
-  const end = following.findIndex((line) => !/^\s/.test(line));
-  return end === -1 ? following : following.slice(0, end);
-}
-
-function sectionLines(text: string, heading: string): string[] {
-  const lines = text.split("\n");
-  const range = sectionRange(lines, heading);
-  return range ? lines.slice(range.start + 1, range.end).filter((line) => line.trim() !== "") : [];
-}
-
-function withSection(text: string, heading: string, body: readonly string[]): string {
-  const lines = text.trimEnd().split("\n");
-  const block = [`## ${heading}`, ...body, ""];
-  const range = sectionRange(lines, heading);
-  if (!range) return `${[...lines, "", ...block].join("\n")}\n`.replace(/\n+$/, "\n");
-  return `${[...lines.slice(0, range.start), ...block, ...lines.slice(range.end)].join("\n").trimEnd()}\n`;
-}
-
-function sectionRange(lines: readonly string[], heading: string): { start: number; end: number } | undefined {
-  const start = lines.findIndex((line) => line.trim() === `## ${heading}`);
-  if (start === -1) return undefined;
-  const next = lines.findIndex((line, index) => index > start && line.startsWith("## "));
-  return { start, end: next === -1 ? lines.length : next };
 }
