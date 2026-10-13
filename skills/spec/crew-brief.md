@@ -43,9 +43,6 @@ cli: <claude --version>
 ## Launched
 - <id> · <title> · <launched at>
 
-## Ship modes
-- <spec>: <auto | hold-for-review> (Anton, <time>)
-
 ## Questions
 - [q1] <spec> <phase> · asked <time> · "<question>" · recommend <answer>
   - answer <time> (Anton): "<his words>"
