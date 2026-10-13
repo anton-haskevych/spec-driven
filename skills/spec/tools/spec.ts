@@ -19,7 +19,7 @@ import { readyReport } from "./commands/ready";
 import { settingsReport } from "./commands/settings";
 import { SHIP_USAGE, shipCommand } from "./commands/ship";
 import { TREES_USAGE, treesCommand } from "./commands/trees";
-import { findSpecs } from "./core/spec-folders";
+import { findProjectDir, findSpecs } from "./core/spec-folders";
 
 export interface Command {
   usage: string;
@@ -69,7 +69,7 @@ async function withStdinArgs(argv: readonly string[]): Promise<readonly string[]
 
 if (import.meta.main) {
   try {
-    console.log(await run(await withStdinArgs(Bun.argv.slice(2)), process.cwd()));
+    console.log(await run(await withStdinArgs(Bun.argv.slice(2)), findProjectDir(process.cwd())));
   } catch (cause) {
     console.log(`spec tools failed: ${cause instanceof Error ? cause.message : String(cause)}`);
   }
