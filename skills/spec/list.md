@@ -18,7 +18,7 @@ Answers "what can I start next, what waits on what, and what's open": a board of
 - **No filter** (`list table`): the top 30 open specs plus every open backlog idea.
 - **`<filter>`**: keeps specs whose status, priority, area, domain or scope equals it, or whose name contains it. Ideas are kept when a tag or the priority equals it, or the slug or title contains it. A filter shows every match, with no cap.
 - **`all`**: adds finished specs (`done`, `good-enough`, `abandoned`, or every phase ticked).
-- Order: open before finished, then `p1` → `p3` → no priority, then the nearest due day, then the most recently updated. A due day that has passed shows `⚠ overdue`.
+- Order: open before finished, then `p1` → `p3` → no priority, then the nearest due day, then the most recent status change or review (`updated:`; sessions don't bump it). A due day that has passed shows `⚠ overdue`.
 
 **`--who`** keeps the focus rows a person owns (`owner:`) or works on; a name matches by prefix, so `taras` finds `Taras Korpach` and `taraskorpach`. When it prints `none`, the person may be on specs outside the focus set: run `spec.ts board flight --json` and list the rows whose `holder` starts with their name (`<user>@<host>`, another machine's claim). Someone whose git name and gh login share no prefix shows under two names; say so if both appear.
 

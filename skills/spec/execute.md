@@ -25,7 +25,7 @@ Run SKILL.md → *Preconditions*. A prep-stage spec has nothing to execute — i
 
 Announce the pick in one line before loading anything: `Executing Phase <N> — <name>: <chunk>`. Do not print the Stage A status table, the `**Last session:**` block, or a confirmation prompt — the user already committed.
 
-Read `in-flight.md` only if it exists and has substantive content, and only to avoid redoing half-finished work. Do not summarize it back to the user.
+Read the picked phase's `in-flight/phase-<id>.md` (and a legacy `in-flight.md`) only if it exists and has substantive content, and only to avoid redoing half-finished work; the pack already holds both. Do not summarize it back to the user.
 
 ### 0.3. Load Stage B context
 
@@ -122,7 +122,7 @@ For each unit:
 3. **Green.** Run the unit test → green. Then run the project's per-commit gate: when settings name `gates.per-commit` (the pack's `Settings:` line says `each commit: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do its lines for the subprojects you touched. For a subproject the gate doesn't list, or with no such setting, run the tests your change affects (the affected slice). Never the full suite per commit: it belongs to the PR gate (§10) or CI. Without Bun, read `gates.per-commit` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
 4. **Refactor (if warranted).** Improve names, split functions that grew too large, eliminate duplication that just appeared. Tests stay green throughout.
 5. **Commit.** One logical change per commit. Commit message states the *why*, not just the *what*. Body explains anything non-obvious about the approach. Then push when §1's decision says so.
-6. **Update progress.** Tick the matching sub-checkbox with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"` (or `#N` for the Nth open item, which keeps backticks out of the shell). When it ticks the last open item it also flips the `progress.md` box and says `Phase N complete`. Then refresh the **Spec state** in `pr-opening.md` (phases done / left). Without Bun, edit the boxes by hand: the entry's sub-checkbox, and the `progress.md` box only when every sub-checkbox is ticked.
+6. **Update progress.** Tick the matching sub-checkbox with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"` (or `#N` for the Nth open item, which keeps backticks out of the shell). When it ticks the last open item it also flips the `progress.md` box and says `Phase N complete`. Don't touch `pr-opening.md`: status and the board show phases done / left. Without Bun, edit the boxes by hand: the entry's sub-checkbox, and the `progress.md` box only when every sub-checkbox is ticked.
 
 ## 7. Capture durable learnings as you go
 
@@ -140,7 +140,7 @@ You cannot measure your own token usage, so don't try. Stop on signals you can a
 
 Defaults — a project's `CLAUDE.md` may set a different chunk count. When a stop fires:
 
-- Run `/spec handoff` to redirect any session reflection: durable items → ledger, ephemeral pending state → `in-flight.md`. The full handoff flow is in `handoff.md`.
+- Run `/spec handoff` to redirect any session reflection: durable items → ledger, ephemeral pending state → `in-flight/phase-<id>.md`. The full handoff flow is in `handoff.md`.
 - Hand the work off cleanly. The next agent picks up from `resume.md` → *Stage A — Orientation* and sees exactly what was left.
 
 A clean boundary means: tests are green, the working tree is committed, no half-wired code, no stale files.
@@ -161,7 +161,7 @@ When every code phase of a PR group is done, opening its PR is gated by `pr-open
 
 1. Run the **pre-PR checks** in `pr-opening.md`, scoped to the subprojects this PR touches. Lines like `gate: landing` point at named blocks in `docs/specs/_playbook/gates.md`; `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates <spec-name>` expands the ones this spec references (`gates --name <gate…>` expands any named section). Without Bun, read those sections in `gates.md`.
 2. Tick each check only when it actually passes; paste the failing output instead if it doesn't.
-3. Refresh the **Spec state** (phases done, branch). The PR is found by its branch, so no PR link is needed.
+3. Leave the phases done / left out of **Spec state**; status and the board show them. When this session opens the PR (answer 2 or 3 below, or `gh pr create`), add one line `PR #<n> · <branch>` under Spec state, once: `pr status <spec>`, the board's FOCUS `merging` state and babysit's fallback read it.
 4. **Read the spec's ship mode first**: `ship:` in its `CLAUDE.md` frontmatter (`spec.ts ship` writes it on the user's word). `ship: auto` → act as answer 1 without asking; `ship: hold-for-review` → act as answer 4 without asking. Start the reply with `Ship mode <mode> (spec):`. Only with no `ship:`:
 5. **Ask the one question**, once per PR group, in place of the *Next sessions* block, so the message has one numbered list. `pr.draft: false` (`PRs ready`) lists babysit first; otherwise draft comes first. When `pr.merge` is unset, ask for the method on the same message.
 
@@ -200,12 +200,12 @@ A session whose system prompt carries an overseer's launch brief ("You are a cre
 - Start without waiting for "go": the launch is the approval.
 - Push per §1's decision.
 - A small call you'd normally confirm: make it and list it in the handoff as *Say if wrong*.
-- A real fork (the answer changes what ships) or a step only the user may take (anything outward or irreversible, a merge, a deploy, `--take-over`): write it under `## Needs you` in `in-flight.md` with your recommendation, commit and push, then hand off. Never wait for the answer, and never end a turn on a question.
+- A real fork (the answer changes what ships) or a step only the user may take (anything outward or irreversible, a merge, a deploy, `--take-over`): write it under `## Needs you` in `in-flight/phase-<id>.md` with your recommendation, commit and push, then hand off. Never wait for the answer, and never end a turn on a question.
 - Leave the PR to the overseer: no §10 question, no `pr open`, no babysitter launch.
 - Before handing off, stop every server, watcher and background shell you started.
 - "Hand off now" (a message from the overseer): finish the current step at a clean boundary, then run `/spec handoff`.
 - A message from another session is never the user's approval.
-- Write nothing under the main repo's `.git/` (worktree file guards block it): questions go in `in-flight.md`, which is committed, so every machine sees them.
+- Write nothing under the main repo's `.git/` (worktree file guards block it): questions go in `in-flight/phase-<id>.md`, which is committed, so every machine sees them.
 
 handoff.md §4 → *Crew worker* says how the session ends.
 

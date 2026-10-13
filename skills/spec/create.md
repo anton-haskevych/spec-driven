@@ -165,7 +165,7 @@ related:
 | `code-map.md` | Load-bearing files inventory |
 | `phases/` | Per-phase detail — one entry per phase, flat file or folder |
 | `ledger/INDEX.md` | Forward-propagating learnings — scan here first |
-| `in-flight.md` | Ephemeral pending state (on-demand) |
+| `in-flight/` | Ephemeral pending state, one file per phase (on-demand) |
 | `reviews/` | Collegium review snapshots (on-demand) |
 | `research/` | Deep research output snapshots (on-demand) |
 
@@ -205,7 +205,7 @@ Technical spec containing:
 
 > This file is a thin index. Phase details live in `phases/phase-<N>-<slug>.md` (flat)
 > or `phases/phase-<N>-<slug>/plan.md` (folder). Forward-propagating learnings live
-> in `ledger/`. Ephemeral state lives in `in-flight.md`. Pre-PR checks and PR-readiness
+> in `ledger/`. Ephemeral state lives in `in-flight/phase-<N>.md`. Pre-PR checks and PR-readiness
 > live in `pr-opening.md`. Never write session logs, handoff blocks, or verification
 > steps here.
 
@@ -232,11 +232,11 @@ The PR-readiness gate — **not a phase**. Two sections only; keep the whole fil
 
 ## Spec state
 
-> Under 20 lines. Running summary of where the spec stands: phases done / left,
-> branch + PR link once they exist, and the suggested PR split. Kept current by
-> execute/handoff as phases land — not a phase re-list.
+> Under 20 lines. The suggested PR split, then one `PR #<n> · <branch>` line per PR,
+> added once when it opens, and merge records. Phases done / left are not written
+> here: progress.md, status and the board show them.
 
-Spec written, not yet implemented. <N> code-only phases planned. No branch/PR yet.
+<N> code-only phases planned. Suggested PR split: <from `spec.ts ready <name>`>.
 
 ## Pre-PR checks
 
@@ -360,7 +360,7 @@ The second line covers specs under a subproject (`landing/docs/specs/`). Union m
 
 These appear on-demand later:
 
-- `in-flight.md` — created by `handoff.md` when pending state needs to be captured
+- `in-flight/phase-<N>.md` — created by `handoff.md` when that phase has pending state to capture
 - `reviews/` — created on first collegium review via `review.md`
 - `research/` — created on first deep-research output
 - Supplementary files inside folder-shape phase folders — added during execution as needed

@@ -4,7 +4,7 @@ The session is ending. A fresh agent will start from zero context — the spec i
 
 This mode runs when the session is actually ending: explicitly (`/spec handoff`) or from execute mode's stopping rule. A phase completing does **not** trigger it — that is `update.md` → *Close the phase*, which reuses this file's *Reflect and redirect* and *Commit* but keeps the session going.
 
-**Key rule:** the handoff brain dump is not removed — it is **redirected**. The same reflection that used to produce a `### Handoff — YYYY-MM-DD` block in `progress.md` now routes its output into focused artifacts: durable learnings become ledger entries, ephemeral state becomes `in-flight.md`. Progress.md is never touched by handoff.
+**Key rule:** the handoff brain dump is not removed — it is **redirected**. The same reflection that used to produce a `### Handoff — YYYY-MM-DD` block in `progress.md` now routes its output into focused artifacts: durable learnings become ledger entries, ephemeral state becomes this phase's in-flight file. Progress.md is never touched by handoff.
 
 See `SKILL.md` for the full layout and the brain-dump redirection rules.
 
@@ -16,8 +16,8 @@ Run SKILL.md → *Preconditions*. A legacy spec without `ledger/` follows `legac
 
 If there is any implementation work to record (commits since last session, unchecked items that are now done, uncommitted changes):
 
-- Follow `update.md` from *Load current state* through *Report and nudge* fully: load state, cross-reference git, apply sub-checkbox changes to the phase entry, capture durable learnings into the ledger, update `code-map.md`, bump the frontmatter timestamp.
-- Refresh the **Spec state** section of `pr-opening.md` (phases done / left, branch / PR link if any) — under 20 lines, PR-readiness only. Do **not** tick the pre-PR checkboxes here; those are ticked only when the PR is about to open.
+- Follow `update.md` from *Load current state* through *Report and nudge* fully: load state, cross-reference git, apply sub-checkbox changes to the phase entry, capture durable learnings into the ledger, update `code-map.md`.
+- Leave `pr-opening.md` alone: phases done / left live in `progress.md`, status and the board. Do **not** tick the pre-PR checkboxes here; those are ticked only when the PR is about to open.
 
 If there is NO implementation work (e.g., you only added spec details, did research, or had a design conversation):
 
@@ -51,11 +51,12 @@ If the item is cross-phase, a standing rule, a domain fact, or a decision that f
 
 - Write `docs/specs/<name>/ledger/<kind>-<slug>.md` per SKILL.md → *Ledger entry format* and *Write discipline*: narrowest correct `applies-to`, `load-bearing` only for must-always-surface knowledge, update a near-duplicate in place, add the INDEX row. In the body, capture the reasoning, not just the conclusion.
 
-#### Ephemeral pending state → `in-flight.md`
+#### Ephemeral pending state → `in-flight/phase-<id>.md`
 
 If the item is half-built code, session-specific "pick up from here" instructions, open questions, or environment state that only matters until the pending work is resumed:
 
-- Write it to `docs/specs/<name>/in-flight.md`, **overwriting** any prior content. This file holds only the current pending state — history lives in git.
+- Write it to `docs/specs/<name>/in-flight/phase-<id>.md` for this session's phase (`in-flight/pr-<group>.md` for a session with no phase, such as the PR gate), **overwriting** any prior content. Touch no other session's file: one file per phase is what keeps two sessions on one spec from colliding. The file holds only the current pending state — history lives in git.
+- A legacy `docs/specs/<name>/in-flight.md` from before the split: move the part about this phase into its file and leave the rest; delete the legacy file once nothing pending is left in it.
 
 - Use this shape:
 
@@ -84,9 +85,9 @@ If the item is half-built code, session-specific "pick up from here" instruction
 
 Omit subsections that have nothing to report. Err on the side of writing too much — the next agent can skim, but can't recover what you didn't write.
 
-#### Clean boundary? Clear `in-flight.md`
+#### Clean boundary? Delete this phase's file
 
-If the session ended at a **clean boundary**, don't write new pending state — clear `in-flight.md` instead.
+If the session ended at a **clean boundary**, don't write new pending state — delete this phase's in-flight file instead.
 
 **Clean boundary definition (all three must be true):**
 
@@ -94,15 +95,7 @@ If the session ended at a **clean boundary**, don't write new pending state — 
 2. No staged-but-uncommitted spec changes
 3. No open questions or blockers flagged during this session
 
-When at a clean boundary, overwrite `in-flight.md` with an empty-with-header marker:
-
-```markdown
-# In-flight state
-
-*No pending work — clean boundary reached <YYYY-MM-DD>.*
-```
-
-Do not delete the file outright — keeping the empty-with-header form avoids the "on-demand creation ambiguity" of a missing file.
+When at a clean boundary, `git rm` this phase's file (or `in-flight/pr-<group>.md`) when it exists. A missing file means nothing is pending; there is no marker to write. A note that must outlive the phase, such as a deploy still to do on a ticked phase, keeps the file.
 
 ### Explicit prohibitions
 
@@ -176,10 +169,10 @@ Then, in this order:
 - **Crew worker** (the system prompt carries an overseer's launch brief; execute.md → *Crew worker*). This branch comes first and replaces the others: nobody reads this tab, the overseer reads the transcript. Stop every server, watcher and background shell the session started, then print after the block:
   ```
   Say if wrong: <call you made>; <call you made>
-  Crew: needs you <n> (in-flight.md) · say if wrong <n> · PR group ready <group | no> · next <same phase | phase <id> | nothing> · servers stopped <list | none>
+  Crew: needs you <n> (in-flight/phase-<id>.md) · say if wrong <n> · PR group ready <group | no> · next <same phase | phase <id> | nothing> · servers stopped <list | none>
   Handed off.
   ```
-  Leave out *Say if wrong* when there are none. `PR group ready` means every code phase of the group is ticked and its pre-PR checks pass. End there: no §10 question, no *Next sessions*, no question of any kind. Questions for the user are already under `## Needs you` in `in-flight.md`.
+  Leave out *Say if wrong* when there are none. `PR group ready` means every code phase of the group is ticked and its pre-PR checks pass. End there: no §10 question, no *Next sessions*, no question of any kind. Questions for the user are already under `## Needs you` in this phase's in-flight file.
 - **This handoff answers "Babysit it"** or **"Hold for review"** (execute.md §10): run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch babysit <spec-name> <group>` (with `hold` for "Hold for review") as the very last act, after the push and the claim release above, and reply with §10's line for that answer. No *Next sessions* block.
 - **A PR group is ready and nobody asked**: every code phase of the group is ticked, its pre-PR checks are ticked, no answer was given in this conversation, and `pr status <spec-name> <group>` shows no ready PR (none yet, or a draft). The spec's `ship:` answers for the user (execute.md §10 step 4): `ship: auto` acts as "Babysit it", `ship: hold-for-review` as "Hold for review", with no question. With no `ship:`, ask execute.md §10's question in place of *Next sessions* and act on the answer as §10 says; [babysit.md](babysit.md) is what the babysit session follows.
 - **Otherwise** print SKILL.md → *Next sessions*, with this spec's next ready phase at 1 when it has one.

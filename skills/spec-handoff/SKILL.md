@@ -1,6 +1,6 @@
 ---
 name: spec-handoff
-description: "Close the session: learnings to the ledger, pending state to in-flight.md, commit."
+description: "Close the session: learnings to the ledger, pending state to the phase's in-flight file, commit."
 argument-hint: "<spec-name>"
 disable-model-invocation: true
 ---
