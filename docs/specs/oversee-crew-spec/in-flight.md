@@ -1,28 +1,23 @@
 # In-flight state
 
 **Session ended:** 2026-10-12
-**Active phase:** 1 — The overseer, fast path
+**Active phase:** 1 — The overseer, fast path (done; PR A handed to a babysitter)
 
 ## Where things stand
 
-- 1.0–1.12 done and pushed: probes, wiring, `launch --bg --brief` + babysit `hold`, `pr hold`,
-  `deploy:` setting, `phase deployed --land`, execute/handoff/update/babysit prose, `oversee-crew.md`
-  (191 lines) and `crew-brief.md`. Full tool suite green (1082 tests) after 1.2; affected slices and
-  typecheck green after every later commit.
-- 1.13 is open on purpose: README and ROADMAP are written; only `python3 scripts/version.py --set
-  <main's minor + 1>` remains, run at merge (ROADMAP says "next minor" until then).
+- Phase 1 done and released as 2.43.0 on the branch: version bumped before the PR opened (main was
+  2.42.0, no other open PRs), so the babysitter merges it as is. If main reaches 2.43 first, re-run
+  `python3 scripts/version.py --set <main's minor + 1>` and fix the ROADMAP row before merging.
+- Pre-PR checks green (1099 tests, typecheck, lockfile, doctor, sizes). Anton answered §10 with
+  "Babysit it": a babysit session carries PR A to a squash merge.
 
 ## Implicit context
 
-- `run.md` keeps `## Launched` (not `## Pending`): see `decision-one-home-per-crew-state`. technical.md
-  is updated to match.
-- Preflight ran for 1.3–1.4 only (`research/phase-1/2026-10-12-1.3-preflight.md`). 1.1–1.2 and the
-  prose chunks went without one.
-- Full `bun test` takes ~80 s; run it once at the PR gate.
+- The dogfood check in `pr-opening.md` is still open on purpose: it needs 2.43.0 installed. The first
+  `/spec oversee-crew` run after release (building phases 2 and 4 of this spec) is the dogfood; paste
+  its roster-wait lines, one close-out, one babysitter left alone on `pr wait`, and one pause there.
 
 ## Pick up from here
 
-- Phase 1 is at its PR gate apart from 1.13's version bump. Run the pre-PR checks in `pr-opening.md`.
-  The dogfood check needs this branch's skill installed (the plugin cache is 2.42.0), so it runs after a
-  release or with the branch installed locally; ask Anton which.
-- Then execute.md §10's question for PR A.
+- After the merge, install 2.43.0, then run `/spec oversee-crew` on this spec's ready phases (2, 4)
+  and record the dogfood evidence.
