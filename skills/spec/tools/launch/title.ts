@@ -1,9 +1,12 @@
+import { isPrGroup } from "../claims/pr-claim";
 import { isPhaseId, normalizePhaseHint, SUB_COMMANDS } from "../context/request";
 
 export interface LaunchTitle {
   spec: string;
   sub: string;
   phase?: string;
+  // babysit's PR group: its title is `<spec> babysit <group>`.
+  group?: string;
 }
 
 export const SPEC_NAME = /^[a-z0-9][a-z0-9-]*$/;
@@ -17,5 +20,6 @@ export function parseLaunchTitle(name: string): LaunchTitle | undefined {
   const [spec, sub, phase, ...extra] = name.split(" ");
   if (!spec || !sub || extra.length > 0 || !SPEC_NAME.test(spec) || !SUB_COMMANDS.has(sub)) return undefined;
   if (phase === undefined) return { spec, sub };
+  if (sub === "babysit") return isPrGroup(phase) ? { spec, sub, group: phase } : undefined;
   return isPhaseId(phase) ? { spec, sub, phase: normalizePhaseHint(phase) } : undefined;
 }

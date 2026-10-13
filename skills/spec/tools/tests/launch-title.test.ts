@@ -15,6 +15,8 @@ describe("parseLaunchTitle", () => {
       [["prep", "gift-cards"], { spec: "gift-cards", sub: "prep" }],
       [["execute", "spec-board", "9.10"], { spec: "spec-board", sub: "execute", phase: "9.10" }],
       [["execute", "spec-board", "phase7ab"], { spec: "spec-board", sub: "execute", phase: "7ab" }],
+      [["babysit", "spec-board", "B"], { spec: "spec-board", sub: "babysit", group: "B" }],
+      [["babysit", "spec-board", "B", "hold"], { spec: "spec-board", sub: "babysit", group: "B" }],
     ];
     for (const [args, expected] of cases) {
       const launch = sessionLaunch("/repo", args);
@@ -23,7 +25,7 @@ describe("parseLaunchTitle", () => {
   });
 
   test("anything else is not a launch title", () => {
-    for (const name of ["crm-d1", "gift-cards", "gift-cards ship", "Gift-Cards prep", "gift-cards execute next", "gift-cards execute 2 now", "gift-cards  prep"]) {
+    for (const name of ["crm-d1", "gift-cards", "gift-cards ship", "Gift-Cards prep", "gift-cards execute next", "gift-cards execute 2 now", "gift-cards  prep", "gift-cards babysit pr-b", "gift-cards prep B"]) {
       expect(parseLaunchTitle(name)).toBeUndefined();
     }
   });
