@@ -26,7 +26,7 @@ Answers "what can I start next, what waits on what, and what's open": a board of
 
 Print the tool's output exactly as given, code fence included. Don't recast it as cards or bullets.
 
-**Starting rows.** When the user then says "start 1", "start 1 and 2" or "go" about board rows, launch them exactly as SKILL.md → *Next sessions* step 3 says: `launch execute <spec> <phase>` per row, which places each tree first.
+**Starting rows.** A reply about board rows follows SKILL.md → *Next sessions* step 3.
 
 **Idle claims.** `claim idle 3d  <spec> · <phases> → switch to <session> or take it over` means a session on this machine still runs and holds those phases, but has done nothing for 2+ days (a forgotten tab). Busy sessions are never listed. It is not stale: nothing frees it on its own. Offer the two actions:
 - "switch to it": name the tab (`<session>` is its title) so the user finishes or hands off there.
