@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { SETTINGS_FILE } from "../playbook/settings";
 import { crewOverseer, crewStart } from "../commands/crew/overseer";
 import { parseRunFile } from "../crew/run-state";
 import { liveSession } from "./factories";
@@ -22,6 +23,14 @@ describe("crew overseer / crew start", () => {
     expect(crewOverseer(repo.dir, [], crewDeps({ env }))).toBe("Overseer: this session");
     expect(crewStart(repo.dir, ["--workers", "2", "--babysitters", "1"], crewDeps({ env }))).toBe("Crew: started · overseer " + OWN + " · 2 workers, 1 babysitters");
     expect(parseRunFile(readFileSync(runPath(), "utf8"))).toMatchObject({ overseer: OWN, state: "running", caps: { workers: 2, babysitters: 1 } });
+  });
+
+  test("a new run takes its caps from settings crew:, and a flag beats the setting", () => {
+    repo = repoWithOrigin("crew-start-");
+    const settings = join(repo.dir, SETTINGS_FILE);
+    mkdirSync(dirname(settings), { recursive: true });
+    writeFileSync(settings, "---\ncrew:\n  workers: 5\n  babysitters: 1\n---\n");
+    expect(crewStart(repo.dir, ["--babysitters", "0"], crewDeps({ env }))).toBe(`Crew: started · overseer ${OWN} · 5 workers, 0 babysitters`);
   });
 
   test("a resumed overseer whose old tab parked into it takes its own run over", () => {

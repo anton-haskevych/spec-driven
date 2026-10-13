@@ -6,12 +6,13 @@ import { readTextIfExists } from "../../core/files";
 import { normalizePhaseHint } from "../../context/request";
 import { isoTimestamp } from "../../core/schedule";
 import { findSpecs } from "../../core/spec-folders";
-import { readShipField, type ShipMode } from "../../core/spec-meta";
+import { readShipField } from "../../core/spec-meta";
 import { launchedLine, launchInBackground } from "../../launch/background";
 import { sessionLaunch } from "../../launch/command-line";
 import { freshTreeNotes, placeForLaunch, type PlaceFn } from "../../launch/place-for-launch";
 import { renderPlacement } from "../trees";
-import { renderBrief } from "../../crew/brief";
+import { renderBrief, type BriefRequest } from "../../crew/brief";
+import { loadSettings } from "../../playbook/settings";
 import type { CrewDeps, RunFileStore } from "../../crew/deps";
 import { parseRunFile, withLaunched, withLog, type LaunchedEntry } from "../../crew/run-state";
 
@@ -46,7 +47,7 @@ export async function launchCrewSession(request: CrewLaunchRequest, store: RunFi
   if (!inTree.ok) return { text: `crew launch: ${inTree.reason}` };
 
   const target = request.subCommand === "babysit" ? { group: request.target } : { phase: normalizePhaseHint(request.target) };
-  const ship = request.hold ? "hold-for-review" : shipOf(tree, request.spec);
+  const ship: BriefRequest["ship"] = request.hold ? { mode: "hold-for-review", from: "spec" } : shipOf(tree, request.spec);
   const brief = briefPath(store.path, request);
   mkdirSync(dirname(brief), { recursive: true });
   writeFileSync(brief, renderBrief({ overseer, spec: request.spec, target, tree, ...(ship ? { ship } : {}), notes: [...request.notes, ...freshTreeNotes(placement)] }));
@@ -67,9 +68,13 @@ function briefPath(runPath: string, request: CrewLaunchRequest): string {
 }
 
 // The placed tree's copy: a fresh tree is cut from origin's default branch, where `spec.ts ship` lands.
-function shipOf(tree: string, spec: string): ShipMode | undefined {
+// The spec's ship: wins; settings pr.ship is the project's default.
+function shipOf(tree: string, spec: string): BriefRequest["ship"] {
   if (!existsSync(tree)) return undefined;
   const [folder] = findSpecs(tree, spec);
   const meta = folder ? parseFrontmatter(readTextIfExists(join(folder.dir, "CLAUDE.md")) ?? "") : undefined;
-  return meta?.kind === "ok" ? readShipField(meta.data).ship : undefined;
+  const own = meta?.kind === "ok" ? readShipField(meta.data).ship : undefined;
+  if (own) return { mode: own, from: "spec" };
+  const fallback = loadSettings(tree).pr.ship;
+  return fallback ? { mode: fallback, from: "settings" } : undefined;
 }

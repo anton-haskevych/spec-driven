@@ -1,12 +1,13 @@
 import { numberField, parseFrontmatter, stringField } from "../core/frontmatter";
 import { setFrontmatterLine } from "../core/frontmatter-patch";
+import { DEFAULT_SETTINGS } from "../playbook/settings";
 import { childLines, sectionLines, withSection } from "../core/markdown-sections";
 
 // `<git-common-dir>/spec-board/crew/run.md`, written only by the overseer (crew-brief.md → Run file).
 // Writers replace one section and leave the rest byte-identical, so nothing is hand-edited twice.
 
 export const LOG_LINES = 30;
-export const DEFAULT_CAPS: Caps = { workers: 3, babysitters: 2 };
+export const DEFAULT_CAPS: Caps = { workers: DEFAULT_SETTINGS.crew.workers, babysitters: DEFAULT_SETTINGS.crew.babysitters };
 
 export interface Caps {
   workers: number;
