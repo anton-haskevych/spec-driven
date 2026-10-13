@@ -29,6 +29,7 @@ PR #28 merged 2026-10-13 as 3a4eb87 (squash).
 Phase 5 done (2026-10-13) on `feat/oversee-crew-spec-pr-e`; version 2.48.0 + ROADMAP row set on the branch
 (main was 2.47.0). Checks: 1288 pass, typecheck, lockfile and doctor clean, touched files under 250 lines.
 Ship mode auto per the crew brief; the overseer runs the PR moment.
+PR #29 merged 2026-10-13 as c775378 (squash).
 
 ## Pre-PR checks
 
