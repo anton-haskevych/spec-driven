@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { outlineMarkdown } from "../core/markdown";
 import { notesForPhase, type InFlightNote } from "../core/in-flight";
+import { lastPark } from "../core/park";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { ReadySet } from "../ready/ready-set";
 import { renderReadySet } from "../ready/render";
@@ -41,7 +42,7 @@ export function resumePack({ state, doctor, relations, ready, held, playbooks, s
   const { phase: next, skipped } = firstUnheld(state.spec.name, ready.ready, held);
   const skippedLine = skipped.length > 0 ? `\nSkipped: ${skipped.join(", ")}` : "";
   const nextBlock = next
-    ? `### Next chunk: Phase ${next.id} — ${next.name}\n${(next.summary?.nextRun ?? []).map((item) => `- ${item}`).join("\n")}${skippedLine}`
+    ? `### Next chunk: Phase ${next.id} — ${next.name}\n${[...parkLine(state, next.id), ...(next.summary?.nextRun ?? []).map((item) => `- ${item}`)].join("\n")}${skippedLine}`
     : `### Next chunk\n${nextChunkAbsent(ready, skipped)}`;
   return [
     "Covers the Stage A reads (progress.md, phase entries, in-flight notes). Do not re-read those files.",
@@ -62,6 +63,7 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
   return [
     "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and its in-flight notes. Do not re-read those files.",
     `Picked: Phase ${phase.id} — ${phase.name} (${pickNote})`,
+    ...parkLine(state, phase.id),
     ...optionalLine(input.settings),
     ...(phase.code ? [] : [TASK_PHASE_NOTE]),
     `### Ready set\n${renderReadySet(input.ready)}`,
@@ -81,6 +83,15 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
 function nextChunkAbsent(ready: ReadySet, skipped: readonly string[]): string {
   if (skipped.length > 0) return `Every ready phase is in flight in another session: ${skipped.join(", ")}.`;
   return ready.waiting.length > 0 ? "No phase is ready; see the ready set." : "All phases complete — see pr-opening.md for the PR gate.";
+}
+
+// A parked phase's question (execute.md → Crew worker), or the answer the next session builds on.
+function parkLine(state: SpecState, phaseId: string): string[] {
+  const park = lastPark(state.inFlight ?? [], phaseId);
+  if (!park) return [];
+  if (park.answer) return [`Answered ${park.answer.at}: "${park.answer.text}" (Phase ${phaseId} asked "${park.question}"). Build on it.`];
+  const advice = park.recommend ? ` · recommend ${park.recommend}` : "";
+  return [`Parked: Phase ${phaseId} asks "${park.question}"${advice}. Unanswered: ask the user; a crew worker hands off.`];
 }
 
 function optionalLine(line: string | undefined): string[] {

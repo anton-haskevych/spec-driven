@@ -172,6 +172,16 @@ describe("contextPack", () => {
     expect(contextPack(project, { mode: "execute", name: "checkout" })).toContain("### In-flight (raw)\n(none)");
   });
 
+  test("execute and resume packs show the picked phase's park question, then its answer", () => {
+    write("in-flight/phase-2.md", "## Needs you\n- Parked 2026-10-13T10:00:00-07:00: Grid or list? · recommend: grid\n");
+    const asked = 'Parked: Phase 2 asks "Grid or list?" · recommend grid. Unanswered: ask the user; a crew worker hands off.';
+    expect(contextPack(project, { mode: "execute", name: "checkout" })).toContain(`Picked: Phase 2 — Aggregate (first ready phase)\n\n${asked}`);
+    expect(contextPack(project, { mode: "resume", name: "checkout" })).toContain(asked);
+    write("in-flight/phase-2.md", "## Needs you\n- Parked 2026-10-13T10:00:00-07:00: Grid or list?\n  - Answered 2026-10-13T11:00:00-07:00: grid\n");
+    expect(contextPack(project, { mode: "execute", name: "checkout" })).toContain('Answered 2026-10-13T11:00:00-07:00: "grid" (Phase 2 asked "Grid or list?"). Build on it.');
+    rmSync(join(spec(), "in-flight"), { recursive: true });
+  });
+
   test("execute pack scopes ledger rows and code-map rows to the picked phase", () => {
     const pack = contextPack(project, { mode: "execute", name: "checkout" });
     expect(pack).toContain("Picked: Phase 2 — Aggregate (first ready phase)");
