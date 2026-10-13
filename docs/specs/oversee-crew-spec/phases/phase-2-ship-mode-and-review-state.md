@@ -38,7 +38,7 @@ because a kind with no data adds no line.
 
 ## Deliverables
 
-- [ ] 2.1 `ship:` field: `SHIP_MODES`, `ShipMode`, `readShipField`; doctor and spec-file check reject unknown values; tests
+- [x] 2.1 `ship:` field: `SHIP_MODES`, `ShipMode`, `readShipField`; doctor and spec-file check reject unknown values; tests
 - [ ] 2.2 execute §10 and handoff §4 read `ship:` (auto → babysit, hold-for-review → babysit hold) and ask only when it is absent; wiring pins
 - [ ] 2.3 PR review state: `reviewDecision` and `labels` in the open-PR list, carried on `PrRow` / `PrCell`; pinned field string updated; tests
 - [ ] 2.4 Needs-you kinds:
