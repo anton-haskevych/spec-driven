@@ -64,7 +64,7 @@ Logic in pure functions with fast tests; real git only where git must prove it
 - [x] 4.1a Fix `crew-brief.md` → *Roster wait* under zsh: run it as `bash <<'EOF' … EOF` so `$ids` word-splits (first crew run: zsh reported every worker `gone` on the first poll); own green commit
 - [x] 4.1b `spec.ts context babysit <spec> <group> hold` reads `B hold` as the group name and reports no such group (first crew run, 2.43.0); parse `hold` as a flag; test; own green commit
 - [x] 4.2 `sessions/agents.ts` reader (state, waitingFor) and `sessions/transcript.ts` (the last turn's text, for the `Crew:` line); fixture `claude-agents.json`; tests
-- [ ] 4.2a `crew/run-state.ts` (read + write run.md; `## Log` capped at 30) and `crew overseer` (follows a parked tab's `parkedJobId` to its job; `LiveSession.parkedJobId`); replaces crew-brief.md's liveness script; tests
+- [x] 4.2a `crew/run-state.ts` (read + write run.md; `## Log` capped at 30) and `crew overseer` (follows a parked tab's `parkedJobId` to its job; `LiveSession.parkedJobId`); replaces crew-brief.md's liveness script; tests
 - [ ] 4.3 `crew wait <id…>`: ids as argv; exits on the first change, a gone id or the heartbeat, on an injected clock; tests
 - [ ] 4.4 `crew check <id>`: the close-out checks, including the babysitter rows; tests
 - [ ] 4.4a `LaunchTitle.group` for babysit titles (own commit), then `crew launch <spec> <phase> | <spec> pr-<group> [hold] [--note <text>]`: brief from the template, placement, `--bg` launch, `## Launched` entry; tests

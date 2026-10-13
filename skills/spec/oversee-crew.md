@@ -3,7 +3,7 @@
 This session becomes the overseer. It keeps a set number of background workers busy on the board's
 ready work, checks every handoff before it counts, sends each finished PR group to a babysitter in its
 spec's ship mode, and comes to Anton only for reviews, approvals and decisions. It takes no spec. Run it
-in the project's main checkout. Templates (brief, run file, liveness check, roster wait) are in
+in the project's main checkout. Templates (brief, run file, roster wait) are in
 [crew-brief.md](crew-brief.md); `<crew>` is the folder named there.
 
 Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts with `claude` or `git`.
@@ -46,9 +46,9 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
    blocks writes to `<crew>`.
 2. **Read** `board --json`, `claude agents --json --all`, `claim list`, `claude --version`, and
    `<crew>/run.md` if it exists.
-3. **Another overseer?** When `run.md`'s `overseer:` is not this session's `$CLAUDE_CODE_SESSION_ID`
-   and crew-brief.md's liveness check prints `live`, say `Another overseer (<id>) is running this crew`
-   and stop. Otherwise this session takes the run over.
+3. **Another overseer?** `crew overseer`. `Overseer: another live overseer <id> · <name>` → say
+   `Another overseer (<id>) is running this crew` and stop. Any other line: this session runs it
+   (a resumed overseer whose old tab went to the background reads `taking over`).
 4. **Resume?** A `run.md` with `state: stood-down` lists `## Stood down` rows: they go first (§6). Rows
    in `## Launched` that are no longer in the roster are closed out before anything else (§3).
 5. **Plan the slots.** Caps from `run.md`, else 3 workers and 2 babysitters. Pick rows by §2's rule.
@@ -65,8 +65,8 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
    ```
    Add `Claude Code <version>; the crew was probed on 2.1.296` when the versions differ. Changes from
    Anton (caps, rows to skip, ship modes) apply before the launch.
-7. **On "go"**: write or merge `run.md` (crew-brief.md → *Run file*) with this session's id, the caps,
-   `cli:`; land each ship answer with `ship <spec> <mode>` (it holds for every session and machine,
+7. **On "go"**: `crew start [--workers <n>] [--babysitters <n>]` writes `run.md` (or takes it over)
+   with this session's id, the caps and `cli:`; land each ship answer with `ship <spec> <mode>` (it holds for every session and machine,
    and Anton's answer is the word it needs); then §2 for every free slot; then §3.
 
 ## 2. Fill a slot

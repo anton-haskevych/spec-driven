@@ -23,6 +23,8 @@ export interface LiveSession {
   // "startedAt": the file had no `updatedAt`, so the last status change is unknown.
   updatedFrom: "updatedAt" | "startedAt";
   procStart: string;
+  // Set on a tab sent to the background: the conversation goes on as this job (its session id starts with it).
+  parkedJobId?: string;
 }
 
 export function defaultClaudeHome(env: Readonly<Record<string, string | undefined>> = process.env): string {
@@ -43,18 +45,20 @@ export function parseSessionFile(text: string): LiveSession | undefined {
   if (pid === undefined || !sessionId || !cwd || !procStart || !updatedAt) return undefined;
   const name = stringField(data, "name");
   const nameSource = toNameSource(stringField(data, "nameSource"));
+  const parkedJobId = stringField(data, "parkedJobId");
   return {
     pid,
     sessionId,
     cwd,
     // A tab sent to the background keeps its process and this file, frozen at its last status; the
     // conversation goes on under a new session id, as the job with its own file.
-    status: stringField(data, "parkedJobId") ? "idle" : toSessionStatus(stringField(data, "status")),
+    status: parkedJobId ? "idle" : toSessionStatus(stringField(data, "status")),
     ...(name ? { name } : {}),
     ...(nameSource ? { nameSource } : {}),
     updatedAt,
     updatedFrom: updated ? "updatedAt" : "startedAt",
     procStart,
+    ...(parkedJobId ? { parkedJobId } : {}),
   };
 }
 

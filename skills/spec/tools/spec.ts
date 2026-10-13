@@ -8,6 +8,7 @@ import { LAUNCH_USAGE, launchCommand } from "./commands/launch";
 import { lessonsCommand } from "./commands/lessons";
 import { BOARD_USAGE, boardCommand, systemBoardDeps } from "./commands/board";
 import { CLAIM_USAGE, claimCommand } from "./commands/claim";
+import { CREW_USAGE, crewCommand } from "./commands/crew";
 import { FOCUS_USAGE, focusCommand } from "./commands/focus";
 import { LIST_USAGE, listCommand } from "./commands/list";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
@@ -45,6 +46,7 @@ export const COMMANDS: Record<string, Command> = {
   push: { usage: PUSH_USAGE, run: (dir, args) => pushReport(dir, args) },
   "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
   claim: { usage: CLAIM_USAGE, run: (dir, args) => claimCommand(dir, args) },
+  crew: { usage: CREW_USAGE, run: (dir, args) => crewCommand(dir, args) },
   focus: { usage: FOCUS_USAGE, run: (dir, args) => focusCommand(dir, args) },
   ship: { usage: SHIP_USAGE, run: (dir, args) => shipCommand(dir, args) },
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },

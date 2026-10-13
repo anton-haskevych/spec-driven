@@ -28,7 +28,8 @@ overseer's conversation, and quote his words when you pass one on.
 
 ## Run file
 
-`<crew>/run.md`. Merge into an existing file; never overwrite it. Keep the last 30 `## Log` lines.
+`<crew>/run.md`. `crew start [--workers <n>] [--babysitters <n>]` writes it on "go", or takes an
+existing one over with this session's id; never overwrite it by hand. Keep the last 30 `## Log` lines.
 
 ```markdown
 ---
@@ -60,14 +61,10 @@ always comes from the roster and the claims, never from this file.
 
 ## Is another overseer live?
 
-```bash
-id='<overseer: id from run.md>'
-for f in ~/.claude/sessions/*.json; do
-  jq -e --arg id "$id" '.sessionId == $id' "$f" >/dev/null 2>&1 && kill -0 "$(basename "$f" .json)" 2>/dev/null && echo live
-done; echo checked
-```
-
-`live` before `checked` means it's live, unless `id` is this session's own `$CLAUDE_CODE_SESSION_ID`.
+`bun ${CLAUDE_SKILL_DIR}/tools/spec.ts crew overseer` prints one line: `Overseer: this session`,
+`Overseer: taking over from <id> (closed | parked into this session)`, or `Overseer: another live
+overseer <id> · <name>`. A tab sent to the background goes on under a new session id; the command
+follows it, so a resumed overseer takes its own run over.
 
 ## Roster wait
 
