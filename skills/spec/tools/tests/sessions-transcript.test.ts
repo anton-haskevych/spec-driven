@@ -36,6 +36,7 @@ describe("lastTurnText", () => {
     mkdirSync(join(home, "projects", "-trees-checkout-pr-a"), { recursive: true });
     writeFileSync(join(home, "projects", "-trees-checkout-pr-a", "f1a579ba-1.jsonl"), [prompt("go"), said("Handed off.")].join("\n"));
     expect(lastTurnText(home, "f1a579ba-1")).toBe("Handed off.");
+    expect(lastTurnText(home, "f1a579ba")).toBe("Handed off.");
   });
 
   test("no transcript, or no projects folder, is undefined", () => {

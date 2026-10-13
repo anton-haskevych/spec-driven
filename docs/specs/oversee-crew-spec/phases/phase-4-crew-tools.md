@@ -66,7 +66,7 @@ Logic in pure functions with fast tests; real git only where git must prove it
 - [x] 4.2 `sessions/agents.ts` reader (state, waitingFor) and `sessions/transcript.ts` (the last turn's text, for the `Crew:` line); fixture `claude-agents.json`; tests
 - [x] 4.2a `crew/run-state.ts` (read + write run.md; `## Log` capped at 30) and `crew overseer` (follows a parked tab's `parkedJobId` to its job; `LiveSession.parkedJobId`); replaces crew-brief.md's liveness script; tests
 - [x] 4.3 `crew wait <id…>`: ids as argv; exits on the first change, a gone id or the heartbeat, on an injected clock; tests
-- [ ] 4.4 `crew check <id>`: the close-out checks, including the babysitter rows; tests
+- [x] 4.4 `crew check <id>`: the close-out checks, including the babysitter rows; tests
 - [ ] 4.4a `LaunchTitle.group` for babysit titles (own commit), then `crew launch <spec> <phase> | <spec> pr-<group> [hold] [--note <text>]`: brief from the template, placement, `--bg` launch, `## Launched` entry; tests
 - [ ] 4.5 `crew tick`: fixed transitions, judgement items printed; never touches a live-claim or foreign session, never removes a tree; tests
 - [ ] 4.6 `oversee-crew.md` and `crew-brief.md` use the commands instead of the written recipes
