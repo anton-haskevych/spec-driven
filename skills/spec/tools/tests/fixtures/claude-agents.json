@@ -1,0 +1,52 @@
+[
+  {
+    "id": "6adaba33",
+    "cwd": "/repo",
+    "kind": "background",
+    "startedAt": 1790982303316,
+    "sessionId": "6adaba33-079c-43f8-b457-1030fdc2aef7",
+    "name": "bg-launch-probe",
+    "state": "done"
+  },
+  {
+    "pid": 9829,
+    "cwd": "/repo",
+    "kind": "interactive",
+    "startedAt": 1791749735382,
+    "sessionId": "25c8ad1a-6391-41f6-afd4-04585f5e0ce0",
+    "name": "repo-93",
+    "status": "idle"
+  },
+  {
+    "pid": 62681,
+    "id": "f1a579ba",
+    "cwd": "/trees/checkout-pr-a",
+    "kind": "background",
+    "startedAt": 1791871533502,
+    "sessionId": "f1a579ba-30e1-4ac0-a015-1ef6578120f5",
+    "name": "checkout execute 1",
+    "status": "busy",
+    "state": "working"
+  },
+  {
+    "pid": 74912,
+    "id": "a41317ec",
+    "cwd": "/trees/checkout-pr-b",
+    "kind": "background",
+    "startedAt": 1791873000000,
+    "sessionId": "a41317ec-2fd1-4617-af1a-23f1136724df",
+    "name": "checkout execute 2",
+    "status": "busy",
+    "state": "blocked",
+    "waitingFor": "permission prompt"
+  },
+  {
+    "pid": 65003,
+    "cwd": "/elsewhere/other-repo",
+    "kind": "interactive",
+    "startedAt": 1791871547275,
+    "sessionId": "6c003866-62cc-44e5-a679-ad9057da6c41",
+    "name": "other execute 5bc",
+    "status": "busy"
+  }
+]
