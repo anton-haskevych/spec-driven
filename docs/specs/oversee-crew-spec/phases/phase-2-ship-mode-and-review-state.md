@@ -16,8 +16,8 @@ pr: B
 - `skills/spec/execute.md` (§10), `skills/spec/handoff.md` (§4)
 - `skills/spec/tools/pr/gh-lists.ts`, `skills/spec/tools/pr/checks/rollup.ts`
 - `skills/spec/tools/board/model.ts`, `board/joins.ts`, `board/attention.ts`, `board/render.ts`
-- `skills/spec/oversee-crew.md`
-- tests: `spec-meta.test.ts`, `doctor.test.ts`, `pr-gh-lists.test.ts`, `board-attention.test.ts`, `board-render.test.ts`, `board-joins.test.ts`, a ship-writer test (real git, few)
+- `skills/spec/oversee-crew.md`, `skills/spec/babysit.md` (an approved PR babysits in auto, even on a `hold-for-review` spec; preflight 2026-10-12)
+- tests: `spec-meta.test.ts`, `doctor.test.ts`, `pr-gh-lists.test.ts`, `board-attention.test.ts`, `board-render.test.ts`, `board-joins.test.ts`, `board-command.test.ts` (version pin), a ship-writer test (real git, few)
 
 ## Implementation guidance
 
@@ -50,6 +50,7 @@ because a kind with no data adds no line.
   - an approved held PR goes to a babysitter in auto mode
   - changes requested → relaunch execute with the review comments in the brief
   - ship answers go through `spec.ts ship`
+  - relaunch once per review: GitHub keeps changes requested until Anton reviews again
 - [ ] 2.6 `spec.ts ship <spec> <mode>` lands `ship:` on main through `landOnMain`; refuses a spec only on a branch; tests (real git, few)
 
 ## Phase-local notes
