@@ -27,6 +27,8 @@ Announce the pick in one line before loading anything: `Executing Phase <N> — 
 
 Read the picked phase's `in-flight/phase-<id>.md` (and a legacy `in-flight.md`) only if it exists and has substantive content, and only to avoid redoing half-finished work; the pack already holds both. Do not summarize it back to the user.
 
+**A parked phase** waits on the user: the pack prints `Parked: Phase <id> asks "<question>" · recommend <answer>` (without a pack, an unanswered `- Parked …` line under `## Needs you` in its in-flight file). Interactive: ask the question now, recommendation first, and run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase unpark <spec> <phase> "<their answer>"` when they answer. Crew worker: when the launch brief carries the answer (`Anton answered …`), record it with `phase unpark` in their words and commit before anything else; without one, hand off untouched. An `Answered …` line is the decision: build on it, don't ask again.
+
 ### 0.3. Load Stage B context
 
 Run `resume.md` Stage B's reads — *Read stable references + active phase* through *Read supplementary phase files only when linked* — against the picked chunk: stable references + the active phase entry, then the scoped `code-map.md` and phase-filtered `ledger/INDEX.md` entries, then any supplementary phase file its `plan.md` explicitly links. Skip anything already loaded this session.
@@ -95,7 +97,9 @@ Recon told you *where* the chunk lands. Preflight tells you whether the plan for
 
 **Take back:** its `Findings that change the plan` and `Amendments`. Apply them *before* §4–§5: a finding that the phase file asserts something false means the code wins and the phase entry is corrected via `update`; an amendment to the design changes the decomposition you are about to write. Persisting the preflight note under `research/phase-<N>/` and writing ledger entries for durable learnings is the skill's own job — confirm it did so.
 
-Then its *Defaults applied* and *Forks for you*. Apply each default as part of the plan and list it under `Say if wrong:` in the next report. A fork stops the chunk before §4: ask it, or as a crew worker write it under `## Needs you` (*Crew worker*). Every preflight decision carries a recommendation, so a recommendation alone never makes a fork a default.
+Then its *Defaults applied* and *Forks for you*. Apply each default as part of the plan and list it under `Say if wrong:` in the next report. A fork stops the chunk before §4: ask it, or as a crew worker park it (*Crew worker*).
+
+**A gated phase** (`gate: design | outward` in its frontmatter, SKILL.md → *Phase edges*) has a `Gate:` deliverable that only a person can tick. Plan the work up to it; when the next open item is the `Gate:` item, the approval is a fork: ask for it, or as a crew worker park on it. No gate kind is self-approvable yet. Tick it with `phase tick … --evidence "<who approved, when>"`, which refuses it without. Every preflight decision carries a recommendation, so a recommendation alone never makes a fork a default.
 
 Do not start §5 with an unapplied amendment outstanding. Do not "note it for later".
 
@@ -137,6 +141,7 @@ You cannot measure your own token usage, so don't try. Stop on signals you can a
 - **Three chunks** have completed in this session.
 - **The conversation has been compacted** — a summary of earlier turns is present, or details you worked with earlier are no longer in view. This should not happen in the normal flow (SKILL.md → *Session lifecycle*: one fresh session per chunk). If it does, the window is full and working on from a summary is how drift starts.
 - **The next chunk belongs to a different phase** than the Stage B context you loaded. A new phase deserves a fresh session with its own filtered ledger, not a stale one.
+- **A crew worker parked the phase** (*Crew worker*). Commit what's green and hand off now; the next session of this phase starts from the answer.
 
 Defaults — a project's `CLAUDE.md` may set a different chunk count. When a stop fires:
 
@@ -200,7 +205,8 @@ A session whose system prompt carries an overseer's launch brief ("You are a cre
 - Start without waiting for "go": the launch is the approval.
 - Push per §1's decision.
 - A small call you'd normally confirm: make it and list it in the handoff as *Say if wrong*.
-- A real fork (the answer changes what ships) or a step only the user may take (anything outward or irreversible, a merge, a deploy, `--take-over`): write it under `## Needs you` in `in-flight/phase-<id>.md` with your recommendation, commit and push, then hand off. Never wait for the answer, and never end a turn on a question.
+- A real fork (the answer changes what ships), an open `Gate:` item, or a step only the user may take (anything outward or irreversible, a merge, a deploy, `--take-over`): park the phase with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase park <spec> <phase> "<question>" --recommend "<answer>"`. It writes the question under `## Needs you` in `in-flight/phase-<id>.md`; commit and push it, then hand off. The board drops the phase from ready and lists the question under needs you until it's answered. Never wait for the answer, and never end a turn on a question. One open question per phase: put two forks in one question.
+- Relaunched with an answer (`Anton answered …` in the brief): `phase unpark` first (§0.2 → *A parked phase*).
 - Leave the PR to the overseer: no §10 question, no `pr open`, no babysitter launch.
 - Before handing off, stop every server, watcher and background shell you started.
 - "Hand off now" (a message from the overseer): finish the current step at a clean boundary, then run `/spec handoff`.
