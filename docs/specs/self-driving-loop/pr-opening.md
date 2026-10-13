@@ -8,6 +8,7 @@ whoever lands second merges main.
 
 PR B CRM execute packs (92 open specs, 2026-10-12): median 20,963 → 16,708 chars, max 69,043 → 29,193, over 30K 20 → 0.
 PR #24 merged 2026-10-12 as afd223b (squash).
+PR #26 merged 2026-10-12 as aa040a7 (squash).
 
 ## Pre-PR checks
 
