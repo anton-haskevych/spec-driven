@@ -5,6 +5,8 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 
 ## Gotchas
 - `docs/specs/_ledger/gotcha-hook-payload-cwd-follows-cd.md` — [general] — hook payload.cwd follows cd; resolve with findProjectDir
+- `docs/specs/_ledger/gotcha-macos-tmpdir-is-a-symlink-for-spawned-shells.md` — [general] — macOS temp paths gain /private in spawned shells; compare realpaths
+- `docs/specs/_ledger/gotcha-execute-pack-headroom-is-thin.md` — [general] — capped execute-pack blocks sum ~28K of 30K; cap and measure new ones
 
 ## Principles
 
