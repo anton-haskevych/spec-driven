@@ -308,6 +308,7 @@ pr: B                       # PR group; pr-opening.md's split comes from these (
 due: 2026-10-15             # optional; only for a real date
 code: false                 # optional; marks a task phase (default: code)
 playbook: growth            # optional; adds a project playbook to this phase's execute pack
+gate: design                # optional; a person approves before it goes on: design | outward
 ---
 ```
 
@@ -316,7 +317,8 @@ playbook: growth            # optional; adds a project playbook to this phase's 
 - **Deployed** is a marker right after the pointer on the ticked phase line in `progress.md`: ``- [x] Phase 2 — Aggregate → `phases/…` · deployed 2026-09-20``. `update` adds it with `spec.ts phase deployed` once the user confirms the deploy.
 - **Parallelism is computed.** `spec.ts ready <name>` prints the ready set, the waiting phases with reasons, and the PR groups.
 - **A whole spec** (`needs: [gift-cards]`) works even before that spec has phases, e.g. a spec still in prep: the phase waits until the spec is finished (status `done`, `good-enough` or `abandoned`, or every phase ticked). Once its phases exist, narrow the ref to `<spec>#<phase>` when only part of it is needed.
-- **Checks.** The doctor and the spec-file check flag references that don't resolve and `needs` cycles.
+- **Gates.** `gate: design` (the design is agreed before building) or `gate: outward` (it publishes, sends or deploys on a person's word) marks a phase that needs a person's approval. It is metadata like `code`, not an edge. Record the approval as a deliverable starting `Gate:`, e.g. `- [ ] Gate: design agreed with Anton`; `phase tick` refuses a `Gate:` item without `--evidence "<who approved, when>"`. A crew worker that reaches an open `Gate:` item parks the phase (execute.md → *Crew worker*); an interactive session asks.
+- **Checks.** The doctor and the spec-file check flag references that don't resolve, `needs` cycles, an unknown `gate:` kind (error) and a gated phase with no `Gate:` item (warning).
 
 ## Ledger entry format
 

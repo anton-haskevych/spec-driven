@@ -13,6 +13,7 @@ import { linkIssues } from "../graph/checks";
 import { loadNodes } from "../graph/nodes";
 import { loadSpecState } from "../core/spec-state";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
+import { phaseGateIssues } from "../doctor/phase-gates";
 import { phaseScheduleIssues } from "../doctor/schedule";
 import { taskPhaseIssues } from "../doctor/task-phases";
 import { checkPlaybook, phasePlaybookIssues } from "../doctor/playbooks";
@@ -68,6 +69,7 @@ function phaseFileIssues(location: SpecFileLocation, projectDir: string): Issue[
     ...phaseEdgeIssues(state, loadNodes(projectDir), pointer),
     ...phaseScheduleIssues(state, isoDay(new Date()), pointer),
     ...taskPhaseIssues(state, pointer),
+    ...phaseGateIssues(state, pointer),
     ...phasePlaybookIssues(state, playbooks, pointer),
   ];
 }
