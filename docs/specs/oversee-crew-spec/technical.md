@@ -149,6 +149,8 @@ before `claude rm`, and *Needs you* from `in-flight.md` on `origin/<branch>` (`d
 
 ## Waiting (roster wait)
 
+Phase 4: `crew wait <id…>` replaces the script below (ids as argv; the Bash tool's zsh never split `$ids`).
+
 One background-Bash command, the house wait primitive (`pr wait`; pr-babysit
 `domain-claude-code-wait-primitives`). It exits on the first change or after 1800 s, which is the
 heartbeat. The overseer reads the last line and starts the next wait. No Monitor, no `/loop`.
@@ -311,7 +313,7 @@ assistant text since the last prompt from `projects/*/<sessionId>.jsonl`. Fixtur
 | `crew wait <id…> [--timeout 30m] [--interval 20s]` | `<id> <state>[ (<waitingFor>)]` per changed id, `<id> gone`, or `heartbeat`; exits once; a failed poll is skipped |
 | `crew check <id>` | `Close-out: ok · <Crew line>` · `Close-out: missing <what>` · `Close-out: waiting (pr-<group> claim live)` |
 | `crew launch execute <spec> <phase> \| babysit <spec> <group> [hold] [--note <text>]…` | placement lines, then `Launched: background <id> · <title>` or the `launch:` refusal; the id goes to `## Launched` |
-| `crew tick` | one line per action or judgement item, then `Tick: <n> closed out · <n> launched · <n> for you` |
+| `crew tick [--no-launch]` | one line per action or judgement item, then `Tick: <n> closed out · <n> launched · <n> for you`; `--no-launch` (pausing) and a stood-down run close out but start nothing |
 
 `crew overseer` follows a parked tab: the recorded id's session file has `parkedJobId: <job>`, and the
 job's session id starts with it. The job is this session → take over; a live job → another overseer.

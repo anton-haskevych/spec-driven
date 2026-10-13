@@ -39,7 +39,7 @@ export function afterCloseOut(entry: LaunchedEntry, title: LaunchTitle, verdict:
   const crew = verdict.crewLine;
   const lines = [`Closed out ${who} · ${verdict.report}`];
   if (crew?.prGroupReady) lines.push(`PR group ready: ${title.spec} ${crew.prGroupReady} → the PR moment`);
-  if (crew && crew.needsYou > 0) lines.push(`Needs you: ${title.spec} ${title.phase} asks ${crew.needsYou} (in-flight.md on its branch)`);
+  if (crew && crew.needsYou > 0) lines.push(`Needs you: ${title.spec} ${title.phase} asks ${crew.needsYou} (its in-flight note on its branch)`);
   if (crew && crew.sayIfWrong > 0) lines.push(`Say if wrong: ${title.spec} ${title.phase} lists ${crew.sayIfWrong} in its handoff`);
   const relaunch = crew?.next === "same phase" && title.phase ? { spec: title.spec, phase: title.phase } : undefined;
   return { remove: true, lines, log: `${at} ${title.spec} ${title.phase} done · close-out ok · stopped ${entry.id}`, ...(relaunch ? { relaunch } : {}) };

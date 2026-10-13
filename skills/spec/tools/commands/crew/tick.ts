@@ -20,7 +20,7 @@ import { placeTree } from "../../trees/place";
 import { systemPlaceDeps } from "../trees";
 import { launchCrewSession, type CrewLaunchRequest, type CrewLaunchResult } from "./launch-session";
 
-export const CREW_TICK_USAGE = "crew tick";
+export const CREW_TICK_USAGE = "crew tick [--no-launch]";
 
 export interface TickWorld {
   sessions: Result<LiveSession[]>;
@@ -43,7 +43,8 @@ interface Report {
   forYou: string[];
 }
 
-export async function crewTick(projectDir: string, _args: readonly string[], deps: CrewDeps = systemCrewDeps(), overrides: Partial<TickPorts> = {}): Promise<string> {
+export async function crewTick(projectDir: string, args: readonly string[], deps: CrewDeps = systemCrewDeps(), overrides: Partial<TickPorts> = {}): Promise<string> {
+  if (args.some((arg) => arg !== "--no-launch")) return `usage: ${CREW_TICK_USAGE}`;
   const store = runFileStore(projectDir, deps.runner);
   if (!store.ok) return `crew tick: ${store.reason}`;
   const ports = { ...systemTickPorts(projectDir, store.value, deps), ...overrides };
@@ -65,7 +66,10 @@ export async function crewTick(projectDir: string, _args: readonly string[], dep
   const remaining = run.launched.filter((entry) => !passed.removed.has(entry.id));
   store.value.write(withLog(withLaunched(text, remaining), passed.logs));
 
-  const launched = await fillSlots(remaining, agents.value, passed.relaunches, world.value, run, ports, report);
+  // Pausing (or a stood-down run) closes sessions out but never starts new ones.
+  const holding = args.includes("--no-launch") || run.state === "stood-down";
+  if (holding) report.forYou.push(...passed.relaunches.map((relaunch) => `Relaunch held (pausing): ${relaunch.spec} ${relaunch.phase}`));
+  const launched = holding ? 0 : await fillSlots(remaining, agents.value, passed.relaunches, world.value, run, ports, report);
   return [...report.done, ...report.forYou, `Tick: ${passed.removed.size} closed out · ${launched} launched · ${report.forYou.length} for you`].join("\n");
 }
 
