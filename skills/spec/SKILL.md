@@ -29,7 +29,7 @@ $ARGUMENTS
 SPEC_ARGS
 true`
 
-**If `$ARGUMENTS` names no spec:** the conversation comes first. A spec this conversation already resumed or executed is the spec, even when a pack above names another; re-run `spec.ts context <mode> <name>` for it. Otherwise use the `<spec-pack>` above when there is one; its `spec=` is the resolved spec. `inferred="true"` means the tool picked it from this tree: a claim taken here (with its phase), else the one spec the branch's changed files belong to. Say which spec you are working on in one line and carry on. If instead a line says the changed files belong to several specs, ask which one. If it says nothing in this tree points at a spec, `execute` offers the board's top ready row and starts it on a yes; other modes infer the feature name from the conversation, propose a kebab-case slug and ask the user to confirm before proceeding.
+**If `$ARGUMENTS` names no spec:** the conversation comes first. A spec this conversation already resumed or executed is the spec, even when a pack above names another; re-run `spec.ts context <mode> <name>` for it. Otherwise use the `<spec-pack>` above when there is one; its `spec=` is the resolved spec. `inferred="true"` means the tool picked it from this tree: a claim taken here (with its phase), else the one spec the branch's changed files belong to. Say which spec you are working on in one line and carry on. If instead a line says the changed files belong to several specs, ask which one. If it says nothing in this tree points at a spec, `execute` takes the board's top ready row, runs it and says so (execute.md §0.2); other modes infer the feature name from the conversation, propose a kebab-case slug and ask the user to confirm before proceeding.
 
 ## Sub-command parse
 
@@ -81,7 +81,7 @@ One session works one spec, and usually one chunk:
 
 **A session that handed off may stay open** as the user's controller tab: it answers questions, reads the board and launches the next phase, even into its own tree (an idle session with no claim doesn't hold it). Before it writes in a tree again (commit, merge main, push, edit a file), it runs `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim list`. If another live session holds a claim on that tree, it doesn't write: it tells the user which session holds it and offers to ask that session through `SendMessage`.
 
-**The overseer** (`/spec oversee-crew`, [oversee-crew.md](oversee-crew.md)) is the one long-lived session: it writes no code, launches background workers and babysitters, and keeps its state outside the conversation (the roster, claims, workers' `in-flight.md`, its run file). It never hands off. On compaction it rotates: it prints `Overseer rotated: type /spec oversee-crew in a fresh session` and stops, and its workers keep running.
+**The overseer** (`/spec oversee-crew`, [oversee-crew.md](oversee-crew.md)) is the one long-lived session: it writes no code, launches background workers and babysitters, and keeps its state outside the conversation (the roster, claims, workers' in-flight notes, its run file). It never hands off. On compaction it rotates: it prints `Overseer rotated: type /spec oversee-crew in a fresh session` and stops, and its workers keep running.
 
 **A new spec found mid-session is spun off, not prepped here.** prep.md → *Spin-off* writes its `seed.md`, links the dependency and launches a fresh session for it; this session stays on its spec.
 
@@ -102,12 +102,12 @@ Worktrees change nothing here. Execute §1 puts the session in its spec PR group
 - **Remote.** The `pr` group carries a PR from open to merged. Only agents run it: each command's last stdout line is its result, and [babysit.md](babysit.md) says which run in background Bash. `<target>` is a PR number, `<spec> [<group>]` (found by the group's branch), or nothing (this branch's PR). `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts pr status [<target>]` prints a `verdict:` line, then every check by state (running with elapsed time, queued, cancelled, failed with its log tail, saved log, infra and fails-on-main facts, passed and skipped folded, external checks from settings apart as not blocking). `pr open <spec> [<group>] [--draft]` opens the group's PR with its phases' Outcome lines, or marks a draft ready once CI has registered. `pr wait [<target>]` blocks until the verdict settles (at most 25 min) and exits once. `pr rerun` re-runs infrastructure failures only, within GitHub's attempt cap. `pr merge [--now] [--method m]` merges pinned to the green head and lands the merge line on main. `pr log [--add | --start | --pushed | --stopped]` prints or writes the per-PR babysit timeline. `pr hold [<target>] --how-to-review <file>` adds the `hold-for-review` label (creating it if missing) and writes the file as the PR body's *How to review* section, replacing an earlier one. Execute's PR gate asks the one PR question (§10). `spec.ts push` pushes the current branch to its own name on origin (refuses a detached HEAD, and code on the default branch). `spec.ts publish-docs <spec>`, in `docs: main` projects, pushes the branch, then lands its committed spec docs on the default branch through git's 3-way merge (refuses, pushing nothing to main, when main changed the same lines) and merges that snapshot back. Both print one `Remote:` line; handoff runs them.
 - **Launch.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch <sub-command> <spec-name> [<phase>]` opens a fresh Claude Code session running `/spec-driven:spec <sub-command> <spec-name> [<phase>]` in a new iTerm tab, tmux window or Terminal.app window, picked from the environment. The new tab opens without taking focus: the user stays in the tab they were in. A phase goes only with `execute`: launch first runs `trees place` and opens the session in that tree (its `Tree:` lines come first), and a busy tree launches nothing. `launch babysit <spec> <group>` opens in that PR group's existing tree the same way, and refuses `no tree for <branch>` rather than cut one. Without a phase the session opens in the current checkout. One line back: `Launched: <terminal> — <name> <sub> [<phase>]` (iTerm adds the tab: `Launched: iTerm tab 6 (⌘6) — …`; pass it on so the user knows where to look), or `launch: run this in a new terminal: <line>` when it can't (no supported terminal, Codex, automation refused); then give the user that line. Prep's *Spin-off* and *Next sessions* use it. `launch babysit <spec> <group> hold` tells the babysitter to hold the PR for review ([babysit.md](babysit.md)). Only the overseer passes `--bg --brief <file>` ([oversee-crew.md](oversee-crew.md)): the session starts in the background in that tree with the brief in its system prompt and bypassed permissions, the placement's `Setup failed:` / `Fresh tree:` lines are appended to the brief, and the line back is `Launched: background <id> · <title>`.
 - **List.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list` prints the board, FOCUS lane first when any spec has `focus:` (`list --local` skips the fetch); `list [table] [all] [filter] [--json]` prints open specs and backlog ideas by priority ([list.md](list.md)). `--json` is the table's data for other agents and skills.
-- **Board.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board [focus|flight|ready|blocked|you] [--who <name|me>] [--json] [--local]` builds the board from `origin/<default>` (a `git archive` cache in the git common dir, so every checkout sees the same thing): open phases across every spec in lanes, ready ranked by focus position, then overdue, priority, due, unblocks, recency. FOCUS (only when a spec has `focus:`) gives each focus spec one row: progress, what is happening now, and who is on it, per person: this repo's sessions on this machine (by claim, then launch title, then a non-main tree touching only that focus spec), other machines' claims and the open PRs its `pr-opening.md` links, by author; `other sessions` lists the rest. `board focus` prints it alone (`none` when empty); `--who <name|me>` keeps the rows that person owns or works on, in `--json` too. Every worktree's unmerged spec docs overlay it: ticked or half-done phases go in flight, a phase needing one ticked only in a worktree is ready there, ★ marks ready rows sharing no files with work in flight. Base alone decides done. A lane prints alone, uncapped. `--json` is the versioned model for agents (`{ board }` or `{ board: null, error }`); `--local` skips the fetch. A tool command, not a `/spec` sub-command.
+- **Board.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board [focus|flight|ready|blocked|you] [--who <name|me>] [--json] [--local]` builds the board from `origin/<default>` (a `git archive` cache in the git common dir, so every checkout sees the same thing): open phases across every spec in lanes (a spec with phases that nobody has reviewed or started is one `review` row instead), ready ranked by focus position, then overdue, priority, due, unblocks, recency. FOCUS (only when a spec has `focus:`) gives each focus spec one row: progress, what is happening now, and who is on it, per person: this repo's sessions on this machine (by claim, then launch title, then a non-main tree touching only that focus spec), other machines' claims and the open PRs its `pr-opening.md` links, by author; `other sessions` lists the rest. `board focus` prints it alone (`none` when empty); `--who <name|me>` keeps the rows that person owns or works on, in `--json` too. Every worktree's unmerged spec docs overlay it: ticked or half-done phases go in flight, a phase needing one ticked only in a worktree is ready there, ★ marks ready rows sharing no files with work in flight. Base alone decides done. A lane prints alone, uncapped. `--json` is the versioned model for agents (`{ board }` or `{ board: null, error }`); `--local` skips the fetch. A tool command, not a `/spec` sub-command.
 - **Focus.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts focus add <spec> <must|should|could> | move <spec> <must|should|could> | drop <spec>` keeps the team's focus set as `focus: <band>` in each spec's `CLAUDE.md` (MoSCoW: must, should, could; no line = not in focus). The board orders specs inside a band by overdue, due, priority, name; there is no rank. It reads the set at a freshly fetched `origin/<default>`, commits the one changed `CLAUDE.md` onto that tip and pushes it, retrying once if main moved; the checkout is never touched, and any `docs:` setting works. A spec only on a branch is refused (`land the spec first`), and a refused push writes nothing (`focus: push to <default> refused: …`). It changes main for the whole team, so it only runs on the user's word ([list.md](list.md) → *Focus*). A tool command, not a `/spec` sub-command.
 - **Ship.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts ship <spec> <auto|hold-for-review>` writes the spec's standing ship mode as `ship:` in its `CLAUDE.md` on `origin/<default>`, the way `focus` writes its band (`ship: <spec> is <mode> (<sha>)`). The PR moment reads it instead of asking: `auto` babysits to merge, `hold-for-review` babysits to green and holds ([babysit.md](babysit.md)). A spec only on a branch is refused. It changes main, so it only runs on the user's word. A tool command, not a `/spec` sub-command.
 - **Claims.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim take <spec> <phase> | release <spec> [<phase>] | list` keeps one claim file per phase in the git common dir (`spec-board/claims/`), shared by every worktree and never committed. Execute §1 takes the claim, and handoff releases it. Take refuses a phase that is not in the spec, one in progress in another worktree, or one held by a live session (`claim refused: …`). It takes over a claim whose session closed, whose worktree is gone, or whose phase is done. When session liveness can't be read, nothing is taken over. With an origin, each claim is also mirrored as the ref `refs/spec-claims/<spec>/<phase>`, pushed with a create-only lease, so a session on another machine is refused too (`claimed by <user>@<host> …`). Release deletes the ref. Offline, a take stays local and says so. `--take-over` is the escape hatch: it takes any claim, local or remote, live or not, and only runs on the user's word ("take it over"). The packs skip phases another live session on this machine holds. The board shows claims in flight, other machines' claims as `remote <age>`, and lists them under needs you after `REMOTE_CLAIM_STALE_DAYS`. A tool command, not a `/spec` sub-command.
 - **Trees.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts trees place <spec> <phase> [--json]` gives the session its worktree: one per spec PR group, on branch `feat/<spec>-pr-<group>` (`feat/<spec>` when the phase has no `pr:`). It finds the tree by branch, then by the workspace scan, and refuses one another session is working in: a live claim on it, a session mid-task there, or an idle one that left uncommitted changes. A session left open after its handoff, idle in a clean tree, doesn't hold it. Otherwise it reuses a local branch, takes over `origin/<branch>`, or cuts a new tree from a freshly fetched `origin/<default>`: never local HEAD, never the WorktreeCreate hook. A new tree gets the gitignored files `.worktreeinclude` lists (`.env`, `.env.local` without one) and names the `gates.bootstrap` gate to work through. Trees go under one root per person and clone: `worktrees.root` in `<git-common-dir>/spec-driven/local.md`, never committed, detected on first use from where that person's trees already are (`~/claude-worktrees/<repo>` when there are none). When the user asks to keep trees elsewhere, rewrite that key. `trees prune` lists trees whose branch is merged (an ancestor of origin, or a merged PR's head), fully pushed, and with no session open in it, idle ones included; `--apply` removes them and their branches, only after the user says yes, and `worktree remove` keeps any tree with edits. Execute §1 places before it claims, and the board targets ready rows at their tree and shows `prune N merged trees`. A tool command, not a `/spec` sub-command.
-- **Doctor.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <name>` checks one spec for drift: frontmatter against the taxonomy, ledger entries against `ledger/INDEX.md`, phase boxes in `progress.md` against their phase entries, and stale `in-flight.md`. Handoff runs it before committing. Fix every `error` line; fix `warning` lines that this session caused.
+- **Doctor.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts doctor <name>` checks one spec for drift: frontmatter against the taxonomy, ledger entries against `ledger/INDEX.md`, phase boxes in `progress.md` against their phase entries, and stale in-flight notes (`in-flight/*.md` and a legacy `in-flight.md`). Handoff runs it before committing. Fix every `error` line; fix `warning` lines that this session caused.
 
 ## Routing
 
@@ -154,20 +154,47 @@ Deterministic. Used by `resume` (to suggest) and `execute` (to pick when no chun
 
 ## Next sessions
 
-Handoff, review and create end with this block, and so does any answer to "what's next"; a handoff whose PR group is ready ends with execute.md §10's PR question instead. The user never types a `/spec execute` line.
+Handoff, review and create end with this block, and so does any answer to "what's next". The user never types a `/spec` line. The PR question (execute.md §10) and these rows never share a message: when a handoff asks it, the rows wait until the answer is handled.
 
-1. **Read the board:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board --json` (handoff runs it after *Commit*, so its fetch never races the push). Don't re-derive lanes.
-2. **Print up to 3 numbered rows** from the ready lane, then the board's `Needs you:` items, one line each:
+1. **Read the board:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board --json` (handoff runs it after *Commit*, so its fetch never races the push). Don't re-derive lanes. Each ready row carries `spec`, `phase` (execute rows only), `title`, `next` (`prep`, `create`, `review` or `execute`), `target` (`{ workspace }` or `{ newWorktree }`), and `treeBusy` when another session works in its tree.
+2. **Print up to 3 numbered rows** from the ready lane, then the board's `Needs you:` items, one line each, then the reply line:
    ```
    Next sessions:
-   1. <spec> <phase> — <title> · <tree: workspace name, or new <folder>>
+   1. <spec> <phase, or the next sub-command> — <title> · <tree: workspace name, or new <folder>>
    2. …
    Needs you: <item>; <item>
+   Reply with row numbers to launch.
    ```
-   The rows this session itself recommends come first: a review of spec X puts X's first ready phase at 1, and a handoff puts its own spec's next ready phase at 1. Mark a row whose tree is busy with its `treeBusy` text, not as startable.
-3. **On approval** ("yes" = row 1, "start 1 and 2", "go"), launch each row: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch execute <spec> <phase>`, which places the tree first (*Tools* → Trees). Rows that share a tree launch once; the others wait and come back in that session's handoff. Report a refusal (busy tree, held claim) as is; don't retry it. Pass on a `launch: run this in a new terminal:` line unchanged.
+   The rows this session itself recommends come first: create puts its own spec's `review` row at 1, a review of spec X puts X's first ready phase at 1, and a handoff puts its own spec's next ready phase at 1. A spec with phases that nobody has reviewed or started comes as one `review` row; its execute rows come first only when the user says to skip the review. Mark a row whose tree is busy with its `treeBusy` text, not as startable.
+3. **The reply.** Row numbers (`1`, `1 3`), `start 1 and 2`, `go` or `yes` (= row 1), or a pasted row launch those rows: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch <row.next> <spec> [<phase>]` each, with the phase only for `execute` (launch places the tree first, *Tools* → Trees). A number answers the most recent numbered list this session printed, and it launches only when that list is *Next sessions*: after the PR question, "1" means babysit. With no *Next sessions* block in view, print it again and wait; never launch straight from the board. Rows that share a tree launch once; the others wait and come back in that session's handoff. Report a refusal (busy tree, held claim) as is; don't retry it. Pass on each `Launched:` line, and a `launch: run this in a new terminal:` line unchanged.
 
 Without Bun, skip the block.
+
+## Reports
+
+A report of work done (execute's end-of-chunk brief, handoff, a standalone update, review) opens with three lines, then the mode's own block:
+
+```
+Impact: test runs behave the same as this morning — nothing you'd notice yet.
+On merge: nothing changes for anyone; it unlocks phase 12, the speed-up itself.
+Left: phases 12–14, then PR E (the last of five PRs for faster backend tests).
+```
+
+- **Impact** starts from the first sentence of the **Outcome** line of each phase this session moved (the execute pack holds the entry), plus a number when one was measured (`14 min → 5 min`). Say "nothing you'd notice yet" when that is the truth. No file names.
+- **On merge** says what merging this branch changes for whom, and what it unlocks.
+- **Left** comes from `spec.ts ready <name>`: the phases still open and the PRs still to come.
+- Gloss every internal label the first time a report uses it: `PR C2 (the second of three PRs for the lock work)`, `phase 12 (the speed-up)`.
+
+A handoff prints the header once; the update flow it runs skips its own. Resume and status don't print it (no work was done; status is tool-rendered), and babysit's final report keeps its shape.
+
+## Say if wrong
+
+One rule for every mode: when to decide and when to ask.
+
+- **Decide, then list it.** A choice with a sound answer that stays inside the work and can be undone: a mechanism where either option meets every concern, a name, where a file splits, which of two equivalent tools to use. Make it, then list it under `Say if wrong:` in the next report, all on one line: `Say if wrong: in-flight notes per phase file, not sections (git test showed sections conflict) · lessons as one-line pointers`.
+- **Ask.** The answer changes what the work is (a deliverable cut or added, the phase Goal or Outcome), moves scope between specs or reorders another spec's phases, deletes or migrates data, changes an external contract, or two sound positions genuinely contradict. Give your recommendation with each. Having a recommendation never turns a fork into a default.
+
+Always asked, whatever the recommendation: the prep brief stop, review's forks, claim take-over, opening a PR (execute.md §10's question, unless the spec's `ship:` answers it) and the merge method when `pr.merge` is unset, merging, deploy confirmation, create's phasing gate, task-phase items only a person can do, and preflight's *Forks for you*. A crew worker writes these under `## Needs you` instead of asking (execute.md → *Crew worker*).
 
 # Spec layout reference (layout v1)
 
@@ -185,7 +212,9 @@ docs/specs/<name>/
 ├── progress.md                                 # thin index: phase list + top-level checkboxes + pointers
 ├── pr-opening.md                               # PR-readiness gate: spec state + pre-PR checks (not a phase)
 ├── code-map.md                                 # load-bearing files inventory (scaffolded empty)
-├── in-flight.md                                # ephemeral pending work (on-demand; created by handoff)
+├── in-flight/                                  # ephemeral pending work, one file per phase (on-demand; by handoff)
+│   ├── phase-<id>.md                           #   one session's notes for its phase
+│   └── pr-<group>.md                           #   a session with no phase (PR gate)
 ├── phases/                                     # parent folder for all per-phase content
 │   ├── phase-1-<slug>.md                       #   flat file — default shape for small phases
 │   ├── phase-2-<slug>.md
@@ -215,7 +244,7 @@ docs/specs/<name>/
 | `progress.md` | small | Thin index of phases; top-level checkboxes; pointers into `phases/` |
 | `pr-opening.md` | small | PR-readiness gate — spec state (<20 lines) + pre-PR checks scoped to touched subprojects. Not a phase |
 | `code-map.md` | small | Load-bearing files this spec depends on or introduces |
-| `in-flight.md` | ephemeral | Mid-session pending state; overwritten each handoff |
+| `in-flight/phase-<id>.md` | ephemeral | One phase's pending state; overwritten by that phase's handoff, deleted at a clean boundary |
 | `phases/phase-*.md` (flat) | small-to-medium | Per-phase plan + sub-checkboxes + guidance |
 | `phases/phase-*/plan.md` (folder) | small-to-medium | Same as flat, for phases with supplementary files |
 | `phases/phase-*/<supplementary>.md` | on-demand | Tier sub-plans, wireframes, fixture notes, scratch |
@@ -248,7 +277,7 @@ docs/specs/<name>/
 - If any of the above would otherwise be written here, redirect:
   - Durable learnings (cross-phase) → `ledger/<kind>-<slug>.md`
   - Phase-local guidance + sub-checkboxes → the phase entry inside `phases/`
-  - Ephemeral mid-session state → `in-flight.md`
+  - Ephemeral mid-session state → `in-flight/phase-<id>.md`
 - A phase top-level box flips to `[x]` only when all sub-checkboxes in its phase entry are checked.
 
 ## Per-phase entry rules
@@ -426,21 +455,24 @@ Lessons reach a session in three ways. None of them needs anyone to ask.
 - **Execute pack.** Lists the lessons that match the files the picked phase names.
 - **Prep and review.** Recon agents grep `^paths:` in `docs/specs/_ledger/`; the prior-art reviewer gets `lessons recall` output for the spec's code-map files.
 
-## in-flight.md semantics
+## in-flight semantics
 
+- **One file per phase:** `in-flight/phase-<id>.md`; a session with no phase (PR gate) writes `in-flight/pr-<group>.md`. A session writes only its own file, so two sessions on one spec never touch the same lines. Sections in one shared file conflicted in a git merge test.
 - **Ephemeral pending state only.** Half-wired code, open session questions, "pick up from here" notes, environment state.
 - **Overwritten on each handoff.** Not appended to.
-- **Cleared to empty-with-header at clean boundaries.** Clean boundary = all current-phase sub-checkboxes done AND no staged-but-uncommitted spec changes AND no open questions flagged this session.
-- **Git is the archive.** Past in-flight contents are recoverable from `git log -p in-flight.md`.
+- **Deleted at clean boundaries.** Clean boundary = all current-phase sub-checkboxes done AND no staged-but-uncommitted spec changes AND no open questions flagged this session. No file means nothing pending. A note that outlives its phase (a deploy still to do) keeps the file; the doctor warns only once every phase is done.
+- **Readers.** The execute pack shows the picked phase's file; resume shows them all; the doctor checks every one.
+- **Legacy `in-flight.md`** (one file for the whole spec, from before the split) stays readable everywhere. A handoff moves its own phase's part into its file and deletes the legacy file once nothing pending is left in it.
+- **Git is the archive.** Past contents are recoverable from `git log -p -- in-flight/`.
 
 ## pr-opening.md semantics
 
 - **The PR-readiness gate — not a phase.** Verification, QA, and PR-opening never appear as phases (see Per-phase entry rules); their content lives here.
 - **Two sections only:**
-  - **Spec state** (< 20 lines) — running summary: phases done / left, branch + PR link once they exist, the suggested PR split (from the phases' `pr:` fields, listed by `spec.ts ready <name>`). Kept current by execute/handoff as phases land — not a re-list of the phase index.
+  - **Spec state** (< 20 lines) — the suggested PR split (from the phases' `pr:` fields, listed by `spec.ts ready <name>`), one `PR #<n> · <branch>` line per PR, added once by the session that opens it (execute.md §10), and pr-babysit's merge records. Phases done / left are not hand-written here: `progress.md`, status and the board show them, and a per-session refresh collided between parallel sessions.
   - **Pre-PR checks** — checkboxes scoped to the subprojects the spec touches (derive from `code-map.md`). Ticked before the PR opens: a draft unless project settings say `pr.draft: false`. Never straight to `main`.
 - **Project-scoped checks.** The concrete checks depend on which build targets the spec touches. If the project defines canonical checks (a `.claude/` convention, a CI manifest), use those; otherwise default, per touched module, to: tests pass · lint + typecheck/compile · any feature-specific e2e.
-- **Scaffolded by create, kept current by execute/handoff.** Not immutable — it's a live gate, edited in place. A spec whose phases are all task phases opens no PR and has no `pr-opening.md`.
+- **Scaffolded by create; written at the PR moment.** Not immutable — it's a live gate, edited in place when a PR opens or merges and when pre-PR checks are ticked. A spec whose phases are all task phases opens no PR and has no `pr-opening.md`.
 
 ## reviews/ and research/ semantics
 
@@ -470,7 +502,7 @@ Handoff reflection is preserved but redirected. Reflection content goes to:
   - Hard-won gotchas → `ledger/gotcha-<slug>.md`
   - Standing rules that emerged → `ledger/principle-<slug>.md`
   - Newly understood domain facts → `ledger/domain-<slug>.md`
-- **`in-flight.md`** for ephemeral state only: half-built code, "pick up from here" instructions, open session questions.
+- **`in-flight/phase-<id>.md`** for ephemeral state only: half-built code, "pick up from here" instructions, open session questions.
 
 Handoff **must not**:
 - Append anything to `progress.md` (no handoff blocks, no session logs)
@@ -493,7 +525,7 @@ Handoff **must not**:
 | `ledger/INDEX.md` | yes (header only) |
 | `seed.md` | no — written by another spec's session when it spins this one off |
 | `product-brief.md` | no — created by `prep` before the spec body exists |
-| `in-flight.md` | no — created by handoff when pending state exists |
+| `in-flight/phase-<id>.md` | no — created by handoff when its phase has pending state |
 | `reviews/` | no — created on first review write |
 | `research/` | no — created on first research/recon write (deep research, `prep` waves, or `execute` phase recon) |
 | `research/phase-<N>/` | no — created by the first `execute` recon or preflight note for phase N |
@@ -508,7 +540,7 @@ If `docs/specs/<name>/ledger/INDEX.md` is absent, the spec predates this layout.
 
 - **Lifecycle:** `prep` (folder + brief + recon; a spun-off spec starts from `seed.md`) → `draft` (spec written) → `active` (implementing) → `done`/`good-enough`. Prep is optional but recommended for non-trivial specs; `create` can run cold.
 - **Stage vs. status:** the stage is read from the files (no `progress.md` = prep; no ticked box yet = draft). The `status:` field only ever holds a value the project allows. When a project taxonomy (`.claude/taxonomy.md`) lists `status` values, use only those: write the stage name when it is listed, otherwise `active` until the spec is `done` or `good-enough`.
-- **Timestamps:** never write by hand. `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>` bumps `updated:` in the spec's `CLAUDE.md`; `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh --now` prints the canonical timestamp for any other field (ledger `created:`, stub frontmatter).
+- **Timestamps:** never write by hand. `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>` bumps `updated:` in the spec's `CLAUDE.md`, on a status change or a review or prep rewrite only; never per session, since parallel sessions collided on that line; `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh --now` prints the canonical timestamp for any other field (ledger `created:`, stub frontmatter).
 - **Taxonomy values:** use the controlled vocabulary injected at the top of this file.
 - **Spec location:** `docs/specs/<name>/`
 - **Style:** direct, opinionated, no filler. Use "we" for decisions, "they" for users.

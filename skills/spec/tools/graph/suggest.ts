@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import { markdownFilesIn, readTextIfExists } from "../core/files";
+import { inFlightFilesIn } from "../core/in-flight";
 import type { SpecNode } from "./nodes";
 
 export interface ProseMention {
@@ -9,7 +10,7 @@ export interface ProseMention {
 }
 
 const MENTION = /(?:docs\/specs\/|`)([a-z0-9][a-z0-9-]+[a-z0-9])(?:[/`#]|$)/g;
-const TOP_FILES = ["CLAUDE.md", "design.md", "technical.md", "progress.md", "code-map.md", "pr-opening.md", "in-flight.md"];
+const TOP_FILES = ["CLAUDE.md", "design.md", "technical.md", "progress.md", "code-map.md", "pr-opening.md"];
 const LINE_LIMIT = 160;
 
 export function undeclaredMentions(nodes: ReadonlyMap<string, SpecNode>, name: string): ProseMention[] {
@@ -33,5 +34,5 @@ export function undeclaredMentions(nodes: ReadonlyMap<string, SpecNode>, name: s
 
 function specProseFiles(dir: string): string[] {
   const phases = markdownFilesIn(join(dir, "phases")).map((name) => join("phases", name));
-  return [...TOP_FILES, ...phases];
+  return [...TOP_FILES, ...inFlightFilesIn(dir), ...phases];
 }

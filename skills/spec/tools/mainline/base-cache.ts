@@ -4,13 +4,17 @@ import { stateDirIn, type Git } from "../core/git";
 import type { Result } from "../core/result";
 
 export const READ_SET = ["docs/specs/*/*.md", "docs/specs/*/phases/**/*.md", "*/docs/specs/*/*.md", "*/docs/specs/*/phases/**/*.md"];
+// A spec's reviews/ reaches the cache as an empty folder: the board needs only that it exists.
+const REVIEWS_DIR = /^(?:[^/]+\/)?docs\/specs\/[^/]+\/reviews\//;
+// Bump when the cache's contents change, so a folder made by an older version is never reused.
+export const BASE_LAYOUT = 2;
 export const BASE_CACHE_KEEP = 2;
 const TEMP_PREFIX = ".tmp-";
 
 export async function baseCache(git: Git, sha: string, commonDir: string): Promise<Result<string>> {
   const root = stateDirIn(commonDir, "base");
-  const dir = join(root, sha);
-  if (existsSync(dir)) {
+  const dir = join(root, `${sha}.${BASE_LAYOUT}`);
+  if (isFilled(dir)) {
     markUsed(dir);
     return { ok: true, value: dir };
   }
@@ -39,7 +43,9 @@ async function extractReadSet(git: Git, sha: string, scratch: string): Promise<R
   mkdirSync(tree);
   const listed = git.run(["ls-tree", "-r", "--name-only", "-z", sha]);
   if (listed.code !== 0) return { ok: false, reason: `git ls-tree failed: ${listed.stderr.trim() || `exit ${listed.code}`}` };
-  const patterns = matchingPatterns(listed.stdout.split("\0"));
+  const paths = listed.stdout.split("\0");
+  markReviews(paths, tree);
+  const patterns = matchingPatterns(paths);
   if (patterns.length === 0) return { ok: true, value: tree };
 
   const tar = join(scratch, "base.tar");
@@ -48,6 +54,18 @@ async function extractReadSet(git: Git, sha: string, scratch: string): Promise<R
   if (!archived.ok) return archived;
   await new Bun.Archive(await Bun.file(tar).bytes()).extract(tree);
   return { ok: true, value: tree };
+}
+
+function markReviews(paths: readonly string[], tree: string): void {
+  for (const path of paths) {
+    const reviews = REVIEWS_DIR.exec(path)?.[0];
+    if (reviews) mkdirSync(join(tree, reviews), { recursive: true });
+  }
+}
+
+// An empty folder is a cache that never got its files: extract again rather than show a board with no specs.
+function isFilled(dir: string): boolean {
+  return existsSync(dir) && readdirSync(dir).length > 0;
 }
 
 // Another run may have extracted the same sha first; its rename wins and this copy is dropped.

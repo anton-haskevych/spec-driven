@@ -2,7 +2,7 @@
 
 Two stages. **Stage A** = cheap orientation, runs every time. **Stage B** = deep context load, runs only after the user confirms a specific chunk.
 
-The point: don't burn 100K tokens on `design.md`, `technical.md`, and filtered ledger entries before the user has even decided what to work on. Stage A reads only `progress.md`, the per-phase Goal/Implementation lines, and (if it exists) `in-flight.md`. Everything else is Stage B.
+The point: don't burn 100K tokens on `design.md`, `technical.md`, and filtered ledger entries before the user has even decided what to work on. Stage A reads only `progress.md`, the per-phase Goal/Implementation lines, and (if any exist) the in-flight notes. Everything else is Stage B.
 
 ---
 
@@ -14,7 +14,7 @@ Run SKILL.md → *Preconditions*. A prep-stage spec routes to [prep.md](prep.md)
 
 ### A.2. Render the status table
 
-**If a `<spec-pack mode="resume">` for this spec is present** (SKILL.md → *Tools*), print its status table exactly as given, then take A.3's in-flight text and A.4's next-chunk items from the pack. Do not read `progress.md`, the phase entries or `in-flight.md`. Otherwise:
+**If a `<spec-pack mode="resume">` for this spec is present** (SKILL.md → *Tools*), print its status table exactly as given, then take A.3's in-flight text and A.4's next-chunk items from the pack. Do not read `progress.md`, the phase entries or the in-flight files. Otherwise:
 
 Follow `status.md` → *Read phases*, *Compute status per phase*, and *Render* to produce the same 4-column table the user would see from `/spec <name> status`.
 
@@ -22,7 +22,7 @@ Read **only** what `status.md` requires: `progress.md` plus per-phase Goal / Imp
 
 ### A.3. Read in-flight (only if it has substantive content)
 
-If `docs/specs/<name>/in-flight.md` exists, read it. Then:
+Read every file in `docs/specs/<name>/in-flight/` (one per phase, `phase-<id>.md`, or `pr-<group>.md`) and a legacy `docs/specs/<name>/in-flight.md`, when they exist. Then:
 
 - **Skip the block entirely** if the file is empty, missing, or contains only filler ("No pending work", "Clean boundary reached", a date stamp, a reassurance that the previous session ended cleanly). Absence is itself the signal — never state it.
 - **Otherwise**, summarize the substantive contents as bulletpoints under a `**Last session:**` heading.
@@ -71,7 +71,7 @@ Bullet rules:
 - If the pack's *Related specs* shows open `needs` ("Blocked by"), add one bullet: `- (blocked by: <spec>#<phase>, not done)`, or `<spec>` alone for a whole-spec need.
 - If the ready set has other phases, add one bullet: `- (also ready: 3, 5)`. That replaces the hand-written parallelizable bullet.
 
-If `in-flight.md` was non-empty (rendered in A.3), the suggested chunk still appears — but its bullets must not duplicate items in the `**Last session:**` block.
+If an in-flight note was non-empty (rendered in A.3), the suggested chunk still appears — but its bullets must not duplicate items in the `**Last session:**` block.
 
 ### A.5. Stop
 

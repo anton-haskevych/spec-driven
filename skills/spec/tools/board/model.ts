@@ -59,10 +59,13 @@ export interface FlightRow extends RowBase {
   next: FlightNext;
 }
 
-export type NextStep = "prep" | "create" | "execute";
+// "review": a spec with phases that nobody has reviewed or started yet.
+export type NextStep = "prep" | "create" | "review" | "execute";
 
 export interface ReadyRow extends RowBase {
   next: NextStep;
+  // The phase's title; for a row without a phase, the spec's title, else its name.
+  title: string;
   // The spec's position in the FOCUS lane (1 = top); focus rows rank first.
   focus?: number;
   focusBand?: FocusBand;

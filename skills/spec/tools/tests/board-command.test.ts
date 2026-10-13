@@ -21,6 +21,7 @@ describe("board and list commands (real git)", () => {
     repo.write("docs/specs/a/progress.md", "- [ ] Phase 1 — One → `phases/phase-1-one.md`\n- [ ] Phase 2 — Two → `phases/phase-2-two.md`\n");
     repo.write("docs/specs/a/phases/phase-1-one.md", "---\nneeds: []\n---\n- [ ] item\n");
     repo.write("docs/specs/a/phases/phase-2-two.md", "---\nneeds: [1]\n---\n- [ ] item\n");
+    repo.write("docs/specs/a/reviews/2026-10-01-panel.md", "# panel\n");
     repo.commitAll("specs");
     repo.git("push", "-q", "origin", "main");
   });
@@ -34,7 +35,7 @@ describe("board and list commands (real git)", () => {
     const { board } = JSON.parse(await boardCommand(repo.dir, ["--json", "--local"], deps));
     expect(board.version).toBe(2);
     expect(board.base.mode).toBe("local");
-    expect(board.lanes.ready.map((row: { spec: string; phase: string }) => `${row.spec}#${row.phase}`)).toEqual(["a#1"]);
+    expect(board.lanes.ready.map((row: { spec: string; phase: string; title: string }) => `${row.spec}#${row.phase} ${row.title}`)).toEqual(["a#1 One"]);
     expect(board.lanes.blocked).toEqual([{ spec: "a", phase: "2", reasons: ["needs 1"] }]);
   });
 
@@ -77,6 +78,7 @@ describe("board focus --who (real git)", () => {
     repo.write(`docs/specs/${name}/CLAUDE.md`, `---\nstatus: active\n${meta}---\n`);
     repo.write(`docs/specs/${name}/progress.md`, `- [ ] Phase 1 — One → \`phases/phase-1-one.md\`\n`);
     repo.write(`docs/specs/${name}/phases/phase-1-one.md`, "---\nneeds: []\n---\n- [ ] item\n");
+    repo.write(`docs/specs/${name}/reviews/2026-10-01-panel.md`, "# panel\n");
   };
 
   beforeAll(() => {
