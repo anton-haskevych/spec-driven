@@ -17,6 +17,7 @@ import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
 import { PUSH_USAGE, pushReport } from "./commands/push";
 import { readyReport } from "./commands/ready";
 import { settingsReport } from "./commands/settings";
+import { SHIP_USAGE, shipCommand } from "./commands/ship";
 import { TREES_USAGE, treesCommand } from "./commands/trees";
 import { findSpecs } from "./core/spec-folders";
 
@@ -45,6 +46,7 @@ export const COMMANDS: Record<string, Command> = {
   "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
   claim: { usage: CLAIM_USAGE, run: (dir, args) => claimCommand(dir, args) },
   focus: { usage: FOCUS_USAGE, run: (dir, args) => focusCommand(dir, args) },
+  ship: { usage: SHIP_USAGE, run: (dir, args) => shipCommand(dir, args) },
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },
   trees: { usage: TREES_USAGE, run: (dir, args) => treesCommand(dir, args) },
 };
