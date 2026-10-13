@@ -8,6 +8,8 @@ needs to know exist to navigate the code — not every file that's touched.
 | File | Role | Phase |
 |------|------|-------|
 | `skills/spec/tools/tests/spec-bump.test.ts` | `spec-bump.sh` resolution from subfolders | 4 |
+| `skills/spec/tools/tests/board-review.test.ts` | ready-row titles and the review row | 1 |
+| `skills/spec/tools/tests/spec-title-and-review.test.ts` | `SpecNode.title` (CLAUDE.md H1), `SpecState.reviewed` | 1 |
 
 ## Existing files touched
 
@@ -20,7 +22,8 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/create.md` | *After writing* → review row | `decision-review-follows-create` |
 | `skills/phase-preflight/SKILL.md` | *Defaults applied* / *Forks for you* split | |
 | `skills/spec/tools/board/model.ts` | `ReadyRow.title`, `NextStep` + review, `BOARD_VERSION` | |
-| `skills/spec/tools/board/lanes.ts` | stage rows (`stageLanes`), review row | |
+| `skills/spec/tools/board/lanes.ts` | stage rows (`stageLanes`), review row (`awaitsReview`) | |
+| `skills/spec/tools/mainline/base-cache.ts` | `reviews/` markers, `BASE_LAYOUT` cache key | |
 | `skills/spec/tools/commands/context.ts` | `APPLY_TOP_READY` string the pack prints | |
 | `skills/spec/tools/pr/resolve.ts` | reads `PR #n` from Spec state; why the PR line stays | `decision-pr-link-stays-in-spec-state` |
 | `skills/spec/tools/core/spec-state.ts` | reads in-flight | `decision-in-flight-one-file-per-phase` |

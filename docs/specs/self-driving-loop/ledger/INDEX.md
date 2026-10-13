@@ -5,6 +5,8 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 
 ## Gotchas
 - `docs/specs/_ledger/gotcha-hook-payload-cwd-follows-cd.md` — [general] — hook payload.cwd follows cd; resolve with findProjectDir
+- `docs/specs/_ledger/gotcha-base-cache-key-must-change-with-its-contents.md` — [general] — base cache reused per sha: bump BASE_LAYOUT when its contents change
+- `docs/specs/_ledger/gotcha-execute-pack-predates-a-main-merge.md` — [general] — execute pack predates a main merge: re-run context after merging
 
 ## Principles
 

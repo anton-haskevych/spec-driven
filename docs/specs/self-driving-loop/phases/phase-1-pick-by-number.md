@@ -29,10 +29,10 @@ pr-babysit owns the one-list rule (its design.md:47-48) and rewrites handoff and
 
 ## Deliverables
 
-- [ ] SKILL.md *Next sessions*: row fields named in step 1, `Reply with row numbers to launch.`, reply rule (most recent list, `<row.next>`, reprint when no block), "after the PR question is answered"; :32 updated; list.md and handoff.md point at it; wiring pins
+- [x] SKILL.md *Next sessions*: row fields named in step 1, `Reply with row numbers to launch.`, reply rule (most recent list, `<row.next>`, reprint when no block), "after the PR question is answered"; :32 updated; list.md and handoff.md point at it; wiring pins
 - [x] Board: `title` on ready rows, `next: review` for unreviewed specs, `BOARD_VERSION` bump; tests
-- [ ] create.md *After writing*: review row at 1, no confirm/offer asks; wiring pin
-- [ ] phase-preflight *Defaults applied* / *Forks for you*; execute.md §3 applies the first and stops on the second; execute :22 and `OFFER_TOP_READY` apply the top row; tests
+- [x] create.md *After writing*: review row at 1, no confirm/offer asks; wiring pin
+- [x] phase-preflight *Defaults applied* / *Forks for you*; execute.md §3 applies the first and stops on the second; execute :22 and `OFFER_TOP_READY` apply the top row; tests
 
 ## Phase-local notes
 
