@@ -65,7 +65,7 @@ describe("crew check", () => {
   });
 
   test("a [handoff] commit older than the launch doesn't count, nor does a last turn without the Crew: line", () => {
-    setUp("checkout execute 1", "Stopped mid-unit.", "2999-01-01T00:00:00Z");
+    setUp("checkout execute 1", "Stopped mid-unit.", new Date(Date.now() + 3_600_000).toISOString());
     expect(crewCheck(repo.dir, ["f1a579ba"], deps())).toBe("Close-out: missing no [handoff] commit since launch, no Crew: line");
   });
 
