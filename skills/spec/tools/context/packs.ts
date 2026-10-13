@@ -7,7 +7,7 @@ import { renderReadySet } from "../ready/render";
 import type { Playbook } from "../playbook/playbooks";
 import { renderPlaybooks } from "../playbook/render";
 import type { Lesson } from "../lessons/project-ledger";
-import { describeLesson, lessonsForFiles } from "../lessons/recall";
+import { lessonsForFiles, pointToLesson } from "../lessons/recall";
 import { codeMapForPhase } from "./code-map";
 import { parseLedgerIndex, rowsForPhase } from "./ledger-scope";
 import { renderStatusTable } from "./status-table";
@@ -30,6 +30,8 @@ const PHASE_ENTRY_LIMIT = 8000;
 const SMALL_FILE_LIMIT = 3000;
 const IN_FLIGHT_LIMIT = 2000;
 const LEDGER_LIMIT = 6000;
+const PROJECT_LESSONS_LIMIT = 3000;
+const PLAYBOOKS_LIMIT = 3000;
 const PATH_LIKE = /^[\w@.{}-]+(\/[\w@.{}*-]+)+$/;
 const STABLE_REFERENCES = ["design.md", "technical.md"];
 const TASK_PHASE_NOTE = "Task phase (code: false): follow execute.md → Task phases. No recon, preflight or TDD; tick each item with its evidence.";
@@ -85,7 +87,7 @@ function optionalLine(line: string | undefined): string[] {
 }
 
 function playbooksBlock(playbooks: readonly Playbook[]): string[] {
-  return playbooks.length > 0 ? [renderPlaybooks(playbooks)] : [];
+  return playbooks.length > 0 ? [clip(renderPlaybooks(playbooks), PLAYBOOKS_LIMIT, "docs/specs/_playbook/")] : [];
 }
 
 function inFlightBlock(state: SpecState): string {
@@ -136,6 +138,11 @@ function stableReferencesBlock(read: (name: string) => string | undefined): stri
 function projectLessonsBlock(lessons: readonly Lesson[], phaseEntry: string): string {
   const paths = outlineMarkdown(phaseEntry).codeSpans.map((span) => span.code).filter((code) => PATH_LIKE.test(code));
   const matching = lessonsForFiles(lessons, paths);
-  const body = matching.length > 0 ? matching.map(describeLesson).join("\n") : "(none match the files this phase names)";
-  return `### Project lessons for this phase's files (docs/specs/_ledger)\n${body}`;
+  if (matching.length === 0) return "### Project lessons for this phase's files (docs/specs/_ledger)\n(none match the files this phase names)";
+  const shown = withinBudget(matching.map(pointToLesson), PROJECT_LESSONS_LIMIT);
+  const hiddenNote = shown.length < matching.length
+    ? `\n${matching.length - shown.length} more lessons match; the edit hook shows each before its file changes, or run \`spec.ts lessons recall <file…>\`.`
+    : "";
+  const heading = `### Project lessons for this phase's files (${matching.length} match, most-seen first)`;
+  return `${heading}\nEach is docs/specs/_ledger/<file>; the edit hook shows its rule before you change a matching file.\n${shown.join("\n")}${hiddenNote}`;
 }

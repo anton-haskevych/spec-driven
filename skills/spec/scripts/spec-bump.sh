@@ -35,6 +35,16 @@ fi
 if [[ -f "$ARG" ]]; then
   FILE="$ARG"
 else
+  # From any folder under the project: walk up to the git root (a .git directory, or a worktree's
+  # .git file) and search from the outermost folder holding docs/specs, as spec.ts does.
+  DIR="$PWD"
+  PROJECT=""
+  while true; do
+    [[ -d "$DIR/docs/specs" ]] && PROJECT="$DIR"
+    [[ -e "$DIR/.git" || "$DIR" == "/" ]] && break
+    DIR=$(dirname "$DIR")
+  done
+  cd "${PROJECT:-$PWD}"
   MATCHES=()
   for candidate in "docs/specs/$ARG/CLAUDE.md" */docs/specs/"$ARG"/CLAUDE.md; do
     [[ -f "$candidate" ]] && MATCHES+=("$candidate")
@@ -48,7 +58,7 @@ else
     printf '  %s\n' "${MATCHES[@]}" >&2
     exit 1
   fi
-  FILE="${MATCHES[0]}"
+  FILE="$PWD/${MATCHES[0]}"
 fi
 
 # Check that the file has frontmatter with an updated: field

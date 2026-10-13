@@ -17,7 +17,11 @@ export function lessonsForFiles(lessons: readonly Lesson[], projectPaths: readon
 }
 
 export function describeLesson(lesson: Lesson): string {
-  const seen = lesson.seenIn.length > 0 ? `, seen in ${lesson.seenIn.length} spec${lesson.seenIn.length === 1 ? "" : "s"}` : "";
   const summary = lesson.summary ? ` ${truncate(lesson.summary, SUMMARY_LIMIT)}` : "";
-  return `- ${lesson.title} (\`${lesson.name}\`${seen}).${summary}`;
+  return `${pointToLesson(lesson)}.${summary}`;
+}
+
+export function pointToLesson(lesson: Lesson): string {
+  const seen = lesson.seenIn.length > 0 ? `, seen in ${lesson.seenIn.length} spec${lesson.seenIn.length === 1 ? "" : "s"}` : "";
+  return `- ${lesson.title} (\`${lesson.name}\`${seen})`;
 }
