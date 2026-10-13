@@ -68,6 +68,11 @@ describe("recallResponse", () => {
     expect(recallResponse(edit("backend/db/migration/V2__b.sql"), project, seen)).toBeUndefined();
   });
 
+  test("still finds the lesson when the session cd'd into another subfolder", () => {
+    const fromSubfolder = { ...edit("backend/db/migration/V3__c.sql"), cwd: join(project, "frontend", "src") };
+    expect(recallResponse(fromSubfolder, project, memory())).toContain("Migration numbers collide on merge");
+  });
+
   test("stays silent for spec files and files no lesson covers", () => {
     expect(recallResponse(edit("docs/specs/x/CLAUDE.md"), project, memory())).toBeUndefined();
     expect(recallResponse(edit("frontend/src/App.tsx"), project, memory())).toBeUndefined();

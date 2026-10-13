@@ -26,8 +26,8 @@ Pack: lessons as one-line pointers in a 3K budget with a hidden-rows note (the `
 
 ## Deliverables
 
-- [ ] `findProjectDir` + tests (root, spec folder, `landing/src` under two roots, worktree `.git` file, outside any tree); `spec.ts` uses it; board/claim from a subfolder works
-- [ ] Both hooks use it; one subfolder test each
+- [x] `findProjectDir` + tests (root, spec folder, `landing/src` under two roots, worktree `.git` file, outside any tree); `spec.ts` uses it; board/claim from a subfolder works
+- [x] Both hooks use it; one subfolder test each
 - [ ] `spec-bump.sh` walks the same way in its name branch; `tests/spec-bump.test.ts`
 - [ ] Lessons as pointers within budget, playbooks clipped, whole-pack fixture test < 30K; CRM max and median measured
 

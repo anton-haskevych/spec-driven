@@ -2,6 +2,7 @@ import { appendFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { isRecord } from "../core/frontmatter";
+import { findProjectDir } from "../core/spec-folders";
 import { loadProjectLessons } from "../lessons/project-ledger";
 import { describeLesson, lessonsForFiles, toProjectPath } from "../lessons/recall";
 
@@ -20,7 +21,7 @@ export function recallResponse(payload: unknown, fallbackDir: string, memory: Re
   const rawPath = isRecord(input) ? input.file_path : undefined;
   if (typeof rawPath !== "string") return undefined;
 
-  const projectDir = typeof payload.cwd === "string" ? payload.cwd : fallbackDir;
+  const projectDir = findProjectDir(typeof payload.cwd === "string" ? payload.cwd : fallbackDir);
   const path = toProjectPath(rawPath, projectDir);
   if (SPEC_FILES.test(path) || path.startsWith("..")) return undefined;
 
