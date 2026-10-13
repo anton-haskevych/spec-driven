@@ -59,7 +59,7 @@ Review `reviews/2026-10-12-state-homes-and-worker-lifecycle.md` explains why eac
 - It writes no code and never commits in a worker's tree.
 - It acts only on session ids it launched. It never stops a session whose claim is live.
 - It never merges a hold-for-review PR, never runs `claim take --take-over`, never acts on a teammate's claim, and never takes an outward or irreversible step.
-- It names workers by name and id, never by tab number. Messages go by id.
+- It names workers by name and id, never by tab number. Messages go by launch name (SendMessage can't address an id; probes 1.0).
 - It reports one line per merge, deploy or hold, plus the needs-you batch, and nothing else unprompted.
 - On compaction it rotates (technical.md → *Overseer rotation*).
 - Record the Claude Code version the probes ran on, so a CLI change is obvious when a run misbehaves.
@@ -79,58 +79,58 @@ Babysit's own fix pushes stay as they are.
 
 ## Deliverables
 
-- [ ] 1.0 Probes on the installed CLI, recorded in `research/phase-1/`:
+- [x] 1.0 Probes on the installed CLI, recorded in `research/phase-1/`:
   - a `--bg` session idle on a background shell: its `state`, and whether it is re-invoked when the shell exits
   - SendMessage to a `--bg` session by id, while `working` and while `done`
   - the state after `kill -9`
   - whether `CLAUDE_CODE_DISABLE_BG_EXIT_HANDOFF=1` stops background shells on `claude stop`
   - whether `claude rm` deletes the transcript
   - Update technical.md's state table from the answers.
-- [ ] 1.1 Register `oversee-crew`:
+- [x] 1.1 Register `oversee-crew`:
   - `SUB_COMMANDS`; SKILL.md argument-hint, set line, dispatch row and exceptions (no spec inferred)
   - the thin skill `skills/spec-oversee-crew/SKILL.md`
   - `launchTarget` refuses `oversee-crew`
   - widen the wiring-test regexes to accept `-`; update the launch-test sub-command list
-- [ ] 1.2 `launch execute|babysit … --bg --brief <file>`:
+- [x] 1.2 `launch execute|babysit … --bg --brief <file>`:
   - background argv run from the placed tree
   - appends the placement's fresh-tree and setup lines to the brief
   - parses `backgrounded · <id> · <name>` and prints `Launched: background <id> · <title>`
   - `launch babysit <spec> <group> hold` passes `hold` into the prompt, with or without `--bg`
   - tab output stays byte-identical
   - fixture, tests
-- [ ] 1.3 `pr hold <n> --how-to-review <file>`: label (created if missing) plus a *How to review* body section through `GhWrites`; tests
-- [ ] 1.4 Settings and deployed marker:
+- [x] 1.3 `pr hold <n> --how-to-review <file>`: label (created if missing) plus a *How to review* body section through `GhWrites`; tests
+- [x] 1.4 Settings and deployed marker:
   - `deploy: { paths, gate }`: parser row, typed field, `Settings:` line, doctor gate check
   - `phase deployed --land` through `landOnMain`
   - tests
-- [ ] 1.5 execute.md:
+- [x] 1.5 execute.md:
   - §1 push decision after `claim take`, plus §6 step 5 push
   - the *Crew worker* paragraph (the single list of crew rules)
   - §10 answer 4 → `launch babysit … hold`
-- [ ] 1.6 handoff.md §4 *Crew worker* branch first (`Crew:` line, `Handed off.`, no question, no *Next sessions*, servers stopped); update.md:49 infra exception; SKILL.md *Session lifecycle* overseer rotation
-- [ ] 1.7 babysit.md:
+- [x] 1.6 handoff.md §4 *Crew worker* branch first (`Crew:` line, `Handed off.`, no question, no *Next sessions*, servers stopped); update.md:49 infra exception; SKILL.md *Session lifecycle* overseer rotation
+- [x] 1.7 babysit.md:
   - mode from `hold`, else `ship:`, else auto
   - hold → `pr hold`, `pr log --stopped`, release, end
   - auto → infra deploy gate only when `deploy.paths` match: marker only when its last check passes, else `deploy owed`
-- [ ] 1.8 `oversee-crew.md` *Start* and `crew-brief.md`:
+- [x] 1.8 `oversee-crew.md` *Start* and `crew-brief.md`:
   - read board, roster and any `run.md` (resume merges, never overwrites)
   - refuse when another live overseer owns the run
   - the one start message (design.md → Copy)
   - brief template, run-file skeleton, roster-wait script
-- [ ] 1.9 `oversee-crew.md` *Fill a slot*: the pick rule, `launch … --bg --brief`, `## Pending`
-- [ ] 1.10 `oversee-crew.md` *Wait and act*:
+- [x] 1.9 `oversee-crew.md` *Fill a slot*: the pick rule, `launch … --bg --brief`, `## Launched`
+- [x] 1.10 `oversee-crew.md` *Wait and act*:
   - the roster wait in background Bash and the state → action table (incl. babysitter rows)
   - close-out, `stop` + `rm`
   - only launched ids
-- [ ] 1.11 `oversee-crew.md` *PR moment* and *Needs you*:
+- [x] 1.11 `oversee-crew.md` *PR moment* and *Needs you*:
   - `pr status` first; ship-mode lookup; babysitter launch; one infra deploy at a time
   - questions from `in-flight.md` *Needs you*, asked once, answers in `run.md` and the relaunch brief
   - `claude attach <id>` plus PushNotification
-- [ ] 1.12 `oversee-crew.md` *Pause, resume, rotate*:
-  - "Hand off now" by id; prompt-blocked workers go to needs you; babysitters finish
+- [x] 1.12 `oversee-crew.md` *Pause, resume, rotate*:
+  - "Hand off now" by launch name; prompt-blocked workers go to needs you; babysitters finish
   - `## Stood down`; resume relaunches those first
   - rotation on compaction
-- [ ] 1.13 README sub-command list, ROADMAP section, `python3 scripts/version.py --set <main's minor + 1>` at merge
+- [x] 1.13 README sub-command list, ROADMAP section, `python3 scripts/version.py --set <main's minor + 1>` at merge
 
 ## Phase-local notes
 

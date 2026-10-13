@@ -81,10 +81,10 @@ except that branches are pushed from the first commit.
 ```
  launched ──► working ──► done ─────────────► close-out check ──► stop + rm ──► slot free
                  │                                   │ fails
-                 │                                   └──► tell the worker (by id), or Anton
+                 │                                   └──► tell the worker (by name), or Anton
                  ├──► blocked + waitingFor ──► needs you: "claude attach <id>" + push notification
                  │       (permission prompt)       Anton answers in that tab ──► working
-                 ├──► blocked, no waitingFor ──► "Hand off now" (by id) ──► done ──► close-out
+                 ├──► blocked, no waitingFor ──► "Hand off now" (by name) ──► done ──► close-out
                  │       (ended on text)            in-flight.md has Needs you? ──► phase parked
                  └──► gone ──► close-out; dirty tree or live claim ──► needs you
 ```
@@ -111,7 +111,7 @@ parked phase with the answer in its launch brief. A worker stuck on a prompt als
 notification.
 
 ### Pause and resume
-"Time to pause" → the overseer sends each `working` or `done` worker "Hand off now" by id
+"Time to pause" → the overseer sends each `working` or `done` worker "Hand off now" by launch name
 (workers stuck on a prompt go to needs you; babysitters finish) → each finishes its step,
 commits at a clean boundary, pushes, releases its claim and stops → the overseer closes them
 out, lists them under `## Stood down` and saves the run file as `stood-down`.
@@ -177,7 +177,7 @@ PR #930 (multi-location-studios A) is green and held for your review · 17 check
 | Case | What happens |
 |------|--------------|
 | Worker hits the stopping rule mid-phase | Its `Crew:` line says `next same phase`; the overseer relaunches the same phase in the same tree with a fresh session |
-| Worker crashes or exits without handing off | The roster wait prints `<id> gone`; close-out finds the claim `closed` or the tree dirty → needs you, never a silent relaunch over half-done work |
+| Worker crashes or exits without handing off | The roster shows it `stopped` or gone (a `kill -9` is restarted by the service); close-out finds the claim `closed` or the tree dirty → needs you, never a silent relaunch over half-done work |
 | Worker ends its turn on text mid-unit (`blocked`, no `waitingFor`) | "Hand off now" first, so it commits at a clean boundary; never stop + rm over a dirty tree the next worker would inherit |
 | Babysitter idle on `pr wait` | Its live `pr-<group>` claim means waiting; the overseer leaves it alone |
 | Tree busy (`trees: <path> is busy`) | Skip that row this round; take the next one |

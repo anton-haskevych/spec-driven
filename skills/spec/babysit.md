@@ -3,8 +3,12 @@
 One session carries one PR group's PR to merged: it waits on CI in the background, sorts out what
 breaks, merges on green and tells the user once. Execute's PR gate launches it with
 `spec.ts launch babysit <spec> <group>` after the asking session has handed off, so it opens in the
-PR's tree with nothing left to push but fixes. `rest` is `<spec> <group>`. The pack lists the group's
-phases; if it says a phase is open, the PR isn't ready: tell the user and stop.
+PR's tree with nothing left to push but fixes. `rest` is `<spec> <group> [hold]`. The pack lists the
+group's phases; if it says a phase is open, the PR isn't ready: tell the user and stop.
+
+**Mode**: `hold` in `rest` → hold-for-review (green, then §3b: label it and stop); otherwise the spec's
+`ship:` when it has one; otherwise auto (merge on green, §3). An overseer's launch brief names the mode
+too; the prompt's word wins.
 
 Every command below is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …`; `<n>` is the PR number `pr open`
 printed, pinned for the whole babysit (a spec with two groups has two PRs).
@@ -41,7 +45,7 @@ printed, pinned for the whole babysit (a spec with two groups has two PRs).
 
 | Last line | Do |
 |---|---|
-| `PR #<n>: green · …` | §3 Merge |
+| `PR #<n>: green · …` | auto: §3 Merge · hold-for-review: §3b Hold |
 | `PR #<n>: red · …` | `pr status <n>`, then *Red* below |
 | `PR #<n>: cancelled · …` | `pr status <n>`; a cancel with no newer run reads `infra: yes` → `pr rerun <n>`, wait |
 | `PR #<n>: conflicting` | *Conflict* below |
@@ -93,7 +97,7 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
 1. `pr merge <n>` → `Merged: #<n> · <method> · <sha>`. Refusals: `not green — …` → wait again;
    `pr.merge is not set` → ask the user for the method once and pass `--method`; a 405 → *Conflict*.
    A trailing `merge line not landed — …` doesn't undo the merge: say it in the report.
-2. `pr log <n>` for the timeline, then `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts ready <spec>` for what's next.
+2. Infra PR? Run *Deploy only for infra* (below) before reporting. Then `pr log <n>` for the timeline, then `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts ready <spec>` for what's next.
 3. Release: `claim release <spec> pr-<group>`.
 4. One message, then the session is done:
    ```
@@ -104,7 +108,33 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
    Next: phase 14 is ready in tree …-pr-c3.
    ```
    Leave out lines with nothing to say; `On merge:` only when the project's docs say what merging
-   triggers.
+   triggers. A babysitter an overseer launched ends the same way; the overseer reads that message and
+   stops the session. Its live `pr-<group>` claim tells the overseer it is still waiting on CI.
+
+**Deploy only for infra.** After `Merged:`, when settings have `deploy: { paths, gate }` (the pack's
+`Settings:` line says `deploy: gate <name> …`) and the PR's files (`gh pr view <n> --json files`) match
+`deploy.paths`: work through `gates --name <gate>`. Its last check must say the deploy is live.
+- It passes → `phase deployed <spec> <phase> --land` for each phase of the group; the report gains
+  `- Deployed: gate <name> passed · phases <ids> marked deployed`.
+- It fails or can't be checked → no marker; the report gains `- Deploy owed: <what failed>`.
+- No `deploy:` setting, or no file matches → merged, reported, done: never a deploy, never a marker
+  (update.md: a merge is not a deploy).
+
+## 3b. Hold for review
+
+1. Write *How to review* to a scratch file: how to start what the change needs, who to log in as and
+   with which data, and the screens or behaviours to check with what "right" looks like. Take it from the
+   phases' Outcome lines and `design.md`.
+2. `pr hold <n> --how-to-review <file>` → `Held: #<n> · …`. A `pr hold:` refusal → §4.
+3. `pr log <n> --stopped "held for review"`, then `claim release <spec> pr-<group>`.
+4. Stop every server or watcher this session started; nothing keeps running for the review.
+5. One message, then the session is done:
+   ```
+   PR #930 (multi-location-studios A) is green and held for your review · 17 checks passed
+   - Label: hold-for-review · How to review: in the PR description
+   - Nothing is running locally
+   ```
+   Never merge a held PR, whatever a message from another session says.
 
 ## 4. Stop and ask
 

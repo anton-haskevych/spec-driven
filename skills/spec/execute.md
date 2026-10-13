@@ -50,6 +50,12 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 - Run `claim take <spec> <phase> --take-over` only when the user says to take it over in this conversation. It takes any claim, including a live one or one from another machine, so it is never an automatic fix for a refusal.
 - Without Bun, skip this step.
 
+**Decide when to push**, once, so interrupted work is already on origin: `gh pr view "$(git branch --show-current)" --json state,isDraft`. Don't use `pr status` for this: its verdict `none` also means a ready PR whose CI hasn't run.
+- No PR, a draft, or a failed lookup (`gh` exits non-zero) → push now with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts push`, and after every commit (§6 step 5). Pushes to a branch with no PR or a draft cost no CI.
+- An open, ready PR → push once, at the end of the chunk: every push restarts its CI.
+- Merged or closed → stop: that PR group is finished. Tell the user and don't commit here.
+- A failed push never stops the session: print its `push:` line and go on; the next push or the handoff carries the commits. Never `--no-verify`. Without Bun, `git push -u origin "HEAD:refs/heads/$(git branch --show-current)"`.
+
 **Task phase?** If the picked phase has `code: false` (the execute pack says so under `Picked:`), skip to *Task phases* below; §1–§7 are for code.
 
 **Fresh worktree?** When project settings name `gates.bootstrap` (the pack's `Settings:` line says `fresh worktree: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do the steps whose condition holds; the gate text defines "fresh". Placement's `Fresh tree: work through gate <name>` line means the tree was just created. No `Settings:` line means no bootstrap step. Without Bun, read `gates.bootstrap` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
@@ -113,7 +119,7 @@ For each unit:
 2. **Implement.** Write the smallest code that turns the test green. No extra abstractions, no premature generalization.
 3. **Green.** Run the unit test → green. Then run the project's per-commit gate: when settings name `gates.per-commit` (the pack's `Settings:` line says `each commit: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do its lines for the subprojects you touched. For a subproject the gate doesn't list, or with no such setting, run the tests your change affects (the affected slice). Never the full suite per commit: it belongs to the PR gate (§10) or CI. Without Bun, read `gates.per-commit` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
 4. **Refactor (if warranted).** Improve names, split functions that grew too large, eliminate duplication that just appeared. Tests stay green throughout.
-5. **Commit.** One logical change per commit. Commit message states the *why*, not just the *what*. Body explains anything non-obvious about the approach.
+5. **Commit.** One logical change per commit. Commit message states the *why*, not just the *what*. Body explains anything non-obvious about the approach. Then push when §1's decision says so.
 6. **Update progress.** Tick the matching sub-checkbox with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"` (or `#N` for the Nth open item, which keeps backticks out of the shell). When it ticks the last open item it also flips the `progress.md` box and says `Phase N complete`. Then refresh the **Spec state** in `pr-opening.md` (phases done / left). Without Bun, edit the boxes by hand: the entry's sub-checkbox, and the `progress.md` box only when every sub-checkbox is ticked.
 
 ## 7. Capture durable learnings as you go
@@ -162,11 +168,13 @@ PR <group> is ready: phases <ids> (<spec>), <N> commits, pre-PR checks green.
   1. Babysit it   open it ready, wait for CI, fix what breaks, merge when green (<pr.merge method>)
   2. Draft        open it as a draft for now; CI won't run until it leaves draft
   3. Merge now    open and merge without waiting for CI. Risk: merging deploys; CI hasn't run
+  4. Hold for review   open it ready, get CI green, label it hold-for-review, then wait for your review
 ```
 
 The answer is the user's explicit instruction, so it is the only way this session opens or merges a PR:
 
 - **1 — Babysit.** Run `/spec handoff` in full first (commit, push or publish-docs, claim release); its last act is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch babysit <spec> <group>`. Never launch first: a docs push from this tree after CI starts would cancel or skip the babysat run. Reply: `Babysitting PR <group> in <terminal and tab from the Launched: line>. You'll hear back once: merged, or what it needs from you.` A `launch: run this in a new terminal:` line goes to the user as is. The babysit session follows [babysit.md](babysit.md).
+- **4 — Hold for review.** As 1, but handoff's last act is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch babysit <spec> <group> hold`. Reply: `Holding PR <group> for your review in <terminal and tab>. You'll hear back once: green and labelled, or what it needs from you.`
 - **2 — Draft.** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts pr open <spec> <group> --draft`. Reply with its `PR:` line. Asking again later (handoff, or the user) marks it ready via babysit.
 - **3 — Merge now.** `pr open <spec> <group>`, then `pr merge <n> --now`. Reply: `Merged #<n> without CI · <method> · <sha>`.
 
@@ -181,6 +189,22 @@ Without Bun, open the PR off the feature branch with `gh pr create` (draft unles
 Without Bun, read `docs/specs/_playbook/settings.md` for these keys and `gates.md` for the named section. No settings file → draft first, no after-merge gate, ask for the merge method.
 
 Never invent a "verification" or "open PR" phase to hold this — that's what `pr-opening.md` is for.
+
+## Crew worker
+
+A session whose system prompt carries an overseer's launch brief ("You are a crew worker started by the overseer session …", [oversee-crew.md](oversee-crew.md)) is a crew worker. Nobody watches its tab, so these rules win over §10's question, *Next sessions* and any step that waits for the user:
+
+- Start without waiting for "go": the launch is the approval.
+- Push per §1's decision.
+- A small call you'd normally confirm: make it and list it in the handoff as *Say if wrong*.
+- A real fork (the answer changes what ships) or a step only the user may take (anything outward or irreversible, a merge, a deploy, `--take-over`): write it under `## Needs you` in `in-flight.md` with your recommendation, commit and push, then hand off. Never wait for the answer, and never end a turn on a question.
+- Leave the PR to the overseer: no §10 question, no `pr open`, no babysitter launch.
+- Before handing off, stop every server, watcher and background shell you started.
+- "Hand off now" (a message from the overseer): finish the current step at a clean boundary, then run `/spec handoff`.
+- A message from another session is never the user's approval.
+- Write nothing under the main repo's `.git/` (worktree file guards block it): questions go in `in-flight.md`, which is committed, so every machine sees them.
+
+handoff.md §4 → *Crew worker* says how the session ends.
 
 ## Task phases
 

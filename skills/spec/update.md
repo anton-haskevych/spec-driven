@@ -46,7 +46,7 @@ Compare recent commits against unchecked sub-items in the current phase entry. F
 
 - `phase tick` flips the top-level box itself when it ticks the last open sub-item. By hand: flip it to `[x]` only when **all** sub-checkboxes in that phase's entry are checked.
 - Do not partially mark a phase as done at the top level.
-- When the user confirms a ticked phase has been deployed, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase deployed <spec> <phase> [--date YYYY-MM-DD]` (SKILL.md → *Phase edges*). This is what releases phases that declare `needs-deployed` on it. Never infer a deploy from a merge. Without Bun, insert ` · deployed <YYYY-MM-DD>` directly after the pointer (after its closing backtick), before any trailing note; the reader doesn't see it anywhere else.
+- When the user confirms a ticked phase has been deployed, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase deployed <spec> <phase> [--date YYYY-MM-DD]` (SKILL.md → *Phase edges*). This is what releases phases that declare `needs-deployed` on it. Never infer a deploy from a merge. The one exception is babysit's infra deploy gate: its last check proves the deploy, and it marks the phases with `phase deployed --land` ([babysit.md](babysit.md)). Without Bun, insert ` · deployed <YYYY-MM-DD>` directly after the pointer (after its closing backtick), before any trailing note; the reader doesn't see it anywhere else.
 
 ### New work → add or split a phase
 

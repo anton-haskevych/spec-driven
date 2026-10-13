@@ -42,7 +42,7 @@ skills/spec-oversee-crew/SKILL.md   # NEW (1) thin skill (copy of skills/spec-ba
 | What | Home | Why not elsewhere |
 |------|------|-------------------|
 | Who is running, on what | `claude agents --json` (state, waitingFor) joined to claims by `sessionId` and to launch titles (`parseLaunchTitle`) | A hand-kept slot list drifts (crash, manual `claude stop`, compaction between launch and write) |
-| Launched but not yet claimed | `run.md` `## Pending` (id, title, time), removed once a claim with that `sessionId` exists | Nothing else knows it for the first seconds |
+| Which sessions the overseer launched | `run.md` `## Launched` (id, title, time), removed at close-out (`stop` + `rm`) | The roster also lists Anton's own sessions; `claim list` shows no session id, and a worker that crashed before claiming has no claim. Identity only: state still comes from the roster and claims (phase 1 execute, 2026-10-12) |
 | Questions for Anton | the worker's `in-flight.md` *Needs you* (committed, pushed, on every machine) | A local note under `.git/` is blocked by worktree file guards and invisible to other machines |
 | When a question was asked / answered | `run.md` `## Questions` (bookkeeping only, with the answer text quoted) | in-flight.md is the worker's file; the overseer never commits in a worker's tree |
 | Ship mode | spec `ship:` (phase 2 writer); phase 1: `run.md` `## Ship modes` | — |
@@ -71,7 +71,7 @@ workers: 3
 babysitters: 2
 ---
 
-## Pending
+## Launched
 - 6adaba33 · multi-location-studios execute 6a · 2026-10-13T09:04
 
 ## Ship modes
@@ -109,7 +109,7 @@ this session's `CLAUDE_CODE_SESSION_ID`.
    ```
    and prints `Launched: background <id> · <title>` (parsed from `backgrounded · <id> · <name>`;
    `--session-id` is ignored with `--bg`, wave 2). A busy tree → `launch: … is busy …`, take the next row.
-4. Record `<id>` under `## Pending`.
+4. Record `<id>` under `## Launched`.
 
 A babysitter: `launch babysit <spec> <group> [hold] --bg --brief <file>` — the group's existing tree
 (`existingOnly`, `T/commands/launch.ts:23`), prompt `/spec-driven:spec babysit <spec> <group> [hold]`.
@@ -169,7 +169,7 @@ done
 echo "heartbeat"
 ```
 
-Scope is the ids the overseer launched (`## Pending` plus claims whose session it launched), never a
+Scope is the ids the overseer launched (`## Launched`), never a
 path prefix. The overseer never stops, removes or messages an id it did not launch.
 
 | Session | `state` | `waitingFor` | Meaning | Overseer does |
@@ -177,17 +177,23 @@ path prefix. The overseer never stops, removes or messages an id it did not laun
 | worker | `working` | – | busy | nothing |
 | worker | `done` | – | turn ended | close-out check |
 | any | `blocked` | `permission prompt` (or other) | waiting in its UI | needs you: `claude attach <id>` + PushNotification |
-| worker | `blocked` | – | ended its turn on text | send "Hand off now" (by id); then close-out; parked only if `in-flight.md` has *Needs you* |
-| babysitter | any, while its `pr-<group>` claim is live | – | waiting on CI or working | nothing; never stop it |
+| worker | `blocked` | – | ended its turn on text | send "Hand off now" (by launch name); then close-out; parked only if `in-flight.md` has *Needs you* |
+| babysitter | `working` while on `pr wait` (a background shell keeps it busy); any state while its `pr-<group>` claim is live | – | waiting on CI or working | nothing; never stop it |
 | babysitter | `done`, claim released | – | finished | read `pr log <n>` last line, report, `stop` + `rm` |
-| any | gone | – | crashed or stopped outside | close-out; dirty tree or live claim → needs you, never a silent relaunch |
+| any | `working` with `pid: null` | – | killed; the background service restarts it within ~15 s | nothing (the roster wait sees no change) |
+| any | `stopped`, or gone (`claude rm` outside) | – | stopped or removed outside the overseer | close-out; dirty tree or live claim → needs you, never a silent relaunch |
 
-Probed rows: worker `working`/`done`/`blocked` (waves 2b, 2c). Unprobed, phase 1 probes first: a
-babysitter idle on a background shell, `gone` after `kill -9`, SendMessage to a `--bg` session.
+All rows probed on Claude Code 2.1.296 (waves 2b, 2c; `research/phase-1/2026-10-12-1.0-probes.md`).
+
+**Messages go by launch name.** `SendMessage` can't address a `claude agents` id (short or full);
+it reaches a `--bg` session by its `-n` name (`<spec> execute <phase>`), queued while it works and
+delivered at its next tool round, and it wakes a `done` session. A relaunch reuses the name and the
+newest session wins, so the overseer messages a name only while the id it launched under that name
+is in the roster. The id stays the key for the roster, `claude stop|rm|attach` and `run.md`.
 
 ## Close-out check
 
-For a worker that is `done` (or gone):
+For a worker that is `done` (or `stopped` / gone):
 
 | Check | Command |
 |-------|---------|
@@ -197,12 +203,12 @@ For a worker that is `done` (or gone):
 | claim released | `spec.ts claim list` shows no `live` claim for `<spec>#<phase>` |
 
 All pass → read the `Crew:` line and `in-flight.md` *Needs you*, then `claude stop <id>` + `claude rm <id>`
-(`rm` left the placed worktree in place in waves 2 and 2c), slot free. Any fail on a live session →
-SendMessage by id with what's missing (once); still failing, or the session is gone → needs you.
+(`rm` keeps the transcript and leaves the placed worktree, phase-1 probes), slot free. Any fail on a
+live session → SendMessage by launch name with what's missing (once); still failing, or the session is gone → needs you.
 
 ## Pause
 
-"Time to pause" → "Hand off now" by id to each `working` or `done` worker; workers `blocked` on a prompt
+"Time to pause" → "Hand off now" by launch name to each `working` or `done` worker; workers `blocked` on a prompt
 go to needs you; babysitters are left to finish. Close out each as it lands, then `state: stood-down`
 with `## Stood down` listing each phase and its tree. Resume relaunches the stood-down rows first (they
 are in flight, not ready, on the board), then fills from the board.

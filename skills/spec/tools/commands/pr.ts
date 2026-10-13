@@ -1,3 +1,4 @@
+import { PR_HOLD_USAGE, prHold } from "./pr/hold";
 import { PR_LOG_USAGE, prLog } from "./pr/log";
 import { PR_MERGE_USAGE, prMerge } from "./pr/merge";
 import { PR_OPEN_USAGE, prOpen } from "./pr/open";
@@ -17,6 +18,7 @@ const ACTIONS: Record<string, PrAction> = {
   wait: { usage: PR_WAIT_USAGE, run: (dir, args) => prWait(dir, args) },
   rerun: { usage: PR_RERUN_USAGE, run: (dir, args) => prRerun(dir, args) },
   merge: { usage: PR_MERGE_USAGE, run: (dir, args) => prMerge(dir, args) },
+  hold: { usage: PR_HOLD_USAGE, run: (dir, args) => prHold(dir, args) },
 };
 
 export const PR_USAGE = Object.values(ACTIONS)

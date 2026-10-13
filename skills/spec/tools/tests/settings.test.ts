@@ -95,3 +95,17 @@ describe("settingsReport", () => {
     expect(settingsReport(tree.root)).toBe("Settings (docs/specs/_playbook/settings.md): docs on branch · PRs ready · merge: ask the user");
   });
 });
+
+describe("deploy setting", () => {
+  const INFRA = "---\ndeploy:\n  paths: [\"infra/**\", \"cdk/**\"]\n  gate: crm-prod\n---\n";
+
+  test("names the infra paths and the gate that proves a deploy", () => {
+    expect(parseSettings(INFRA)).toEqual({ settings: { ...DEFAULT_SETTINGS, deploy: { paths: ["infra/**", "cdk/**"], gate: "crm-prod" } }, problems: [] });
+    expect(describeSettings(parseSettings(INFRA).settings)).toBe("docs on branch · PRs draft · merge: ask the user · deploy: gate crm-prod for 2 paths");
+  });
+
+  test("half a deploy setting is a problem and no deploy", () => {
+    expect(parseSettings("---\ndeploy:\n  paths: [\"infra/**\"]\n---\n")).toEqual({ settings: DEFAULT_SETTINGS, problems: ["deploy needs both paths and gate"] });
+    expect(parseSettings("---\ndeploy:\n  gate: crm-prod\n  when: always\n---\n").problems).toEqual(["deploy has an unknown key: when", "deploy needs both paths and gate"]);
+  });
+});

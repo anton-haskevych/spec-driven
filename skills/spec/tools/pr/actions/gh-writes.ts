@@ -22,9 +22,14 @@ export interface CreatedPr {
 export type MergeResult = { merged: true; sha: string } | { merged: false; status?: number; message: string };
 
 // Writes need the exit code, which GhClient's reads ignore; a separate client keeps every read fake unchanged.
+// `body` is a read that lives here for the same reason: its result is written back, so a failed read
+// must never pass as an empty body.
 export interface GhWrites {
   create(pr: NewPr): Result<CreatedPr>;
   ready(pr: number): Result<void>;
+  body(pr: number): Result<string>;
+  setBody(pr: number, text: string): Result<void>;
+  label(pr: number, name: string, description?: string): Result<void>;
   merge(pr: number, method: MergeMethod, headSha: string): MergeResult;
   rerun(runId: number, jobIds: readonly number[]): Result<void>;
 }
@@ -36,14 +41,14 @@ const HTTP_STATUS = /\(HTTP (\d{3})\)/;
 export function ghWrites(cwd: string, runner: Runner, budget = GH_WRITE_BUDGET): GhWrites {
   let callsLeft = budget;
 
-  function run(argv: string[]): RunResult | string {
+  function run(argv: string[], stdin?: string): RunResult | string {
     if (callsLeft <= 0) return `gh write budget (${budget}) spent`;
     callsLeft -= 1;
-    return runner.run(["gh", ...argv], { cwd, timeoutMs: GH_TIMEOUT_MS });
+    return runner.run(["gh", ...argv], { cwd, timeoutMs: GH_TIMEOUT_MS, ...(stdin === undefined ? {} : { stdin }) });
   }
 
-  function call(argv: string[]): Result<string> {
-    const result = run(argv);
+  function call(argv: string[], stdin?: string): Result<string> {
+    const result = run(argv, stdin);
     if (typeof result === "string") return { ok: false, reason: result };
     return result.code === 0 ? { ok: true, value: result.stdout } : { ok: false, reason: failureReason(result, argv) };
   }
@@ -57,8 +62,18 @@ export function ghWrites(cwd: string, runner: Runner, budget = GH_WRITE_BUDGET):
       return match?.[1] ? { ok: true, value: { number: Number(match[1]), url: match[0] } } : { ok: false, reason: "gh pr create printed no PR url" };
     },
     ready(pr) {
-      const marked = call(["pr", "ready", String(pr)]);
-      return marked.ok ? { ok: true, value: undefined } : marked;
+      return done(call(["pr", "ready", String(pr)]));
+    },
+    body(pr) {
+      return call(["api", `repos/{owner}/{repo}/pulls/${pr}`, "--jq", ".body // \"\""]);
+    },
+    setBody(pr, text) {
+      return done(call(["pr", "edit", String(pr), "--body-file", "-"], text));
+    },
+    // --force makes create an upsert, so the label exists whichever repo the PR is in.
+    label(pr, name, description = "") {
+      const created = call(["label", "create", name, "--force", "--description", description]);
+      return created.ok ? done(call(["pr", "edit", String(pr), "--add-label", name])) : created;
     },
     // Once one job re-runs the run is in progress and GitHub refuses a second --job, so several go as --failed.
     rerun(runId, jobIds) {
@@ -73,6 +88,10 @@ export function ghWrites(cwd: string, runner: Runner, budget = GH_WRITE_BUDGET):
       return result.code === 0 ? mergedSha(result.stdout) : refusedMerge(result, argv);
     },
   };
+}
+
+function done(result: Result<string>): Result<void> {
+  return result.ok ? { ok: true, value: undefined } : result;
 }
 
 function mergedSha(stdout: string): MergeResult {

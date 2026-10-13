@@ -110,6 +110,17 @@ one decision from the user.
 |---|---|---|
 | 2.42.0 | **PR babysit.** The PR gate asks one question per PR group: babysit it, draft, or merge now. On babysit the handoff runs in full, then `launch babysit <spec> <group>` opens a session in the group's existing tree that holds a `pr-<group>` claim, waits with a background `pr wait`, re-runs infrastructure failures only (`pr rerun`), runs `gates.ci-triage` and fixes failing tests, resolves conflicts with main, merges pinned to the green head (`pr merge`, merge line on main) and reports once. `pr status` shows every check by state with one verdict shared with the board; `pr log` is the timeline; the board shows a babysat PR as `babysitting` with no merge/fix row | shipped |
 
+## Oversee crew (2.43)
+
+Spec: `docs/specs/oversee-crew-spec/`. On 2026-10-11 one CRM session ran three spec lanes and their
+babysitters by hand for 5½ hours: approvals relayed by message were refused, a deploy rule arrived after
+the deploy, questions were lost or asked eight times, and slots sat idle. `/spec oversee-crew` makes that
+run a written procedure on background sessions, with Anton answering one batch at a time.
+
+| Version | Change | Status |
+|---|---|---|
+| 2.43.0 | **Overseer, fast path.** `/spec oversee-crew` (`oversee-crew.md`, `crew-brief.md`): background workers from `launch … --bg --brief`, a background-Bash roster wait over `claude agents --json`, a four-part close-out, babysitters in the spec's ship mode, pause/resume, rotation on compaction. Every session pushes from its first commit (execute §1). `pr hold` labels a green PR for review; babysit takes `hold`; `deploy: { paths, gate }` limits deploy babysitting to infra PRs, which mark phases with `phase deployed --land` | shipped |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through

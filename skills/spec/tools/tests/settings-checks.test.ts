@@ -29,6 +29,13 @@ describe("checkSettings", () => {
     ]);
   });
 
+  test("a deploy gate that gates.md lacks is an error", () => {
+    const text = "---\ndeploy:\n  paths: [\"infra/**\"]\n  gate: crm-prod\n---\n";
+    expect(checkSettings("settings.md", text, GATES).map((issue) => [issue.severity, issue.problem])).toEqual([
+      ["error", "deploy.gate: crm-prod is not defined in docs/specs/_playbook/gates.md"],
+    ]);
+  });
+
   test("broken YAML is an error", () => {
     expect(checkSettings("settings.md", "---\n: [\n---\n", GATES)[0]?.severity).toBe("error");
   });
