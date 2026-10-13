@@ -5,6 +5,7 @@ import { isoDay } from "../core/schedule";
 import { loadNodes } from "../graph/nodes";
 import { planAdd } from "../phases/add";
 import { planDeployed } from "../phases/deployed";
+import { deployedOnMain } from "../phases/deployed-land";
 import { parseItemAssignments } from "../phases/move-items";
 import { refsToPhase } from "../phases/review-refs";
 import { planSplit } from "../phases/split";
@@ -13,12 +14,12 @@ import { planTick } from "../phases/tick";
 
 interface PhaseAction {
   usage: string;
-  run(projectDir: string, args: string[]): string;
+  run(projectDir: string, args: string[]): string | Promise<string>;
 }
 
 const ACTIONS: Record<string, PhaseAction> = {
   tick: { usage: 'phase tick <spec> <phase> "<item prefix>"|#N [--evidence <text>]', run: tick },
-  deployed: { usage: "phase deployed <spec> <phase> [--date YYYY-MM-DD]", run: deployed },
+  deployed: { usage: "phase deployed <spec> <phase> [--date YYYY-MM-DD] [--land]", run: deployed },
   add: {
     usage: 'phase add <spec> "<title>" [--after <id>] [--needs a,b] [--pr X] [--code false]',
     run: add,
@@ -33,7 +34,7 @@ export const PHASE_USAGE = Object.values(ACTIONS)
   .map((action) => action.usage)
   .join(" | ");
 
-export function phaseCommand(projectDir: string, args: readonly string[]): string {
+export function phaseCommand(projectDir: string, args: readonly string[]): string | Promise<string> {
   const [name, ...rest] = args;
   const action = name !== undefined && Object.hasOwn(ACTIONS, name) ? ACTIONS[name] : undefined;
   return action ? action.run(projectDir, rest) : `usage: ${PHASE_USAGE}`;
@@ -55,11 +56,12 @@ function tick(projectDir: string, args: string[]): string {
   return result.phaseComplete ? `${ticked}\nPhase ${result.phaseId} complete — run update.md → Close the phase` : ticked;
 }
 
-function deployed(projectDir: string, args: string[]): string {
+function deployed(projectDir: string, args: string[]): string | Promise<string> {
   const usage = `usage: ${ACTIONS.deployed?.usage}`;
-  const parsed = parseFlags(args, { date: { type: "string" } });
+  const parsed = parseFlags(args, { date: { type: "string" }, land: { type: "boolean" } });
   const [specName, phase] = parsed?.positionals ?? [];
   if (!parsed || !specName || !phase) return usage;
+  if (parsed.values.land) return deployedOnMain(projectDir, { spec: specName, phase, day: parsed.values.date ?? isoDay(new Date()) });
 
   const spec = resolveSpec(projectDir, specName);
   if (typeof spec === "string") return `phase deployed: ${spec}`;

@@ -99,7 +99,7 @@ Babysit's own fix pushes stay as they are.
   - tab output stays byte-identical
   - fixture, tests
 - [x] 1.3 `pr hold <n> --how-to-review <file>`: label (created if missing) plus a *How to review* body section through `GhWrites`; tests
-- [ ] 1.4 Settings and deployed marker:
+- [x] 1.4 Settings and deployed marker:
   - `deploy: { paths, gate }`: parser row, typed field, `Settings:` line, doctor gate check
   - `phase deployed --land` through `landOnMain`
   - tests
