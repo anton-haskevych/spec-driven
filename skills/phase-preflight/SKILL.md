@@ -136,16 +136,15 @@ compact constructor, not from validate()." Not "consider stronger validation."
 
 ## Defaults applied
 
-Decisions with a sound answer that stay inside the phase and can be undone:
-a mechanism, a name, where a file splits. State each as the choice made, in
-one line. Execute applies them and lists them under `Say if wrong:`.
+Each as the choice made, in one line. Execute applies them and lists them
+under `Say if wrong:`.
 
 ## Forks for you
 
-Only decisions that change the phase Goal or Outcome, delete or migrate data,
-change an external contract, or move scope between specs. Give a
-recommendation for each; execute stops on them. If there are none, say so.
+Each with a recommendation; execute stops on them. If there are none, say so.
 ```
+
+Which decision goes where is one rule for the whole plugin, `../spec/SKILL.md` → *Say if wrong*. Read that section when this skill runs outside `/spec`.
 
 Then, when the work belongs to a spec, persist the review as an immutable dated note at `docs/specs/<name>/research/phase-<N>/YYYY-MM-DD-<chunk>-preflight.md` (next to the chunk's recon note; no chunk → use a short slug for the plan), and write any durable learning (a guard blindness, a house idiom, an aggregate ambiguity) as a ledger entry with the narrowest correct scope. Do not batch the ledger writes for later.
 

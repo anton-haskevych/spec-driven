@@ -187,6 +187,15 @@ Left: phases 12–14, then PR E (the last of five PRs for faster backend tests).
 
 A handoff prints the header once; the update flow it runs skips its own. Resume and status don't print it (no work was done; status is tool-rendered), and babysit's final report keeps its shape.
 
+## Say if wrong
+
+One rule for every mode: when to decide and when to ask.
+
+- **Decide, then list it.** A choice with a sound answer that stays inside the work and can be undone: a mechanism where either option meets every concern, a name, where a file splits, which of two equivalent tools to use. Make it, then list it under `Say if wrong:` in the next report, all on one line: `Say if wrong: in-flight notes per phase file, not sections (git test showed sections conflict) · lessons as one-line pointers`.
+- **Ask.** The answer changes what the work is (a deliverable cut or added, the phase Goal or Outcome), moves scope between specs or reorders another spec's phases, deletes or migrates data, changes an external contract, or two sound positions genuinely contradict. Give your recommendation with each. Having a recommendation never turns a fork into a default.
+
+Always asked, whatever the recommendation: the prep brief stop, review's forks, claim take-over, opening a PR (execute.md §10's question, unless the spec's `ship:` answers it) and the merge method when `pr.merge` is unset, merging, deploy confirmation, create's phasing gate, task-phase items only a person can do, and preflight's *Forks for you*. A crew worker writes these under `## Needs you` instead of asking (execute.md → *Crew worker*).
+
 # Spec layout reference (layout v1)
 
 All sub-modes follow the rules below. This reference is embedded in SKILL.md (not injected via `!cat`) so it always loads with the skill.

@@ -19,7 +19,7 @@ Read in parallel:
 - `ledger/INDEX.md`
 - The current phase's entry — follow the pointer from `progress.md`, read either the flat file or the folder's `plan.md`
 
-The "current phase" is the active phase from SKILL.md → *Next-chunk rule*. If multiple phases are in progress, ask the user which phase this update is for.
+The "current phase" is the active phase from SKILL.md → *Next-chunk rule*. If several phases are in progress, take the one this tree's claim names (`bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim list`) and list it under `Say if wrong:`; with no claim here, the one the conversation worked on.
 
 ## 3. Cross-reference with git
 

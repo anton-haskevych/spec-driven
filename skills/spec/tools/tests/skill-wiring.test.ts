@@ -198,4 +198,21 @@ describe("reports wiring", () => {
   test.each(["execute.md", "handoff.md", "update.md", "review.md"])("%s opens its report with SKILL.md → *Reports*", (mode) => {
     expect(read(mode)).toContain("SKILL.md → *Reports*");
   });
+
+  test("SKILL.md *Say if wrong* is the one rule for defaults vs forks; review and preflight point at it", () => {
+    const sayIfWrong = section("## Say if wrong");
+    expect(sayIfWrong).toContain("`Say if wrong:`");
+    expect(sayIfWrong).toContain("moves scope between specs");
+    const review = read("review.md");
+    expect(review).toContain("SKILL.md → *Say if wrong*");
+    expect(review).not.toContain("mechanism-level choices where either option satisfies");
+    const preflight = readFileSync(join(SKILL_DIR, "..", "phase-preflight", "SKILL.md"), "utf8");
+    expect(preflight).toContain("../spec/SKILL.md` → *Say if wrong*");
+  });
+
+  test("update takes the phase this tree's claim names instead of asking", () => {
+    const update = read("update.md");
+    expect(update).toContain("claim list");
+    expect(update).not.toContain("ask the user which phase");
+  });
 });
