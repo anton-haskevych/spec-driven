@@ -14,3 +14,8 @@ For the overseer: `run.md`'s `overseer:` id can go stale under a live overseer. 
 only when the recorded id is live and not this session's) then lets a second overseer in. Phase 4's
 tools should key overseer liveness on something sturdier (the pid in `~/.claude/sessions/`, or
 re-writing `overseer:` on every wait). Seen once; the trigger is unknown.
+
+It bites claims too: at handoff `claim release oversee-crew-spec` printed `nothing to release`,
+because the claim carries the old id, and `claim list` kept it `live`. It frees once the session
+closes (a closed session's claim is taken over). A fix belongs in `T/claims/` (release by pid or
+workspace as well as session id); not done here.
