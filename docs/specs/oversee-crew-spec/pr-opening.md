@@ -25,6 +25,7 @@ clean, new tool files under 250 lines.
 PR #27 merged 2026-10-13 as 968cafa (squash).
 Phase 3 done (2026-10-13) on `feat/oversee-crew-spec-pr-c` after merging main with PR D; version 2.47.0 +
 ROADMAP row set on the branch (main was 2.46.0). Ship mode auto per the crew brief; the overseer runs the PR moment.
+PR #28 merged 2026-10-13 as 3a4eb87 (squash).
 
 ## Pre-PR checks
 
