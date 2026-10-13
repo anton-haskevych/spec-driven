@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import type { EditPlan, FileEdit } from "../core/apply-edits";
 import { formatTickedItem, hasEvidence } from "../core/checkbox";
+import { isGateItem } from "../core/gate";
 import { countCheckboxes } from "../core/progress";
 import type { SpecFolder } from "../core/spec-folders";
 import { diskReader, loadSpecState, type PhaseState } from "../core/spec-state";
@@ -28,11 +29,11 @@ export function planTick(spec: SpecFolder, request: TickRequest): Tick {
   if (typeof phase === "string") return invalid(phase);
   if (phase.entry === undefined) return invalid(`Phase ${phase.id} points at ${phase.pointer}, which does not exist`);
 
-  const evidenceProblem = checkEvidence(phase, request.evidence);
-  if (evidenceProblem) return invalid(evidenceProblem);
-
   const location = locateOpenItem(phase.entry, request.selector);
   if (location.kind === "invalid") return invalid(location.reason);
+
+  const evidenceProblem = checkEvidence(phase, location.text, request.evidence);
+  if (evidenceProblem) return invalid(evidenceProblem);
 
   const lines = phase.entry.split("\n");
   lines[location.line] = formatTickedItem(lines[location.line] ?? "", request.evidence);
@@ -47,8 +48,11 @@ export function planTick(spec: SpecFolder, request: TickRequest): Tick {
   return { plan: { kind: "ok", edits }, phaseId: phase.id, item: location.text, phaseComplete };
 }
 
-function checkEvidence(phase: PhaseState, evidence: string | undefined): string | undefined {
-  if (phase.code) return undefined;
+// A task phase's items and any Gate: item are ticked with evidence: an approval box can't be ticked by a prefix match.
+function checkEvidence(phase: PhaseState, item: string, evidence: string | undefined): string | undefined {
+  const gate = isGateItem(item);
+  if (phase.code && !gate) return undefined;
+  if (evidence === undefined && gate) return `"${item}" records an approval; tick it with --evidence "<who approved, when>"`;
   if (evidence === undefined) return `Phase ${phase.id} is a task phase; tick it with --evidence <link, date or file>`;
   if (!hasEvidence(evidence)) return `"${evidence}" is not evidence; give a link, a date (YYYY-MM-DD) or a file path`;
   return undefined;

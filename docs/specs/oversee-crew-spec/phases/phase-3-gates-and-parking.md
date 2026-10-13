@@ -45,7 +45,7 @@ still asks Anton, who is right there.
 
 ## Deliverables
 
-- [ ] 3.1 `gate: design | outward` on `PhaseState`; `doctor/phase-gates.ts` validator wired into the doctor and the spec-file check; SKILL.md *Phase edges* and create.md *Plan* document it; tests
+- [x] 3.1 `gate: design | outward` on `PhaseState`; `doctor/phase-gates.ts` validator wired into the doctor and the spec-file check; SKILL.md *Phase edges* and create.md *Plan* document it; tests
 - [ ] 3.2 `phase tick` refuses `Gate:` items without `--evidence`; tests
 - [ ] 3.3 `phase park` / `phase unpark` and the park record; parked phases leave the ready lane; `question` needs-you kind and line; tests
 - [ ] 3.4 execute.md: park and hand off at a fork or a non-self-approvable gate instead of waiting; resume and execute show a parked phase's question and answer
