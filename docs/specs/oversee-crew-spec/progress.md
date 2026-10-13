@@ -22,5 +22,5 @@
 - [x] Phase 2 — Ship mode and review state on the board → `phases/phase-2-ship-mode-and-review-state.md`
 - [x] Phase 3 — Gates and parking → `phases/phase-3-gates-and-parking.md`
 - [x] Phase 4 — Crew tools → `phases/phase-4-crew-tools.md`
-- [ ] Phase 5 — Standing go in settings → `phases/phase-5-standing-go.md`
+- [x] Phase 5 — Standing go in settings → `phases/phase-5-standing-go.md`
 - [ ] Phase 6 — CRM adoption → `phases/phase-6-crm-adoption.md`
