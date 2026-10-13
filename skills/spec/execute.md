@@ -151,7 +151,7 @@ When all units in the chunk are green and committed, and you believe the chunk i
 
 1. Confirm the phase entry's sub-checkboxes reflect reality.
 2. If durable learnings emerged, confirm they're in the ledger.
-3. Brief the user in 2–3 sentences: what shipped, what's next.
+3. Brief the user: open with SKILL.md → *Reports*, then 2–3 sentences on what shipped, then any `Say if wrong:` line.
 
 If the chunk completes a phase, run `update.md` → *Close the phase* — it captures the phase's learnings and commits without ending the session.
 

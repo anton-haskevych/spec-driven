@@ -144,7 +144,7 @@ Transition status if applicable:
 
 ## 8. Report and nudge
 
-After writing changes, print what was done:
+After writing changes, print what was done. A standalone update opens with SKILL.md → *Reports*; when handoff runs this flow, skip it (handoff prints it once):
 
 ```
 Updated: docs/specs/<name>/

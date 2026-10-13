@@ -155,7 +155,7 @@ Then release this session's claims on the spec, so another session can pick the 
 
 ## 4. Signal completion
 
-Print:
+Open with SKILL.md → *Reports* (once: §1's update flow skipped its own), then print:
 
 ```
 ---

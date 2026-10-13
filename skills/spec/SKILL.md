@@ -170,6 +170,23 @@ Handoff, review and create end with this block, and so does any answer to "what'
 
 Without Bun, skip the block.
 
+## Reports
+
+A report of work done (execute's end-of-chunk brief, handoff, a standalone update, review) opens with three lines, then the mode's own block:
+
+```
+Impact: test runs behave the same as this morning — nothing you'd notice yet.
+On merge: nothing changes for anyone; it unlocks phase 12, the speed-up itself.
+Left: phases 12–14, then PR E (the last of five PRs for faster backend tests).
+```
+
+- **Impact** starts from the first sentence of the **Outcome** line of each phase this session moved (the execute pack holds the entry), plus a number when one was measured (`14 min → 5 min`). Say "nothing you'd notice yet" when that is the truth. No file names.
+- **On merge** says what merging this branch changes for whom, and what it unlocks.
+- **Left** comes from `spec.ts ready <name>`: the phases still open and the PRs still to come.
+- Gloss every internal label the first time a report uses it: `PR C2 (the second of three PRs for the lock work)`, `phase 12 (the speed-up)`.
+
+A handoff prints the header once; the update flow it runs skips its own. Resume and status don't print it (no work was done; status is tool-rendered), and babysit's final report keeps its shape.
+
 # Spec layout reference (layout v1)
 
 All sub-modes follow the rules below. This reference is embedded in SKILL.md (not injected via `!cat`) so it always loads with the skill.

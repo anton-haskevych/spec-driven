@@ -338,7 +338,7 @@ Never sweep unrelated working-tree changes into the review commit — stage only
 
 ## 7. Report and stop
 
-Print a compact summary — this replaces every interactive step:
+Open with SKILL.md → *Reports* (Impact: what the applied findings change in the plan, in plain words), then print a compact summary — this replaces every interactive step:
 
 ```
 Review: reviews/YYYY-MM-DD-<slug>.md (immutable)

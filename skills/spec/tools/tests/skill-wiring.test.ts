@@ -180,3 +180,22 @@ describe("next sessions wiring", () => {
     expect(preflight).not.toContain("## Decisions for you");
   });
 });
+
+describe("reports wiring", () => {
+  const read = (path: string) => readFileSync(join(SKILL_DIR, path), "utf8");
+  const section = (heading: string) => {
+    const skill = read("SKILL.md");
+    const start = skill.indexOf(heading);
+    return start < 0 ? "" : skill.slice(start, skill.indexOf("\n## ", start + 1));
+  };
+
+  test("SKILL.md *Reports* names the three header lines and builds Impact from the Outcome line", () => {
+    const reports = section("## Reports");
+    for (const label of ["Impact:", "On merge:", "Left:"]) expect(reports).toContain(label);
+    expect(reports).toContain("**Outcome** line");
+  });
+
+  test.each(["execute.md", "handoff.md", "update.md", "review.md"])("%s opens its report with SKILL.md → *Reports*", (mode) => {
+    expect(read(mode)).toContain("SKILL.md → *Reports*");
+  });
+});
