@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, utimesSync, wr
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { gitAt } from "../core/git";
-import { baseCache, matchingPatterns, moveIntoPlace, pruneBases } from "../mainline/base-cache";
+import { BASE_LAYOUT, baseCache, matchingPatterns, moveIntoPlace, pruneBases } from "../mainline/base-cache";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 
 describe("matchingPatterns", () => {
@@ -60,6 +60,7 @@ describe("baseCache (real git)", () => {
     repo.write("docs/specs/a/pr-opening.md", "# PR\n");
     repo.write("docs/specs/a/phases/phase-1-one.md", "---\nneeds: []\n---\n");
     repo.write("docs/specs/a/research/2026-10-01-wave-0.md", "big\n");
+    repo.write("docs/specs/a/reviews/2026-10-01-panel.md", "long review\n");
     repo.write("landing/docs/specs/b/CLAUDE.md", "# b\n");
     repo.write("landing/docs/specs/b/phases/phase-2-two/plan.md", "# plan\n");
     repo.write("src/app.ts", "code\n");
@@ -70,17 +71,20 @@ describe("baseCache (real git)", () => {
 
   afterAll(() => repo.cleanup());
 
-  test("extracts the read set of both spec roots into <common-dir>/spec-board/base/<sha>", async () => {
+  test("extracts the read set of both spec roots into <common-dir>/spec-board/base/<sha>.<layout>", async () => {
     const result = await baseCache(gitAt(repo.dir, isolatedRunner), sha, commonDir);
     if (!result.ok) throw new Error(result.reason);
     const dir = result.value;
 
-    expect(dir).toBe(join(commonDir, "spec-board", "base", sha));
+    expect(dir).toBe(join(commonDir, "spec-board", "base", `${sha}.${BASE_LAYOUT}`));
     expect(await Bun.file(join(dir, "docs/specs/a/CLAUDE.md")).text()).toContain("“quoted” →");
     for (const path of ["docs/specs/a/pr-opening.md", "docs/specs/a/phases/phase-1-one.md", "landing/docs/specs/b/phases/phase-2-two/plan.md"]) {
       expect(existsSync(join(dir, path))).toBe(true);
     }
     expect(existsSync(join(dir, "docs/specs/a/research"))).toBe(false);
+    expect(existsSync(join(dir, "docs/specs/a/reviews"))).toBe(true);
+    expect(readdirSync(join(dir, "docs/specs/a/reviews"))).toEqual([]);
+    expect(existsSync(join(dir, "landing/docs/specs/b/reviews"))).toBe(false);
     expect(existsSync(join(dir, "src"))).toBe(false);
   });
 
@@ -88,6 +92,20 @@ describe("baseCache (real git)", () => {
     const first = await baseCache(gitAt(repo.dir, isolatedRunner), sha, commonDir);
     const noGit = gitAt(repo.dir, { run: () => ({ code: 1, stdout: "", stderr: "git must not run" }) });
     expect(await baseCache(noGit, sha, commonDir)).toEqual(first);
+  });
+
+  test("an empty cached folder is a miss, so a half-made cache never hides every spec", async () => {
+    const empty = repoWithOrigin("spec-base-empty-");
+    empty.write("docs/specs/d/CLAUDE.md", "# d\n");
+    empty.commitAll("one spec");
+    const emptySha = empty.git("rev-parse", "HEAD");
+    const emptyCommon = empty.git("rev-parse", "--path-format=absolute", "--git-common-dir");
+    mkdirSync(join(emptyCommon, "spec-board", "base", `${emptySha}.${BASE_LAYOUT}`), { recursive: true });
+
+    const result = await baseCache(gitAt(empty.dir, isolatedRunner), emptySha, emptyCommon);
+
+    expect(result.ok && existsSync(join(result.value, "docs/specs/d/CLAUDE.md"))).toBe(true);
+    empty.cleanup();
   });
 
   test("a repo with one spec root still archives (an unmatched pattern would make git exit 128)", async () => {

@@ -10,7 +10,7 @@ export const READY_CAP = 8;
 export const BLOCKED_CAP = 5;
 
 const SHORT_SHA = 7;
-const NEXT_COMMAND: Record<ReadyRow["next"], string> = { prep: "/spec prep", create: "/spec create", execute: "/spec execute" };
+const NEXT_COMMAND: Record<ReadyRow["next"], string> = { prep: "/spec prep", create: "/spec create", review: "/spec review", execute: "/spec execute" };
 const STALE_BASE: Record<Exclude<Board["base"]["mode"], "fetched">, string> = {
   offline: "offline",
   busy: "fetch skipped (busy)",

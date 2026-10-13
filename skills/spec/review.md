@@ -211,13 +211,8 @@ Where a reviewer's recommendation conflicts with the project's own rules (CLAUDE
 
 ### Sort forks: yours vs. the user's
 
-**Resolve yourself, and say so:** mechanism-level choices where either option satisfies every reviewer's actual concern (SSM parameter vs. context value; ship the shared-file change ahead of the phase vs. inside it). Pick, state the reason in one sentence, move on. The final report lists these as "resolved by me".
+SKILL.md → *Say if wrong* decides which is which. Resolve the defaults yourself (SSM parameter vs. context value; ship the shared-file change ahead of the phase vs. inside it): pick, state the reason in one sentence, move on; the final report lists them as "resolved by me". Its forks go to the user, and for a review two more:
 
-**Put to the user — pause here, before §4:**
-
-- Reviewers genuinely contradict on a design decision and each is right about something
-- A finding moves scope between specs or reorders another spec's phases
-- A finding cuts or adds a deliverable that changes what the feature *is* (not how it's built)
 - The panel's verdict is that the approach itself is wrong
 - A **graduation candidate** touches this spec (run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts lessons candidates <name>`): a project lesson that has hit 3+ specs and has no guard. Ask whether this spec should carry a guardrail phase that makes it impossible (CI job, hook, lint or ArchUnit rule, test helper). Recommend yes when the guard is small and this spec touches the lesson's paths. A yes adds the phase and, once it lands, sets the lesson's `enforced-by:`.
 
@@ -338,7 +333,7 @@ Never sweep unrelated working-tree changes into the review commit — stage only
 
 ## 7. Report and stop
 
-Print a compact summary — this replaces every interactive step:
+Open with SKILL.md → *Reports* (Impact: what the applied findings change in the plan, in plain words), then print a compact summary — this replaces every interactive step:
 
 ```
 Review: reviews/YYYY-MM-DD-<slug>.md (immutable)

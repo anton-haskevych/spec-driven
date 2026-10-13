@@ -159,6 +159,19 @@ describe("contextPack", () => {
     expect(pack).toContain("### Next chunk: Phase 2 — Aggregate\n- model src/Checkout.java");
   });
 
+  test("execute pack shows only the picked phase's in-flight file and the legacy one; resume shows them all", () => {
+    write("in-flight/phase-1.md", "deploy pending for phase 1");
+    write("in-flight/phase-2.md", "half-wired aggregate");
+    write("in-flight.md", "legacy note");
+    const execute = contextPack(project, { mode: "execute", name: "checkout" });
+    expect(execute).toContain("### In-flight (raw)\n#### in-flight/phase-2.md\nhalf-wired aggregate\n\n#### in-flight.md\nlegacy note");
+    expect(execute).not.toContain("deploy pending for phase 1");
+    expect(contextPack(project, { mode: "resume", name: "checkout" })).toContain("#### in-flight/phase-1.md\ndeploy pending for phase 1");
+    rmSync(join(spec(), "in-flight"), { recursive: true });
+    rmSync(join(spec(), "in-flight.md"));
+    expect(contextPack(project, { mode: "execute", name: "checkout" })).toContain("### In-flight (raw)\n(none)");
+  });
+
   test("execute pack scopes ledger rows and code-map rows to the picked phase", () => {
     const pack = contextPack(project, { mode: "execute", name: "checkout" });
     expect(pack).toContain("Picked: Phase 2 — Aggregate (first ready phase)");
@@ -306,11 +319,14 @@ describe("contextPack", () => {
       );
     });
 
-    test("execute with nothing to go on offers the top ready row, after the conversation", () => {
+    test("execute with nothing to go on applies the top ready row, after the conversation, and says so", () => {
       const pack = contextPack(project, { mode: "execute" }, changed("src/app.ts"));
       expect(pack).toContain("If this conversation already resumed or executed a spec, use that one.");
       expect(pack).toContain("board ready --json --local");
-      expect(pack).toContain("offer its top row (focus specs rank first)");
+      expect(pack).toContain("take its top row (focus specs rank first)");
+      expect(pack).toContain("run its `next` sub-command for that spec (with the phase for execute)");
+      expect(pack).toContain("`Say if wrong:`");
+      expect(pack).not.toContain("on a yes");
     });
 
     test("a claim taken in this tree names the spec and its phase, ahead of changed files", () => {

@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { outlineMarkdown } from "../core/markdown";
+import { notesForPhase, type InFlightNote } from "../core/in-flight";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { ReadySet } from "../ready/ready-set";
 import { renderReadySet } from "../ready/render";
@@ -43,11 +44,11 @@ export function resumePack({ state, doctor, relations, ready, held, playbooks, s
     ? `### Next chunk: Phase ${next.id} — ${next.name}\n${(next.summary?.nextRun ?? []).map((item) => `- ${item}`).join("\n")}${skippedLine}`
     : `### Next chunk\n${nextChunkAbsent(ready, skipped)}`;
   return [
-    "Covers the Stage A reads (progress.md, phase entries, in-flight.md). Do not re-read those files.",
+    "Covers the Stage A reads (progress.md, phase entries, in-flight notes). Do not re-read those files.",
     ...optionalLine(settings),
     `### Status table\n${renderStatusTable(state)}`,
     `### Ready set\n${renderReadySet(ready)}`,
-    inFlightBlock(state),
+    inFlightBlock(state.inFlight ?? []),
     nextBlock,
     ...playbooksBlock(playbooks),
     `### Related specs\n${relations}`,
@@ -59,7 +60,7 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
   const { state, doctor, lessons, relations } = input;
   const read = (name: string) => readTextIfExists(join(state.spec.dir, name));
   return [
-    "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and in-flight.md. Do not re-read those files.",
+    "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and its in-flight notes. Do not re-read those files.",
     `Picked: Phase ${phase.id} — ${phase.name} (${pickNote})`,
     ...optionalLine(input.settings),
     ...(phase.code ? [] : [TASK_PHASE_NOTE]),
@@ -72,7 +73,7 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
     ...playbooksBlock(input.playbooks),
     stableReferencesBlock(read),
     `### Related specs\n${relations}`,
-    inFlightBlock(state),
+    inFlightBlock(notesForPhase(state.inFlight ?? [], phase.id)),
     `### Doctor\n${doctor}`,
   ].join("\n\n");
 }
@@ -90,9 +91,11 @@ function playbooksBlock(playbooks: readonly Playbook[]): string[] {
   return playbooks.length > 0 ? [clip(renderPlaybooks(playbooks), PLAYBOOKS_LIMIT, "docs/specs/_playbook/")] : [];
 }
 
-function inFlightBlock(state: SpecState): string {
-  const text = state.inFlight?.trim();
-  return `### In-flight (raw)\n${text ? clip(text, IN_FLIGHT_LIMIT, "in-flight.md") : "(none)"}`;
+function inFlightBlock(notes: readonly InFlightNote[]): string {
+  const shown = notes.filter((note) => note.text.trim() !== "");
+  if (shown.length === 0) return "### In-flight (raw)\n(none)";
+  const text = shown.map((note) => `#### ${note.file}\n${note.text.trim()}`).join("\n\n");
+  return `### In-flight (raw)\n${clip(text, IN_FLIGHT_LIMIT, shown.map((note) => note.file).join(", "))}`;
 }
 
 function ledgerBlock(index: string | undefined, phaseId: string): string {

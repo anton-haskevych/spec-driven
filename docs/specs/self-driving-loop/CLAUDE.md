@@ -1,7 +1,7 @@
 ---
 created: 2026-10-10T12:36:13-07:00
-updated: 2026-10-10T13:50:43-07:00
-status: draft
+updated: 2026-10-12T23:29:48-07:00
+status: active
 area: [tools, sub-commands]
 domain: [spec-workflow]
 scope: [improvement]
@@ -33,7 +33,7 @@ one-step sync and one-step start/close come later.
 | `code-map.md` | Load-bearing files inventory |
 | `phases/` | Per-phase detail — one entry per phase |
 | `ledger/INDEX.md` | Forward-propagating learnings — scan here first |
-| `in-flight.md` | Ephemeral pending state (on-demand) |
+| `in-flight/` | Ephemeral pending state, one file per phase (on-demand) |
 | `reviews/` | Collegium review snapshots (on-demand) |
 | `research/` | Prep recon: waves 1, 2, 2b (pr-babysit) + craft |
 

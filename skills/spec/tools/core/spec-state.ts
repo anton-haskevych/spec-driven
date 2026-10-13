@@ -1,5 +1,7 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { readTextIfExists } from "./files";
+import { readInFlight, type InFlightNote } from "./in-flight";
 import { parseFrontmatter, stringField } from "./frontmatter";
 import { parsePhaseEdges, type PhaseEdges } from "./phase-edges";
 import { summarizePhaseEntry, type PhaseEntrySummary } from "./phase-entry";
@@ -26,13 +28,15 @@ export interface SpecState {
   spec: SpecFolder;
   hasProgress: boolean;
   phases: PhaseState[];
-  inFlight?: string;
+  inFlight?: InFlightNote[];
+  // Has a reviews/ folder. Only a load from disk knows; undefined counts as reviewed.
+  reviewed?: boolean;
 }
 
 export type ReadSpecFile = (pathInSpec: string) => string | undefined;
 
 export function loadSpecState(spec: SpecFolder): SpecState {
-  return specStateFrom(spec, diskReader(spec.dir));
+  return { ...specStateFrom(spec, diskReader(spec.dir)), reviewed: existsSync(join(spec.dir, "reviews")) };
 }
 
 export function diskReader(specDir: string): ReadSpecFile {
@@ -42,7 +46,7 @@ export function diskReader(specDir: string): ReadSpecFile {
 export function specStateFrom(spec: SpecFolder, read: ReadSpecFile): SpecState {
   const progress = read("progress.md");
   const phases = parsePhaseLines(progress ?? "").map((line, index) => loadPhase(read, line, index));
-  return { spec, hasProgress: progress !== undefined, phases, inFlight: read("in-flight.md") };
+  return { spec, hasProgress: progress !== undefined, phases, inFlight: readInFlight(read, phases) };
 }
 
 function loadPhase(read: ReadSpecFile, line: PhaseLine, index: number): PhaseState {

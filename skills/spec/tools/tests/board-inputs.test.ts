@@ -131,6 +131,7 @@ describe("loadBoard with worktrees (real git)", () => {
     fresh.write("docs/specs/fresh/CLAUDE.md", "---\nstatus: active\n---\n");
     fresh.write("docs/specs/fresh/progress.md", progress([false]));
     fresh.write("docs/specs/fresh/phases/phase-1.md", phaseFile("", false));
+    fresh.write("docs/specs/fresh/reviews/2026-10-01-panel.md", "# panel\n");
     fresh.commitAll("fresh spec");
 
     fromMain = await render(repo.dir);

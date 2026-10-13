@@ -137,3 +137,82 @@ describe("phase template wiring", () => {
     expect(create).toContain(`${label("Goal")}\n\n${label("Outcome")}\n`);
   });
 });
+
+describe("next sessions wiring", () => {
+  const read = (path: string) => readFileSync(join(SKILL_DIR, path), "utf8");
+  const nextSessions = () => {
+    const skill = read("SKILL.md");
+    return skill.slice(skill.indexOf("## Next sessions"), skill.indexOf("Without Bun, skip the block."));
+  };
+
+  test("the block names the row fields, ends with the reply line and launches each row's own sub-command", () => {
+    const block = nextSessions();
+    for (const field of ["`spec`", "`phase`", "`title`", "`next`", "`target`", "`treeBusy`"]) expect(block).toContain(field);
+    expect(block).toContain("Reply with row numbers to launch.");
+    expect(block).toContain("launch <row.next> <spec> [<phase>]");
+    expect(block).toContain("most recent numbered list");
+    expect(block).toContain("print it again and wait");
+    expect(block).toContain("never share a message");
+  });
+
+  test("list and handoff point at the reply rule instead of restating it", () => {
+    for (const mode of ["list.md", "handoff.md"]) {
+      expect(read(mode)).toContain("SKILL.md → *Next sessions* step 3");
+      expect(read(mode)).not.toContain("launch execute <spec> <phase>` per row");
+    }
+  });
+
+  test("create ends with its own review at row 1 and asks nothing", () => {
+    const create = read("create.md");
+    expect(create).toContain("with this spec's review at 1");
+    expect(create).toContain("launch review <spec>");
+    expect(create).not.toContain("Confirm the user is happy");
+  });
+
+  test("execute applies preflight's defaults, stops on its forks and applies the top ready row", () => {
+    const execute = read("execute.md");
+    expect(execute).toContain("Then its *Defaults applied* and *Forks for you*.");
+    expect(execute).toContain("take its top row");
+    expect(execute).not.toContain("offer the top row");
+    const preflight = readFileSync(join(SKILL_DIR, "..", "phase-preflight", "SKILL.md"), "utf8");
+    expect(preflight).toContain("## Defaults applied");
+    expect(preflight).toContain("## Forks for you");
+    expect(preflight).not.toContain("## Decisions for you");
+  });
+});
+
+describe("reports wiring", () => {
+  const read = (path: string) => readFileSync(join(SKILL_DIR, path), "utf8");
+  const section = (heading: string) => {
+    const skill = read("SKILL.md");
+    const start = skill.indexOf(heading);
+    return start < 0 ? "" : skill.slice(start, skill.indexOf("\n## ", start + 1));
+  };
+
+  test("SKILL.md *Reports* names the three header lines and builds Impact from the Outcome line", () => {
+    const reports = section("## Reports");
+    for (const label of ["Impact:", "On merge:", "Left:"]) expect(reports).toContain(label);
+    expect(reports).toContain("**Outcome** line");
+  });
+
+  test.each(["execute.md", "handoff.md", "update.md", "review.md"])("%s opens its report with SKILL.md → *Reports*", (mode) => {
+    expect(read(mode)).toContain("SKILL.md → *Reports*");
+  });
+
+  test("SKILL.md *Say if wrong* is the one rule for defaults vs forks; review and preflight point at it", () => {
+    const sayIfWrong = section("## Say if wrong");
+    expect(sayIfWrong).toContain("`Say if wrong:`");
+    expect(sayIfWrong).toContain("moves scope between specs");
+    const review = read("review.md");
+    expect(review).toContain("SKILL.md → *Say if wrong*");
+    expect(review).not.toContain("mechanism-level choices where either option satisfies");
+    const preflight = readFileSync(join(SKILL_DIR, "..", "phase-preflight", "SKILL.md"), "utf8");
+    expect(preflight).toContain("../spec/SKILL.md` → *Say if wrong*");
+  });
+
+  test("update takes the phase this tree's claim names instead of asking", () => {
+    const update = read("update.md");
+    expect(update).toContain("claim list");
+    expect(update).not.toContain("ask the user which phase");
+  });
+});

@@ -31,7 +31,7 @@ Execute mode (`execute.md` → *Preflight the plan — the gate before decomposi
 - **Stage 0, item 3** skips directories the recon already outlined — read its note instead of re-running `ast-grep outline`.
 - **Stage 1** treats `principles.md` as the house rules, ranked above the canon.
 - **Stage 4** starts from the recon's testing-issue estimate and reports only deltas: obstacles recon missed, or estimates it got wrong. Do not restate its list.
-- **Stage 5** output goes back to execute mode, which applies the amendments before decomposing. Persist the note and ledger entries yourself as usual.
+- **Stage 5** output goes back to execute mode, which applies the amendments and the defaults before decomposing and stops on the forks. Persist the note and ledger entries yourself as usual.
 
 Self-scale honestly. A one-file chunk whose seam recon already read in full yields a short Stage 0 and mostly `Inert` rows — produce that quickly rather than inventing findings to justify the pass.
 
@@ -134,11 +134,17 @@ One table per pass: | Rule | Verdict | Concrete consequence |
 Numbered, concrete edits to the plan. "Staff(null) throws from Staff's own
 compact constructor, not from validate()." Not "consider stronger validation."
 
-## Decisions for you
+## Defaults applied
 
-Only genuine forks where the answer changes the work. Give a recommendation
-for each. If there are none, say so and stop.
+Each as the choice made, in one line. Execute applies them and lists them
+under `Say if wrong:`.
+
+## Forks for you
+
+Each with a recommendation; execute stops on them. If there are none, say so.
 ```
+
+Which decision goes where is one rule for the whole plugin, `../spec/SKILL.md` → *Say if wrong*. Read that section when this skill runs outside `/spec`.
 
 Then, when the work belongs to a spec, persist the review as an immutable dated note at `docs/specs/<name>/research/phase-<N>/YYYY-MM-DD-<chunk>-preflight.md` (next to the chunk's recon note; no chunk → use a short slug for the plan), and write any durable learning (a guard blindness, a house idiom, an aggregate ambiguity) as a ledger entry with the narrowest correct scope. Do not batch the ledger writes for later.
 

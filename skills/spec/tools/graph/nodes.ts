@@ -20,9 +20,12 @@ export interface SpecNode {
   codeMapPaths: string[];
   relations: Relation[];
   meta: SpecMeta;
+  // The first H1 of CLAUDE.md.
+  title?: string;
 }
 
 const CODE_MAP_PATH = /^\s*\|\s*`([^`]+)`/;
+const H1 = /^#[ \t]+(.+?)\s*$/m;
 
 export function loadNodes(projectDir: string): Map<string, SpecNode> {
   const nodes = new Map<string, SpecNode>();
@@ -35,6 +38,7 @@ export function loadNodes(projectDir: string): Map<string, SpecNode> {
 function loadNode(spec: SpecFolder): SpecNode {
   const meta = parseFrontmatter(readTextIfExists(join(spec.dir, "CLAUDE.md")) ?? "");
   const data = meta.kind === "ok" ? meta.data : {};
+  const title = meta.kind === "ok" ? H1.exec(meta.body)?.[1] : undefined;
   const phases = parsePhaseLines(readTextIfExists(join(spec.dir, "progress.md")) ?? "").map((line, index) => ({
     id: parsePhaseTitle(line.title, String(index + 1)).id,
     done: line.done,
@@ -47,6 +51,7 @@ function loadNode(spec: SpecFolder): SpecNode {
     codeMapPaths: codeMapPaths(readTextIfExists(join(spec.dir, "code-map.md")) ?? ""),
     relations: parseRelations(data),
     meta: readSpecMeta(data),
+    ...(title ? { title } : {}),
   };
 }
 

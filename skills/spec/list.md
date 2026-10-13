@@ -18,7 +18,7 @@ Answers "what can I start next, what waits on what, and what's open": a board of
 - **No filter** (`list table`): the top 30 open specs plus every open backlog idea.
 - **`<filter>`**: keeps specs whose status, priority, area, domain or scope equals it, or whose name contains it. Ideas are kept when a tag or the priority equals it, or the slug or title contains it. A filter shows every match, with no cap.
 - **`all`**: adds finished specs (`done`, `good-enough`, `abandoned`, or every phase ticked).
-- Order: open before finished, then `p1` → `p3` → no priority, then the nearest due day, then the most recently updated. A due day that has passed shows `⚠ overdue`.
+- Order: open before finished, then `p1` → `p3` → no priority, then the nearest due day, then the most recent status change or review (`updated:`; sessions don't bump it). A due day that has passed shows `⚠ overdue`.
 
 **`--who`** keeps the focus rows a person owns (`owner:`) or works on; a name matches by prefix, so `taras` finds `Taras Korpach` and `taraskorpach`. When it prints `none`, the person may be on specs outside the focus set: run `spec.ts board flight --json` and list the rows whose `holder` starts with their name (`<user>@<host>`, another machine's claim). Someone whose git name and gh login share no prefix shows under two names; say so if both appear.
 
@@ -26,7 +26,7 @@ Answers "what can I start next, what waits on what, and what's open": a board of
 
 Print the tool's output exactly as given, code fence included. Don't recast it as cards or bullets.
 
-**Starting rows.** When the user then says "start 1", "start 1 and 2" or "go" about board rows, launch them exactly as SKILL.md → *Next sessions* step 3 says: `launch execute <spec> <phase>` per row, which places each tree first.
+**Starting rows.** A reply about board rows follows SKILL.md → *Next sessions* step 3.
 
 **Idle claims.** `claim idle 3d  <spec> · <phases> → switch to <session> or take it over` means a session on this machine still runs and holds those phases, but has done nothing for 2+ days (a forgotten tab). Busy sessions are never listed. It is not stale: nothing frees it on its own. Offer the two actions:
 - "switch to it": name the tab (`<session>` is its title) so the user finishes or hands off there.

@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { markdownFilesIn, readTextIfExists } from "../core/files";
+import { inFlightFilesIn } from "../core/in-flight";
 import { parsePhaseLines } from "../core/progress";
 import type { SpecFolder } from "../core/spec-folders";
 import { loadSpecState } from "../core/spec-state";
@@ -71,9 +72,10 @@ function progressIssues(spec: SpecFolder): Issue[] {
     ...checkIndentedPhaseLines(progressFile, progress),
   ];
 
-  const inFlightFile = join(spec.dir, "in-flight.md");
-  const inFlight = readTextIfExists(inFlightFile);
   const everyPhaseDone = phases.length > 0 && phases.every((phase) => phase.done);
-  const inFlightIssues = inFlight === undefined ? [] : checkInFlight(inFlightFile, inFlight, everyPhaseDone);
+  const inFlightIssues = inFlightFilesIn(spec.dir).flatMap((pathInSpec) => {
+    const file = join(spec.dir, pathInSpec);
+    return checkInFlight(file, readTextIfExists(file) ?? "", everyPhaseDone);
+  });
   return [...phaseIssues, ...inFlightIssues];
 }

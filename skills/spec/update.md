@@ -1,6 +1,6 @@
 # Update Mode
 
-Capture implementation progress and route new knowledge into the right artifacts. Unlike the old model, update.md does **not** append session logs to `progress.md`. Instead, it routes content into focused files: sub-checkboxes go into the phase entry, durable learnings become ledger entries, load-bearing files are recorded in code-map.md, and ephemeral state is staged for handoff (which writes `in-flight.md`).
+Capture implementation progress and route new knowledge into the right artifacts. Unlike the old model, update.md does **not** append session logs to `progress.md`. Instead, it routes content into focused files: sub-checkboxes go into the phase entry, durable learnings become ledger entries, load-bearing files are recorded in code-map.md, and ephemeral state is staged for handoff (which writes the phase's `in-flight/phase-<id>.md`).
 
 See `SKILL.md` for the layout rules this mode relies on.
 
@@ -19,7 +19,7 @@ Read in parallel:
 - `ledger/INDEX.md`
 - The current phase's entry — follow the pointer from `progress.md`, read either the flat file or the folder's `plan.md`
 
-The "current phase" is the active phase from SKILL.md → *Next-chunk rule*. If multiple phases are in progress, ask the user which phase this update is for.
+The "current phase" is the active phase from SKILL.md → *Next-chunk rule*. If several phases are in progress, take the one this tree's claim names (`bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim list`) and list it under `Say if wrong:`; with no claim here, the one the conversation worked on.
 
 ## 3. Cross-reference with git
 
@@ -65,7 +65,7 @@ Phase ids never change or disappear: `spec#7` refs, `[phase 7]` ledger scopes an
 
 ### Explicit prohibitions
 
-- **Do NOT append a session log to `progress.md`.** Session content is routed: durable → ledger, phase-local → phase entry, ephemeral → `in-flight.md` (at handoff).
+- **Do NOT append a session log to `progress.md`.** Session content is routed: durable → ledger, phase-local → phase entry, ephemeral → `in-flight/phase-<id>.md` (at handoff).
 - **Do NOT write implementation notes or prose guidance to `progress.md`.** Those belong in the phase entry's prose section.
 - **Do NOT create a "Implementation Notes" or "TODO Later" section in `progress.md`.** Legacy specs may still have these; leave them alone (see `legacy-layout.md`).
 
@@ -97,7 +97,7 @@ Learnings that only matter for the current phase and won't forward-propagate:
 
 Half-built state, session-specific notes, "pick up from here" instructions, environment state that matters until the pending work is resumed:
 
-- **Don't write these during update.** Stage them mentally for when `handoff.md` runs — that's where `in-flight.md` gets written.
+- **Don't write these during update.** Stage them mentally for when `handoff.md` runs — that's where the phase's in-flight file gets written.
 - If you're running update but the session isn't ending, ephemeral notes can be held in conversation context and written when handoff fires.
 
 ## 6. Update code-map.md
@@ -128,11 +128,7 @@ Append to the "Existing files touched" table:
 
 ## 7. Update frontmatter
 
-Bump the `updated` timestamp in `CLAUDE.md`:
-
-```
-bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>
-```
+Don't bump `updated:` for an ordinary session: parallel sessions on one spec each bumped it and collided on that line. It moves only with a status change (below) or a review or prep rewrite.
 
 Transition status if applicable:
 
@@ -141,10 +137,11 @@ Transition status if applicable:
 - `active` → `done`: all top-level phase checkboxes in `progress.md` are `[x]`
 - A legacy `in-progress` status counts as `active` — rewrite it to `active` on the next transition
 - Print a notice when status transitions: "Status: draft → active"
+- After a transition, run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>`
 
 ## 8. Report and nudge
 
-After writing changes, print what was done:
+After writing changes, print what was done. A standalone update opens with SKILL.md → *Reports*; when handoff runs this flow, skip it (handoff prints it once):
 
 ```
 Updated: docs/specs/<name>/
@@ -172,8 +169,7 @@ You have uncommitted changes — consider committing the implementation + spec u
 If the top-level phase checkbox in `progress.md` just flipped to `[x]` (all sub-items in the phase entry are done), **do not just report it** — close the phase so the spec is resumable at the boundary and phase N's durable learnings reach the ledger:
 
 1. Read [handoff.md](handoff.md) and run its *Reflect and redirect* and *Commit* sections; *Commit* also pushes, and in `docs: main` projects publishes the spec docs. Skip *Signal completion* — the session is **not** ending.
-2. Refresh the **Spec state** in `pr-opening.md` (phases done / left).
-3. Print the `Remote:` line, then one line: `Phase <N> complete — Phase <N+1> ready.` (or `All phases complete — see pr-opening.md for the PR gate.`), then continue with whatever the session was doing.
+2. Print the `Remote:` line, then one line: `Phase <N> complete — Phase <N+1> ready.` (or `All phases complete — see pr-opening.md for the PR gate.`), then continue with whatever the session was doing.
 
 Ending the session is a separate decision — `/spec handoff`, or execute mode's stopping rule.
 

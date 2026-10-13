@@ -54,4 +54,4 @@ Then continue at status.md → *Compute status per phase*. The rendered table is
 
 ### `create`, `prep`, `review`, `handoff`
 
-Unaffected. `create` refuses to overwrite an existing `progress.md` regardless of layout. `review` writes to `reviews/` and `ledger/` — if `ledger/` is absent, offer to create it exactly as `update` does. `handoff` writes `in-flight.md` and ledger entries; same offer.
+Unaffected. `create` refuses to overwrite an existing `progress.md` regardless of layout. `review` writes to `reviews/` and `ledger/` — if `ledger/` is absent, offer to create it exactly as `update` does. `handoff` writes `in-flight/phase-<id>.md` and ledger entries; same offer.

@@ -122,6 +122,16 @@ run a written procedure on background sessions, with Anton answering one batch a
 | 2.43.0 | **Overseer, fast path.** `/spec oversee-crew` (`oversee-crew.md`, `crew-brief.md`): background workers from `launch … --bg --brief`, a background-Bash roster wait over `claude agents --json`, a four-part close-out, babysitters in the spec's ship mode, pause/resume, rotation on compaction. Every session pushes from its first commit (execute §1). `pr hold` labels a green PR for review; babysit takes `hold`; `deploy: { paths, gate }` limits deploy babysitting to infra PRs, which mark phases with `phase deployed --land` | shipped |
 | 2.44.0 | **Ship mode and review state.** `ship: auto \| hold-for-review` in a spec's `CLAUDE.md` (doctor-checked) answers the PR question: execute §10 and handoff §4 ask only when it is absent. `spec.ts ship <spec> <mode>` lands it on main like `focus`; the overseer's ship answers go through it. The board reads `reviewDecision` and the `hold-for-review` label: held PRs show `awaiting review`, `approved → merge` or `changes requested → relaunch` instead of `checks pass → merge` (board JSON version 2). The overseer sends an approved held PR to an auto babysitter and relaunches execute with the review's comments | shipped |
 
+## Self-driving loop (2.45)
+
+Spec: `docs/specs/self-driving-loop/`. A read of 70 CRM sessions: "1 … go" pasted back ~35 times, parallel
+sessions on one spec untangled by hand ~12 times, "what's the impact?" asked ~25 times and "yes" given ~12
+times to questions with an obvious answer. PR A makes the loop move on one word and stop colliding.
+
+| Version | Change | Status |
+|---|---|---|
+| 2.45.0 | **Pick by number, plain reports, no collisions.** Reply to *Next sessions* with row numbers ("1", "1 3"); create's next row is its review, and the board shows a spec nobody reviewed or started as one `review` row with each ready row's title (board v2). Execute applies preflight's defaults and stops only on its forks. Every work report opens with Impact / On merge / Left from the phases' Outcome lines; one rule in SKILL.md decides vs asks, with defaults listed under `Say if wrong:`. In-flight notes are one file per phase (`in-flight/phase-<id>.md`, `in-flight/pr-<group>.md`), read by packs, doctor and graph; sessions stop writing shared spec lines | shipped |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through

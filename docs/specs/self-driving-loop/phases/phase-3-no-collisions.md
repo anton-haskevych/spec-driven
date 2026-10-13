@@ -28,9 +28,9 @@ pr-babysit phase 7 rewrites execute §10 and handoff too. Whichever lands second
 
 ## Deliverables
 
-- [ ] Per-session `spec-bump.sh` calls gone (update §7, handoff via update); SKILL.md Timestamps rule; list.md column wording
-- [ ] In-flight per-phase files: handoff writes and deletes its own; readers (spec-state, pack, doctor, graph) read the folder + legacy file; SKILL.md layout and semantics; tests
-- [ ] Spec state: hand refresh gone from execute §6, update, handoff; §10 writes the one PR line; SKILL.md semantics
+- [x] Per-session `spec-bump.sh` calls gone (update §7, handoff via update); SKILL.md Timestamps rule; list.md column wording
+- [x] In-flight per-phase files: handoff writes and deletes its own; readers (spec-state, pack, doctor, graph) read the folder + legacy file; SKILL.md layout and semantics; tests
+- [x] Spec state: hand refresh gone from execute §6, update, handoff; §10 writes the one PR line; SKILL.md semantics
 
 ## Phase-local notes
 
