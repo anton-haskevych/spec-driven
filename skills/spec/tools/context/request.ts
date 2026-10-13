@@ -6,7 +6,7 @@ export interface ContextRequest {
 
 export type IsSpecName = (name: string) => boolean;
 
-export const SUB_COMMANDS = new Set(["prep", "create", "resume", "execute", "review", "update", "handoff", "status", "list", "idea", "babysit"]);
+export const SUB_COMMANDS = new Set(["prep", "create", "resume", "execute", "review", "update", "handoff", "status", "list", "idea", "babysit", "oversee-crew"]);
 
 const TRAILING_PUNCTUATION = /[.,;:!?]+$/;
 const PHASE_ID = /^\d+[a-z]*(\.\d+)?$/i;

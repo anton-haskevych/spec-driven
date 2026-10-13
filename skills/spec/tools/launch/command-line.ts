@@ -29,7 +29,9 @@ export function sessionLaunch(projectDir: string, args: readonly string[]): Resu
 }
 
 // execute may name a phase; babysit must name a PR group; nothing else takes a third word.
+// oversee-crew runs in the session Anton types it in, so it is never launched.
 function launchTarget(subCommand: string, token: string | undefined): Result<string | undefined> {
+  if (subCommand === "oversee-crew") return { ok: false, reason: "oversee-crew isn't launched: type /spec oversee-crew in the project's main checkout" };
   if (subCommand === "babysit") {
     if (token === undefined) return { ok: false, reason: "babysit needs a PR group: launch babysit <spec-name> <group>" };
     return isPrGroup(token) ? { ok: true, value: token } : { ok: false, reason: `not a PR group: ${token}` };

@@ -1,7 +1,7 @@
 ---
 name: spec
 description: Run pre-spec reconnaissance (prep), load an existing spec to resume work, execute the next chunk, update progress after implementation, review with the collegium panel, or create a new one. Also captures ideas into the backlog and lists what's open by priority. Use when starting a session around a feature, when the user mentions a spec by name, when asked to prep, scope, or review/critique a spec, after completing implementation work, when the user says "idea:", "add to the backlog" or "jot this down for later", or asks what's open, what's next or what matters most.
-argument-hint: "prep|create|resume|execute|review|update|handoff|status|list|idea|babysit [spec-name]"
+argument-hint: "prep|create|resume|execute|review|update|handoff|status|list|idea|babysit|oversee-crew [spec-name]"
 allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Bash, Agent
 hooks:
   PreToolUse:
@@ -35,7 +35,7 @@ true`
 
 Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-command token. With Bun, `spec.ts context` applies these same rules and a pack's `spec=` wins; apply them by hand when there is no pack.
 
-**Sub-command set:** `prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`, `idea`, `babysit`.
+**Sub-command set:** `prep`, `create`, `resume`, `execute`, `review`, `update`, `handoff`, `status`, `list`, `idea`, `babysit`, `oversee-crew`.
 
 **Matching rule** (case-insensitive, whitespace-tokenized):
 
@@ -48,7 +48,7 @@ Before treating `$ARGUMENTS` as a feature name, check for an explicit sub-comman
 
 **Chunk reference in the feature slot.** If that first token is a whole chunk reference — `next`, a phase id (`3`, `7ab`, `9.10`), `phase<id>` or `phase-<id>`, or `phase` followed by another token — and no spec has that name, the whole of `rest` is the hint and `feature` is empty (`/spec execute phase15` → hint `phase15`). A spec that really exists by that name (`2fa`, `next`) stays the feature; `phase2-rollout` is a name, not a reference.
 
-If `feature` is empty after extraction, resolve it as in the no-spec rule above. **Exceptions:** for `list`, `rest` is an optional filter; do not infer from context. For `idea`, everything after the token is the idea's text, not a feature name.
+If `feature` is empty after extraction, resolve it as in the no-spec rule above. **Exceptions:** for `list`, `rest` is an optional filter; do not infer from context. For `idea`, everything after the token is the idea's text, not a feature name. `oversee-crew` takes no spec: never infer one.
 
 **Dispatch:**
 
@@ -65,8 +65,9 @@ If `feature` is empty after extraction, resolve it as in the no-spec rule above.
 | `list` | Read [list.md](list.md) and follow it. The feature name is optional — when omitted, list open specs and the backlog; when present, treat it as a filter. |
 | `idea` | Read [idea.md](idea.md) and follow it. Captures an idea into `docs/specs/_backlog/`, or closes or drops one. |
 | `babysit` | Read [babysit.md](babysit.md) and follow it. `rest` is `<spec> <group>`: carries that PR group's PR to merged. Launched by execute's PR gate (`launch babysit`); the user doesn't type it. |
+| `oversee-crew` | Read [oversee-crew.md](oversee-crew.md) and follow it. Takes no spec: turns this session into an overseer that keeps background workers busy on the board's ready work and writes no code. |
 
-`resume`, `execute`, `review`, `update`, `handoff`, `status`, and `babysit` each start by running *Preconditions* (below). `prep`, `create`, `list`, and `idea` carry their own checks.
+`resume`, `execute`, `review`, `update`, `handoff`, `status`, and `babysit` each start by running *Preconditions* (below). `prep`, `create`, `list`, `idea` and `oversee-crew` carry their own checks.
 
 After dispatching, **stop**. Do not also evaluate the routing section below.
 

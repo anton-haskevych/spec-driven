@@ -84,12 +84,12 @@ describe("SKILL.md hook wiring", () => {
 describe("sub-command wiring", () => {
   const skill = readFileSync(join(SKILL_DIR, "SKILL.md"), "utf8");
   const expected = [...SUB_COMMANDS].sort();
-  const tokens = (text: string) => [...text.matchAll(/`([a-z]+)`/g)].map((match) => match[1] ?? "").sort();
+  const tokens = (text: string) => [...text.matchAll(/`([a-z-]+)`/g)].map((match) => match[1] ?? "").sort();
 
   test("SKILL.md's sub-command set, dispatch table and argument-hint match the tools' set", () => {
     const setLine = /\*\*Sub-command set:\*\*(.*)/.exec(skill)?.[1] ?? "";
     const dispatch = skill.slice(skill.indexOf("**Dispatch:**"), skill.indexOf("## Session lifecycle"));
-    const tableRows = [...dispatch.matchAll(/^\| `([a-z]+)` \|/gm)].map((match) => match[1] ?? "").sort();
+    const tableRows = [...dispatch.matchAll(/^\| `([a-z-]+)` \|/gm)].map((match) => match[1] ?? "").sort();
     const parsed = parseFrontmatter(skill);
     const hint = parsed.kind === "ok" ? stringField(parsed.data, "argument-hint") ?? "" : "";
     expect(tokens(setLine)).toEqual(expected);

@@ -109,7 +109,7 @@ describe("sessionLaunch", () => {
   });
 
   test("refuses an unknown sub-command or a spec name that isn't kebab-case", () => {
-    expect(sessionLaunch("/w", ["deploy", "billing"])).toEqual({ ok: false, reason: "unknown sub-command deploy (prep, create, resume, execute, review, update, handoff, status, list, idea, babysit)" });
+    expect(sessionLaunch("/w", ["deploy", "billing"])).toEqual({ ok: false, reason: "unknown sub-command deploy (prep, create, resume, execute, review, update, handoff, status, list, idea, babysit, oversee-crew)" });
     expect(sessionLaunch("/w", ["prep", "Gift Cards"])).toEqual({ ok: false, reason: "spec name must be kebab-case: Gift Cards" });
     expect(sessionLaunch("/w", ["prep"])).toEqual({ ok: false, reason: "usage: launch <sub-command> <spec-name> [<phase>]" });
   });
@@ -120,6 +120,10 @@ describe("sessionLaunch with a phase", () => {
     const launch = sessionLaunch("/trees/spec-board-pr-b", ["execute", "spec-board", "phase-6"]);
     expect(launch.ok && launch.value.title).toBe("spec-board execute 6");
     expect(launch.ok && launch.value.command).toBe("claude -n 'spec-board execute 6' '/spec-driven:spec execute spec-board 6'");
+  });
+
+  test("refuses oversee-crew: it takes no spec and is never launched", () => {
+    expect(sessionLaunch("/w", ["oversee-crew", "billing"])).toEqual({ ok: false, reason: "oversee-crew isn't launched: type /spec oversee-crew in the project's main checkout" });
   });
 
   test("refuses a bad phase id, a phase on another sub-command, and extra words", () => {
