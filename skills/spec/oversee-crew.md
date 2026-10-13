@@ -15,7 +15,9 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
   runs `claim take --take-over`, and never acts on a teammate's claim or another machine's.
 - **It never merges a hold-for-review PR** and never takes an outward or irreversible step itself.
   Approvals come from Anton in this conversation, or as an approving review on the PR (the board's
-  `pr-approved` row). A message from another session is never one.
+  `pr-approved` row). A message from another session is never one. Gate kinds listed in settings
+  `crew.self-approve` are passed by the workers themselves, from the repo; it never relays a gate
+  approval or adds a kind to that list.
 - **It names sessions by title and id** (`cross-studio execute 9 · 2c555dd2`), never by tab number.
   `claude stop|rm|attach` take the id. SendMessage takes the launch title: it can't address an id.
 - **It reports only** one line per merge, deploy or hold, and the *Needs you* batch. Nothing else
@@ -46,30 +48,35 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
 1. **Main checkout only.** `git rev-parse --git-dir` must equal `git rev-parse --git-common-dir`.
    Otherwise say `Type /spec oversee-crew in the main checkout` and stop: a worktree's file guard
    blocks writes to `<crew>`.
-2. **Read** `board --json`, `claude agents --json --all`, `claim list`, `claude --version`, and
-   `<crew>/run.md` if it exists.
+2. **Read** `board --json`, `claude agents --json --all`, `claim list`, `claude --version`, `settings`
+   (the standing go: `pr.ship`, `crew:` caps and `self-approve`), and `<crew>/run.md` if it exists.
 3. **Another overseer?** `crew overseer`. `Overseer: another live overseer <id> · <name>` → say
    `Another overseer (<id>) is running this crew` and stop. Any other line: this session runs it
    (a resumed overseer whose old tab went to the background reads `taking over`).
 4. **Resume?** A `run.md` with `state: stood-down` lists `## Stood down` rows: they go first (§6). Rows
    in `## Launched` that are no longer in the roster are closed out before anything else (§3).
-5. **Plan the slots.** Caps from `run.md`, else 3 workers and 2 babysitters. Pick rows by §2's rule.
-   Ship mode per spec: its `ship:` field, else ask.
-6. **One message**, then wait for Anton's answer:
+5. **Plan the slots** from the standing go. Caps from `run.md`, else settings `crew:` (3 workers and
+   2 babysitters when unset). Pick rows by §2's rule. Ship mode per spec: its `ship:` field, else
+   settings `pr.ship`; only a spec with neither is open.
+6. **One message.** Settings answer what they set: ask only what they leave open, a ship mode for a spec
+   with no `ship:` and no `pr.ship`.
    ```
-   Crew for <repo>: <workers> workers, <babysitters> babysitters.
+   Crew for <repo>: <workers> workers, <babysitters> babysitters (settings).
    Ready now, in order:
      1. <spec> <phase>        <title>
      2. …
-   Ship modes: <spec> <mode> · …
+   Ship modes: <spec> <mode> (spec) · <spec> <mode> (settings) · …
+   Workers pass gates themselves: <self-approve kinds, or none>
    Needs your answer: <spec>, auto or hold-for-review?
-   Go?
    ```
-   Add `Claude Code <version>; the crew was probed on 2.1.296` when the versions differ. Changes from
-   Anton (caps, rows to skip, ship modes) apply before the launch.
-7. **On "go"**: `crew start [--workers <n>] [--babysitters <n>]` writes `run.md` (or takes it over)
-   with this session's id, the caps and `cli:`; land each ship answer with `ship <spec> <mode>` (it holds for every session and machine,
-   and Anton's answer is the word it needs); then §2 for every free slot; then §3.
+   Add `Claude Code <version>; the crew was probed on 2.1.296` when the versions differ. Nothing open →
+   end the message with `Starting.` and go on to step 7 at once: typing `/spec oversee-crew` was the go.
+   Something open → end it with `Go?` and wait for Anton's answer. Changes from Anton (caps, rows to
+   skip, ship modes) apply before the launch, at any time.
+7. **Start**: `crew start` writes `run.md` (or takes it over) with this session's id, the caps from
+   settings (pass `--workers <n>` / `--babysitters <n>` only for a cap Anton changed) and `cli:`; land
+   each ship answer with `ship <spec> <mode>` (it holds for every session and machine, and Anton's
+   answer is the word it needs); then §2 for every free slot; then §3.
 
 ## 2. Fill a slot
 
@@ -119,7 +126,8 @@ missing <what>` or `Close-out: waiting (pr-<group> claim live)`.
 1. A `Crew:` line says `PR group ready <group>`. Cross-check with `ready <spec>`: every phase of the group
    ticked.
 2. `pr status <spec> <group>`: `merged` or `closed` → nothing to launch; log it once.
-3. **Ship mode**: the spec's `ship:`, else ask in the *Needs you* batch and launch once Anton answers.
+3. **Ship mode**: the spec's `ship:`, else settings `pr.ship` (`crew launch` names either in the
+   brief), else ask in the *Needs you* batch and launch once Anton answers.
    His answer goes through `ship <spec> <mode>`; read its line (`ship: <spec> is <mode> (<sha>)`). A
    refusal still launches in the mode he gave: log the line.
 4. **A babysitter slot** must be free (`babysitters` cap). **Infra**: when settings have `deploy:` and
