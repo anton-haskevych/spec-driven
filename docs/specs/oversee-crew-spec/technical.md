@@ -42,7 +42,7 @@ skills/spec-oversee-crew/SKILL.md   # NEW (1) thin skill (copy of skills/spec-ba
 | What | Home | Why not elsewhere |
 |------|------|-------------------|
 | Who is running, on what | `claude agents --json` (state, waitingFor) joined to claims by `sessionId` and to launch titles (`parseLaunchTitle`) | A hand-kept slot list drifts (crash, manual `claude stop`, compaction between launch and write) |
-| Launched but not yet claimed | `run.md` `## Pending` (id, title, time), removed once a claim with that `sessionId` exists | Nothing else knows it for the first seconds |
+| Which sessions the overseer launched | `run.md` `## Launched` (id, title, time), removed at close-out (`stop` + `rm`) | The roster also lists Anton's own sessions; `claim list` shows no session id, and a worker that crashed before claiming has no claim. Identity only: state still comes from the roster and claims (phase 1 execute, 2026-10-12) |
 | Questions for Anton | the worker's `in-flight.md` *Needs you* (committed, pushed, on every machine) | A local note under `.git/` is blocked by worktree file guards and invisible to other machines |
 | When a question was asked / answered | `run.md` `## Questions` (bookkeeping only, with the answer text quoted) | in-flight.md is the worker's file; the overseer never commits in a worker's tree |
 | Ship mode | spec `ship:` (phase 2 writer); phase 1: `run.md` `## Ship modes` | — |
@@ -71,7 +71,7 @@ workers: 3
 babysitters: 2
 ---
 
-## Pending
+## Launched
 - 6adaba33 · multi-location-studios execute 6a · 2026-10-13T09:04
 
 ## Ship modes
@@ -109,7 +109,7 @@ this session's `CLAUDE_CODE_SESSION_ID`.
    ```
    and prints `Launched: background <id> · <title>` (parsed from `backgrounded · <id> · <name>`;
    `--session-id` is ignored with `--bg`, wave 2). A busy tree → `launch: … is busy …`, take the next row.
-4. Record `<id>` under `## Pending`.
+4. Record `<id>` under `## Launched`.
 
 A babysitter: `launch babysit <spec> <group> [hold] --bg --brief <file>` — the group's existing tree
 (`existingOnly`, `T/commands/launch.ts:23`), prompt `/spec-driven:spec babysit <spec> <group> [hold]`.
@@ -169,7 +169,7 @@ done
 echo "heartbeat"
 ```
 
-Scope is the ids the overseer launched (`## Pending` plus claims whose session it launched), never a
+Scope is the ids the overseer launched (`## Launched`), never a
 path prefix. The overseer never stops, removes or messages an id it did not launch.
 
 | Session | `state` | `waitingFor` | Meaning | Overseer does |

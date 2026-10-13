@@ -112,12 +112,12 @@ Babysit's own fix pushes stay as they are.
   - mode from `hold`, else `ship:`, else auto
   - hold → `pr hold`, `pr log --stopped`, release, end
   - auto → infra deploy gate only when `deploy.paths` match: marker only when its last check passes, else `deploy owed`
-- [ ] 1.8 `oversee-crew.md` *Start* and `crew-brief.md`:
+- [x] 1.8 `oversee-crew.md` *Start* and `crew-brief.md`:
   - read board, roster and any `run.md` (resume merges, never overwrites)
   - refuse when another live overseer owns the run
   - the one start message (design.md → Copy)
   - brief template, run-file skeleton, roster-wait script
-- [ ] 1.9 `oversee-crew.md` *Fill a slot*: the pick rule, `launch … --bg --brief`, `## Pending`
+- [x] 1.9 `oversee-crew.md` *Fill a slot*: the pick rule, `launch … --bg --brief`, `## Launched`
 - [ ] 1.10 `oversee-crew.md` *Wait and act*:
   - the roster wait in background Bash and the state → action table (incl. babysitter rows)
   - close-out, `stop` + `rm`
