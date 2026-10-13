@@ -23,5 +23,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-phase-1-ships-small-tools.md` — [general] — launch --bg, pr hold, deployed --land; fix rot as you go
 - `decision-roster-wait-not-monitor.md` — [general] — background-Bash roster wait, no Monitor or /loop
 - `decision-review-state-comes-from-the-pr.md` — [phase 3+] — held = label + reviewDecision; exhaustive needs-you switch
+- `decision-park-entries-live-in-the-phase-note.md` — [phase 3+] — park line in in-flight note; worker unparks; handoff keeps it
 
 ## Workarounds

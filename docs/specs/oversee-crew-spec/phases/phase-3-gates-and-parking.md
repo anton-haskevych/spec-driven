@@ -49,7 +49,7 @@ still asks Anton, who is right there.
 - [x] 3.2 `phase tick` refuses `Gate:` items without `--evidence`; tests
 - [x] 3.3 `phase park` / `phase unpark` and the park record; parked phases leave the ready lane; `question` needs-you kind and line; tests
 - [x] 3.4 execute.md: park and hand off at a fork or a non-self-approvable gate instead of waiting; resume and execute show a parked phase's question and answer
-- [ ] 3.5 `oversee-crew.md`: questions come from park entries (`phase park` output) instead of reading in-flight prose; answering unparks and relaunches
+- [x] 3.5 `oversee-crew.md`: questions come from park entries (`phase park` output) instead of reading in-flight prose; answering unparks and relaunches
 
 ## Phase-local notes
 
