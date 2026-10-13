@@ -5,7 +5,7 @@ pr: E
 
 # Phase 5 — Standing go in settings
 
-**Goal:** A project's `settings.md` carries a `crew:` section (workers, babysitters, default ship mode, self-approvable gate kinds) that the overseer starts from and every worker checks itself.
+**Goal:** A project's `settings.md` carries a default ship mode (`pr.ship`, read by every PR moment) and a `crew:` section (workers, babysitters, self-approvable gate kinds). The overseer starts from them, and every worker checks them itself.
 
 **Outcome:** You set the crew rules once per project and every worker reads the same rules from the repo; the overseer stops asking at every start · small · risk: settings are shared, so a teammate's crew follows them too.
 
@@ -16,8 +16,9 @@ pr: E
 
 ## Implementation guidance
 
-technical.md → *Phase 5*. One `SECTION_KEYS` row, a typed `crew` block, defaults (3 workers,
-2 babysitters, no default ship mode, empty self-approve list), and the pack's `Settings:` line.
+technical.md → *Phase 5*. A `pr.ship` key next to `pr.draft` and `pr.merge`, with no default. Each
+spec's `ship:` wins over it. Plus one `crew` `SECTION_KEYS` row, a typed `crew` block, defaults
+(3 workers, 2 babysitters, empty self-approve list), and the pack's `Settings:` line.
 The doctor errors on a self-approve kind that isn't a known gate kind.
 
 A worker at a gate whose kind is in `crew.self-approve` passes it itself: ticks the `Gate:`
@@ -29,10 +30,10 @@ The overseer reads `crew:` at start and asks only for what settings leave open.
 
 ## Deliverables
 
-- [ ] 5.1 `crew:` settings section: parser, defaults, doctor checks, `Settings:` line; tests
+- [ ] 5.1 `pr.ship` and the `crew:` settings section: parser, defaults, doctor checks, `Settings:` line; execute §10 / handoff §4 read `pr.ship` after the spec's `ship:`; tests
 - [ ] 5.2 execute.md: self-approvable gates passed by the worker with evidence and "Say if wrong"; all others park
 - [ ] 5.3 `oversee-crew.md` and `crew-brief.md` start from settings and ask only what they leave open
 
 ## Phase-local notes
 
-- Release with this PR (next minor version, ROADMAP row).
+- Version picked at merge, ROADMAP row.

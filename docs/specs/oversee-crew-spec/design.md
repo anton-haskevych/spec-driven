@@ -30,18 +30,21 @@ except that branches are pushed from the first commit.
 | How workers get instructions | A launch brief, appended to the worker's system prompt at launch (`--append-system-prompt-file`), plus only "hand off now" as a live message | Messages after launch (Oct 11) | Late messages caused the early deploy and the wrong-session message; the brief is fixed for the session's life (`--system-prompt-snapshot`) |
 | Workers | Background sessions: `claude --bg`, `--permission-mode bypassPermissions`, attach only to look | iTerm tabs via `spec.ts launch` (Oct 11) | Unique ids, `claude stop`/`rm`, readable state in `claude agents --json`, no leftover tabs; probed live (waves 2, 2b, 2c) |
 | Permissions | Always `bypassPermissions` for workers, enforced in the launch line | The user's default mode | Anton: "I trust my workers." Hook-driven asks still surface as `blocked` + `waitingFor` |
-| Waking the overseer | A watcher over `claude agents --json` under the Monitor tool, plus a 30-minute heartbeat (`ScheduleWakeup` in a self-paced `/loop`) | `SendMessage {notify_when_idle}` (Oct 11) | Idle notices fire once, arrive twice, fire for sessions the overseer closed itself, and can't tell done from asking |
-| Overseer state | A local run file `<git-common-dir>/spec-board/crew/run.md`, written only by the overseer; one handoff note file per worker | A committed file; CRM memory (Oct 11) | One writer, no merge conflicts (`gotcha-github-ignores-merge-union`), survives the overseer's own compaction, no edits to Anton's feedback memory |
-| Ship mode | `ship: auto \| hold-for-review` in the spec's `CLAUDE.md`; no value → asked once per spec, answer kept in the run file | One project-wide setting; asking at every PR | UI work wants Anton's eyes, refactors don't; per-spec matches how he decided on Oct 11 (#930 hold, #929 auto) |
+| Waking the overseer | One background-Bash roster wait over `claude agents --json`, scoped to launched ids; exits on the first change or after 1800 s (the heartbeat) | `SendMessage {notify_when_idle}` (Oct 11); a Monitor `while :` watcher plus a `/loop` + `ScheduleWakeup` heartbeat (first draft) | Idle notices can't tell done from asking; Monitor dies at its 30-min cap and the heartbeat is a second mechanism. Background Bash is the house wait primitive (`pr wait`), probed to re-invoke an idle session (review 2026-10-12) |
+| Overseer state | One home per piece: who runs what = roster + claims + launch titles; questions = the worker's `in-flight.md`; the local `run.md` keeps only caps, overseer id, ship answers, question bookkeeping, pending launches, a capped log | A committed file; CRM memory (Oct 11); a hand-kept slot list and a per-worker note file under `.git/` (first draft) | Copies drift (crash, manual stop, compaction); a worker in a worktree can't Write under the main repo's `.git/` (Anton's file guard); `in-flight.md` is committed, so other machines see the question (review 2026-10-12) |
+| Overseer lifetime | Long-lived controller that rotates on compaction: state is external, it prints "type /spec oversee-crew in a fresh session" and stops; workers keep running | Working on from a compaction summary | SKILL.md: compaction is not part of the flow; rules like "never merge a held PR" must not live only in a summary |
+| Which sessions it touches | Only ids it launched; never stops a session whose claim is live | Every session under the worktree root | Anton's own tabs and babysitters waiting on CI would be closed out |
+| Ship mode | `ship: auto \| hold-for-review` in the spec's `CLAUDE.md`; no value → asked once per spec; phase 1 keeps the answer in `run.md`, phase 2 writes it to `ship:` on main (`spec.ts ship`, focus pattern); a project default is `pr.ship` (phase 5) | One project-wide setting only; asking at every PR; the default under `crew:` | UI work wants Anton's eyes, refactors don't; per-spec matches how he decided on Oct 11 (#930 hold, #929 auto); the PR moment exists without a crew too |
 | A standing ship mode at all | Allowed, per spec | pr-babysit `design.md:19` ("no setting that babysits without asking") | Anton, 2026-10-12: "if I indicate that it should be babysat and shipped automatically, that's a good workflow"; the per-spec value is his explicit instruction, written down |
-| hold-for-review | Babysit to green, add the `hold-for-review` label and a *How to review* section, stop. Nothing left running locally. Approval on GitHub → merged like auto (phase 2) | Keep a local stack running for the review (Oct 11, #930) | The stack held ports for hours; Anton: "I don't want it to be running in the background and stealing the valuable CPU or RAM" |
-| After merge (auto) | Babysit works through the project's after-merge gate (`gates.after-merge` → a `gates.md` section), then marks the phases deployed | A deploy tool in the plugin | Deploys differ per project (CRM: none, auto-on-merge workflow, CDK stacks, blue/green); the gates mechanism already exists |
-| Push | Push the branch when work starts and after every commit; a branch with an open ready PR pushes at the end of the chunk | Push at handoff only (today) | Interrupted work is safe and visible on origin; CRM runs no CI on branch pushes or drafts (`ci.yml:76`), and a ready PR re-runs CI on every push |
+| hold-for-review | Babysit to green, `pr hold` (label + *How to review*), stop. Nothing left running locally. Approval on GitHub → merged like auto (phase 2). Works outside a crew: §10 answer 4 → `launch babysit … hold` | Keep a local stack running for the review (Oct 11, #930); raw `gh label`/`gh pr edit` | The stack held ports for hours; Anton: "I don't want it to be running in the background and stealing the valuable CPU or RAM"; babysit's GitHub writes go through `GhWrites` |
+| After merge (auto) | Merge and report. Deploy babysitting only for infra: settings `deploy: { paths, gate }`; when the PR's files match `paths`, babysit works through the gate and marks the phases deployed (`phase deployed --land`) only when the gate's last check passes, else `deploy owed` | A deploy gate after every merge (first draft); a deploy tool in the plugin | Anton, 2026-10-12: "no need for gates like actual deploy … babysitting the deploy is out of scope … UNLESS WE WORK WITH INFRA!" Non-infra deploys run on merge by themselves; update.md:49 ("never infer a deploy from a merge") stands except for a gate that proves it |
+| Push | Decided once at execute §1: no PR or a draft → push now and after every commit; an open ready PR → push at the end of the chunk; lookup failed → push; merged/closed → stop | Push at handoff only (today); re-checking `pr status` on every commit (first draft) | Interrupted work is safe and visible on origin; CRM runs no CI on branch pushes or drafts (`ci.yml:76`), and a ready PR re-runs CI on every push; `pr status` verdict `none` also means a ready PR whose CI hasn't run |
+| Phase 1 scope | Prose plus four small tools: `launch --bg --brief` (and babysit `hold`), `pr hold`, `phase deployed --land`, the `deploy:` setting | Prose plus two wiring changes (first draft) | A hand-typed launch line is the most repeated, most slip-prone step; Anton, 2026-10-12: "your work is investment into the codebase … fix them as you go" |
 | Pause | "Time to pause" = every active worker hands off now (clean boundary, commit, push, release, stop), then the run file is saved as stood down | Killing the sessions | Nothing is lost; resume starts from saved state |
-| Which rows a slot takes | Board ready rows with `next: execute`, a free tree, no live or remote claim, not parked; prep/create/review stay with Anton | Any ready row | Prep has a hard human stop; reviews can join later once phase 3 ships |
+| Which rows a slot takes | Board ready rows with `next: execute`, no `treeBusy`, no `readyIn`/`onlyOn`, not a `code: false` task phase, no unanswered question, at most one worker per spec in phase 1; prep/create/review stay with Anton | Any ready row | Prep has a hard human stop; task phases are outward work for Anton; two workers on one spec conflict on spec docs until self-driving-loop phase 3 |
 | Order of work | Phase 1 fast path (mostly written steps), then the crew builds phases 2–5 | Build every tool first | Value now; the first real run shows what to harden (Anton, 2026-10-12) |
 | Sub-command name | `/spec oversee-crew`; spec folder `oversee-crew-spec` | `run`, `dispatch`, `conduct`, `autopilot-squad` (25 considered) | Anton picked it: "Oversee" says it watches and doesn't do the work, "crew" says there are several workers |
-| Vocabulary | slot, worker, overseer, launch brief, handoff note, stood down | lane, controller, brief, report, paused | Those words already mean board lanes, the controller tab (`SKILL.md:81`), `product-brief.md`, a command's output, and spec `status: paused` |
+| Vocabulary | slot, worker, overseer, launch brief, crew line, stood down | lane, controller, brief, report, paused | Those words already mean board lanes, the controller tab (`SKILL.md:81`), `product-brief.md`, a command's output, and spec `status: paused` |
 
 ## Core flow
 
@@ -51,18 +54,18 @@ except that branches are pushed from the first commit.
                  └───────▲──────────────┬─────────┘
           needs-you batch│              │instructions
                  ┌───────┴──────────────▼─────────┐
- board ready ───►│  Overseer (writes no code)     │◄── watcher: one line per worker change
- lane            │  run.md · roster · close-out   │◄── heartbeat every 30 min
+ board ready ───►│  Overseer (writes no code)     │◄── roster wait: exits on a worker change
+ lane            │  run.md · roster · close-out   │    (roster wait: background Bash, ≤30 min)
                  └───┬───────────────┬────────────┘
         fill a slot  │               │ PR group ready
                      ▼               ▼
          ┌──────────────────┐  ┌───────────────────────────┐
          │ Worker (claude   │  │ Babysitter (claude --bg)  │
-         │ --bg, bypass,    │  │ auto: merge → after-merge │
-         │ launch brief)    │  │   gate → mark deployed    │
+         │ --bg, bypass,    │  │ auto: merge (infra PR:    │
+         │ launch brief)    │  │   deploy gate → deployed) │
          │ /spec execute    │  │ hold-for-review: green →  │
          │ push every commit│  │   label + How to review → │
-         │ handoff note     │  │   stop                    │
+         │ in-flight + Crew:│  │   stop                    │
          └──────────────────┘  └───────────────────────────┘
 ```
 
@@ -72,40 +75,48 @@ except that branches are pushed from the first commit.
    this repo's worktrees only) and any existing run file.
 3. One message: slot count, the ready rows it will start, ship modes it found and the ones it
    needs. Anton answers once ("go", or changes).
-4. It writes the run file, fills the slots, starts the watcher and the heartbeat.
+4. It writes (or merges into) the run file, fills the slots, starts the roster wait.
 
 ### A worker's life
 ```
  launched ──► working ──► done ─────────────► close-out check ──► stop + rm ──► slot free
                  │                                   │ fails
-                 │                                   └──► tell the worker, or Anton
+                 │                                   └──► tell the worker (by id), or Anton
                  ├──► blocked + waitingFor ──► needs you: "claude attach <id>" + push notification
                  │       (permission prompt)       Anton answers in that tab ──► working
-                 └──► blocked, no waitingFor ──► read its last message ──► queue the question
-                         (ended on a question)      stop + rm ──► slot free (phase parked)
+                 ├──► blocked, no waitingFor ──► "Hand off now" (by id) ──► done ──► close-out
+                 │       (ended on text)            in-flight.md has Needs you? ──► phase parked
+                 └──► gone ──► close-out; dirty tree or live claim ──► needs you
 ```
 States come from `claude agents --json` (waves 2, 2b, 2c): `working`, `done`,
-`blocked` with `waitingFor`, `blocked` without it.
+`blocked` with `waitingFor`, `blocked` without it. A babysitter holding a live `pr-<group>`
+claim is waiting on CI whatever its state; it is never closed out until it releases the claim.
 
 ### The PR moment
-1. A worker's handoff note says its PR group is ready (all group phases ticked, pre-PR checks green).
+1. A worker's `Crew:` line says its PR group is ready (all group phases ticked, pre-PR checks green).
 2. The overseer checks the PR's real state (`spec.ts pr status <spec> <group>`): merged or
    closed → nothing to launch (the #901 mistake); otherwise continue.
 3. Ship mode: the spec's `ship:` → the run file's answer for that spec → ask Anton once.
 4. It launches a background babysitter in the group's tree with a launch brief naming the mode.
-5. auto: merge on green, after-merge gate, mark deployed, one line to Anton.
-   hold-for-review: green, label, *How to review*, stop, one line to Anton.
+5. auto: merge on green, one line to Anton. Only a PR touching the project's `deploy.paths`
+   (infra) goes on through the deploy gate, one at a time, and is marked deployed when the
+   gate's last check passes.
+   hold-for-review: green, `pr hold`, stop, one line to Anton.
 
 ### Needs you
-One queue in the run file. The overseer batches unasked items into one message, asks each
-once, records the answer with its time, and relaunches the parked phase with the answer in
-its launch brief. A worker stuck on a prompt also gets a push notification.
+Questions live in the worker's `in-flight.md` *Needs you* (committed, so any machine sees
+them); the run file keeps only when each was asked and answered. The overseer batches unasked
+items into one message, asks each once, records the answer with its time, and relaunches the
+parked phase with the answer in its launch brief. A worker stuck on a prompt also gets a push
+notification.
 
 ### Pause and resume
-"Time to pause" → the overseer sends each active worker "Hand off now" → each finishes its
-step, commits at a clean boundary, pushes, releases its claim and stops → the overseer
-stops and removes them, stops the heartbeat and saves the run file as `stood-down`.
-"Resume" → read the run file, answered questions first, then refill slots from the board.
+"Time to pause" → the overseer sends each `working` or `done` worker "Hand off now" by id
+(workers stuck on a prompt go to needs you; babysitters finish) → each finishes its step,
+commits at a clean boundary, pushes, releases its claim and stops → the overseer closes them
+out, lists them under `## Stood down` and saves the run file as `stood-down`.
+"Resume" → read the run file, relaunch the stood-down phases first (the board shows them in
+flight, not ready), answered questions next, then refill slots from the board.
 
 ## Copy
 
@@ -123,7 +134,8 @@ Go?
 
 **One line per event** (nothing else unprompted)
 ```
-Merged #929 lifecycle-email-foundation A · deployed (crm-prod, lifecycle stack) · phases 1–3 marked deployed
+Merged #929 lifecycle-email-foundation A
+Merged #931 infra-alarms A · deploy gate passed (crm-prod) · phases 1–2 marked deployed
 Held #930 multi-location-studios A for your review · green · How to review is in the PR
 ```
 
@@ -164,20 +176,26 @@ PR #930 (multi-location-studios A) is green and held for your review · 17 check
 
 | Case | What happens |
 |------|--------------|
-| Worker hits the stopping rule mid-phase | Its handoff note says `Next: <same phase>`; the overseer relaunches the same phase in the same tree with a fresh session |
-| Worker crashes or exits without a handoff note | Roster shows it gone; close-out check finds the claim `closed` or the tree dirty → needs you, never a silent relaunch over half-done work |
+| Worker hits the stopping rule mid-phase | Its `Crew:` line says `next same phase`; the overseer relaunches the same phase in the same tree with a fresh session |
+| Worker crashes or exits without handing off | The roster wait prints `<id> gone`; close-out finds the claim `closed` or the tree dirty → needs you, never a silent relaunch over half-done work |
+| Worker ends its turn on text mid-unit (`blocked`, no `waitingFor`) | "Hand off now" first, so it commits at a clean boundary; never stop + rm over a dirty tree the next worker would inherit |
+| Babysitter idle on `pr wait` | Its live `pr-<group>` claim means waiting; the overseer leaves it alone |
 | Tree busy (`trees: <path> is busy`) | Skip that row this round; take the next one |
 | Claim held by a teammate or another machine | Skip; the board's needs-you already lists stale remote claims for Anton |
 | PR already merged or closed | No babysitter (the #901 case); note it once |
 | CI red twice on the same failure, or red on main too | Babysit's existing §4 stop-and-ask; arrives in the needs-you batch |
-| Worker ended on a question | Parked: its question goes to the queue, its slot is freed |
+| Worker ended on a question | It handed off with the question in `in-flight.md`; parked, slot freed |
+| Ready row is a task phase (`code: false`) | Skipped; task phases are Anton's outward work |
+| Two infra PRs merge close together | One deploy gate at a time; the second babysitter launches after the first reports |
 | Worker stuck on a prompt | Needs you with `claude attach <id>`; slot stays held until it moves |
 | Folder never trusted | `claude --bg` refuses ("Workspace not trusted"); needs you: open `claude` there once. Worktrees of a trusted repo inherit trust |
-| Overseer compacts during a long run | Everything it needs is in the run file; after a compaction it re-reads the run file and the roster before acting |
+| Overseer compacts during a long run | It rotates: state is in the run file, roster and claims; it asks for a fresh `/spec oversee-crew` and stops |
 | Overseer session closes | Workers keep running (background); `/spec oversee-crew` again resumes from the run file |
-| Two overseers in one clone | The run file records the overseer's session id; a second one refuses while that session is live |
-| Two workers on one spec | Allowed in different PR-group trees; shared spec docs may conflict until self-driving-loop phase 3 lands |
+| Two overseers in one clone | The run file records the overseer's session id; a second one refuses while that session is live (not when it is this session) |
+| Two workers on one spec | Not in phase 1: shared spec docs conflict until self-driving-loop phase 3 lands |
+| Overseer places a fresh tree | `launch --bg` passes the `Fresh tree:` / `Setup failed:` lines into the brief, since the worker's own placement sees `existing` |
 | Migration-number or other project collisions | Project-side; the overseer passes known facts as launch-brief notes, it doesn't reserve numbers |
 | hold-for-review PR falls behind main while waiting | Approval (phase 2) sends it to an auto babysitter, which merges main as part of its normal flow |
-| `docs: branch` project marking deployed after merge | Phase 1 publishes the marker only where `docs: main` (`publish-docs`); phase 2 adds `phase deployed --land` for the rest |
+| Marking deployed after a squash merge | `phase deployed --land` writes the marker on main through `landOnMain`, in any `docs:` mode; never a commit in the merged tree |
+| Held PR merged by hand | Non-infra: nothing to do. Infra: the overseer launches a deploy-only babysitter |
 | Machine load | Slot cap is the brake (3 + 2 by default); loadwatch shows which worker is heavy |

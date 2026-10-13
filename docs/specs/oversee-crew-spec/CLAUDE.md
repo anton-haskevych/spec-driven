@@ -1,6 +1,6 @@
 ---
 created: 2026-10-12T14:06:26-07:00
-updated: 2026-10-12T15:02:26-07:00
+updated: 2026-10-12T20:16:15-07:00
 status: draft
 area: [tools, sub-commands]
 domain: [spec-workflow]
@@ -11,6 +11,7 @@ related:
   - pr-babysit: owns the PR question and the babysit procedure; this spec adds hold-for-review, the after-merge gate and a standing ship mode, reversing its "no babysit without asking" rule on purpose
   - spec-board: the overseer schedules from the board's ready lane, claims and needs-you lane; phases 2 and 3 add needs-you kinds
   - active-work-view: the board stays read-only; every overseer action lives outside it
+  - spec-loop-automation: built the settings, push and publish-docs tools this spec extends; only its CRM-adoption phase is open
 ---
 
 # Oversee Crew Spec
@@ -19,9 +20,9 @@ related:
 number of background Claude workers busy on the board's ready work, checks every handoff
 before it counts, sends each finished PR group to a babysitter in its spec's ship mode
 (`auto` or `hold-for-review`) and comes to Anton only for reviews, approvals and decisions.
-Every session also pushes its branch from the first commit. Phase 1 is a fast path that runs
-on today's tools plus `claude --bg` / `claude agents --json`; the crew then builds phases 2–5
-itself and phase 6 adopts it in CRM.
+Every session also pushes its branch from the first commit. Deploys are babysat only for infra
+PRs. Phase 1 is a fast path: written steps plus four small tools on `claude --bg` /
+`claude agents --json`; the crew then builds phases 2–5 itself and phase 6 adopts it in CRM.
 
 The spec folder is `oversee-crew-spec` so that a bare `/spec oversee-crew` dispatches the
 mode, not this spec (`T/context/request.ts:21-22`).
@@ -32,7 +33,7 @@ mode, not this spec (`T/context/request.ts:21-22`).
 |------|---------|
 | `product-brief.md` | Business intent from prep |
 | `design.md` | The overseer's flows, worker states, ship modes, copy, edge cases, decisions |
-| `technical.md` | Run file, launch brief, launch and watch commands, close-out check, mode-file changes, later tools |
+| `technical.md` | State homes, run file, launch brief, launch and roster-wait commands, close-out check, mode-file changes, later tools |
 | `progress.md` | Thin index of phases (checkboxes + pointers) |
 | `pr-opening.md` | PR-readiness gate — spec state + pre-PR checks (not a phase) |
 | `code-map.md` | Load-bearing files inventory |

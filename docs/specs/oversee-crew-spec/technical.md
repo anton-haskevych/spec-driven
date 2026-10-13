@@ -2,49 +2,63 @@
 
 `T/` = `skills/spec/tools/`. Ground truth: `research/2026-10-12-*` (wave 0: Oct 11 run;
 wave 1: seams; waves 2, 2b, 2c: live `claude --bg` probes on Claude Code 2.1.296; craft).
+Review `reviews/2026-10-12-state-homes-and-worker-lifecycle.md` reshaped this file: one home per
+piece of state, a background roster wait, babysitter rows, deploy babysitting for infra only.
 
 ## Architecture
 
-Phase 1 is prose in mode files plus two small code changes (sub-command wiring, one settings
-key). The overseer drives existing tools (`spec.ts board|trees|claim|pr|ready|gates|phase`)
-and the Claude Code CLI (`claude --bg`, `claude agents --json`, `claude stop|rm`). Phase 4
-turns the hand-run steps into `spec.ts crew …` commands.
+Phase 1 is mostly prose in mode files, plus four small tool changes: sub-command wiring,
+`launch … --bg --brief` (with `hold` for babysit), `phase deployed --land`, and `pr hold`. Plus
+the `deploy:` settings key. The overseer drives existing tools (`spec.ts board|trees|claim|pr|ready|phase|launch`)
+and the Claude Code CLI (`claude agents --json`, `claude stop|rm`). Phase 4 turns the remaining
+hand-run steps into `spec.ts crew …` commands, re-planned after the first real run.
 
 ```
 skills/spec/
-├── oversee-crew.md            # NEW (1) the overseer procedure
-├── crew-brief.md              # NEW (1) launch brief template the overseer fills per worker
-├── execute.md                 # (1) push at §1 and after each commit; crew-worker rules; §10 4th answer
-├── babysit.md                 # (1) hold-for-review stop; after-merge gate; deployed marker
-├── handoff.md                 # (1) crew handoff note; stop servers this session started
-├── SKILL.md                   # (1) sub-command set, dispatch row, argument-hint, exceptions
+├── oversee-crew.md            # NEW (1) the overseer procedure (target < 200 lines)
+├── crew-brief.md              # NEW (1) launch brief template + run-file skeleton + roster-wait script
+├── execute.md                 # (1) push decision at §1; crew-worker paragraph; §10 4th answer
+├── babysit.md                 # (1) hold-for-review via `pr hold`; infra deploy gate; babysitter lifecycle
+├── handoff.md                 # (1) §4 crew branch first; crew lines in Signal completion; crew workers stop their servers
+├── update.md                  # (1) :49 deployed rule names the infra-gate exception
+├── SKILL.md                   # (1) sub-command set, dispatch row, argument-hint, exceptions; Session lifecycle names the overseer
 └── tools/
     ├── context/request.ts     # (1) SUB_COMMANDS += "oversee-crew"
-    ├── playbook/settings.ts   # (1) gates.after-merge · (5) crew section
-    ├── core/spec-meta.ts      # (2) ship field
+    ├── launch/command-line.ts, launch/terminal.ts, commands/launch.ts   # (1) --bg, --brief, babysit `hold`; refuse launch oversee-crew
+    ├── launch/background.ts   # NEW (1) run argv with cwd, parse `backgrounded · <id> · <name>`
+    ├── phases/deployed.ts, commands/phase.ts       # (1) phase deployed --land via landOnMain
+    ├── pr/actions/hold.ts, commands/pr.ts          # NEW (1) pr hold: label + How to review through GhWrites
+    ├── playbook/settings.ts, doctor/settings.ts    # (1) deploy: { paths, gate } · (5) crew section, pr.ship
+    ├── core/spec-meta.ts      # (2) ship field · commands/ship.ts (2) writer via landOnMain
     ├── pr/gh-lists.ts         # (2) reviewDecision, labels
-    ├── board/{model,attention,render,lanes}.ts   # (2) pr-review kinds · (3) question kind, parked rows
+    ├── board/{model,attention,render,joins,lanes}.ts   # (2) pr-review kinds · (3) parked rows
     ├── core/spec-state.ts, doctor/phase-gates.ts, phases/tick.ts   # (3) gate key
-    ├── commands/crew.ts + commands/crew/*.ts      # (4) launch, roster, watch, check, stop
-    ├── launch/background.ts, sessions/agents.ts   # (4)
-    └── crew/{run-state,handoffs,questions}.ts     # (4) typed access to the run file and notes
+    └── commands/crew.ts + crew/*  # (4) re-planned after the first crew run
 skills/spec-oversee-crew/SKILL.md   # NEW (1) thin skill (copy of skills/spec-babysit/SKILL.md)
-docs/specs/_playbook/gates.md       # NEW (1) this repo's ## deploy (marketplace sync)
 ```
 
-## Local state
+## One home per piece of state
 
-All under `<git-common-dir>/spec-board/crew/` (`stateDir(git, "crew")`, `T/core/git.ts:47-50`),
-shared by every worktree of the clone, never committed.
+| What | Home | Why not elsewhere |
+|------|------|-------------------|
+| Who is running, on what | `claude agents --json` (state, waitingFor) joined to claims by `sessionId` and to launch titles (`parseLaunchTitle`) | A hand-kept slot list drifts (crash, manual `claude stop`, compaction between launch and write) |
+| Launched but not yet claimed | `run.md` `## Pending` (id, title, time), removed once a claim with that `sessionId` exists | Nothing else knows it for the first seconds |
+| Questions for Anton | the worker's `in-flight.md` *Needs you* (committed, pushed, on every machine) | A local note under `.git/` is blocked by worktree file guards and invisible to other machines |
+| When a question was asked / answered | `run.md` `## Questions` (bookkeeping only, with the answer text quoted) | in-flight.md is the worker's file; the overseer never commits in a worker's tree |
+| Ship mode | spec `ship:` (phase 2 writer); phase 1: `run.md` `## Ship modes` | — |
+| Crew caps, overseer id, state | `run.md` frontmatter | — |
+| Phase progress, PR group readiness | spec docs (`spec.ts ready`, `pr-opening.md`) | — |
 
-| Path | Writer | Content |
-|------|--------|---------|
-| `run.md` | overseer only | the run: settings agreed, slots, ship answers, questions, state |
-| `briefs/<spec>#<phase>.md` | overseer | the launch brief given to that worker (kept for the record) |
-| `briefs/<spec>#pr-<group>.md` | overseer | a babysitter's launch brief |
-| `handoffs/<spec>#<phase>.md` | the worker | its handoff note, overwritten at each handoff |
+### Local state
 
-`#` in file names follows the claims store (`T/claims/store.ts:37-38`).
+`<git-common-dir>/spec-board/crew/` (`stateDir(git, "crew")`, `T/core/git.ts:47-50`), shared by every
+worktree of the clone, never committed, written only by the overseer (which runs in the main
+checkout, so worktree file guards don't apply).
+
+| Path | Content |
+|------|---------|
+| `run.md` | the run (below) |
+| `briefs/<spec>#<phase>.md`, `briefs/<spec>#pr-<group>.md` | the brief given at launch (kept for the record); `launch --bg --brief` reads it |
 
 ### Run file (`run.md`)
 
@@ -55,229 +69,248 @@ started: 2026-10-13T09:00:12-07:00
 state: running          # running | stood-down
 workers: 3
 babysitters: 2
-watcher: b7e1c2         # Monitor task id, so a resumed overseer knows to restart it
 ---
 
-## Slots
-- multi-location-studios 6a · worker 6adaba33 · tree ~/claude-worktrees/crm/multi-location-studios-pr-b · since 09:04
-- cross-studio 9 · worker 2c555dd2 · tree ~/claude-worktrees/crm/cross-studio-pr-d · since 09:05
-
-## Babysitters
-- multi-location-studios A · #930 · hold-for-review · worker 3f9a01bc · since 10:12
+## Pending
+- 6adaba33 · multi-location-studios execute 6a · 2026-10-13T09:04
 
 ## Ship modes
-- multi-location-studios: hold-for-review (spec)
-- cross-studio: auto (Anton, 09:01)
+- cross-studio: auto (Anton, 2026-10-13T09:01)
 
 ## Questions
-- [q1] multi-location-studios 5a · asked 09:40 · "Show parking notes in booking emails at every studio?" · recommend no
-  - answer 09:52 (Anton): "no, later"
+- [q1] multi-location-studios 5a · asked 2026-10-13T09:40 · "Show parking notes in booking emails at every studio?" · recommend no
+  - answer 2026-10-13T09:52 (Anton): "no, later"
 
-## Parked
-- multi-location-studios 5a · waits on q1
+## Stood down
+- multi-location-studios 6a · tree ~/claude-worktrees/crm/multi-location-studios-pr-b · 4 of 9 done
 
 ## Log
-- 09:51 lifecycle-email-foundation 4 done · close-out ok · stopped 510ad568
+- 2026-10-13T09:51 lifecycle-email-foundation 4 done · close-out ok · stopped 510ad568
 ```
 
-One writer, so no locking beyond the `overseer:` check: a second `/spec oversee-crew` in the
-same clone refuses while that session id is live in `claude agents --json`.
+Keep the last 30 log lines. `/spec oversee-crew` with an existing `run.md` resumes (merges), never
+overwrites. A second overseer refuses while the `overseer:` id is live in `loadLiveSessions` and is not
+this session's `CLAUDE_CODE_SESSION_ID`.
 
 ## Launching a worker
 
-1. Pick: first `board --json` ready row with `next: "execute"`, `treeBusy` unset, not held by a
-   live or remote claim, not in `## Parked`, and not another person's `owner:`.
-2. Place: `bun T/spec.ts trees place <spec> <phase> --json` → the tree path. A busy refusal →
-   next row.
-3. Brief: fill `crew-brief.md` → `briefs/<spec>#<phase>.md`.
-4. Launch, from the tree (`cwd` = tree; `claude --bg` keeps it, wave 2):
-   ```bash
-   cd '<tree>' && CLAUDE_CODE_DISABLE_BG_EXIT_HANDOFF=1 claude --bg \
-     -n '<spec> execute <phase>' \
-     --permission-mode bypassPermissions \
-     --append-system-prompt-file '<common>/spec-board/crew/briefs/<spec>#<phase>.md' \
+1. Pick: the first `board --json` ready row with `next: "execute"`, no `treeBusy`, no `readyIn` or
+   `onlyOn`, whose phase is not `code: false` (read the phase file; `ReadyRow` has no task flag),
+   whose spec has no other worker (phase 1: one worker per spec, until self-driving-loop phase 3),
+   and with no unanswered question in `run.md`. The board already excludes claimed rows.
+2. Brief: fill `crew-brief.md` → `briefs/<spec>#<phase>.md`.
+3. Launch: `bun T/spec.ts launch execute <spec> <phase> --bg --brief <brief file>`. It places the tree
+   (refusing a busy one), appends the placement's `Fresh tree:` / `Setup failed:` lines to the brief,
+   runs from the tree:
+   ```
+   CLAUDE_CODE_DISABLE_BG_EXIT_HANDOFF=1 claude --bg -n '<spec> execute <phase>' \
+     --permission-mode bypassPermissions --append-system-prompt-file '<brief>' \
      '/spec-driven:spec execute <spec> <phase>'
    ```
-   Output: `backgrounded · <id> · <name>` (+ hints). `--session-id` is ignored with `--bg`
-   (wave 2): the id comes from this line. `CLAUDE_CODE_DISABLE_BG_EXIT_HANDOFF=1` is meant to
-   stop the worker's background shells when it stops (guide; verify in phase 1).
-5. Record the slot in `run.md`.
+   and prints `Launched: background <id> · <title>` (parsed from `backgrounded · <id> · <name>`;
+   `--session-id` is ignored with `--bg`, wave 2). A busy tree → `launch: … is busy …`, take the next row.
+4. Record `<id>` under `## Pending`.
 
-A babysitter is the same launch with `-n '<spec> babysit <group>'`, the group's existing tree
-(`launch babysit` uses `existingOnly`, `T/commands/launch.ts:23`; never cut a tree) and
-`'/spec-driven:spec babysit <spec> <group>'`.
+A babysitter: `launch babysit <spec> <group> [hold] --bg --brief <file>` — the group's existing tree
+(`existingOnly`, `T/commands/launch.ts:23`), prompt `/spec-driven:spec babysit <spec> <group> [hold]`.
+`hold` also works without `--bg`, so §10's answer 4 holds outside a crew.
 
 ## Launch brief (`crew-brief.md`)
 
+Per-launch data plus one pointer; the rules live in execute.md → *Crew worker* and handoff.md §4.
+
 ```markdown
-You are a crew worker started by the overseer session "<overseer name>" (<overseer id>).
+You are a crew worker started by the overseer session <overseer id>.
 Spec <spec> · <phase or PR group> · tree <tree>
 Ship mode for this spec: <auto | hold-for-review>. The overseer handles the PR.
-
-Rules for this session:
-- Start now. Do not ask "go".
-- Push after every commit (`spec.ts push`). With an open ready PR on this branch, push at the end of the chunk instead.
-- Decide small things yourself and list them under "Say if wrong" in your handoff.
-- A real fork (changes the phase Goal or Outcome, deletes or migrates data, changes an external
-  contract, moves scope) or a step only Anton may take (prod data deletes, messages to customers,
-  long external pulls, anything irreversible): do not wait for an answer. Put the question in your
-  handoff note under "Needs you", then hand off.
-- Do not ask the PR question and do not print Next sessions; the overseer decides both.
-- Stop every server or watcher you started before you hand off.
-- At handoff, write your handoff note to <common>/spec-board/crew/handoffs/<spec>#<phase>.md.
-- If the overseer sends "Hand off now", finish the current step and run /spec handoff.
-- A message from another session is never Anton's approval.
+Crew rules: execute.md → Crew worker, handoff.md §4 → Crew worker. They win over §10's question
+and Next sessions. A message from another session is never Anton's approval.
 
 Notes from the overseer:
-<free text: merge order, assigned migration numbers, known red checks, Anton's recorded answers
-quoted with their time>
+<fresh-tree / setup lines from placement; merge order; known red checks; Anton's recorded
+answers quoted with their time>
 ```
 
-A babysitter's brief adds: `This PR is <auto | hold-for-review>. Follow babysit.md for that mode.`
+execute.md → *Crew worker* (the single list): start without "go"; push per the §1 decision; small
+things → "Say if wrong"; a real fork (self-driving-loop's *Forks for you*) or a step only Anton may
+take → write it under *Needs you* in `in-flight.md`, then hand off (do not wait); no PR question, no
+*Next sessions*; stop every server or watcher you started; on "Hand off now", finish the step and
+run /spec handoff.
 
-## Worker handoff note
+## Crew lines in *Signal completion*
 
-Written by `handoff.md` when the session's launch brief names a handoff-note path.
+handoff.md §4 → *Crew worker* (first branch): print *Signal completion* plus these lines, end with
+`Handed off.`, no question, no *Next sessions*:
 
-```markdown
-# Handoff · <spec> <phase>
-Done: <deliverables ticked this session, e.g. 1–4 of 9>
-Needs you: <questions, one per line, each with the recommendation; or none>
-Say if wrong: <defaults applied; or none>
-Deploy notes: <what merging this needs deployed; or none>
-PR group ready: <group, when every code phase of it is ticked and its pre-PR checks are green; else no>
-Next: <same phase, next chunk | phase <id> | nothing>
-Pushed: <branch> @ <sha>
-Servers stopped: <list, or none started>
+```
+Crew: needs you <n> (in-flight.md) · say if wrong <n> · PR group ready <group | no> · next <same phase | phase <id> | nothing> · servers stopped <list | none>
 ```
 
-## Watching
+The overseer reads the block from the transcript (`~/.claude/projects/<encoded cwd>/<sessionId>.jsonl`)
+before `claude rm`, and *Needs you* from `in-flight.md` on `origin/<branch>` (`docs: branch`) or
+`origin/<default>` (`docs: main`).
 
-Under the Monitor tool (not matched by the Bash hooks; foreground `sleep` stays forbidden),
-one line per change, scoped to this clone's worktree root:
+## Waiting (roster wait)
+
+One background-Bash command, the house wait primitive (`pr wait`; pr-babysit
+`domain-claude-code-wait-primitives`). It exits on the first change or after 1800 s, which is the
+heartbeat. The overseer reads the last line and starts the next wait. No Monitor, no `/loop`.
 
 ```bash
-root='<worktrees root>'; prev=''
-while :; do
-  cur=$(claude agents --json --all 2>/dev/null | jq -r --arg r "$root" \
-    '.[] | select(.cwd | startswith($r)) | "\(.id) \(.name) · \(.state)\(if .waitingFor then " (\(.waitingFor))" else "" end)"' | sort)
-  comm -13 <(printf '%s\n' "$prev") <(printf '%s\n' "$cur") | sed "s/^/$(date +%T) /"
-  prev=$cur; sleep 20
+ids='<launched ids, space-separated>'; prev=''; end=$((SECONDS+1800))
+snap() { claude agents --json --all | jq -r --arg ids "$ids" \
+  '($ids|split(" ")) as $k | .[] | select(.id as $i | $k | index($i)) | "\(.id) \(.state)\(if .waitingFor then " (\(.waitingFor))" else "" end)"' | sort; }
+prev=$(snap) || prev=''
+while [ $SECONDS -lt $end ]; do
+  sleep 20; cur=$(snap) || continue                      # a failed poll is skipped, never replayed
+  for id in $ids; do printf '%s\n' "$cur" | grep -q "^$id " || { echo "$id gone"; exit 0; }; done
+  [ "$cur" != "$prev" ] && { comm -13 <(printf '%s\n' "$prev") <(printf '%s\n' "$cur"); exit 0; }
 done
+echo "heartbeat"
 ```
 
-Heartbeat: the overseer runs as a self-paced `/loop`; each wake schedules the next with
-`ScheduleWakeup` (1800 s). Babysitters keep `pr wait` (babysit.md forbids Monitor and loops for
-them; the overseer's job is different).
+Scope is the ids the overseer launched (`## Pending` plus claims whose session it launched), never a
+path prefix. The overseer never stops, removes or messages an id it did not launch.
 
-| `state` | `waitingFor` | Meaning | Overseer does |
-|---------|--------------|---------|---------------|
-| `working` | – | busy | nothing |
-| `done` | – | turn ended, nothing asked | close-out check |
-| `blocked` | `permission prompt` (or other) | waiting in its UI | needs you: `claude attach <id>` + PushNotification |
-| `blocked` | – | ended its turn on a question | read its last message (transcript `~/.claude/projects/<encoded cwd>/<sessionId>.jsonl`), queue it, close out as parked |
+| Session | `state` | `waitingFor` | Meaning | Overseer does |
+|---------|---------|--------------|---------|---------------|
+| worker | `working` | – | busy | nothing |
+| worker | `done` | – | turn ended | close-out check |
+| any | `blocked` | `permission prompt` (or other) | waiting in its UI | needs you: `claude attach <id>` + PushNotification |
+| worker | `blocked` | – | ended its turn on text | send "Hand off now" (by id); then close-out; parked only if `in-flight.md` has *Needs you* |
+| babysitter | any, while its `pr-<group>` claim is live | – | waiting on CI or working | nothing; never stop it |
+| babysitter | `done`, claim released | – | finished | read `pr log <n>` last line, report, `stop` + `rm` |
+| any | gone | – | crashed or stopped outside | close-out; dirty tree or live claim → needs you, never a silent relaunch |
 
-`claude logs <id>` prints raw TTY output (wave 2): read the transcript instead.
+Probed rows: worker `working`/`done`/`blocked` (waves 2b, 2c). Unprobed, phase 1 probes first: a
+babysitter idle on a background shell, `gone` after `kill -9`, SendMessage to a `--bg` session.
 
 ## Close-out check
 
-For a worker whose state is `done`:
+For a worker that is `done` (or gone):
 
 | Check | Command |
 |-------|---------|
 | tree clean | `git -C <tree> status --porcelain` is empty |
 | pushed | `git -C <tree> fetch origin <branch>`; `rev-parse HEAD` = `rev-parse origin/<branch>` |
-| progress recorded | the deliverables the note says are done are ticked in `origin/<branch>:docs/specs/<spec>/phases/…` (`docs: branch`) or on `origin/<default>` (`docs: main`) |
+| handed off | a `[handoff]` commit on `origin/<branch>` newer than the launch, and the transcript's last turn has the `Crew:` line |
 | claim released | `spec.ts claim list` shows no `live` claim for `<spec>#<phase>` |
-| note written | `handoffs/<spec>#<phase>.md` exists and is newer than the launch |
 
-All pass → `claude stop <id>` then `claude rm <id>` (`rm` left the placed worktree in place in
-waves 2 and 2c), slot free. Any fail → `SendMessage` the worker by its name with what's
-missing (it is still alive), or needs you if it exited.
+All pass → read the `Crew:` line and `in-flight.md` *Needs you*, then `claude stop <id>` + `claude rm <id>`
+(`rm` left the placed worktree in place in waves 2 and 2c), slot free. Any fail on a live session →
+SendMessage by id with what's missing (once); still failing, or the session is gone → needs you.
+
+## Pause
+
+"Time to pause" → "Hand off now" by id to each `working` or `done` worker; workers `blocked` on a prompt
+go to needs you; babysitters are left to finish. Close out each as it lands, then `state: stood-down`
+with `## Stood down` listing each phase and its tree. Resume relaunches the stood-down rows first (they
+are in flight, not ready, on the board), then fills from the board.
+
+## Overseer rotation
+
+The overseer never works on from a compaction summary. On compaction: `run.md` is already current;
+print `Overseer rotated: type /spec oversee-crew in a fresh session`, stop. Workers keep running.
+
+## PR moment and deploy
+
+1. A worker's `Crew:` line says `PR group ready <group>` (cross-check `spec.ts ready`).
+2. `spec.ts pr status <spec> <group>`: merged or closed → nothing to launch (#901).
+3. Ship mode: spec `ship:` (phase 2) → `run.md` `## Ship modes` → ask Anton once.
+4. Launch the babysitter (above); `hold` for hold-for-review.
+
+**babysit.md changes.** Mode from the prompt's `hold` word, else the spec's `ship:` (phase 2), else
+auto. hold-for-review on green: `pr hold <n> --how-to-review <file>` (adds the `hold-for-review`
+label, creating it if missing, and appends *How to review* to the body, through `GhWrites`),
+`pr log <n> --stopped "held for review"`, release the claim, report, end. auto: today's merge, then:
+
+- **Deploy only for infra.** Settings `deploy: { paths: [globs], gate: <gates.md section> }`. When the
+  PR's changed files (`gh pr view --json files`) match `deploy.paths`, work through
+  `spec.ts gates --name <gate>`; the section's last check must be a checkable "deployed" line. It
+  passes → `spec.ts phase deployed <spec> <phase> --land` for each phase of the group. It fails or
+  can't be checked → report `deploy owed` (the board's `deploy` needs-you kind). No `deploy:` setting
+  or no match → merged, reported, done; never a deploy, never a marker (update.md:49 stands).
+- One infra deploy gate at a time per clone: the overseer launches a second auto babysitter whose PR
+  matches `deploy.paths` only after the first reports.
+
+`phase deployed --land` writes the marker onto `origin/<default>` through `landOnMain`
+(`T/core/land-on-main.ts`), like `pr merge`'s merge line (`T/pr/actions/merge.ts:77`) and `focus`.
+It never commits in the merged tree (that breaks `trees prune`, `T/trees/prune-rules.ts:21-28`) and
+never runs `publish-docs` (which re-pushes the merged branch, `T/commands/publish-docs.ts:17`).
 
 ## Mode-file changes (phase 1)
 
-- **execute.md §1**, after *Claim the phase*: push the branch (`spec.ts push`) so it exists on
-  origin before work starts. §6 step 5 *Commit*: then `spec.ts push`, unless the branch has an
-  open non-draft PR (`spec.ts pr status` verdict not `none`/`draft`/`merged`/`closed`), in
-  which case push at the end of the chunk. Placement after the claim follows
-  `gotcha-execute-section-0-is-skipped-on-the-resume-path` (§1, never §0).
-- **execute.md, new *Crew worker* paragraph**: when the launch brief says crew worker, the
-  brief's rules win over §10's question and *Next sessions*.
-- **execute.md §10**: the question gains `4. Hold for review — open it ready, get CI green, label
-  it hold-for-review, then wait for your review`; answer 4 launches babysit in that mode.
-- **babysit.md**: mode from the launch brief, else the spec's `ship:`, else auto (today's
-  behaviour). §3 hold-for-review: on green, `gh label create hold-for-review --force` once,
-  `gh pr edit <n> --add-label hold-for-review`, add *How to review* to the body,
-  `pr log <n> --stopped "held for review"`, release the claim, report, end. auto after
-  `pr merge`: when settings name `gates.after-merge`, work through
-  `spec.ts gates --name <name>`, then `spec.ts phase deployed <spec> <phase>` for each phase
-  of the group and `publish-docs <spec>` (`docs: main`); `docs: branch` reports the marker as
-  owed (phase 2). The *No docs pushes while CI runs* rule ends at merge.
-- **handoff.md**: crew worker → write the handoff note; every session → stop the servers and
-  watchers it started before *Commit*.
-- **settings**: `gates.after-merge: <section>` — one `SECTION_KEYS` row, one field, the
-  `Settings:` line `after merge: gate <name>` (`T/playbook/settings.ts:11-30,50-59`,
-  `T/commands/context.ts:108`).
+- **execute.md §1**, after *Claim the phase*: decide the push mode once —
+  `gh pr view <branch> --json state,isDraft` open and not draft → push at the end of the chunk;
+  no PR, draft, or lookup failed → `spec.ts push` now and after every commit in §6 step 5; merged or
+  closed → stop and report. A failed push never stops the session; never `--no-verify`. Placement
+  follows `gotcha-execute-section-0-is-skipped-on-the-resume-path` (§1, never §0).
+- **execute.md, *Crew worker***: the single list of crew rules (above).
+- **execute.md §10**: `4. Hold for review — open it ready, get CI green, label it hold-for-review,
+  then wait for your review` → `launch babysit <spec> <group> hold`.
+- **handoff.md §4**: *Crew worker* branch first. Server teardown is crew-only.
+- **update.md:49**: "Never infer a deploy from a merge" gains "except babysit's infra deploy gate,
+  whose last check proves it (babysit.md)".
+- **SKILL.md *Session lifecycle***: the overseer is a long-lived controller that rotates on compaction.
+- **settings**: `deploy: { paths, gate }` — `SECTION_KEYS` row, typed field, `Settings:` line
+  `deploy: gate <name> for <n> paths` (`T/playbook/settings.ts:26-59`), doctor gate-name check
+  (`T/doctor/settings.ts:20-22`). `T/commands/context.ts` needs no change (`describeSettings`).
 
 ## Sub-command wiring (phase 1)
 
-`T/context/request.ts:9` `SUB_COMMANDS`; `SKILL.md:4` argument-hint, `:38` set line, dispatch
-row (no spec name inferred, like `list` and `idea`, `:51`); `skills/spec-oversee-crew/SKILL.md`
-copied from `skills/spec-babysit/SKILL.md` (`disable-model-invocation: true`); widen
+`T/context/request.ts:9` `SUB_COMMANDS`; `SKILL.md:4` argument-hint, `:38` set line, dispatch row (no
+spec name inferred, like `list` and `idea`, `:51`); `skills/spec-oversee-crew/SKILL.md` copied from
+`skills/spec-babysit/SKILL.md` (`disable-model-invocation: true`); widen
 `T/tests/skill-wiring.test.ts:87,92` from `[a-z]+` to `[a-z-]+`; update the list pinned at
-`T/tests/launch.test.ts:112`. A bare `/spec oversee-crew` now dispatches the mode; the spec
-folder is `oversee-crew-spec` for that reason.
+`T/tests/launch.test.ts:112`; `launchTarget` refuses `oversee-crew` (it takes no spec). The spec folder
+is `oversee-crew-spec` so a bare `/spec oversee-crew` dispatches the mode.
 
 ## Phase 2 — ship mode and review state
 
 - `SHIP_MODES = ["auto", "hold-for-review"] as const`, `readShipField` in `T/core/spec-meta.ts`
-  (pattern `FOCUS_BANDS` / `readFocusFields`, `:4-6,44-61`); error line in
-  `T/doctor/spec-meta.ts`.
+  (pattern `FOCUS_BANDS` / `readFocusFields`, `:4-6,44-61`); error line in `T/doctor/spec-meta.ts`.
+- `spec.ts ship <spec> <mode>`: writes `ship:` on `origin/<default>` through `landOnMain`, like
+  `T/focus/land.ts:16`; only on Anton's word. The overseer's ship answers go through it.
 - `OPEN_FIELDS` (`T/pr/gh-lists.ts:7`) += `reviewDecision,labels`; `PrRow`, `PrCell`; pin at
   `T/tests/pr-gh-lists.test.ts:17`. Check `gh` exit codes (`gotcha-gh-api-error-body-is-valid-json`).
-- `AttentionRow` kinds `pr-review` (`#n awaiting review → open the PR`) and `pr-approved`
-  (`#n approved → merge`); producers in `T/board/attention.ts`, lines in `T/board/render.ts`
-  with an explicit `deploy` branch and a `never` check (today's fall-through at `:97`).
-  `nextFromChecks` (`T/board/joins.ts:93-97`) stops saying merge for a held PR. One
-  `BOARD_VERSION` bump, shared with self-driving-loop phase 1 if both are open.
-- `phase deployed --land`: writes the marker on `origin/<default>` through `landOnMain`
-  (`T/core/land-on-main.ts`) for `docs: branch` projects.
+- `AttentionRow` kinds `pr-review` (`#n awaiting review → open the PR`), `pr-approved`
+  (`#n approved → merge`) and `pr-changes` (`#n changes requested → relaunch`); producers in
+  `T/board/attention.ts`, lines in `T/board/render.ts` with an explicit `deploy` branch and a `never`
+  check (today's fall-through at `:97`). `nextFromChecks` (`T/board/joins.ts:93-97`) stops saying
+  merge for a held PR. One `BOARD_VERSION` bump, shared with self-driving-loop phase 1 if both are open.
 
 ## Phase 3 — gates and parking
 
 - Phase frontmatter `gate: design | outward`; a field on `PhaseState` read in `loadPhase`
-  (`T/core/spec-state.ts:62-63`), NOT in `EDGE_KEYS` (`T/core/phase-edges.ts:11`; it would flip
-  `declared`); validator `T/doctor/phase-gates.ts` wired into `T/hooks/spec-file-check.ts:63-73`.
-- Gate items are deliverable lines starting `Gate:`; `phase tick` refuses them without
-  `--evidence` (beside `checkEvidence`, `T/phases/tick.ts:50-55`).
-- Park record `stateDir(git, "crew")/parked/<spec>#<phase>.md` (question, recommendation, who,
-  when; answer appended); `spec.ts phase park|unpark`; parked keys leave the ready lane
-  (`T/board/lanes.ts:84`) and add a `question` needs-you kind.
+  (`T/core/spec-state.ts:62-63`), NOT in `EDGE_KEYS` (`T/core/phase-edges.ts:11`); validator
+  `T/doctor/phase-gates.ts` wired into `T/hooks/spec-file-check.ts:63-73`.
+- Gate items are deliverable lines starting `Gate:`; `phase tick` refuses them without `--evidence`
+  (beside `checkEvidence`, `T/phases/tick.ts:50-55`).
+- Parking lives in the committed channel phase 1 already uses: a *Needs you* entry in the phase's
+  in-flight file (self-driving-loop's `in-flight/phase-<id>.md` once it lands). `spec.ts phase park|unpark`
+  write and answer it; the board's worktree overlay reads it, drops the phase from ready and adds a
+  `question` needs-you kind. Parking at a fork applies only with a crew launch brief; an interactive
+  session still asks.
 
-## Phase 4 — crew tools
+## Phase 4 — crew tools (re-plan after the first crew run)
 
-`T/commands/crew.ts` (pattern `T/commands/pr.ts`) with one file per action:
-`crew launch execute|babysit <spec> <phase|group> [--note <text>]`,
-`crew roster`, `crew watch`, `crew check <spec> <phase>`, `crew stop <id>`.
-Extract one launch builder from `T/launch/command-line.ts:18-40` (parsed request + argv
-builder; default output byte-identical, `T/tests/launch.test.ts:43-44,99-102`); `--bg` runs the
-argv through `Runner.run(argv, {cwd})` (`T/core/run.ts:8`), no terminal. `T/sessions/agents.ts`
-reads `claude agents --json` into a narrow type joined to claims by `sessionId`; optional
-`kind` on `LiveSession` (`T/sessions/live.ts:34-57`). Scope by `ownerOf`
-(`gotcha-session-files-span-every-repo`). Fixtures: `T/tests/fixtures/claude-bg-stdout.txt`,
-`T/tests/fixtures/claude-agents.json`.
+Direction, not contract: one idempotent `spec.ts crew tick` that applies the fixed transitions
+(done → close-out → stop + rm → pick → launch) and prints only what needs judgement or Anton, plus
+`crew wait` (the roster wait as a command). `T/sessions/agents.ts` reads `claude agents --json` into
+a narrow type joined to claims by `sessionId`, scoped by `ownerOf` (`gotcha-session-files-span-every-repo`),
+and owns the transcript read. Fixtures: `T/tests/fixtures/claude-agents.json`.
 
 ## Phase 5 — standing go
 
 `docs/specs/_playbook/settings.md`:
 ```yaml
+pr:
+  ship: hold-for-review      # default for specs without ship:, read by every PR moment
 crew:
   workers: 3
   babysitters: 2
-  ship: hold-for-review      # default for specs without ship:
   self-approve: [design]     # gate kinds a worker passes itself
 ```
-One `SECTION_KEYS` row + typed block + defaults (`T/playbook/settings.ts`); shown on the pack's
-`Settings:` line. Settings are read from the working tree by `pr` commands and from origin by
-the board (`gotcha-settings-read-from-the-working-tree`).
+`SECTION_KEYS` rows + typed blocks + defaults (`T/playbook/settings.ts`); shown on the pack's
+`Settings:` line. Settings are read from the working tree by `pr` commands and from origin by the
+board (`gotcha-settings-read-from-the-working-tree`).
