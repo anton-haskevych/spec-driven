@@ -47,7 +47,9 @@ export function parseSessionFile(text: string): LiveSession | undefined {
     pid,
     sessionId,
     cwd,
-    status: toSessionStatus(stringField(data, "status")),
+    // A tab sent to the background keeps its process and this file, frozen at its last status; the
+    // conversation goes on under a new session id, as the job with its own file.
+    status: stringField(data, "parkedJobId") ? "idle" : toSessionStatus(stringField(data, "status")),
     ...(name ? { name } : {}),
     ...(nameSource ? { nameSource } : {}),
     updatedAt,
