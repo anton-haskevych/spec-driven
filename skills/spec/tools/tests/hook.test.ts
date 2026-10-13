@@ -57,6 +57,13 @@ describe("hookResponse", () => {
     write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\n---\n");
   });
 
+  test("checks against the project's rules when the session cd'd into a subfolder", () => {
+    const file = write("CLAUDE.md", "---\nstatus: draft\ncreated: a\nupdated: b\n---\n");
+    const fromSubfolder = { ...payload(file), cwd: join(project, "frontend", "src") };
+    expect(JSON.parse(hookResponse(fromSubfolder, project) ?? "{}").reason).toContain('status "draft" is not allowed here');
+    write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\n---\n");
+  });
+
   test("blocks a ledger entry without frontmatter", () => {
     const file = write("ledger/gotcha-b.md", "# no frontmatter\n");
     expect(hookResponse(payload(file, "Edit"), project)).toContain("ledger entry has no frontmatter");

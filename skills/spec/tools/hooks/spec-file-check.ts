@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { basename, dirname, isAbsolute, join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { isRecord } from "../core/frontmatter";
-import { locateSpecFile, type SpecFileLocation } from "../core/spec-folders";
+import { findProjectDir, locateSpecFile, type SpecFileLocation } from "../core/spec-folders";
 import { allowedStatuses } from "../core/taxonomy";
 import { formatIssues, type Issue } from "../doctor/issue";
 import { checkBacklogItem } from "../doctor/backlog-item";
@@ -83,7 +83,7 @@ export function hookResponse(payload: unknown, fallbackDir: string): string | un
   const rawPath = isRecord(input) ? input.file_path : undefined;
   if (typeof rawPath !== "string") return undefined;
 
-  const projectDir = typeof payload.cwd === "string" ? payload.cwd : fallbackDir;
+  const projectDir = findProjectDir(typeof payload.cwd === "string" ? payload.cwd : fallbackDir);
   const filePath = isAbsolute(rawPath) ? rawPath : join(projectDir, rawPath);
   const errors = issuesForWrittenFile(filePath, projectDir).filter((issue) => issue.severity === "error");
   if (errors.length === 0) return undefined;

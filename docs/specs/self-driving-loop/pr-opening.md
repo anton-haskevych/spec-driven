@@ -2,10 +2,12 @@
 
 ## Spec state
 
-Spec written and reviewed (2026-10-10), not yet implemented. 4 code phases. Split: PR A = phases 1–3
-(mode-file prose, board `title`/review row, in-flight per phase), PR B = phase 4 (project dir,
-hooks, pack budget). A and B are independent; both can start now. pr-babysit edits the same
-mode files: whoever lands second merges main. No branch/PR yet.
+4 code phases. Split: PR A = phases 1–3 (mode-file prose, board `title`/review row, in-flight per
+phase), PR B = phase 4 (project dir, hooks, pack budget). pr-babysit edits the same mode files:
+whoever lands second merges main.
+
+- PR B: phase 4 done on `feat/self-driving-loop-pr-b`; tests and typecheck green; no PR yet.
+  CRM execute packs (92 open specs, 2026-10-12): median 20,963 → 16,708 chars, max 69,043 → 29,193, over 30K 20 → 0.
 
 ## Pre-PR checks
 
