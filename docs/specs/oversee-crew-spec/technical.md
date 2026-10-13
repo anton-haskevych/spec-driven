@@ -295,13 +295,41 @@ is `oversee-crew-spec` so a bare `/spec oversee-crew` dispatches the mode.
   `question` needs-you kind. Parking at a fork applies only with a crew launch brief; an interactive
   session still asks.
 
-## Phase 4 — crew tools (re-plan after the first crew run)
+## Phase 4 — crew tools (re-planned after the first crew run)
 
-Direction, not contract: one idempotent `spec.ts crew tick` that applies the fixed transitions
-(done → close-out → stop + rm → pick → launch) and prints only what needs judgement or Anton, plus
-`crew wait` (the roster wait as a command). `T/sessions/agents.ts` reads `claude agents --json` into
-a narrow type joined to claims by `sessionId`, scoped by `ownerOf` (`gotcha-session-files-span-every-repo`),
-and owns the transcript read. Fixtures: `T/tests/fixtures/claude-agents.json`.
+`T/sessions/agents.ts` reads `claude agents --json --all` into `Agent` (`id?, sessionId, name?, cwd,
+kind, pid?, status?, state?, waitingFor?`; an unknown `state` reads `unknown` and is never acted on),
+scoped by `ownerOf` (`gotcha-session-files-span-every-repo`). `T/sessions/transcript.ts` returns the
+assistant text since the last prompt from `projects/*/<sessionId>.jsonl`. Fixture
+`T/tests/fixtures/claude-agents.json`.
+
+`spec.ts crew …`, one line of result last, like every spec.ts command:
+
+| Command | Result line |
+|---|---|
+| `crew overseer` | `Overseer: this session` · `Overseer: taking over from <id> (<closed \| parked into this session>)` · `Overseer: another live overseer <id> · <name>` |
+| `crew wait <id…> [--timeout 30m] [--interval 20s]` | `<id> <state>[ (<waitingFor>)]` per changed id, `<id> gone`, or `heartbeat`; exits once; a failed poll is skipped |
+| `crew check <id>` | `Close-out: ok · <Crew line>` · `Close-out: missing <what>` · `Close-out: waiting (pr-<group> claim live)` |
+| `crew launch <spec> <phase> \| <spec> pr-<group> [hold] [--note <text>]…` | placement lines, then `Launched: background <id> · <title>` or the `launch:` refusal; the id goes to `## Launched` |
+| `crew tick` | one line per action or judgement item, then `Tick: <n> closed out · <n> launched · <n> for you` |
+
+`crew overseer` follows a parked tab: the recorded id's session file has `parkedJobId: <job>`, and the
+job's session id starts with it. The job is this session → take over; a live job → another overseer.
+
+`crew tick`, in order, only for ids in `## Launched`:
+1. Overseer check (as `crew overseer`); another live overseer → print it and stop. Otherwise write
+   this session's id to `overseer:`.
+2. Per launched id, by roster row and claims (the table under *Waiting*): a babysitter with a live
+   `pr-<group>` claim → nothing; a `done` babysitter with its claim released → report its last line,
+   `claude stop` + `claude rm`; a `done`, `stopped` or gone worker → close-out → ok: stop + rm, drop
+   from `## Launched`, log, then `next same phase` → relaunch, `PR group ready` / `needs you` /
+   `say if wrong` → printed for the overseer; a failed close-out → printed (live: message it; gone:
+   needs you). `blocked (<waitingFor>)` → needs you with `claude attach <id>`; `blocked` → `Hand off now
+   → <title>`.
+3. Fill free worker slots from the board's ready lane by §2's rule, through `crew launch`.
+
+Never: a session not in `## Launched`, a session whose claim is live, `claude rm` of a tree (`rm` keeps
+the worktree; a test pins it), SendMessage (a Claude tool; tick prints the line to send).
 
 ## Phase 5 — standing go
 

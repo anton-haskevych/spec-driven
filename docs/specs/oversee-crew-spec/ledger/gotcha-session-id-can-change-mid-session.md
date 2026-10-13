@@ -26,3 +26,10 @@ It bites claims too: at handoff `claim release oversee-crew-spec` printed `nothi
 because the claim carries the old id, and `claim list` kept it `live`. It frees once the session
 closes (a closed session's claim is taken over). A fix belongs in `T/claims/` (release by pid or
 workspace as well as session id); not done here.
+
+**Following a park (phase 4, 2026-10-12).** A background job's session file has `jobId` = the first
+8 characters of its `sessionId`; the parked tab's file keeps the old `sessionId` with
+`parkedJobId: <jobId>`, and `claude agents` doesn't list the parked tab at all. So an id recorded
+before a park is followed to the job: `crew overseer` takes its own run over when that job is this
+session. Claims are matched by key (`<spec>#<phase>`), never by session id.
+
