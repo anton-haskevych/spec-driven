@@ -4,6 +4,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 `[applies-to]` scope tag. See `SKILL.md` for entry format and filtering rules.
 
 ## Gotchas
+- `gotcha-overseer-reads-worker-in-flight-md.md` — [phase 3] — oversee-crew.md:179 still reads in-flight.md; point it at the phase file
 - `docs/specs/_ledger/gotcha-hook-payload-cwd-follows-cd.md` — [general] — hook payload.cwd follows cd; resolve with findProjectDir
 - `docs/specs/_ledger/gotcha-base-cache-key-must-change-with-its-contents.md` — [general] — base cache reused per sha: bump BASE_LAYOUT when its contents change
 - `docs/specs/_ledger/gotcha-execute-pack-predates-a-main-merge.md` — [general] — execute pack predates a main merge: re-run context after merging

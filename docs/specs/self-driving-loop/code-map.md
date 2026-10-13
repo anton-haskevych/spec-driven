@@ -27,6 +27,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/context.ts` | `APPLY_TOP_READY` string the pack prints | |
 | `skills/spec/tools/pr/resolve.ts` | reads `PR #n` from Spec state; why the PR line stays | `decision-pr-link-stays-in-spec-state` |
 | `skills/spec/tools/core/spec-state.ts` | reads in-flight | `decision-in-flight-one-file-per-phase` |
+| `skills/spec/tools/core/in-flight.ts` | per-phase in-flight file names, readers' one source (`readInFlight`, `notesForPhase`, `inFlightFilesIn`) | `decision-in-flight-one-file-per-phase` |
 | `skills/spec/tools/context/packs.ts` | `inFlightBlock`, `projectLessonsBlock`, budgets | |
 | `skills/spec/tools/doctor/phases.ts` | `checkInFlight` | |
 | `skills/spec/tools/core/spec-folders.ts` | `findProjectDir` beside `TOP_SPEC_ROOT` | `decision-project-dir-is-outermost-docs-specs` |
