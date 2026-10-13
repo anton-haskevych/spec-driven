@@ -8,14 +8,17 @@ needs to know exist to navigate the code — not every file that's touched.
 | File | Role | Phase |
 |------|------|-------|
 | `skills/spec/oversee-crew.md` | The overseer procedure | 1 |
-| `skills/spec/crew-brief.md` | Launch brief template, run-file skeleton, roster-wait script | 1 |
+| `skills/spec/crew-brief.md` | Launch brief and run-file shapes; points at the crew commands | 1, 4 |
 | `skills/spec-oversee-crew/SKILL.md` | Thin skill so `/spec-oversee-crew` dispatches | 1 |
 | `skills/spec/tools/launch/background.ts` | `--bg` launch: argv run with cwd, id parse | 1 |
 | `skills/spec/tools/pr/actions/hold.ts`, `commands/pr/hold.ts` | `pr hold`: label + *How to review* via `GhWrites` (`body`/`setBody`/`label`) | 1 |
 | `skills/spec/tools/phases/deployed-land.ts` | `phase deployed --land`: marker on origin's main through `landOnMain` | 1 |
 | `skills/spec/tools/tests/fixtures/claude-bg-stdout.txt` | Real `claude --bg` output, service-start line included | 1 |
 | `skills/spec/tools/commands/ship.ts` | `spec.ts ship`: lands `ship:` on main | 2 |
-| `skills/spec/tools/sessions/agents.ts` | `claude agents --json` + transcript reader | 4 |
+| `skills/spec/tools/sessions/agents.ts`, `sessions/transcript.ts` | `claude agents --json` reader; a session's last turn (the `Crew:` line) | 4 |
+| `skills/spec/tools/crew/` | Pure crew logic: `run-state.ts` (run.md read/write), `overseer.ts` (follows a parked tab), `roster.ts`, `close-out.ts`, `crew-line.ts`, `tick-step.ts`, `pick.ts`, `brief.ts`; `close-out-run.ts` gathers close-out facts (git, claims by key) | 4 |
+| `skills/spec/tools/commands/crew.ts`, `commands/crew/*` | `spec.ts crew overseer\|start\|wait\|check\|launch\|tick`; `launch-session.ts` is brief + placement + `--bg` + `## Launched`; `tick.ts` composes it all behind injectable ports | 4 |
+| `skills/spec/tools/launch/place-for-launch.ts` | Placement step shared by `launch` and `crew launch` | 4 |
 
 ## Existing files touched
 

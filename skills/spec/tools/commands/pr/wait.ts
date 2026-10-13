@@ -1,4 +1,5 @@
 import { parseArgs } from "node:util";
+import { durationMs } from "../../core/duration";
 import { systemRunner } from "../../core/run";
 import { systemClock } from "../../pr/babysit/poll";
 import { waitForPr, type WaitDeps, type WaitRequest } from "../../pr/babysit/wait";
@@ -7,8 +8,6 @@ export const PR_WAIT_USAGE = "pr wait [<pr> | <spec-name> [<group>]] [--sha <sha
 
 const DEFAULT_TIMEOUT = "25m";
 const DEFAULT_INTERVAL = "30s";
-const DURATION = /^(\d+)(s|m|h)$/;
-const UNIT_MS: Record<string, number> = { s: 1_000, m: 60_000, h: 3_600_000 };
 
 const systemDeps: WaitDeps = { runner: systemRunner, clock: systemClock };
 
@@ -44,7 +43,3 @@ function parseWaitArgs(args: readonly string[]): WaitRequest | string {
   };
 }
 
-function durationMs(text: string): number | undefined {
-  const match = DURATION.exec(text);
-  return match ? Number(match[1]) * UNIT_MS[match[2]!]! : undefined;
-}

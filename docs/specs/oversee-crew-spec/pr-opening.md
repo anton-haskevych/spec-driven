@@ -17,6 +17,11 @@ Phase 2 done (2026-10-12) on `feat/oversee-crew-spec-pr-b`, pushed, no PR yet; v
 set on the branch. PR B checks re-run after merging main: 1120 tests pass, typecheck clean, lockfile clean,
 touched files under 250 lines, doctor clean.
 PR #25 merged 2026-10-12 as f6ce4d0 (squash).
+Phase 4 done (2026-10-13) on `feat/oversee-crew-spec-pr-d`, pushed, no PR yet (held for review per the
+crew brief; the overseer runs the PR moment). Version 2.46.0 + ROADMAP row set on the branch (main was
+2.45.0). Checks after merging main: 1248 pass; real-git claim/board tests timed out at load average ~48
+(hook timeouts, a different set each run; board-inputs passes on rerun), typecheck, lockfile and doctor
+clean, new tool files under 250 lines.
 
 ## Pre-PR checks
 

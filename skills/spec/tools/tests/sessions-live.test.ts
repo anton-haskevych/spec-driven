@@ -50,6 +50,8 @@ describe("parseSessionFile", () => {
   test("a parked tab reads as idle whatever its frozen status says: its job has its own file", () => {
     expect(parseSessionFile(session({ status: "busy", parkedJobId: "811dfa8e" }))?.status).toBe("idle");
     expect(parseSessionFile(session({ status: "shell", parkedJobId: "811dfa8e" }))?.status).toBe("idle");
+    expect(parseSessionFile(session({ parkedJobId: "811dfa8e" }))?.parkedJobId).toBe("811dfa8e");
+    expect(parseSessionFile(BUSY)).not.toHaveProperty("parkedJobId");
   });
 
   test("a file missing pid, sessionId, cwd or procStart, or not JSON, doesn't parse", () => {
