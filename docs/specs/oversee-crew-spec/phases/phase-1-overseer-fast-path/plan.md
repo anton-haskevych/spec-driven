@@ -108,7 +108,7 @@ Babysit's own fix pushes stay as they are.
   - the *Crew worker* paragraph (the single list of crew rules)
   - §10 answer 4 → `launch babysit … hold`
 - [x] 1.6 handoff.md §4 *Crew worker* branch first (`Crew:` line, `Handed off.`, no question, no *Next sessions*, servers stopped); update.md:49 infra exception; SKILL.md *Session lifecycle* overseer rotation
-- [ ] 1.7 babysit.md:
+- [x] 1.7 babysit.md:
   - mode from `hold`, else `ship:`, else auto
   - hold → `pr hold`, `pr log --stopped`, release, end
   - auto → infra deploy gate only when `deploy.paths` match: marker only when its last check passes, else `deploy owed`

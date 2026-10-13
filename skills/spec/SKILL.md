@@ -64,7 +64,7 @@ If `feature` is empty after extraction, resolve it as in the no-spec rule above.
 | `status` | Read [status.md](status.md) and follow it. |
 | `list` | Read [list.md](list.md) and follow it. The feature name is optional — when omitted, list open specs and the backlog; when present, treat it as a filter. |
 | `idea` | Read [idea.md](idea.md) and follow it. Captures an idea into `docs/specs/_backlog/`, or closes or drops one. |
-| `babysit` | Read [babysit.md](babysit.md) and follow it. `rest` is `<spec> <group>`: carries that PR group's PR to merged. Launched by execute's PR gate (`launch babysit`); the user doesn't type it. |
+| `babysit` | Read [babysit.md](babysit.md) and follow it. `rest` is `<spec> <group> [hold]`: carries that PR group's PR to merged, or with `hold` to green and held for review. Launched by execute's PR gate (`launch babysit`); the user doesn't type it. |
 | `oversee-crew` | Read [oversee-crew.md](oversee-crew.md) and follow it. Takes no spec: turns this session into an overseer that keeps background workers busy on the board's ready work and writes no code. |
 
 `resume`, `execute`, `review`, `update`, `handoff`, `status`, and `babysit` each start by running *Preconditions* (below). `prep`, `create`, `list`, `idea` and `oversee-crew` carry their own checks.
