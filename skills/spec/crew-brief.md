@@ -75,9 +75,11 @@ done; echo checked
 ## Roster wait
 
 Run in **background Bash** (`run_in_background: true`). It exits on the first change or after 1800 s.
-The last line is the result. Fill `ids` from `## Launched`.
+The last line is the result. Fill `ids` from `## Launched`. The Bash tool's shell is zsh, where
+`for id in $ids` doesn't split and every id would read as `gone`, so the script runs under `bash`.
 
 ```bash
+bash <<'EOF'
 ids='<launched ids, space-separated>'; end=$((SECONDS+1800))
 snap() { claude agents --json --all | jq -r --arg ids "$ids" \
   '($ids|split(" ")) as $k | .[] | select(.id as $i | $k | index($i)) | "\(.id) \(.state)\(if .waitingFor then " (\(.waitingFor))" else "" end)"' | sort; }
@@ -88,6 +90,7 @@ while [ $SECONDS -lt $end ]; do
   [ "$cur" != "$prev" ] && { comm -13 <(printf '%s\n' "$prev") <(printf '%s\n' "$cur"); exit 0; }
 done
 echo "heartbeat"
+EOF
 ```
 
 A failed poll is skipped, never acted on. A killed worker briefly reads `working` with no pid, and the
