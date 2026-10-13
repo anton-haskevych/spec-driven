@@ -45,7 +45,7 @@ skills/spec-oversee-crew/SKILL.md   # NEW (1) thin skill (copy of skills/spec-ba
 | Which sessions the overseer launched | `run.md` `## Launched` (id, title, time), removed at close-out (`stop` + `rm`) | The roster also lists Anton's own sessions; `claim list` shows no session id, and a worker that crashed before claiming has no claim. Identity only: state still comes from the roster and claims (phase 1 execute, 2026-10-12) |
 | Questions for Anton | the worker's `in-flight.md` *Needs you* (committed, pushed, on every machine) | A local note under `.git/` is blocked by worktree file guards and invisible to other machines |
 | When a question was asked / answered | `run.md` `## Questions` (bookkeeping only, with the answer text quoted) | in-flight.md is the worker's file; the overseer never commits in a worker's tree |
-| Ship mode | spec `ship:` (phase 2 writer); phase 1: `run.md` `## Ship modes` | — |
+| Ship mode | spec `ship:`, written by `spec.ts ship` (phase 2; phase 1 kept it in `run.md`) | — |
 | Crew caps, overseer id, state | `run.md` frontmatter | — |
 | Phase progress, PR group readiness | spec docs (`spec.ts ready`, `pr-opening.md`) | — |
 
@@ -73,9 +73,6 @@ babysitters: 2
 
 ## Launched
 - 6adaba33 · multi-location-studios execute 6a · 2026-10-13T09:04
-
-## Ship modes
-- cross-studio: auto (Anton, 2026-10-13T09:01)
 
 ## Questions
 - [q1] multi-location-studios 5a · asked 2026-10-13T09:40 · "Show parking notes in booking emails at every studio?" · recommend no
@@ -222,7 +219,7 @@ print `Overseer rotated: type /spec oversee-crew in a fresh session`, stop. Work
 
 1. A worker's `Crew:` line says `PR group ready <group>` (cross-check `spec.ts ready`).
 2. `spec.ts pr status <spec> <group>`: merged or closed → nothing to launch (#901).
-3. Ship mode: spec `ship:` (phase 2) → `run.md` `## Ship modes` → ask Anton once.
+3. Ship mode: spec `ship:` → ask Anton once; his answer goes through `spec.ts ship` (phase 2).
 4. Launch the babysitter (above); `hold` for hold-for-review.
 
 **babysit.md changes.** Mode from the prompt's `hold` word, else the spec's `ship:` (phase 2), else

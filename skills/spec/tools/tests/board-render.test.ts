@@ -116,6 +116,20 @@ describe("renderBoard", () => {
     ]);
   });
 
+  test("held PRs say awaiting review, approved or changes requested, each with its action", () => {
+    const needsYou: Board["lanes"]["needsYou"] = [
+      { kind: "pr-review", spec: "multi-location-studios", phase: "6", prGroup: "A", pr: 930 },
+      { kind: "pr-approved", spec: "cross-studio", phase: "9", pr: 931 },
+      { kind: "pr-changes", spec: "gamma", pr: 932 },
+    ];
+    expect(renderBoard(board({ lanes: lanes({ needsYou }) }), { lane: "you" }).split("\n").slice(3)).toEqual([
+      "NEEDS YOU",
+      "  #930 awaiting review → open the PR  multi-location-studios · 6 (PR A)",
+      "  #931 approved → merge               cross-studio · 9",
+      "  #932 changes requested → relaunch   gamma",
+    ]);
+  });
+
   test("an idle claim names its age, phases and the session to switch to", () => {
     const needsYou: Board["lanes"]["needsYou"] = [
       { kind: "idle-claim", spec: "recurring-series-lifecycle-clarity", phases: ["7"], session: "recurring-series-lifecycle-clarity execute 7", since: "2026-09-28T19:00:00.000Z" },

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { focusBand, readFocusFields, readSpecMeta } from "../core/spec-meta";
+import { focusBand, readFocusFields, readShipField, readSpecMeta, shipMode } from "../core/spec-meta";
 
 describe("focusBand", () => {
   test("reads must, should and could in any case", () => {
@@ -48,5 +48,33 @@ describe("readSpecMeta", () => {
     expect(readSpecMeta({ focus: "should", owner: "anton" })).toMatchObject({ focus: "should", owner: "anton" });
     expect(readSpecMeta({ focus: 20 }).focus).toBe("should");
     expect(readSpecMeta({ focus: "top" }).focus).toBeUndefined();
+  });
+});
+
+describe("shipMode", () => {
+  test("reads auto and hold-for-review in any case", () => {
+    expect(["auto", "Hold-For-Review", " auto "].map(shipMode)).toEqual(["auto", "hold-for-review", "auto"]);
+  });
+
+  test("anything else is no mode", () => {
+    for (const value of ["hold", "", 1, null, ["auto"], undefined]) expect(shipMode(value)).toBeUndefined();
+  });
+});
+
+describe("readShipField", () => {
+  test("reads a mode, and is silent without the key", () => {
+    expect(readShipField({ ship: "hold-for-review" })).toEqual({ ship: "hold-for-review", problems: [] });
+    expect(readShipField({ status: "active" })).toEqual({ problems: [] });
+  });
+
+  test("an unknown value is no mode, and a problem", () => {
+    for (const ship of ["merge", null, ["auto"]]) {
+      expect(readShipField({ ship })).toEqual({ problems: [`ship ${JSON.stringify(ship)} is not one of auto, hold-for-review`] });
+    }
+  });
+
+  test("readSpecMeta carries it", () => {
+    expect(readSpecMeta({ ship: "auto" }).ship).toBe("auto");
+    expect(readSpecMeta({ ship: "later" }).ship).toBeUndefined();
   });
 });
