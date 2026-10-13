@@ -1,5 +1,6 @@
 import { prClaimGroup } from "../claims/pr-claim";
 import type { ClaimStatus } from "../claims/rules";
+import { HOLD_LABEL } from "../pr/actions/hold";
 import type { PrRow } from "../pr/checks/rollup";
 import { sessionsByWorkspace } from "../sessions/by-workspace";
 import type { LiveSession } from "../sessions/live";
@@ -67,9 +68,15 @@ export function linkedPrs(prs: readonly PrRow[], links: readonly number[]): PrRo
 export function toPrCell(pr: PrRow): PrCell {
   const base: PrCell = { number: pr.number, listed: true, ...(pr.draft ? { draft: true } : {}) };
   if (pr.state !== "OPEN") return { ...base, state: pr.state === "MERGED" ? "merged" : "closed" };
-  if (!pr.checks) return base;
+  const reviewed = { ...base, ...reviewState(pr) };
+  if (!pr.checks) return reviewed;
   const { pass, fail, cancel, queued, running } = pr.checks.counts;
-  return { ...base, failing: fail + cancel, pending: queued + running, passing: pass, verdict: pr.checks.verdict.kind };
+  return { ...reviewed, failing: fail + cancel, pending: queued + running, passing: pass, verdict: pr.checks.verdict.kind };
+}
+
+function reviewState(pr: PrRow): Pick<PrCell, "held" | "review"> {
+  const held = pr.labels?.includes(HOLD_LABEL) ? { held: true as const } : {};
+  return pr.review === "approved" || pr.review === "changes-requested" ? { ...held, review: pr.review } : held;
 }
 
 function sessionCell(session: LiveSession): SessionCell {

@@ -57,6 +57,18 @@ describe("attachSessions", () => {
   });
 });
 
+describe("toPrCell", () => {
+  test("an open PR labelled hold-for-review is held, and carries an approval or a changes request", () => {
+    expect(toPrCell(pr(1, "a", { labels: ["ui", "hold-for-review"], review: "approved" }))).toEqual({ number: 1, listed: true, held: true, review: "approved" });
+    expect(toPrCell(pr(2, "b", { review: "changes-requested" }))).toEqual({ number: 2, listed: true, review: "changes-requested" });
+  });
+
+  test("a required review adds nothing, and a merged PR keeps only its state", () => {
+    expect(toPrCell(pr(3, "c", { review: "review-required" }))).toEqual({ number: 3, listed: true });
+    expect(toPrCell(pr(4, "d", { state: "MERGED", labels: ["hold-for-review"], review: "approved" }))).toEqual({ number: 4, listed: true, state: "merged" });
+  });
+});
+
 describe("attachPrs", () => {
   const prsFor = (prs: PrRow[], prLinks = new Map<string, number[]>(), row = flightRow({ workspace: FOO })) =>
     attachPrs([row], boardInputs([], { workspaces, prs: { ok: true, value: prs }, prLinks }))[0];

@@ -1,4 +1,5 @@
 import type { Priority } from "../core/schedule";
+import type { PrReview } from "../pr/checks/rollup";
 import type { VerdictKind } from "../pr/checks/verdict";
 import type { FocusBand } from "../core/spec-meta";
 import type { SessionStatus } from "../sessions/live";
@@ -29,6 +30,9 @@ export interface PrCell {
   state?: "merged" | "closed";
   // A live `pr-<group>` claim: a babysit session owns this PR until it merges.
   babysitting?: true;
+  // Labelled hold-for-review: green and waiting for the user's review on GitHub.
+  held?: true;
+  review?: Exclude<PrReview, "review-required">;
 }
 
 export type FlightNext = "executing" | "fix CI" | "merge" | "babysitting" | "ticked on branch, not merged" | "uncommitted";
