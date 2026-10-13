@@ -11,7 +11,9 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/crew-brief.md` | Launch brief template, run-file skeleton, roster-wait script | 1 |
 | `skills/spec-oversee-crew/SKILL.md` | Thin skill so `/spec-oversee-crew` dispatches | 1 |
 | `skills/spec/tools/launch/background.ts` | `--bg` launch: argv run with cwd, id parse | 1 |
-| `skills/spec/tools/pr/actions/hold.ts` | `pr hold`: label + *How to review* via `GhWrites` | 1 |
+| `skills/spec/tools/pr/actions/hold.ts`, `commands/pr/hold.ts` | `pr hold`: label + *How to review* via `GhWrites` (`body`/`setBody`/`label`) | 1 |
+| `skills/spec/tools/phases/deployed-land.ts` | `phase deployed --land`: marker on origin's main through `landOnMain` | 1 |
+| `skills/spec/tools/tests/fixtures/claude-bg-stdout.txt` | Real `claude --bg` output, service-start line included | 1 |
 | `skills/spec/tools/commands/ship.ts` | `spec.ts ship`: lands `ship:` on main | 2 |
 | `skills/spec/tools/sessions/agents.ts` | `claude agents --json` + transcript reader | 4 |
 

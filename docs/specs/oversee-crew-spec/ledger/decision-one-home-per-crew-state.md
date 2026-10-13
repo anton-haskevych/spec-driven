@@ -12,7 +12,11 @@ created: 2026-10-12T20:15:42-07:00
   Phase 3's park entries live there too. No local `crew/parked/` store and no `questions.ts`.
 - **`run.md` (local, overseer-only):** caps, the overseer id, ship answers (phase 1 only;
   phase 2 moves them to `ship:` via `spec.ts ship`), when each question was asked and
-  answered, pending launches, and the last 30 log lines.
+  answered, the `## Launched` list, and the last 30 log lines.
+- **Which sessions the overseer may touch:** `run.md` `## Launched` (id, title, time), removed at
+  close-out. Identity only, never state. It replaced `## Pending` in phase 1 execute (2026-10-12):
+  the roster lists Anton's own sessions too, `claim list` shows no session ids, and a worker that
+  crashed before claiming has no claim, so nothing else knows which ids are the overseer's.
 - **Ship mode:** the spec's `ship:`, then the project's `pr.ship` (phase 5). Not under `crew:`.
 
 Why: every copy drifted in review scenarios, for example a crash, a manual `claude stop`, or

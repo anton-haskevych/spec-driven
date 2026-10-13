@@ -5,7 +5,8 @@
 Spec written 2026-10-12 from prep (research waves 0, 1, 2, 2b, 2c and the craft wave) and the
 approved proposal page; collegium review 2026-10-12 (`reviews/…-state-homes-and-worker-lifecycle.md`)
 reshaped state homes, the wait, babysitter lifecycle and deploy (infra only). 5 code phases + 1 task
-phase. No branch or PR yet.
+phase. Branch `feat/oversee-crew-spec-pr-a` pushed (no PR yet).
+Phase 1: 1.0–1.12 done (2026-10-12); 1.13 waits for the version number at merge.
 Split: **PR A: phase 1** · **B: phase 2** · **C: phase 3** · **D: phase 4** · **E: phase 5**, one minor
 version each, picked at merge (main's minor + 1). Phase 6 runs in CRM (task phase, no PR here).
 Order: 1 first; then 2, 4 and 6 in parallel (4 re-planned after the first crew run); 3 after 2 (same
