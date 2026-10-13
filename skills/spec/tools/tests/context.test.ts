@@ -278,11 +278,14 @@ describe("contextPack", () => {
       );
     });
 
-    test("execute with nothing to go on offers the top ready row, after the conversation", () => {
+    test("execute with nothing to go on applies the top ready row, after the conversation, and says so", () => {
       const pack = contextPack(project, { mode: "execute" }, changed("src/app.ts"));
       expect(pack).toContain("If this conversation already resumed or executed a spec, use that one.");
       expect(pack).toContain("board ready --json --local");
-      expect(pack).toContain("offer its top row (focus specs rank first)");
+      expect(pack).toContain("take its top row (focus specs rank first)");
+      expect(pack).toContain("run its `next` sub-command for that spec (with the phase for execute)");
+      expect(pack).toContain("`Say if wrong:`");
+      expect(pack).not.toContain("on a yes");
     });
 
     test("a claim taken in this tree names the spec and its phase, ahead of changed files", () => {

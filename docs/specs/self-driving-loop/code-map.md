@@ -21,7 +21,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/phase-preflight/SKILL.md` | *Defaults applied* / *Forks for you* split | |
 | `skills/spec/tools/board/model.ts` | `ReadyRow.title`, `NextStep` + review, `BOARD_VERSION` | |
 | `skills/spec/tools/board/lanes.ts` | stage rows (`stageLanes`), review row | |
-| `skills/spec/tools/commands/context.ts` | `OFFER_TOP_READY` string the pack prints | |
+| `skills/spec/tools/commands/context.ts` | `APPLY_TOP_READY` string the pack prints | |
 | `skills/spec/tools/pr/resolve.ts` | reads `PR #n` from Spec state; why the PR line stays | `decision-pr-link-stays-in-spec-state` |
 | `skills/spec/tools/core/spec-state.ts` | reads in-flight | `decision-in-flight-one-file-per-phase` |
 | `skills/spec/tools/context/packs.ts` | `inFlightBlock`, `projectLessonsBlock`, budgets | |

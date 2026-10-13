@@ -19,7 +19,7 @@ Run SKILL.md → *Preconditions*. A prep-stage spec has nothing to execute — i
 
 - **Chunk hint given** (`phase 3a`, `3a`, `next`, or a phase named in the conversation) → that is the chunk.
 - **No hint** → apply SKILL.md → *Next-chunk rule*: the first phase in the ready set. If other phases are ready too, name them in the announcement line so the user can start them in parallel sessions.
-- **No spec named, and the pack says nothing in this tree points at one** (and the conversation names none) → run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board ready --json --local`, offer the top row in one line (`<spec> <phase> — <title>`) and stop. Focus specs rank first, so this offers the team's focus work before anything else. A yes starts it: run §0 again for that spec and phase. Without Bun, ask which spec instead.
+- **No spec named, and the pack says nothing in this tree points at one** (and the conversation names none) → run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board ready --json --local` and take its top row. Focus specs rank first, so this is the team's focus work before anything else. Say so in one line under `Say if wrong:` (`<next> <spec> [<phase>] — <title>`), then run that row's sub-command here: for `execute`, §0 again for that spec and phase; for `prep`, `create` or `review`, that mode for that spec. Without Bun, ask which spec instead.
 - **Nothing ready** → print the waiting phases with their reasons and stop.
 - **No unchecked phase left** → print `All phases complete — see pr-opening.md for the PR gate.` and stop.
 
@@ -94,6 +94,8 @@ Recon told you *where* the chunk lands. Preflight tells you whether the plan for
 - `principles.md` as the house rules (preflight ranks house idioms above named canon).
 
 **Take back:** its `Findings that change the plan` and `Amendments`. Apply them *before* §4–§5: a finding that the phase file asserts something false means the code wins and the phase entry is corrected via `update`; an amendment to the design changes the decomposition you are about to write. Persisting the preflight note under `research/phase-<N>/` and writing ledger entries for durable learnings is the skill's own job — confirm it did so.
+
+Then its *Defaults applied* and *Forks for you*. Apply each default as part of the plan and list it under `Say if wrong:` in the next report. A fork stops the chunk before §4: ask it, or as a crew worker write it under `## Needs you` (*Crew worker*). Every preflight decision carries a recommendation, so a recommendation alone never makes a fork a default.
 
 Do not start §5 with an unapplied amendment outstanding. Do not "note it for later".
 
