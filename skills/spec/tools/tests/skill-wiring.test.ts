@@ -126,6 +126,7 @@ describe("ship mode wiring", () => {
       section("babysit.md", "**Mode**", "## How to run the commands"),
     ];
     for (const text of readers) for (const mode of SHIP_MODES) expect(text).toContain(`\`ship: ${mode}\``);
+    for (const text of readers) expect(text).toContain("`pr.ship`");
   });
 });
 

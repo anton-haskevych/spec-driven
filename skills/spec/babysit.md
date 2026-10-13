@@ -9,7 +9,8 @@ group's phases; if it says a phase is open, the PR isn't ready: tell the user an
 **Mode**: `hold` in `rest` → hold-for-review (green, then §3b: label it and stop). Otherwise an approved
 PR is auto, even on a `ship: hold-for-review` spec: the review it waited for is done (the overseer's
 brief says so; else `gh pr view <n> --json reviewDecision` reads `APPROVED`). Otherwise the spec's
-`ship: auto` or `ship: hold-for-review`; with no `ship:`, auto (merge on green, §3). An overseer's
+`ship: auto` or `ship: hold-for-review`, else the project's `pr.ship` (the `Settings:` line's
+`ship <mode>`); with neither, auto (merge on green, §3). An overseer's
 launch brief names the mode too; the prompt's word wins.
 
 Every command below is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …`; `<n>` is the PR number `pr open`
