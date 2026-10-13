@@ -21,6 +21,8 @@ export interface SpecFixtureOptions {
   stage?: SpecStage;
   relations?: SpecNode["relations"];
   codeMapPaths?: string[];
+  title?: string;
+  reviewed?: boolean;
 }
 
 export function specFixture(name: string, options: SpecFixtureOptions = {}): SpecFixture {
@@ -34,8 +36,9 @@ export function specFixture(name: string, options: SpecFixtureOptions = {}): Spe
       relations: options.relations ?? [],
       codeMapPaths: options.codeMapPaths ?? [],
       meta: specMeta(options.meta),
+      ...(options.title ? { title: options.title } : {}),
     }),
-    state: { spec, hasProgress: options.stage === undefined, phases },
+    state: { spec, hasProgress: options.stage === undefined, phases, ...(options.reviewed === undefined ? {} : { reviewed: options.reviewed }) },
     stage: options.stage,
   };
 }
@@ -76,7 +79,7 @@ export function workspaceView(path: string, specs: readonly SpecFixture[], optio
 }
 
 export function readyRow(overrides: Partial<ReadyRow> = {}): ReadyRow {
-  return { spec: "alpha", phase: "1", next: "execute", overdue: false, unblocks: 0, safe: true, target: { newWorktree: "alpha-1" }, ...overrides };
+  return { spec: "alpha", phase: "1", title: "One", next: "execute", overdue: false, unblocks: 0, safe: true, target: { newWorktree: "alpha-1" }, ...overrides };
 }
 
 export function flightRow(overrides: Partial<FlightRow> = {}): FlightRow {

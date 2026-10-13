@@ -8,8 +8,8 @@ import { needsYou } from "./attention";
 import { flightRows, isOnBoard, readyInWorkspaces } from "./flight";
 import { focusLane, focusOrder, withFocusPositions } from "./focus";
 import { joinFlightRows } from "./joins";
-import type { BaseRef, BoardInputs, SpecStage, WorkspaceView } from "./inputs";
-import { BOARD_VERSION, type Board, type BlockedRow, type ReadyRow } from "./model";
+import type { BaseRef, BoardInputs, WorkspaceView } from "./inputs";
+import { BOARD_VERSION, type Board, type BlockedRow, type NextStep, type ReadyRow } from "./model";
 import { rowKey } from "./phase-keys";
 import { markSafe, rankReady, unblockCounts } from "./rank";
 import { treeTarget, workspaceTarget, type TreeTarget } from "./tree-target";
@@ -76,7 +76,16 @@ function specLanes(node: SpecNode, placement: Placement): SpecLanes {
   const stage = placement.inputs.stages.get(node.spec.name);
   if (stage) return stageLanes(node, stage, placement);
   const state = placement.inputs.states.get(node.spec.name);
-  return state ? phaseLanes(node, state, placement) : { ready: [], blocked: [] };
+  if (!state) return { ready: [], blocked: [] };
+  return awaitsReview(state, placement) ? stageLanes(node, "review", placement) : phaseLanes(node, state, placement);
+}
+
+// A written spec's next session is its review, until a review lands anywhere or a phase starts.
+function awaitsReview(state: SpecState, { inputs, inFlight }: Placement): boolean {
+  const name = state.spec.name;
+  const copies = [state, ...inputs.workspaces.flatMap((workspace) => workspace.states.get(name) ?? [])];
+  const started = state.phases.some((phase) => inFlight.has(rowKey({ spec: name, phase: phase.id })));
+  return state.phases.length > 0 && !started && copies.every((copy) => copy.reviewed === false && !copy.phases.some((phase) => phase.done));
 }
 
 function phaseLanes(node: SpecNode, state: SpecState, placement: Placement, origin?: BranchOrigin): SpecLanes {
@@ -108,26 +117,30 @@ function branchOnlyLanes(workspaces: readonly WorkspaceView[], placement: Placem
       const state = workspace.states.get(name);
       if (seen.has(name) || placement.inputs.nodes.has(name) || !state || !isOnBoard(node)) return [];
       seen.add(name);
-      return [phaseLanes(node, state, placement, { workspace: workspace.path, branch: workspace.branch ?? workspace.path })];
+      const origin = { workspace: workspace.path, branch: workspace.branch ?? workspace.path };
+      return [awaitsReview(state, placement) ? stageLanes(node, "review", placement, origin) : phaseLanes(node, state, placement, origin)];
     }),
   );
 }
 
-function stageLanes(node: SpecNode, stage: SpecStage, { inputs, today, unblocks }: Placement): SpecLanes {
+function stageLanes(node: SpecNode, step: Exclude<NextStep, "execute">, { inputs, today, unblocks }: Placement, origin?: BranchOrigin): SpecLanes {
   const name = node.spec.name;
+  const target = origin ? { workspace: origin.workspace } : { newWorktree: name };
   const reasons = blockers(neighborhood(inputs.nodes, name)).map((link) => `needs ${link.other}${link.phases ? `#${link.phases}` : ""}`);
-  if (reasons.length > 0) return { ready: [], blocked: [{ spec: name, reasons }] };
+  if (reasons.length > 0) return { ready: [], blocked: [{ spec: name, ...(origin ? { target } : {}), reasons }] };
   const { priority, due, updated } = node.meta;
   const row: ReadyRow = {
     spec: name,
-    next: stage,
-    target: { newWorktree: name },
+    next: step,
+    title: node.title ?? name,
+    target,
+    ...(origin ? { onlyOn: origin.branch } : {}),
     priority,
     due,
     overdue: isOverdue(due, today),
     updated,
     unblocks: unblocks.get(rowKey({ spec: name })) ?? 0,
-    safe: true,
+    safe: origin === undefined,
   };
   return { ready: [row], blocked: [] };
 }
@@ -143,6 +156,7 @@ function phaseRow(node: SpecNode, state: SpecState, phase: PhaseState, { inputs,
     ...(tree.busy ? { treeBusy: tree.busy } : {}),
     ...(origin ? { onlyOn: origin.branch } : {}),
     next: "execute",
+    title: phase.name,
     prGroup: phase.edges.pr,
     priority: phase.schedule.priority ?? node.meta.priority,
     due,
