@@ -44,6 +44,13 @@ describe("checkSpecMeta", () => {
     expect(checkSpecMeta("CLAUDE.md", meta("must"), STATUSES)).toEqual([]);
   });
 
+  test("rejects a ship mode it does not know and accepts the two it does", () => {
+    const meta = (ship: string) => `---\nstatus: active\ncreated: a\nupdated: b\nship: ${ship}\n---\n`;
+    expect(checkSpecMeta("CLAUDE.md", meta("merge"), STATUSES).map((i) => `${i.severity}: ${i.problem}`)).toEqual(['error: ship "merge" is not one of auto, hold-for-review']);
+    expect(checkSpecMeta("CLAUDE.md", meta("auto"), STATUSES)).toEqual([]);
+    expect(checkSpecMeta("CLAUDE.md", meta("hold-for-review"), STATUSES)).toEqual([]);
+  });
+
   test("reports unparseable YAML as an error", () => {
     const [issue] = checkSpecMeta("CLAUDE.md", "---\nstatus: [active\n---\n", STATUSES);
     expect(issue?.severity).toBe("error");

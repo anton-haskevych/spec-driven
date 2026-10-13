@@ -1,23 +1,17 @@
 # In-flight state
 
 **Session ended:** 2026-10-12
-**Active phase:** 1 — The overseer, fast path (done; PR A handed to a babysitter)
+**Active phase:** 2 — Ship mode and review state on the board (done; PR group B ready)
 
 ## Where things stand
 
-- Phase 1 done and released as 2.43.0 on the branch: version bumped before the PR opened (main was
-  2.42.0, no other open PRs), so the babysitter merges it as is. If main reaches 2.43 first, re-run
+- Phase 2 done and pushed on `feat/oversee-crew-spec-pr-b`; no PR yet (the overseer runs the PR moment).
+- Version 2.44.0 and its ROADMAP row are set on the branch (main was 2.43.0, no open PRs). If
+  self-driving-loop or anything else reaches 2.44 on main first, re-run
   `python3 scripts/version.py --set <main's minor + 1>` and fix the ROADMAP row before merging.
-- Pre-PR checks green (1099 tests, typecheck, lockfile, doctor, sizes). Anton answered §10 with
-  "Babysit it": a babysit session carries PR A to a squash merge.
+- Board JSON is version 2. self-driving-loop phase 1 shares the bump: if it lands first with its own
+  bump, keep one bump total when merging main (no second increment needed for kinds with no data).
 
 ## Implicit context
 
-- The dogfood check in `pr-opening.md` is still open on purpose: it needs 2.43.0 installed. The first
-  `/spec oversee-crew` run after release (building phases 2 and 4 of this spec) is the dogfood; paste
-  its roster-wait lines, one close-out, one babysitter left alone on `pr wait`, and one pause there.
-
-## Pick up from here
-
-- After the merge, install 2.43.0, then run `/spec oversee-crew` on this spec's ready phases (2, 4)
-  and record the dogfood evidence.
+- The phase 1 dogfood check in `pr-opening.md` stays open: it belongs to the overseer run now in progress.

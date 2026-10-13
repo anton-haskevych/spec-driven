@@ -16,8 +16,8 @@ pr: B
 - `skills/spec/execute.md` (§10), `skills/spec/handoff.md` (§4)
 - `skills/spec/tools/pr/gh-lists.ts`, `skills/spec/tools/pr/checks/rollup.ts`
 - `skills/spec/tools/board/model.ts`, `board/joins.ts`, `board/attention.ts`, `board/render.ts`
-- `skills/spec/oversee-crew.md`
-- tests: `spec-meta.test.ts`, `doctor.test.ts`, `pr-gh-lists.test.ts`, `board-attention.test.ts`, `board-render.test.ts`, `board-joins.test.ts`, a ship-writer test (real git, few)
+- `skills/spec/oversee-crew.md`, `skills/spec/babysit.md` (an approved PR babysits in auto, even on a `hold-for-review` spec; preflight 2026-10-12)
+- tests: `spec-meta.test.ts`, `doctor.test.ts`, `pr-gh-lists.test.ts`, `board-attention.test.ts`, `board-render.test.ts`, `board-joins.test.ts`, `board-command.test.ts` (version pin), a ship-writer test (real git, few)
 
 ## Implementation guidance
 
@@ -38,19 +38,20 @@ because a kind with no data adds no line.
 
 ## Deliverables
 
-- [ ] 2.1 `ship:` field: `SHIP_MODES`, `ShipMode`, `readShipField`; doctor and spec-file check reject unknown values; tests
-- [ ] 2.2 execute §10 and handoff §4 read `ship:` (auto → babysit, hold-for-review → babysit hold) and ask only when it is absent; wiring pins
-- [ ] 2.3 PR review state: `reviewDecision` and `labels` in the open-PR list, carried on `PrRow` / `PrCell`; pinned field string updated; tests
-- [ ] 2.4 Needs-you kinds:
+- [x] 2.1 `ship:` field: `SHIP_MODES`, `ShipMode`, `readShipField`; doctor and spec-file check reject unknown values; tests
+- [x] 2.2 execute §10 and handoff §4 read `ship:` (auto → babysit, hold-for-review → babysit hold) and ask only when it is absent; wiring pins
+- [x] 2.3 PR review state: `reviewDecision` and `labels` in the open-PR list, carried on `PrRow` / `PrCell`; pinned field string updated; tests
+- [x] 2.4 Needs-you kinds:
   - `pr-review` ("#n awaiting review → open the PR"), `pr-approved` ("#n approved → merge"), `pr-changes` ("#n changes requested → relaunch")
   - `nextFromChecks` stops saying merge for a held PR
   - exhaustive render switch, `BOARD_VERSION` bump
   - tests; golden unchanged
-- [ ] 2.5 `oversee-crew.md`:
+- [x] 2.5 `oversee-crew.md`:
   - an approved held PR goes to a babysitter in auto mode
   - changes requested → relaunch execute with the review comments in the brief
   - ship answers go through `spec.ts ship`
-- [ ] 2.6 `spec.ts ship <spec> <mode>` lands `ship:` on main through `landOnMain`; refuses a spec only on a branch; tests (real git, few)
+  - relaunch once per review: GitHub keeps changes requested until Anton reviews again
+- [x] 2.6 `spec.ts ship <spec> <mode>` lands `ship:` on main through `landOnMain`; refuses a spec only on a branch; tests (real git, few)
 
 ## Phase-local notes
 

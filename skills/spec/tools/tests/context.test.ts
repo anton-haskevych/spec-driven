@@ -230,6 +230,34 @@ describe("contextPack", () => {
     rmSync(playbooks, { recursive: true });
   });
 
+  test("a heavy execute pack stays under the 30K tool-output limit: lessons as pointers, playbooks clipped", () => {
+    const ledger = join(project, "docs", "specs", "_ledger");
+    const playbooks = join(project, "docs", "specs", "_playbook");
+    mkdirSync(ledger, { recursive: true });
+    mkdirSync(playbooks, { recursive: true });
+    const summary = "Lock the checkout row by primary key before reading totals. ".repeat(8);
+    for (let n = 1; n <= 60; n++) {
+      const lesson = `---\nkind: gotcha\npaths: [src/**]\nseen-in: [checkout]\n---\n# Checkout lesson ${n} about locking, retries and totals\n\n${summary}\n`;
+      writeFileSync(join(ledger, `gotcha-checkout-${n}.md`), lesson);
+    }
+    for (const name of ["billing", "tax", "refunds"]) {
+      writeFileSync(join(playbooks, `${name}.md`), `---\nmatch: { domain: [billing] }\n---\n${"Charge in cents. ".repeat(250)}\n`);
+    }
+    write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\ndomain: [billing]\n---\n# Checkout\n");
+
+    const pack = contextPack(project, { mode: "execute", name: "checkout" });
+    expect(pack.length).toBeLessThan(30_000);
+    expect(pack).toContain("### Project lessons for this phase's files (60 match, most-seen first)");
+    expect(pack).toContain("- Checkout lesson 1 about locking, retries and totals (`gotcha-checkout-1.md`, seen in 1 spec)");
+    expect(pack).not.toContain("Lock the checkout row");
+    expect(pack).toMatch(/\n\d+ more lessons match; the edit hook shows each before its file changes, or run `spec\.ts lessons recall <file…>`\./);
+    expect(pack).toContain("[clipped at 3000 characters; read docs/specs/_playbook/ for the rest]");
+
+    write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\n---\n# Checkout\n");
+    rmSync(ledger, { recursive: true });
+    rmSync(playbooks, { recursive: true });
+  });
+
   test("babysit pack lists the PR group's phases and sends the session to babysit.md", () => {
     write("phases/phase-1.md", "---\npr: A\n---\n**Goal:** Harness.\n- [x] done\n");
     write("phases/phase-2.md", "---\npr: A\n---\n**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");

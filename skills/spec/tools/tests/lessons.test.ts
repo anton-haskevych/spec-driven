@@ -7,7 +7,7 @@ import { checkProjectLesson } from "../doctor/project-lesson";
 import { recallResponse, type RecallMemory } from "../hooks/lesson-recall";
 import { hookResponse } from "../hooks/spec-file-check";
 import { lessonFileName, loadProjectLessons } from "../lessons/project-ledger";
-import { lessonsForFiles } from "../lessons/recall";
+import { lessonsForFiles, pointToLesson } from "../lessons/recall";
 import { addSeenIn } from "../lessons/seen-in";
 import { similarLessons } from "../lessons/similar";
 
@@ -56,6 +56,13 @@ describe("lessonsForFiles", () => {
   });
 });
 
+describe("pointToLesson", () => {
+  test("one line: the title, the file and how many specs hit it, no summary", () => {
+    const [lesson] = lessonsForFiles(loadProjectLessons(project), ["backend/db/migration/V1__a.sql"]);
+    expect(lesson && pointToLesson(lesson)).toBe("- Migration numbers collide on merge (`gotcha-migration-numbers-collide.md`, seen in 2 specs)");
+  });
+});
+
 describe("recallResponse", () => {
   const edit = (file: string) => ({ tool_name: "Edit", tool_input: { file_path: join(project, file) }, cwd: project });
 
@@ -66,6 +73,11 @@ describe("recallResponse", () => {
     expect(first.hookSpecificOutput.additionalContext).toContain("Migration numbers collide on merge");
     expect(first.hookSpecificOutput.additionalContext).toContain("seen in 2 specs");
     expect(recallResponse(edit("backend/db/migration/V2__b.sql"), project, seen)).toBeUndefined();
+  });
+
+  test("still finds the lesson when the session cd'd into another subfolder", () => {
+    const fromSubfolder = { ...edit("backend/db/migration/V3__c.sql"), cwd: join(project, "frontend", "src") };
+    expect(recallResponse(fromSubfolder, project, memory())).toContain("Migration numbers collide on merge");
   });
 
   test("stays silent for spec files and files no lesson covers", () => {

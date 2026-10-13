@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { isSpecDocPath, resolveSpec, specRoots } from "../core/spec-folders";
+import { join } from "node:path";
+import { findProjectDir, isSpecDocPath, resolveSpec, specRoots } from "../core/spec-folders";
 import { createTree, type Tree } from "./tree";
 
 let tree: Tree;
@@ -55,5 +56,59 @@ describe("specRoots", () => {
   test("returns nothing for a directory that is gone, such as a deleted worktree", () => {
     tree = createTree();
     expect(specRoots(`${tree.root}/deleted`)).toEqual([]);
+  });
+});
+
+describe("findProjectDir", () => {
+  test("the project root resolves to itself", () => {
+    tree = createTree();
+    tree.write(".git/HEAD", "");
+    tree.spec("alpha", {});
+    expect(findProjectDir(tree.root)).toBe(tree.root);
+  });
+
+  test("a folder inside a spec resolves to the project root", () => {
+    tree = createTree();
+    tree.write(".git/HEAD", "");
+    const spec = tree.spec("alpha", { "phases/phase-1.md": "" });
+    expect(findProjectDir(`${spec.dir}/phases`)).toBe(tree.root);
+  });
+
+  test("a subproject with its own docs/specs resolves to the outermost one", () => {
+    tree = createTree();
+    tree.write(".git/HEAD", "");
+    tree.write("docs/specs/_playbook/settings.md", "");
+    tree.write("landing/docs/specs/hero/CLAUDE.md", "");
+    tree.write("landing/src/app.ts", "");
+    expect(findProjectDir(`${tree.root}/landing/src`)).toBe(tree.root);
+  });
+
+  test("stops at a worktree, whose .git is a file", () => {
+    tree = createTree();
+    tree.write("docs/specs/outer/CLAUDE.md", "");
+    tree.write("tree/.git", "gitdir: /elsewhere\n");
+    tree.write("tree/docs/specs/alpha/CLAUDE.md", "");
+    tree.write("tree/skills/spec/SKILL.md", "");
+    expect(findProjectDir(`${tree.root}/tree/skills/spec`)).toBe(`${tree.root}/tree`);
+  });
+
+  test("outside any spec tree, the start folder stays the project dir", () => {
+    tree = createTree();
+    tree.write(".git/HEAD", "");
+    tree.write("src/app.ts", "");
+    expect(findProjectDir(`${tree.root}/src`)).toBe(`${tree.root}/src`);
+  });
+});
+
+describe("spec.ts from a subfolder", () => {
+  test("finds the spec the way it does from the project root", () => {
+    tree = createTree();
+    tree.write(".git/HEAD", "");
+    tree.spec("alpha", { "progress.md": "- [ ] Phase 1 — Start → `phases/phase-1.md`\n", "phases/phase-1.md": "- [ ] go\n" });
+    tree.write("skills/spec/SKILL.md", "");
+    const specTs = join(import.meta.dir, "..", "spec.ts");
+    const output = Bun.spawnSync(["bun", specTs, "ready", "alpha"], { cwd: join(tree.root, "skills/spec") }).stdout.toString();
+    expect(output).not.toContain("no spec named alpha");
+    expect(output).toContain("Ready now: 1 Start");
   });
 });

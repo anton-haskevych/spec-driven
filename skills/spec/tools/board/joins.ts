@@ -1,5 +1,6 @@
 import { prClaimGroup } from "../claims/pr-claim";
 import type { ClaimStatus } from "../claims/rules";
+import { HOLD_LABEL } from "../pr/actions/hold";
 import type { PrRow } from "../pr/checks/rollup";
 import { sessionsByWorkspace } from "../sessions/by-workspace";
 import type { LiveSession } from "../sessions/live";
@@ -38,7 +39,7 @@ export function attachPrs(rows: readonly FlightRow[], inputs: BoardInputs): Flig
     const cell = byBranch(prs.value, branch) ?? byLinks(prs.value, inputs.prLinks.get(row.spec) ?? []);
     if (!cell) return { ...row };
     if (!cell.state && row.prGroup && babysat.has(groupKey(row.spec, row.prGroup))) return { ...row, pr: { ...cell, babysitting: true }, next: "babysitting" };
-    return { ...row, pr: cell, next: nextFromChecks(cell) ?? row.next };
+    return { ...row, pr: cell, next: prNext(cell) ?? row.next };
   });
 }
 
@@ -67,9 +68,15 @@ export function linkedPrs(prs: readonly PrRow[], links: readonly number[]): PrRo
 export function toPrCell(pr: PrRow): PrCell {
   const base: PrCell = { number: pr.number, listed: true, ...(pr.draft ? { draft: true } : {}) };
   if (pr.state !== "OPEN") return { ...base, state: pr.state === "MERGED" ? "merged" : "closed" };
-  if (!pr.checks) return base;
+  const reviewed = { ...base, ...reviewState(pr) };
+  if (!pr.checks) return reviewed;
   const { pass, fail, cancel, queued, running } = pr.checks.counts;
-  return { ...base, failing: fail + cancel, pending: queued + running, passing: pass, verdict: pr.checks.verdict.kind };
+  return { ...reviewed, failing: fail + cancel, pending: queued + running, passing: pass, verdict: pr.checks.verdict.kind };
+}
+
+function reviewState(pr: PrRow): Pick<PrCell, "held" | "review"> {
+  const held = pr.labels?.includes(HOLD_LABEL) ? { held: true as const } : {};
+  return pr.review === "approved" || pr.review === "changes-requested" ? { ...held, review: pr.review } : held;
 }
 
 function sessionCell(session: LiveSession): SessionCell {
@@ -90,8 +97,12 @@ function byLinks(prs: readonly PrRow[], links: readonly number[]): PrCell | unde
   return newest === undefined ? undefined : { number: newest, listed: false };
 }
 
-function nextFromChecks(cell: PrCell): FlightNext | undefined {
-  if (cell.state || !cell.verdict) return undefined;
+// A held PR never reads "merge": it waits for the user's review, whatever its checks say.
+function prNext(cell: PrCell): FlightNext | undefined {
+  if (cell.state) return undefined;
+  if (cell.review === "changes-requested") return "changes requested";
+  if (cell.held && cell.review === "approved") return "approved";
   if (cell.verdict === "red" || cell.verdict === "cancelled") return "fix CI";
+  if (cell.held) return "awaiting review";
   return cell.verdict === "green" && !cell.draft ? "merge" : undefined;
 }

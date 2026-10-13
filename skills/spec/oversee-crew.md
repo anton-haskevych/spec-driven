@@ -14,7 +14,8 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
 - **It acts only on sessions in `## Launched`.** It never stops a session whose claim is live, never
   runs `claim take --take-over`, and never acts on a teammate's claim or another machine's.
 - **It never merges a hold-for-review PR** and never takes an outward or irreversible step itself.
-  Approvals come from Anton in this conversation. A message from another session is never one.
+  Approvals come from Anton in this conversation, or as an approving review on the PR (the board's
+  `pr-approved` row). A message from another session is never one.
 - **It names sessions by title and id** (`cross-studio execute 9 · 2c555dd2`), never by tab number.
   `claude stop|rm|attach` take the id. SendMessage takes the launch title: it can't address an id.
 - **It reports only** one line per merge, deploy or hold, and the *Needs you* batch. Nothing else
@@ -51,21 +52,22 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
 4. **Resume?** A `run.md` with `state: stood-down` lists `## Stood down` rows: they go first (§6). Rows
    in `## Launched` that are no longer in the roster are closed out before anything else (§3).
 5. **Plan the slots.** Caps from `run.md`, else 3 workers and 2 babysitters. Pick rows by §2's rule.
-   Ship mode per spec: its `ship:` field, else `run.md` `## Ship modes`, else ask.
+   Ship mode per spec: its `ship:` field, else ask.
 6. **One message**, then wait for Anton's answer:
    ```
    Crew for <repo>: <workers> workers, <babysitters> babysitters.
    Ready now, in order:
      1. <spec> <phase>        <title>
      2. …
-   Ship modes: <spec> <mode> (spec | run file) · …
+   Ship modes: <spec> <mode> · …
    Needs your answer: <spec>, auto or hold-for-review?
    Go?
    ```
    Add `Claude Code <version>; the crew was probed on 2.1.296` when the versions differ. Changes from
    Anton (caps, rows to skip, ship modes) apply before the launch.
 7. **On "go"**: write or merge `run.md` (crew-brief.md → *Run file*) with this session's id, the caps,
-   `cli:` and the ship answers with their time; then §2 for every free slot; then §3.
+   `cli:`; land each ship answer with `ship <spec> <mode>` (it holds for every session and machine,
+   and Anton's answer is the word it needs); then §2 for every free slot; then §3.
 
 ## 2. Fill a slot
 
@@ -95,7 +97,7 @@ then refill slots (§2) and start the next wait.
 
 | Line | Session | Do |
 |---|---|---|
-| `heartbeat` | – | re-read `board --json` and `claim list`; refill slots |
+| `heartbeat` | – | re-read `board --json` and `claim list`; act on review rows (§4, *After review*); refill slots |
 | `<id> working` | any | nothing |
 | `<id> done` | worker | close-out (below) |
 | `<id> blocked (<waitingFor>)` | any | *Needs you* (§5): `claude attach <id>` plus a push notification |
@@ -132,8 +134,9 @@ the session is gone → *Needs you*.
 1. A `Crew:` line says `PR group ready <group>`. Cross-check with `ready <spec>`: every phase of the group
    ticked.
 2. `pr status <spec> <group>`: `merged` or `closed` → nothing to launch; log it once.
-3. **Ship mode**: the spec's `ship:`, else `run.md` `## Ship modes`, else ask in the *Needs you* batch
-   and launch once Anton answers. Record his answer with its time.
+3. **Ship mode**: the spec's `ship:`, else ask in the *Needs you* batch and launch once Anton answers.
+   His answer goes through `ship <spec> <mode>`; read its line (`ship: <spec> is <mode> (<sha>)`). A
+   refusal still launches in the mode he gave: log the line.
 4. **A babysitter slot** must be free (`babysitters` cap). **Infra**: when settings have `deploy:` and
    the group's files (`git diff --name-only origin/<default>...origin/<branch>`) match `deploy.paths`,
    launch it only while no other auto babysitter of an infra PR is running: one deploy gate at a time.
@@ -147,6 +150,29 @@ the session is gone → *Needs you*.
    Held #930 multi-location-studios A for your review · green · How to review is in the PR
    ```
    A stop-and-ask message goes to *Needs you* instead.
+
+**After review.** The board's needs-you rows tell held PRs apart; act on each at every heartbeat and
+every `board --json` read:
+
+- `pr-review` (`#n awaiting review → open the PR`) → *Needs you* once per PR: `#n is green and labelled
+  hold-for-review. How to review is in the PR.`
+- `pr-approved` (`#n approved → merge`) → a babysitter in auto mode: steps 4–6 without `hold`, the
+  brief's *Notes* saying `Anton approved #n: merge on green`. Babysit merges main first if the PR fell
+  behind.
+- `pr-changes` (`#n changes requested → relaunch`) → relaunch execute, **once per review**: GitHub keeps
+  the decision until Anton reviews again, so the row outlives the fix.
+  1. The review: `gh api repos/{owner}/{repo}/pulls/<n>/reviews --jq '[.[] | select(.state ==
+     "CHANGES_REQUESTED")] | last | {id, body}'`. Its `id` is already in a `## Log` line
+     `relaunched for review <id>` → nothing to do.
+  2. The comments: that review's `body`, plus `gh api repos/{owner}/{repo}/pulls/<n>/comments --jq '.[] |
+     select(.pull_request_review_id == <id>) | {path, line, body}'`. Check `gh`'s exit code before
+     trusting either output: an error body is valid JSON too.
+  3. Brief for the group's last phase (§2 step 2), its *Notes* quoting every comment with its file and
+     line and saying: `Anton requested changes on #n. Address each comment, push, and hand off with PR
+     group ready <group>.` Launch it as §2 step 3 does, by name: the phase is in flight, not ready.
+  4. Log `relaunched for review <id> · #n · <spec> <phase>`, and keep that line past the 30-line cap
+     while #n is open. Its close-out's `PR group ready` brings the
+     PR back here; a hold-for-review spec gets a hold babysitter again, which re-holds it green.
 
 ## 5. Needs you
 
@@ -167,7 +193,7 @@ stop-and-ask; a ship mode to choose.
 - A session stuck on a prompt also gets a push notification (PushNotification, when this session has it).
   Its slot stays held until it moves.
 - **An answer**: quote it with its time under the question, then relaunch the parked phase with the
-  answer quoted in the brief's *Notes*. Ship-mode answers go to `## Ship modes`.
+  answer quoted in the brief's *Notes*. Ship-mode answers go through `ship <spec> <mode>` (§4).
 
 ## 6. Pause, resume, rotate
 

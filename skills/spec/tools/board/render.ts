@@ -87,14 +87,36 @@ function blockedCells(board: Board): string[][] {
 }
 
 function attentionCells(row: AttentionRow, now: Date): string[] {
-  if (row.kind === "merge") return [`#${row.pr} checks pass → merge`, rowName(row)];
-  if (row.kind === "fix") return [`#${row.pr} ${row.failing} ${row.failing === 1 ? "check" : "checks"} failing → fix`, rowName(row)];
-  if (row.kind === "overdue") return [`⚠ overdue (due ${monthDay(row.due)})`, rowName(row)];
-  if (row.kind === "claim") return ["claim by a closed session", `${rowName(row)} → resume or release`];
-  if (row.kind === "prune") return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "say yes to remove them (trees prune --apply)"];
-  if (row.kind === "idle-claim") return [`claim idle ${ago(new Date(row.since), now)}`, `${row.spec} · ${row.phases.join(", ")} → switch to ${row.session} or take it over`];
-  if (row.kind === "remote-claim") return [`remote claim ${ago(new Date(row.since), now)} old`, `${rowName(row)} → ask ${row.holder} or take it over`];
-  return ["not deployed → deploy", rowName(row), `needed by ${row.waiting.join(", ")}`];
+  switch (row.kind) {
+    case "merge":
+      return [`#${row.pr} checks pass → merge`, rowName(row)];
+    case "fix":
+      return [`#${row.pr} ${row.failing} ${row.failing === 1 ? "check" : "checks"} failing → fix`, rowName(row)];
+    case "pr-review":
+      return [`#${row.pr} awaiting review → open the PR`, rowName(row)];
+    case "pr-approved":
+      return [`#${row.pr} approved → merge`, rowName(row)];
+    case "pr-changes":
+      return [`#${row.pr} changes requested → relaunch`, rowName(row)];
+    case "overdue":
+      return [`⚠ overdue (due ${monthDay(row.due)})`, rowName(row)];
+    case "claim":
+      return ["claim by a closed session", `${rowName(row)} → resume or release`];
+    case "prune":
+      return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "say yes to remove them (trees prune --apply)"];
+    case "idle-claim":
+      return [`claim idle ${ago(new Date(row.since), now)}`, `${row.spec} · ${row.phases.join(", ")} → switch to ${row.session} or take it over`];
+    case "remote-claim":
+      return [`remote claim ${ago(new Date(row.since), now)} old`, `${rowName(row)} → ask ${row.holder} or take it over`];
+    case "deploy":
+      return ["not deployed → deploy", rowName(row), `needed by ${row.waiting.join(", ")}`];
+    default:
+      return unrendered(row);
+  }
+}
+
+function unrendered(row: never): never {
+  throw new Error(`no needs-you line for ${JSON.stringify(row)}`);
 }
 
 function footer(board: Board): string {

@@ -18,4 +18,4 @@
 - [x] Phase 1 — Pick by number → `phases/phase-1-pick-by-number.md`
 - [ ] Phase 2 — Plain reports, fewer questions → `phases/phase-2-plain-reports.md`
 - [ ] Phase 3 — Parallel sessions stop colliding → `phases/phase-3-no-collisions.md`
-- [ ] Phase 4 — Tools from any folder, start-up context that fits → `phases/phase-4-tools-from-any-folder.md`
+- [x] Phase 4 — Tools from any folder, start-up context that fits → `phases/phase-4-tools-from-any-folder.md`
