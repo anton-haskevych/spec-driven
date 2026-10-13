@@ -4,7 +4,8 @@ import type { Result } from "../../core/result";
 import { isoTimestamp } from "../../core/schedule";
 import { runFileStore, systemCrewDeps, type CrewDeps } from "../../crew/deps";
 import { overseerLine, whoseRun, type OverseerVerdict } from "../../crew/overseer";
-import { DEFAULT_CAPS, newRunFile, parseRunFile, withOverseer, type Caps } from "../../crew/run-state";
+import { newRunFile, parseRunFile, withOverseer, type Caps } from "../../crew/run-state";
+import { loadSettings } from "../../playbook/settings";
 import { ownSessionId } from "../../sessions/own";
 
 export const CREW_OVERSEER_USAGE = "crew overseer";
@@ -27,10 +28,16 @@ export function crewStart(projectDir: string, args: readonly string[], deps: Cre
   if (!own) return "crew start: CLAUDE_CODE_SESSION_ID is unset; run it from the overseer session";
 
   const existing = store.value.read();
-  const text = existing === undefined ? newRunFile({ overseer: own, started: isoTimestamp(deps.now()), caps: { ...DEFAULT_CAPS, ...caps.value }, ...cliVersion(deps) }) : merged(existing, own, caps.value);
+  const text = existing === undefined ? newRunFile({ overseer: own, started: isoTimestamp(deps.now()), caps: { ...settingsCaps(projectDir), ...caps.value }, ...cliVersion(deps) }) : merged(existing, own, caps.value);
   store.value.write(text);
   const run = parseRunFile(text);
   return `Crew: ${startedHow(verdict.value)} · overseer ${own} · ${run.caps.workers} workers, ${run.caps.babysitters} babysitters`;
+}
+
+// A new run starts from settings crew:; a run being taken over keeps the caps it has.
+function settingsCaps(projectDir: string): Caps {
+  const { workers, babysitters } = loadSettings(projectDir).crew;
+  return { workers, babysitters };
 }
 
 function runVerdict(projectDir: string, deps: CrewDeps): Result<OverseerVerdict> {

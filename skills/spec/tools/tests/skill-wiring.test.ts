@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { hasEvidence } from "../core/checkbox";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -126,6 +127,7 @@ describe("ship mode wiring", () => {
       section("babysit.md", "**Mode**", "## How to run the commands"),
     ];
     for (const text of readers) for (const mode of SHIP_MODES) expect(text).toContain(`\`ship: ${mode}\``);
+    for (const text of readers) expect(text).toContain("`pr.ship`");
   });
 });
 
@@ -214,5 +216,14 @@ describe("reports wiring", () => {
     const update = read("update.md");
     expect(update).toContain("claim list");
     expect(update).not.toContain("ask the user which phase");
+  });
+});
+
+describe("self-approved gate wiring", () => {
+  test("the evidence execute.md gives a self-approving worker is evidence phase tick accepts", () => {
+    const execute = readFileSync(join(SKILL_DIR, "execute.md"), "utf8");
+    const evidence = /--evidence "(self-approved per [^"]+)"/.exec(execute)?.[1];
+    expect(evidence).toContain("crew.self-approve");
+    expect(hasEvidence((evidence ?? "").replace("<YYYY-MM-DD>", "2026-10-13"))).toBe(true);
   });
 });

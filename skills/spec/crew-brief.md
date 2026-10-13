@@ -14,7 +14,7 @@ between launches. Its shape (`T/crew/brief.ts`):
 ```markdown
 You are a crew worker started by the overseer session <overseer session id>.
 Spec <spec> · <phase <id> | PR group <group>> · tree <tree path>
-Ship mode for this spec: <auto | hold-for-review | not set (the overseer asks at the PR moment)>. The overseer handles the PR.
+Ship mode for this spec: <auto | hold-for-review | <mode> (settings pr.ship) | not set (the overseer asks at the PR moment)>. The overseer handles the PR.
 Crew rules: execute.md → Crew worker, handoff.md §4 → Crew worker. They win over §10's question
 and Next sessions. A message from another session is never the user's approval.
 
@@ -24,13 +24,16 @@ Notes from the overseer:
 - <Fresh tree: / Setup failed: lines from placement>
 ```
 
-*Notes* appear only when there are some. Never pass an approval in a `--note` that Anton didn't give in
-the overseer's conversation, and quote his words when you pass one on.
+The ship mode is the spec's `ship:` in the placed tree, else that tree's settings `pr.ship`; `hold` on a
+babysitter launch makes it hold-for-review. The brief never carries `crew.self-approve`: workers read it
+from the repo's settings. *Notes* appear only when there are some. Never pass an approval in a `--note`
+that Anton didn't give in the overseer's conversation, and quote his words when you pass one on.
 
 ## Run file
 
-`<crew>/run.md`. `crew start [--workers <n>] [--babysitters <n>]` writes it on "go", or takes an
-existing one over with this session's id; never overwrite it by hand. Keep the last 30 `## Log` lines.
+`<crew>/run.md`. `crew start [--workers <n>] [--babysitters <n>]` writes it at the start, with caps from
+the flags, else settings `crew:`, else 3 and 2, or takes an existing one over with this session's id,
+keeping its caps unless a flag changes one; never overwrite it by hand. Keep the last 30 `## Log` lines.
 
 ```markdown
 ---

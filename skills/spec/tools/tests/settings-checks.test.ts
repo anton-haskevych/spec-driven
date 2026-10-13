@@ -36,6 +36,14 @@ describe("checkSettings", () => {
     ]);
   });
 
+  test("a self-approve kind that is not a gate kind is an error", () => {
+    const text = "---\ncrew:\n  self-approve: [design, Deploy, all]\n---\n";
+    expect(checkSettings("settings.md", text, GATES).map((issue) => [issue.severity, issue.problem])).toEqual([
+      ["error", "crew.self-approve: Deploy is not a gate kind (design or outward)"],
+      ["error", "crew.self-approve: all is not a gate kind (design or outward)"],
+    ]);
+  });
+
   test("broken YAML is an error", () => {
     expect(checkSettings("settings.md", "---\n: [\n---\n", GATES)[0]?.severity).toBe("error");
   });

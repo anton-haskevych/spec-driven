@@ -74,7 +74,8 @@ except that branches are pushed from the first commit.
 2. The overseer reads the board (`spec.ts board --json`), the roster (`claude agents --json`,
    this repo's worktrees only) and any existing run file.
 3. One message: slot count, the ready rows it will start, ship modes it found and the ones it
-   needs. Anton answers once ("go", or changes).
+   needs. The standing go in settings (phase 5: `pr.ship`, `crew:`) answers what it sets; Anton
+   answers once ("go", or changes) only when something is left open, else the run starts.
 4. It writes (or merges into) the run file, fills the slots, starts the roster wait.
 
 ### A worker's life

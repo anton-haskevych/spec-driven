@@ -29,6 +29,7 @@ describe("parseSettings", () => {
         pr: { draft: false, merge: "squash" },
         checks: { external: ["Vercel*"] },
         gates: { afterMergeMain: "merge-main", bootstrap: "bootstrap", perCommit: "quick", ciTriage: "ci-triage" },
+        crew: DEFAULT_SETTINGS.crew,
       },
       problems: [],
     });
@@ -36,7 +37,7 @@ describe("parseSettings", () => {
 
   test("missing keys take the defaults", () => {
     expect(parseSettings("---\ndocs: branch\n---\n")).toEqual({ settings: DEFAULT_SETTINGS, problems: [] });
-    expect(DEFAULT_SETTINGS).toEqual({ docs: "branch", pr: { draft: true }, checks: { external: [] }, gates: {} });
+    expect(DEFAULT_SETTINGS).toEqual({ docs: "branch", pr: { draft: true }, checks: { external: [] }, gates: {}, crew: { workers: 3, babysitters: 2, selfApprove: [] } });
   });
 
   test("wrong types and unknown keys become problems and fall back to defaults", () => {
@@ -107,5 +108,37 @@ describe("deploy setting", () => {
   test("half a deploy setting is a problem and no deploy", () => {
     expect(parseSettings("---\ndeploy:\n  paths: [\"infra/**\"]\n---\n")).toEqual({ settings: DEFAULT_SETTINGS, problems: ["deploy needs both paths and gate"] });
     expect(parseSettings("---\ndeploy:\n  gate: crm-prod\n  when: always\n---\n").problems).toEqual(["deploy has an unknown key: when", "deploy needs both paths and gate"]);
+  });
+});
+
+describe("standing go: pr.ship and crew", () => {
+  const STANDING = "---\npr:\n  ship: hold-for-review\ncrew:\n  workers: 4\n  babysitters: 1\n  self-approve: [design]\n---\n";
+
+  test("a default ship mode and the crew's caps and self-approvable gate kinds", () => {
+    expect(parseSettings(STANDING)).toEqual({
+      settings: { ...DEFAULT_SETTINGS, pr: { draft: true, ship: "hold-for-review" }, crew: { workers: 4, babysitters: 1, selfApprove: ["design"] } },
+      problems: [],
+    });
+    expect(describeSettings(parseSettings(STANDING).settings)).toBe(
+      "docs on branch · PRs draft · merge: ask the user · ship hold-for-review · crew 4 workers, 1 babysitters · self-approve gates design",
+    );
+  });
+
+  test("default caps stay off the line", () => {
+    const text = "---\ncrew:\n  self-approve: [design, outward]\n---\n";
+    expect(describeSettings(parseSettings(text).settings)).toBe("docs on branch · PRs draft · merge: ask the user · self-approve gates design, outward");
+  });
+
+  test("wrong values are problems and fall back to the defaults; an unknown gate kind is left to the doctor", () => {
+    const text = "---\npr:\n  ship: later\ncrew:\n  workers: -1\n  babysitters: two\n  self-approve: [design, deploy]\n  approve-all: true\n---\n";
+    const { settings, problems } = parseSettings(text);
+    expect(settings).toEqual({ ...DEFAULT_SETTINGS, crew: { ...DEFAULT_SETTINGS.crew, selfApprove: ["design"] } });
+    expect(problems.toSorted()).toEqual([
+      'pr.ship must be auto or hold-for-review, not "later"',
+      "crew.workers must be a whole number, 0 or more",
+      "crew.babysitters must be a whole number, 0 or more",
+      "crew has an unknown key: approve-all",
+    ].toSorted());
+    expect(parseSettings("---\ncrew:\n  self-approve: design\n---\n").problems).toEqual(['crew.self-approve must be a list of strings, e.g. crew.self-approve: ["Vercel*"]']);
   });
 });

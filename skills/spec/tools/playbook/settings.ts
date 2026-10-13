@@ -1,6 +1,8 @@
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { isRecord, parseFrontmatter, type FrontmatterData } from "../core/frontmatter";
+import { isGateKind, type GateKind } from "../core/gate";
+import { SHIP_MODES, type ShipMode } from "../core/spec-meta";
 
 export const SETTINGS_FILE = join("docs", "specs", "_playbook", "settings.md");
 
@@ -11,10 +13,18 @@ export type MergeMethod = (typeof MERGE_METHODS)[number];
 export interface ProjectSettings {
   file?: string;
   docs: (typeof DOCS_HOMES)[number];
-  pr: { draft: boolean; merge?: MergeMethod };
+  pr: { draft: boolean; merge?: MergeMethod; ship?: ShipMode };
   checks: { external: string[] };
   gates: { afterMergeMain?: string; bootstrap?: string; perCommit?: string; ciTriage?: string };
   deploy?: DeploySetting;
+  crew: CrewSetting;
+}
+
+// The standing go: how many sessions the overseer runs, and which gate kinds a worker passes itself.
+export interface CrewSetting {
+  workers: number;
+  babysitters: number;
+  selfApprove: GateKind[];
 }
 
 // Only infra deploys are babysat: a merged PR touching `paths` goes through the `gate` section.
@@ -28,13 +38,20 @@ export interface ParsedSettings {
   problems: string[];
 }
 
-export const DEFAULT_SETTINGS: ProjectSettings = { docs: "branch", pr: { draft: true }, checks: { external: [] }, gates: {} };
+export const DEFAULT_SETTINGS: ProjectSettings = {
+  docs: "branch",
+  pr: { draft: true },
+  checks: { external: [] },
+  gates: {},
+  crew: { workers: 3, babysitters: 2, selfApprove: [] },
+};
 
 const SECTION_KEYS: Record<string, readonly string[]> = {
-  pr: ["draft", "merge"],
+  pr: ["draft", "merge", "ship"],
   checks: ["external"],
   gates: ["after-merge-main", "bootstrap", "per-commit", "ci-triage"],
   deploy: ["paths", "gate"],
+  crew: ["workers", "babysitters", "self-approve"],
 };
 const TOP_KEYS = new Set(["docs", ...Object.keys(SECTION_KEYS)]);
 
@@ -58,7 +75,11 @@ export function parseSettings(text: string): ParsedSettings {
   const deploy = deploySetting(section("deploy"), data.deploy !== undefined, problems);
   const settings: ProjectSettings = {
     docs: oneOf(data.docs, DOCS_HOMES, "docs", problems) ?? DEFAULT_SETTINGS.docs,
-    pr: { draft: draftFlag(pr.draft, problems), ...optional("merge", oneOf(pr.merge, MERGE_METHODS, "pr.merge", problems)) },
+    pr: {
+      draft: draftFlag(pr.draft, problems),
+      ...optional("merge", oneOf(pr.merge, MERGE_METHODS, "pr.merge", problems)),
+      ...optional("ship", oneOf(pr.ship, SHIP_MODES, "pr.ship", problems)),
+    },
     checks: { external: stringArray(checks.external, "checks.external", problems) },
     gates: {
       ...optional("afterMergeMain", gateName(gates["after-merge-main"], "gates.after-merge-main", problems)),
@@ -67,17 +88,22 @@ export function parseSettings(text: string): ParsedSettings {
       ...optional("ciTriage", gateName(gates["ci-triage"], "gates.ci-triage", problems)),
     },
     ...optional("deploy", deploy),
+    crew: crewSetting(section("crew"), problems),
   };
   problems.push(...Object.keys(data).filter((key) => !TOP_KEYS.has(key)).map((key) => `unknown key: ${key}`));
   return { settings, problems };
 }
 
 export function describeSettings(settings: ProjectSettings): string {
-  const { pr, checks, gates, deploy } = settings;
+  const { pr, checks, gates, deploy, crew } = settings;
+  const defaultCaps = crew.workers === DEFAULT_SETTINGS.crew.workers && crew.babysitters === DEFAULT_SETTINGS.crew.babysitters;
   return [
     `docs on ${settings.docs}`,
     `PRs ${pr.draft ? "draft" : "ready"}`,
     pr.merge ? `merge ${pr.merge}` : "merge: ask the user",
+    ...(pr.ship ? [`ship ${pr.ship}`] : []),
+    ...(defaultCaps ? [] : [`crew ${crew.workers} workers, ${crew.babysitters} babysitters`]),
+    ...(crew.selfApprove.length > 0 ? [`self-approve gates ${crew.selfApprove.join(", ")}`] : []),
     ...(checks.external.length > 0 ? [`external checks ${checks.external.join(", ")}`] : []),
     ...(gates.perCommit ? [`each commit: gate ${gates.perCommit}`] : []),
     ...(gates.afterMergeMain ? [`after merging main: gate ${gates.afterMergeMain}`] : []),
@@ -92,6 +118,27 @@ function deploySetting(section: FrontmatterData, present: boolean, problems: str
   const gate = gateName(section.gate, "deploy.gate", problems);
   if (paths.length > 0 && gate) return { paths, gate };
   if (present) problems.push("deploy needs both paths and gate");
+  return undefined;
+}
+
+// Words that aren't gate kinds are dropped here and reported as errors by the doctor.
+export function selfApproveKinds(words: readonly string[]): { kinds: GateKind[]; unknown: string[] } {
+  return { kinds: words.filter(isGateKind), unknown: words.filter((word) => !isGateKind(word)) };
+}
+
+function crewSetting(section: FrontmatterData, problems: string[]): CrewSetting {
+  const defaults = DEFAULT_SETTINGS.crew;
+  return {
+    workers: count(section.workers, "crew.workers", problems) ?? defaults.workers,
+    babysitters: count(section.babysitters, "crew.babysitters", problems) ?? defaults.babysitters,
+    selfApprove: selfApproveKinds(stringArray(section["self-approve"], "crew.self-approve", problems)).kinds,
+  };
+}
+
+function count(value: unknown, key: string, problems: string[]): number | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) return value;
+  problems.push(`${key} must be a whole number, 0 or more`);
   return undefined;
 }
 

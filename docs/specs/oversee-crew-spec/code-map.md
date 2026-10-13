@@ -34,7 +34,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/update.md:49` | "never infer a deploy from a merge" — infra-gate exception | `decision-deploy-babysitting-infra-only` |
 | `skills/spec/tools/context/request.ts` | `SUB_COMMANDS`; also feeds launch and `parseLaunchTitle` | |
 | `skills/spec/tools/launch/command-line.ts`, `commands/launch.ts` | Launch builder `--bg` extends; babysit `existingOnly` | |
-| `skills/spec/tools/playbook/settings.ts`, `doctor/settings.ts` | `deploy:` key; doctor lists gate keys by hand | |
+| `skills/spec/tools/playbook/settings.ts`, `doctor/settings.ts` | `deploy:` key; `pr.ship`, `crew:` (caps, `self-approve`); doctor lists gate keys by hand and errors on unknown self-approve kinds | 5 |
 | `skills/spec/tools/core/land-on-main.ts` | Post-merge writes to main (`phase deployed --land`, `ship`) | |
 | `skills/spec/tools/trees/find.ts` | A closed claim doesn't block a tree — why parked workers hand off first | `gotcha-babysitter-on-pr-wait-is-not-done` |
 | `skills/spec/tools/board/joins.ts` (`prNext`), `board/attention.ts`, `board/render.ts` (`attentionCells`) | Held PR review state → needs-you kinds; exhaustive render switch | `decision-review-state-comes-from-the-pr` |

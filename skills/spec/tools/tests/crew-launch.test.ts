@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { crewLaunch } from "../commands/crew/launch";
+import { SETTINGS_FILE } from "../playbook/settings";
 import { newRunFile, parseRunFile } from "../crew/run-state";
 import type { Placement } from "../trees/place";
 import { claudeAnd, crewDeps } from "./crew-deps";
@@ -62,6 +63,18 @@ describe("crew launch", () => {
     const deps = crewDeps({ runner: claudeAnd([[["claude", "--bg"], { stdout: BACKGROUNDED }]]) });
     await crewLaunch(repo.dir, ["execute", "checkout", "3"], deps, placeAt({ kind: "found", path: tree, branch: "feat/checkout-pr-a" }));
     expect(readFileSync(join(crew(), "briefs", "checkout#3.md"), "utf8")).toContain("Ship mode for this spec: auto.");
+  });
+
+  test("a spec without ship: takes settings pr.ship from its tree", async () => {
+    setUp();
+    const tree = join(repo.root, "tree-b");
+    mkdirSync(join(tree, "docs", "specs", "checkout"), { recursive: true });
+    mkdirSync(join(tree, "docs", "specs", "_playbook"), { recursive: true });
+    writeFileSync(join(tree, "docs", "specs", "checkout", "CLAUDE.md"), "---\nstatus: active\n---\n# Checkout\n");
+    writeFileSync(join(tree, SETTINGS_FILE), "---\npr:\n  ship: hold-for-review\n---\n");
+    const deps = crewDeps({ runner: claudeAnd([[["claude", "--bg"], { stdout: BACKGROUNDED }]]) });
+    await crewLaunch(repo.dir, ["execute", "checkout", "3"], deps, placeAt({ kind: "found", path: tree, branch: "feat/checkout-pr-a" }));
+    expect(readFileSync(join(crew(), "briefs", "checkout#3.md"), "utf8")).toContain("Ship mode for this spec: hold-for-review (settings pr.ship).");
   });
 
   test("a busy tree or a failed claude --bg records nothing", async () => {
