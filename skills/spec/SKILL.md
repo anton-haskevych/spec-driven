@@ -81,6 +81,8 @@ One session works one spec, and usually one chunk:
 
 **A session that handed off may stay open** as the user's controller tab: it answers questions, reads the board and launches the next phase, even into its own tree (an idle session with no claim doesn't hold it). Before it writes in a tree again (commit, merge main, push, edit a file), it runs `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim list`. If another live session holds a claim on that tree, it doesn't write: it tells the user which session holds it and offers to ask that session through `SendMessage`.
 
+**The overseer** (`/spec oversee-crew`, [oversee-crew.md](oversee-crew.md)) is the one long-lived session: it writes no code, launches background workers and babysitters, and keeps its state outside the conversation (the roster, claims, workers' `in-flight.md`, its run file). It never hands off. On compaction it rotates: it prints `Overseer rotated: type /spec oversee-crew in a fresh session` and stops, and its workers keep running.
+
 **A new spec found mid-session is spun off, not prepped here.** prep.md → *Spin-off* writes its `seed.md`, links the dependency and launches a fresh session for it; this session stays on its spec.
 
 Compaction is not part of the flow. If the conversation does get compacted, treat it as a stop signal and hand off at the next clean boundary.
