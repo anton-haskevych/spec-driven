@@ -59,7 +59,7 @@ Review `reviews/2026-10-12-state-homes-and-worker-lifecycle.md` explains why eac
 - It writes no code and never commits in a worker's tree.
 - It acts only on session ids it launched. It never stops a session whose claim is live.
 - It never merges a hold-for-review PR, never runs `claim take --take-over`, never acts on a teammate's claim, and never takes an outward or irreversible step.
-- It names workers by name and id, never by tab number. Messages go by id.
+- It names workers by name and id, never by tab number. Messages go by launch name (SendMessage can't address an id; probes 1.0).
 - It reports one line per merge, deploy or hold, plus the needs-you batch, and nothing else unprompted.
 - On compaction it rotates (technical.md → *Overseer rotation*).
 - Record the Claude Code version the probes ran on, so a CLI change is obvious when a run misbehaves.
@@ -79,7 +79,7 @@ Babysit's own fix pushes stay as they are.
 
 ## Deliverables
 
-- [ ] 1.0 Probes on the installed CLI, recorded in `research/phase-1/`:
+- [x] 1.0 Probes on the installed CLI, recorded in `research/phase-1/`:
   - a `--bg` session idle on a background shell: its `state`, and whether it is re-invoked when the shell exits
   - SendMessage to a `--bg` session by id, while `working` and while `done`
   - the state after `kill -9`
@@ -127,7 +127,7 @@ Babysit's own fix pushes stay as they are.
   - questions from `in-flight.md` *Needs you*, asked once, answers in `run.md` and the relaunch brief
   - `claude attach <id>` plus PushNotification
 - [ ] 1.12 `oversee-crew.md` *Pause, resume, rotate*:
-  - "Hand off now" by id; prompt-blocked workers go to needs you; babysitters finish
+  - "Hand off now" by launch name; prompt-blocked workers go to needs you; babysitters finish
   - `## Stood down`; resume relaunches those first
   - rotation on compaction
 - [ ] 1.13 README sub-command list, ROADMAP section, `python3 scripts/version.py --set <main's minor + 1>` at merge

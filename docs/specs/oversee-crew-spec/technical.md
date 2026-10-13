@@ -177,17 +177,23 @@ path prefix. The overseer never stops, removes or messages an id it did not laun
 | worker | `working` | – | busy | nothing |
 | worker | `done` | – | turn ended | close-out check |
 | any | `blocked` | `permission prompt` (or other) | waiting in its UI | needs you: `claude attach <id>` + PushNotification |
-| worker | `blocked` | – | ended its turn on text | send "Hand off now" (by id); then close-out; parked only if `in-flight.md` has *Needs you* |
-| babysitter | any, while its `pr-<group>` claim is live | – | waiting on CI or working | nothing; never stop it |
+| worker | `blocked` | – | ended its turn on text | send "Hand off now" (by launch name); then close-out; parked only if `in-flight.md` has *Needs you* |
+| babysitter | `working` while on `pr wait` (a background shell keeps it busy); any state while its `pr-<group>` claim is live | – | waiting on CI or working | nothing; never stop it |
 | babysitter | `done`, claim released | – | finished | read `pr log <n>` last line, report, `stop` + `rm` |
-| any | gone | – | crashed or stopped outside | close-out; dirty tree or live claim → needs you, never a silent relaunch |
+| any | `working` with `pid: null` | – | killed; the background service restarts it within ~15 s | nothing (the roster wait sees no change) |
+| any | `stopped`, or gone (`claude rm` outside) | – | stopped or removed outside the overseer | close-out; dirty tree or live claim → needs you, never a silent relaunch |
 
-Probed rows: worker `working`/`done`/`blocked` (waves 2b, 2c). Unprobed, phase 1 probes first: a
-babysitter idle on a background shell, `gone` after `kill -9`, SendMessage to a `--bg` session.
+All rows probed on Claude Code 2.1.296 (waves 2b, 2c; `research/phase-1/2026-10-12-1.0-probes.md`).
+
+**Messages go by launch name.** `SendMessage` can't address a `claude agents` id (short or full);
+it reaches a `--bg` session by its `-n` name (`<spec> execute <phase>`), queued while it works and
+delivered at its next tool round, and it wakes a `done` session. A relaunch reuses the name and the
+newest session wins, so the overseer messages a name only while the id it launched under that name
+is in the roster. The id stays the key for the roster, `claude stop|rm|attach` and `run.md`.
 
 ## Close-out check
 
-For a worker that is `done` (or gone):
+For a worker that is `done` (or `stopped` / gone):
 
 | Check | Command |
 |-------|---------|
@@ -197,12 +203,12 @@ For a worker that is `done` (or gone):
 | claim released | `spec.ts claim list` shows no `live` claim for `<spec>#<phase>` |
 
 All pass → read the `Crew:` line and `in-flight.md` *Needs you*, then `claude stop <id>` + `claude rm <id>`
-(`rm` left the placed worktree in place in waves 2 and 2c), slot free. Any fail on a live session →
-SendMessage by id with what's missing (once); still failing, or the session is gone → needs you.
+(`rm` keeps the transcript and leaves the placed worktree, phase-1 probes), slot free. Any fail on a
+live session → SendMessage by launch name with what's missing (once); still failing, or the session is gone → needs you.
 
 ## Pause
 
-"Time to pause" → "Hand off now" by id to each `working` or `done` worker; workers `blocked` on a prompt
+"Time to pause" → "Hand off now" by launch name to each `working` or `done` worker; workers `blocked` on a prompt
 go to needs you; babysitters are left to finish. Close out each as it lands, then `state: stood-down`
 with `## Stood down` listing each phase and its tree. Resume relaunches the stood-down rows first (they
 are in flight, not ready, on the board), then fills from the board.
