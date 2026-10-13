@@ -130,7 +130,7 @@ Babysit's own fix pushes stay as they are.
   - "Hand off now" by launch name; prompt-blocked workers go to needs you; babysitters finish
   - `## Stood down`; resume relaunches those first
   - rotation on compaction
-- [ ] 1.13 README sub-command list, ROADMAP section, `python3 scripts/version.py --set <main's minor + 1>` at merge
+- [x] 1.13 README sub-command list, ROADMAP section, `python3 scripts/version.py --set <main's minor + 1>` at merge
 
 ## Phase-local notes
 
