@@ -14,6 +14,6 @@ describe("specStateFrom", () => {
       ["1", true, true],
       ["2", false, false],
     ]);
-    expect(state.inFlight).toBeUndefined();
+    expect(state.inFlight).toEqual([]);
   });
 });

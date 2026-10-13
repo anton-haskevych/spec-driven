@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { checkLedgerEntry, checkLedgerIndex } from "../doctor/ledger";
 import { checkIndentedPhaseLines, checkInFlight, checkPhases } from "../doctor/phases";
+import { runDoctor } from "../doctor/run";
 import { checkSpecMeta } from "../doctor/spec-meta";
 import { phaseLine } from "./factories";
 
@@ -122,6 +126,22 @@ describe("checkInFlight", () => {
     expect(checkInFlight("in-flight.md", "# In flight\n", true)).toEqual([]);
     expect(checkInFlight("in-flight.md", "# In-flight state\n\n*No pending work — clean boundary reached 2026-10-01.*\n", true)).toEqual([]);
     expect(checkInFlight("in-flight.md", "# In flight\n\nnotes", false)).toEqual([]);
+  });
+
+  test("checks every per-phase file and the legacy file once every phase is done", () => {
+    const dir = mkdtempSync(join(tmpdir(), "doctor-in-flight-"));
+    const write = (path: string, text: string) => {
+      mkdirSync(join(dir, path, ".."), { recursive: true });
+      writeFileSync(join(dir, path), text);
+    };
+    write("progress.md", "- [x] Phase 1 — One → `phases/phase-1.md`\n");
+    write("phases/phase-1.md", "- [x] a\n");
+    write("in-flight/phase-1.md", "# In flight\n\nawaiting deploy\n");
+    write("in-flight.md", "# In flight\n\nold note\n");
+    const context = { projectDir: dir, statuses: STATUSES, nodes: new Map(), today: "2026-10-12", playbooks: new Set<string>() };
+    const flagged = runDoctor({ name: "one", dir }, context).filter((issue) => issue.problem.includes("pending notes"));
+    expect(flagged.map((issue) => issue.file)).toEqual([join(dir, "in-flight/phase-1.md"), join(dir, "in-flight.md")]);
+    rmSync(dir, { recursive: true, force: true });
   });
 });
 
