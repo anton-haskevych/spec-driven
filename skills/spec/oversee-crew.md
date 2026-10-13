@@ -75,7 +75,8 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
 
 `crew tick` fills free worker slots itself (§3): the first ready rows with `next: execute`, no busy
 tree, not worktree- or branch-only, not a `code: false` task phase, no other launched worker on the
-spec, no unanswered question in `## Questions`. prep, create and review never go to a worker.
+spec, no unanswered question in `## Questions`. A parked phase is off the ready lane already. prep, create and
+review never go to a worker.
 
 Launch by hand only what the board can't pick (a stood-down phase, an answered question, a review to
 address, a babysitter): `crew launch execute <spec> <phase> [--note <text>]…` or
@@ -105,7 +106,7 @@ prints only what needs you:
 | `Close-out <title> · <id>: missing … → SendMessage "<title>" once` | SendMessage the title once, naming what's missing; still missing at a later tick → *Needs you* |
 | `Needs you: <title> · <id> is gone; close-out missing …` | *Needs you*, never a silent relaunch |
 | `PR group ready: <spec> <group> → the PR moment` | §4 |
-| `Needs you: <spec> <phase> asks <n> …` | §5; the phase stays parked until Anton answers |
+| `Needs you: <spec> <phase> asks <n> …` | §5: its `question` row on the board; the phase stays parked until Anton answers |
 | `Say if wrong: <spec> <phase> lists <n> …` | its items join the next *Needs you* batch as FYI |
 | `Babysitter <title> · <id>: <final line>` | report it as one line (§4 step 6) |
 | `<spec> <phase> not launched: …` | as `crew launch`'s refusals above |
@@ -158,11 +159,13 @@ every `board --json` read:
 
 ## 5. Needs you
 
-Sources: a worker's `## Needs you` in its in-flight note, read from origin after a fetch:
-`git show origin/<branch>:docs/specs/<spec>/in-flight/phase-<id>.md`, falling back to
-`docs/specs/<spec>/in-flight.md` for a spec still on the single file (`origin/<default>` in a `docs: main`
-project); a session `blocked` on a prompt; a refused launch; a failed close-out; a babysitter's
-stop-and-ask; a ship mode to choose.
+Sources: the board's `question` rows, `board you --json` after a fetch: each is one worker's park entry
+(`phase park`) with `spec`, `phase`, `question`, `recommend` and `since`, read from its tree's committed
+in-flight note. A parked phase is not in the ready lane, so no slot picks it. A worker whose tree isn't on
+this machine shows only once its branch's docs land; until then read
+`git show origin/<branch>:docs/specs/<spec>/in-flight/phase-<id>.md` (its `## Needs you`). Also: a session
+`blocked` on a prompt; a refused launch; a failed close-out; a babysitter's stop-and-ask; a ship mode to
+choose.
 
 - Give each item an id in `## Questions` with the time asked. Ask it **once**: never repeat an asked
   item unless Anton asks what's open.
@@ -176,7 +179,9 @@ stop-and-ask; a ship mode to choose.
 - A session stuck on a prompt also gets a push notification (PushNotification, when this session has it).
   Its slot stays held until it moves.
 - **An answer**: quote it with its time under the question, then relaunch the parked phase:
-  `crew launch execute <spec> <phase> --note "Anton answered <q-id> at <time>: \"<his words>\""`. Ship-mode answers go through `ship <spec> <mode>` (§4).
+  `crew launch execute <spec> <phase> --note "Anton answered <q-id> at <time>: \"<his words>\""`. The
+  worker records it with `phase unpark` before anything else (execute.md §0.2), which takes the `question`
+  row off the board; never write in its tree yourself. Ship-mode answers go through `ship <spec> <mode>` (§4).
 
 ## 6. Pause, resume, rotate
 
