@@ -4,16 +4,16 @@ import { parseArgs } from "node:util";
 import type { Result } from "../core/result";
 import { systemRunner, type Runner } from "../core/run";
 import { LAUNCH_USAGE, sessionLaunch } from "../launch/command-line";
-import { launchInBackground } from "../launch/background";
+import { launchedLine, launchInBackground } from "../launch/background";
+import { freshTreeNotes, placeForLaunch, type PlaceFn } from "../launch/place-for-launch";
 import type { Env } from "../core/env";
 import { launchArgv, pickTerminal } from "../launch/terminal";
-import { prClaimId } from "../claims/pr-claim";
-import { placeTree, type Placement, type PlaceOptions } from "../trees/place";
+import { placeTree } from "../trees/place";
 import { renderPlacement, systemPlaceDeps } from "./trees";
 
 export { LAUNCH_USAGE } from "../launch/command-line";
 
-export type PlaceFn = (spec: string, phase: string, options: PlaceOptions) => Promise<Result<Placement>>;
+export type { PlaceFn } from "../launch/place-for-launch";
 
 interface LaunchRequest {
   positionals: string[];
@@ -32,14 +32,13 @@ export async function launchCommand(projectDir: string, args: readonly string[],
   if (!spec || target === undefined) return launchReport(projectDir, positionals, env, runner);
 
   const placeIt = place ?? ((name, id, options) => placeTree(projectDir, name, id, systemPlaceDeps(), options));
-  const placed = subCommand === "babysit" ? await placeIt(spec, prClaimId(target), { existingOnly: true }) : await placeIt(spec, target, {});
+  const placed = await placeForLaunch(subCommand ?? "", spec, target, placeIt);
   if (!placed.ok) return `launch: ${placed.reason}`;
-  if (placed.value.kind === "busy") return `launch: ${placed.value.path} is busy, ${placed.value.holder}; not launched`;
   const placement = renderPlacement(placed);
   if (brief === undefined) return [placement, launchReport(placed.value.path, positionals, env, runner)].join("\n");
   const inTree = sessionLaunch(placed.value.path, positionals);
   if (!inTree.ok) return `launch: ${inTree.reason}`;
-  return [placement, launchInBackground(inTree.value, brief, freshTreeNotes(placement), runner)].join("\n");
+  return [placement, launchedLine(launchInBackground(inTree.value, brief, freshTreeNotes(placement), runner), inTree.value.title)].join("\n");
 }
 
 function parseLaunchArgs(projectDir: string, args: readonly string[]): Result<LaunchRequest> {
@@ -56,12 +55,6 @@ function parseLaunchArgs(projectDir: string, args: readonly string[]): Result<La
   const briefPath = resolve(projectDir, brief);
   if (!existsSync(briefPath)) return { ok: false, reason: `no brief file ${brief}` };
   return { ok: true, value: { positionals: parsed.positionals, brief: briefPath } };
-}
-
-// The worker's own placement sees its tree as existing, so a fresh tree's setup lines reach it only
-// through the brief.
-function freshTreeNotes(placement: string): string[] {
-  return placement.split("\n").filter((line) => line.startsWith("Setup failed:") || line.startsWith("Fresh tree:"));
 }
 
 export function launchReport(projectDir: string, args: readonly string[], env: Env = process.env, runner: Runner = systemRunner): string {
