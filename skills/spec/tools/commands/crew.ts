@@ -1,3 +1,4 @@
+import { CREW_LAUNCH_USAGE, crewLaunch } from "./crew/launch";
 import { CREW_CHECK_USAGE, crewCheck } from "./crew/check";
 import { CREW_WAIT_USAGE, crewWait } from "./crew/wait";
 import { CREW_OVERSEER_USAGE, CREW_START_USAGE, crewOverseer, crewStart } from "./crew/overseer";
@@ -12,6 +13,7 @@ const ACTIONS: Record<string, CrewAction> = {
   start: { usage: CREW_START_USAGE, run: (dir, args) => crewStart(dir, args) },
   wait: { usage: CREW_WAIT_USAGE, run: (dir, args) => crewWait(dir, args) },
   check: { usage: CREW_CHECK_USAGE, run: (dir, args) => crewCheck(dir, args) },
+  launch: { usage: CREW_LAUNCH_USAGE, run: (dir, args) => crewLaunch(dir, args) },
 };
 
 export const CREW_USAGE = Object.values(ACTIONS)

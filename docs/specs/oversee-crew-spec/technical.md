@@ -310,7 +310,7 @@ assistant text since the last prompt from `projects/*/<sessionId>.jsonl`. Fixtur
 | `crew overseer` | `Overseer: this session` · `Overseer: taking over from <id> (<closed \| parked into this session>)` · `Overseer: another live overseer <id> · <name>` |
 | `crew wait <id…> [--timeout 30m] [--interval 20s]` | `<id> <state>[ (<waitingFor>)]` per changed id, `<id> gone`, or `heartbeat`; exits once; a failed poll is skipped |
 | `crew check <id>` | `Close-out: ok · <Crew line>` · `Close-out: missing <what>` · `Close-out: waiting (pr-<group> claim live)` |
-| `crew launch <spec> <phase> \| <spec> pr-<group> [hold] [--note <text>]…` | placement lines, then `Launched: background <id> · <title>` or the `launch:` refusal; the id goes to `## Launched` |
+| `crew launch execute <spec> <phase> \| babysit <spec> <group> [hold] [--note <text>]…` | placement lines, then `Launched: background <id> · <title>` or the `launch:` refusal; the id goes to `## Launched` |
 | `crew tick` | one line per action or judgement item, then `Tick: <n> closed out · <n> launched · <n> for you` |
 
 `crew overseer` follows a parked tab: the recorded id's session file has `parkedJobId: <job>`, and the
