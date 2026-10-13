@@ -8,6 +8,7 @@ import { needsYou } from "./attention";
 import { flightRows, isOnBoard, readyInWorkspaces } from "./flight";
 import { focusLane, focusOrder, withFocusPositions } from "./focus";
 import { joinFlightRows } from "./joins";
+import { parkedPhases } from "./parked";
 import type { BaseRef, BoardInputs, WorkspaceView } from "./inputs";
 import { BOARD_VERSION, type Board, type BlockedRow, type NextStep, type ReadyRow } from "./model";
 import { rowKey } from "./phase-keys";
@@ -22,6 +23,8 @@ interface Placement {
   unblocks: ReadonlyMap<string, number>;
   activity: ReadonlyMap<string, PhaseActivity>;
   inFlight: ReadonlySet<string>;
+  // Phases parked on a question: neither ready nor blocked until it's answered.
+  parked: ReadonlySet<string>;
 }
 
 // A spec that exists only on a branch: its rows run in that worktree.
@@ -41,7 +44,8 @@ export function buildBoard(inputs: BoardInputs, now: Date, me?: string): Board {
   const active = open.filter((node) => node.status !== "paused");
   const activity = phaseActivity(inputs.states, inputs.workspaces);
   const inFlight = joinFlightRows(flightRows(activity, inputs), inputs);
-  const placement: Placement = { inputs, today, unblocks: unblockCounts(inputs.states, inputs.nodes), activity, inFlight: new Set(inFlight.map(rowKey)) };
+  const parked = parkedPhases(inputs);
+  const placement: Placement = { inputs, today, unblocks: unblockCounts(inputs.states, inputs.nodes), activity, inFlight: new Set(inFlight.map(rowKey)), parked: new Set(parked.keys()) };
   const lanes = [...active.map((node) => specLanes(node, placement)), ...branchOnlyLanes(inputs.workspaces, placement)];
   const order = focusOrder(inputs, today);
   const ready = rankReady(withFocusPositions(markSafe(lanes.flatMap((spec) => spec.ready), inFlight, withBranchOnlyNodes(inputs), inputs.states), order));
@@ -56,7 +60,7 @@ export function buildBoard(inputs: BoardInputs, now: Date, me?: string): Board {
     ...(me ? { me } : {}),
     ...mainCheckout(inputs.workspaces),
     base: baseHeader(inputs.base),
-    lanes: { focus: focus.rows, inFlight, ready, blocked, needsYou: needsYou(active, inputs, now, inFlight) },
+    lanes: { focus: focus.rows, inFlight, ready, blocked, needsYou: needsYou(active, inputs, now, inFlight, parked.values()) },
     footer: {
       ...counts,
       paused: open.length - active.length,
@@ -90,7 +94,10 @@ function awaitsReview(state: SpecState, { inputs, inFlight }: Placement): boolea
 
 function phaseLanes(node: SpecNode, state: SpecState, placement: Placement, origin?: BranchOrigin): SpecLanes {
   const name = node.spec.name;
-  const landed = (phase: PhaseState) => !placement.inFlight.has(rowKey({ spec: name, phase: phase.id }));
+  const landed = (phase: PhaseState) => {
+    const key = rowKey({ spec: name, phase: phase.id });
+    return !placement.inFlight.has(key) && !placement.parked.has(key);
+  };
   const { ready, waiting } = readySet(state, placement.inputs.nodes);
   const readyIn = readyInWorkspaces(state, placement.activity, placement.inputs.nodes);
   const lanes: SpecLanes = { ready: ready.filter(landed).map((phase) => phaseRow(node, state, phase, placement, origin)), blocked: [] };

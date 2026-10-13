@@ -100,6 +100,8 @@ export type AttentionRow =
   | { kind: "remote-claim"; spec: string; phase: string; holder: string; since: string }
   // A live session holding claims has been idle since `since`: the user switches to it or takes it over.
   | { kind: "idle-claim"; spec: string; phases: string[]; session: string; since: string }
+  // A phase parked on a question for the user (`phase park`); it leaves the ready lane until answered.
+  | { kind: "question"; spec: string; phase: string; question: string; recommend?: string; since: string }
   // Merged worktrees by ancestry; `trees prune` also finds squash-merged ones by their PR's head.
   | { kind: "prune"; trees: number };
 
