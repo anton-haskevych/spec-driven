@@ -1,3 +1,4 @@
+import { CREW_WAIT_USAGE, crewWait } from "./crew/wait";
 import { CREW_OVERSEER_USAGE, CREW_START_USAGE, crewOverseer, crewStart } from "./crew/overseer";
 
 interface CrewAction {
@@ -8,6 +9,7 @@ interface CrewAction {
 const ACTIONS: Record<string, CrewAction> = {
   overseer: { usage: CREW_OVERSEER_USAGE, run: (dir, args) => crewOverseer(dir, args) },
   start: { usage: CREW_START_USAGE, run: (dir, args) => crewStart(dir, args) },
+  wait: { usage: CREW_WAIT_USAGE, run: (dir, args) => crewWait(dir, args) },
 };
 
 export const CREW_USAGE = Object.values(ACTIONS)
