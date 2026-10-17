@@ -70,6 +70,7 @@ Bullet rules:
 - **No trailing paragraph** elaborating on parallelizable tasks, blockers, or rationale. If a parallel task matters at Stage A scale, mention it as one extra bullet: `- (parallelizable: 4-pre, 4a)`.
 - If the pack's *Related specs* shows open `needs` ("Blocked by"), add one bullet: `- (blocked by: <spec>#<phase>, not done)`, or `<spec>` alone for a whole-spec need.
 - If the ready set has other phases, add one bullet: `- (also ready: 3, 5)`. That replaces the hand-written parallelizable bullet.
+- If the pack prints `Stale: <text>` (without a pack, `stale:` in `CLAUDE.md`), suggest `/spec review <spec>` as the next chunk instead, with one bullet: `- (stale: <text>)`. See execute.md → *A stale spec*.
 
 If an in-flight note was non-empty (rendered in A.3), the suggested chunk still appears — but its bullets must not duplicate items in the `**Last session:**` block.
 

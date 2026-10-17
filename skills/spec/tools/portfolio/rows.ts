@@ -15,14 +15,18 @@ export interface SpecRow {
   overdue: boolean;
   updated?: string;
   progress: { done: number; total: number };
+  stale?: string;
+  dropped?: string;
+  // Specs that declare `supersedes:` this one (computed).
+  supersededBy?: string[];
 }
 
 export type SpecSummary = Pick<SpecRow, "progress" | "priority" | "due" | "overdue">;
 
 const DAY_LENGTH = 10;
 
-export function specRow(node: SpecNode, projectDir: string, today: string): SpecRow {
-  const { area, domain, scope, updated } = node.meta;
+export function specRow(node: SpecNode, projectDir: string, today: string, supersededBy: readonly string[] = []): SpecRow {
+  const { area, domain, scope, updated, stale, dropped } = node.meta;
   const { progress, priority, due, overdue } = specSummary(node, today);
   return {
     name: node.spec.name,
@@ -37,6 +41,9 @@ export function specRow(node: SpecNode, projectDir: string, today: string): Spec
     overdue,
     updated: updated?.slice(0, DAY_LENGTH),
     progress,
+    ...(stale ? { stale } : {}),
+    ...(dropped ? { dropped } : {}),
+    ...(supersededBy.length > 0 ? { supersededBy: [...supersededBy] } : {}),
   };
 }
 

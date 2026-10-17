@@ -1,4 +1,5 @@
 import { error, warning, type Issue } from "../doctor/issue";
+import { lifecycleIssues } from "./lifecycle";
 import type { SpecNode } from "./nodes";
 import { undeclaredOverlaps } from "./overlap";
 import { phasesInRef } from "./relations";
@@ -15,7 +16,7 @@ export function graphIssues(nodes: ReadonlyMap<string, SpecNode>, name: string, 
 export function linkIssues(nodes: ReadonlyMap<string, SpecNode>, name: string, file: string): Issue[] {
   const node = nodes.get(name);
   if (!node) return [];
-  return [...relationIssues(nodes, node, file), ...cycleIssues(nodes, name, file), ...supersededButOpen(nodes, node, file)];
+  return [...relationIssues(nodes, node, file), ...cycleIssues(nodes, name, file), ...supersededButOpen(nodes, node, file), ...lifecycleIssues(nodes, node, file)];
 }
 
 function relationIssues(nodes: ReadonlyMap<string, SpecNode>, node: SpecNode, file: string): Issue[] {

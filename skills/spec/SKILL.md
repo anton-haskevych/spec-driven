@@ -407,6 +407,11 @@ related:                                             # anything else, with a one
 - **An umbrella** is a spec whose children declare `part-of` it. Nesting needs nothing more.
 - **When the other side's work moves** (a phase dissolved, split or renamed), update the declaring spec's reference. The doctor flags references that no longer resolve.
 
+**Lifecycle.** `status:` says where a spec is in life (taxonomy → *status*). Two optional one-line notes say the rest:
+
+- **How a spec ended.** `done` shipped; `good-enough` shipped its main part, leftovers went to the backlog; `abandoned` didn't ship. When another spec took the work, that spec declares `supersedes: [x]` and x reads "superseded by" it; otherwise x carries `dropped: "<one-line why>"`. The doctor warns on an abandoned spec with neither, and on `dropped:` anywhere else.
+- **`stale: "<what is out of date>"`** flags an open spec whose text no longer matches the code or decisions while work remains. It is health, not a status: the board offers its review in place of its phases, the packs print a `Stale:` line, and the review that re-plans it deletes the line. The doctor warns on `stale:` on a finished spec.
+
 Claude reads the graph through `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts graph …`. The user never calls it.
 
 - `graph <name>`: links in both directions, which `needs` are still open ("Blocked by"), and undeclared overlaps (open specs whose `code-map.md` lists the same files).

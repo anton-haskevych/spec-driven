@@ -315,9 +315,9 @@ If the user explicitly deferred a fork ("leave it open for now"), create `ledger
 
 A "the approach is wrong" verdict is a fork and was put to the user in §3. If they accepted the rethink, apply it — including rewriting the spec — and record the decision. If they rejected it, apply only the findings that stand regardless, and record the rejection with their reasoning so future reviewers don't re-raise it.
 
-### Bump the timestamp
+### Clear the stale flag, bump the timestamp
 
-After all edits: `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>`.
+If `CLAUDE.md` carries `stale: "<text>"` and this review re-planned what it names, delete the `stale:` line; a review that left that part untouched keeps it. After all edits: `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>`.
 
 ## 6. Commit
 

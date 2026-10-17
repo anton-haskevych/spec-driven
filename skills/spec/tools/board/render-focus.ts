@@ -31,8 +31,8 @@ function progressCell(row: FocusRow): string {
 }
 
 function nowCell(row: FocusRow): string {
-  const text = nowText(row.now);
-  return row.due && !row.overdue ? `${text} · due ${monthDay(row.due)}` : text;
+  const parts = [nowText(row.now), row.stale ? "⚠ stale" : undefined, row.due && !row.overdue ? `due ${monthDay(row.due)}` : undefined];
+  return parts.filter(Boolean).join(" · ");
 }
 
 function nowText(now: FocusNow): string {

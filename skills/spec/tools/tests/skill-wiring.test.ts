@@ -131,6 +131,23 @@ describe("ship mode wiring", () => {
   });
 });
 
+describe("stale spec wiring", () => {
+  const read = (name: string) => readFileSync(join(SKILL_DIR, name), "utf8");
+
+  test("execute and resume turn the pack's Stale line into a review proposal; review clears the flag", () => {
+    for (const name of ["execute.md", "resume.md"]) {
+      expect(read(name)).toContain("`Stale: <text>`");
+      expect(read(name)).toContain("`/spec review <spec>`");
+    }
+    expect(read("review.md")).toContain("delete the `stale:` line");
+  });
+
+  test("SKILL.md documents both lifecycle notes and list.md the stale filter", () => {
+    for (const note of ["`stale:", "`dropped:"]) expect(read("SKILL.md")).toContain(note);
+    expect(read("list.md")).toContain("`stale` keeps specs carrying `stale:`");
+  });
+});
+
 describe("phase template wiring", () => {
   test("create.md's phase template carries the same Goal and Outcome lines as phase add's", () => {
     const generated = phaseFileText({ id: "1", title: "Any", edges: {} }).split("\n");

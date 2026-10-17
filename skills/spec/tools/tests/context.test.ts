@@ -182,6 +182,15 @@ describe("contextPack", () => {
     rmSync(join(spec(), "in-flight"), { recursive: true });
   });
 
+  test("execute and resume packs carry a Stale line only when CLAUDE.md has stale:", () => {
+    expect(contextPack(project, { mode: "execute", name: "checkout" })).not.toContain("Stale:");
+    write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\nstale: phase 2 predates the ledger move\n---\n# Checkout\n");
+    const line = "Stale: phase 2 predates the ledger move (propose `/spec review` to re-plan before building on it)";
+    expect(contextPack(project, { mode: "execute", name: "checkout" })).toContain(`Picked: Phase 2 — Aggregate (first ready phase)\n\n${line}`);
+    expect(contextPack(project, { mode: "resume", name: "checkout" }).split("\n\n")[1]).toBe(line);
+    write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\n---\n# Checkout\n");
+  });
+
   test("execute pack scopes ledger rows and code-map rows to the picked phase", () => {
     const pack = contextPack(project, { mode: "execute", name: "checkout" });
     expect(pack).toContain("Picked: Phase 2 — Aggregate (first ready phase)");
