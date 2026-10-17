@@ -26,6 +26,8 @@ export interface PackInput {
   held: HeldPhases;
   playbooks: readonly Playbook[];
   settings?: string;
+  // The spec's `stale:` text.
+  stale?: string;
 }
 
 const PHASE_ENTRY_LIMIT = 8000;
@@ -38,7 +40,7 @@ const PATH_LIKE = /^[\w@.{}-]+(\/[\w@.{}*-]+)+$/;
 const STABLE_REFERENCES = ["design.md", "technical.md"];
 const TASK_PHASE_NOTE = "Task phase (code: false): follow execute.md → Task phases. No recon, preflight or TDD; tick each item with its evidence.";
 
-export function resumePack({ state, doctor, relations, ready, held, playbooks, settings }: PackInput): string {
+export function resumePack({ state, doctor, relations, ready, held, playbooks, settings, stale }: PackInput): string {
   const { phase: next, skipped } = firstUnheld(state.spec.name, ready.ready, held);
   const skippedLine = skipped.length > 0 ? `\nSkipped: ${skipped.join(", ")}` : "";
   const nextBlock = next
@@ -46,6 +48,7 @@ export function resumePack({ state, doctor, relations, ready, held, playbooks, s
     : `### Next chunk\n${nextChunkAbsent(ready, skipped)}`;
   return [
     "Covers the Stage A reads (progress.md, phase entries, in-flight notes). Do not re-read those files.",
+    ...staleLine(stale),
     ...optionalLine(settings),
     `### Status table\n${renderStatusTable(state)}`,
     `### Ready set\n${renderReadySet(ready)}`,
@@ -64,6 +67,7 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
     "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and its in-flight notes. Do not re-read those files.",
     `Picked: Phase ${phase.id} — ${phase.name} (${pickNote})`,
     ...parkLine(state, phase.id),
+    ...staleLine(input.stale),
     ...optionalLine(input.settings),
     ...(phase.code ? [] : [TASK_PHASE_NOTE]),
     `### Ready set\n${renderReadySet(input.ready)}`,
@@ -92,6 +96,11 @@ function parkLine(state: SpecState, phaseId: string): string[] {
   if (park.answer) return [`Answered ${park.answer.at}: "${park.answer.text}" (Phase ${phaseId} asked "${park.question}"). Build on it.`];
   const advice = park.recommend ? ` · recommend ${park.recommend}` : "";
   return [`Parked: Phase ${phaseId} asks "${park.question}"${advice}. Unanswered: ask the user; a crew worker hands off.`];
+}
+
+// execute.md → Stale spec: propose a re-planning review before building on this plan.
+function staleLine(stale: string | undefined): string[] {
+  return stale ? [`Stale: ${stale} (propose \`/spec review\` to re-plan before building on it)`] : [];
 }
 
 function optionalLine(line: string | undefined): string[] {

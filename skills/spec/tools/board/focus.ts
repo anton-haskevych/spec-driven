@@ -77,6 +77,7 @@ export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inpu
       ...(stage ? { stage } : { progress }),
       ...(due ? { due } : {}),
       overdue,
+      ...(node.meta.stale ? { stale: node.meta.stale } : {}),
       now: focusNow(node, lanes, inputs),
       sessions: (bySpec.get(name) ?? []).map((session) => focusSession(session, name)),
       ...focusWork(remoteClaims(name, inputs), openLinkedPrs(name, inputs).map((pr) => ({ author: pr.author, cell: toPrCell(pr) })), me),

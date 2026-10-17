@@ -22,7 +22,17 @@ export interface SpecMeta {
   focus?: FocusBand;
   owner?: string;
   ship?: ShipMode;
+  // Open work whose spec text no longer matches the code or decisions: a health flag, not a status.
+  stale?: string;
+  // Why an abandoned spec didn't ship, when no other spec supersedes it.
+  dropped?: string;
 }
+
+// One-line notes on a spec's lifecycle; see SKILL.md → Relations between specs.
+export const LIFECYCLE_NOTES = ["stale", "dropped"] as const;
+type LifecycleNote = (typeof LIFECYCLE_NOTES)[number];
+
+export type LifecycleFields = Partial<Record<LifecycleNote, string>> & { problems: string[] };
 
 export interface FocusFields {
   focus?: FocusBand;
@@ -49,7 +59,24 @@ export function readSpecMeta(data: FrontmatterData): SpecMeta {
     focus,
     owner,
     ship: readShipField(data).ship,
+    ...lifecycleNotes(readLifecycleFields(data)),
   };
+}
+
+export function readLifecycleFields(data: FrontmatterData): LifecycleFields {
+  const fields: LifecycleFields = { problems: [] };
+  for (const key of LIFECYCLE_NOTES) {
+    if (!Object.hasOwn(data, key)) continue;
+    const value = data[key];
+    const line = typeof value === "string" ? value.trim() : "";
+    if (line !== "" && !line.includes("\n")) fields[key] = line;
+    else fields.problems.push(`${key} must be one line of text, not ${JSON.stringify(value)}`);
+  }
+  return fields;
+}
+
+function lifecycleNotes({ problems: _problems, ...notes }: LifecycleFields): Partial<Record<LifecycleNote, string>> {
+  return notes;
 }
 
 export function readFocusFields(data: FrontmatterData): FocusFields {

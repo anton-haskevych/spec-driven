@@ -4,7 +4,8 @@ import { loadBoard } from "../board/load";
 import { renderBoard } from "../board/render";
 import { isOverdue, isoDay } from "../core/schedule";
 import { loadNodes } from "../graph/nodes";
-import { matchesItem, matchesSpec, orderBacklog, orderSpecs } from "../portfolio/order";
+import { supersededBy } from "../graph/lifecycle";
+import { FINISHED_STATUSES, matchesItem, matchesSpec, orderBacklog, orderSpecs, STALE_FILTER } from "../portfolio/order";
 import { renderPortfolio } from "../portfolio/render";
 import { specRow } from "../portfolio/rows";
 import { ownSessionId } from "../sessions/own";
@@ -39,13 +40,15 @@ export function listRoute(args: readonly string[]): ListRoute | string {
 }
 
 export function portfolioTable(projectDir: string, args: readonly string[], today: string): string {
-  const showFinished = args.includes(ALL);
   const filter = args.filter((arg) => arg !== ALL && arg !== JSON_FLAG && arg !== TABLE).join(" ").trim();
+  // A finished status is a lifecycle filter: `list abandoned` shows abandoned specs without `all`.
+  const showFinished = args.includes(ALL) || FINISHED_STATUSES.has(filter.toLowerCase());
 
-  const rows = [...loadNodes(projectDir).values()].map((node) => specRow(node, projectDir, today));
+  const nodes = loadNodes(projectDir);
+  const rows = [...nodes.values()].map((node) => specRow(node, projectDir, today, supersededBy(nodes, node.spec.name)));
   const matching = rows.filter((row) => !filter || matchesSpec(row, filter));
   const specs = orderSpecs(matching.filter((row) => showFinished || !row.finished));
-  const backlog = orderBacklog(loadBacklog(projectDir).filter((item) => !filter || matchesItem(item, filter)));
+  const backlog = isSpecOnlyFilter(filter) ? [] : orderBacklog(loadBacklog(projectDir).filter((item) => !filter || matchesItem(item, filter)));
 
   if (args.includes(JSON_FLAG)) {
     const ideas = backlog.map((item) => ideaForAgents(item, projectDir, today));
@@ -54,6 +57,12 @@ export function portfolioTable(projectDir: string, args: readonly string[], toda
   const hiddenFinished = matching.length - specs.length;
   const shown = filter || showFinished ? specs : specs.slice(0, DEFAULT_SPEC_LIMIT);
   return renderPortfolio({ today, showFinished, hiddenFinished, notShown: specs.length - shown.length, specs: shown, backlog });
+}
+
+// Backlog ideas have no lifecycle: a lifecycle filter lists specs only.
+function isSpecOnlyFilter(filter: string): boolean {
+  const wanted = filter.toLowerCase();
+  return wanted === STALE_FILTER || FINISHED_STATUSES.has(wanted);
 }
 
 function ideaForAgents(item: BacklogItem, projectDir: string, today: string) {

@@ -2,15 +2,15 @@
 
 ## status (single value)
 
-Lifecycle order: `prep` → `draft` → `active` → `done` / `good-enough`.
+Lifecycle order: `prep` → `draft` → `active` ⇄ `paused` → `done` / `good-enough` / `abandoned`. How a spec ended and the `stale:` health flag: SKILL.md → *Relations between specs* → *Lifecycle*.
 
 - `prep` — Reconnaissance stage: folder + `product-brief.md` + `research/` (a spun-off spec starts with `seed.md`); spec body not yet written
 - `draft` — Spec written, not yet under implementation (may be in review)
 - `active` — Implementation in progress
 - `paused` — Implementation started, intentionally on hold
-- `good-enough` — Acceptable state, not pursuing further
-- `done` — Completed
-- `abandoned` — Dropped; kept for the record
+- `good-enough` — Main part shipped; leftovers moved to the backlog
+- `done` — Shipped
+- `abandoned` — Didn't ship; kept for the record with `dropped:` or a spec that `supersedes:` it
 
 ## scope (multi-value)
 - `feature` — New user-facing capability
@@ -30,6 +30,8 @@ Otherwise, use free-form descriptive values that name the business domain or sub
 ## Field types
 - `created` — ISO 8601 datetime with timezone (e.g., 2026-03-13T18:30:00+02:00)
 - `updated` — ISO 8601 datetime with timezone
+- `stale` — one line: what in an open spec is out of date
+- `dropped` — one line: why an abandoned spec didn't ship
 - `specs` — string array of spec slugs (journals only)
 
 ---

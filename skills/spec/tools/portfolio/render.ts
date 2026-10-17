@@ -35,7 +35,15 @@ export function renderPortfolio(view: PortfolioView): string {
 function specLine(row: SpecRow): string {
   const name = row.root === DEFAULT_ROOT ? row.name : `${row.name} (${row.root.split("/")[0]})`;
   const progress = row.progress.total > 0 ? `${row.progress.done}/${row.progress.total}` : EMPTY;
-  return cells([name, row.status, row.priority, dueCell(row.due, row.overdue), list(row.area), list(row.domain), row.updated, progress]);
+  return cells([name, statusCell(row), row.priority, dueCell(row.due, row.overdue), list(row.area), list(row.domain), row.updated, progress]);
+}
+
+// ⚠ marks a stale open spec; an abandoned one says what happened to it.
+function statusCell(row: SpecRow): string | undefined {
+  if (row.stale) return `${row.status ?? EMPTY} ⚠ stale: ${row.stale}`;
+  if (row.status !== "abandoned") return row.status;
+  if (row.supersededBy) return `abandoned, superseded by ${row.supersededBy.join(", ")}`;
+  return row.dropped ? `abandoned, dropped: ${row.dropped}` : row.status;
 }
 
 function ideaLine(item: BacklogItem, today: string): string {
@@ -57,7 +65,8 @@ function cells(values: ReadonlyArray<string | undefined>): string {
 function summaryLine(view: PortfolioView): string {
   const overdue = view.specs.filter((row) => row.overdue).length + view.backlog.filter((item) => isOverdue(item.due, view.today)).length;
   const counts = [plural(view.specs.length, view.showFinished ? "spec" : "open spec"), plural(view.backlog.length, "idea")].join(", ");
-  const late = overdue > 0 ? ` ${overdue} overdue.` : "";
+  const stale = view.specs.filter((row) => row.stale && !row.finished).length;
+  const late = `${overdue > 0 ? ` ${overdue} overdue.` : ""}${stale > 0 ? ` ${stale} stale.` : ""}`;
   const hidden = view.hiddenFinished > 0 ? ` ${plural(view.hiddenFinished, "finished spec")} hidden; \`/spec list all\` shows them.` : "";
   const cut = view.notShown > 0 ? ` ${plural(view.notShown, "more open spec")} not shown; filter by priority, domain, area or name to see them.` : "";
   return `**${counts}.${late}**${hidden}${cut}`;

@@ -135,6 +135,15 @@ times to questions with an obvious answer. PR A makes the loop move on one word 
 |---|---|---|
 | 2.45.0 | **Pick by number, plain reports, no collisions.** Reply to *Next sessions* with row numbers ("1", "1 3"); create's next row is its review, and the board shows a spec nobody reviewed or started as one `review` row with each ready row's title (board v2). Execute applies preflight's defaults and stops only on its forks. Every work report opens with Impact / On merge / Left from the phases' Outcome lines; one rule in SKILL.md decides vs asks, with defaults listed under `Say if wrong:`. In-flight notes are one file per phase (`in-flight/phase-<id>.md`, `in-flight/pr-<group>.md`), read by packs, doctor and graph; sessions stop writing shared spec lines | shipped |
 
+## Spec lifecycle (2.49)
+
+Anton (2026-10-16): stale or outdated specs need "a good indication of what happened to it eventually, and
+the ability to filter on its life cycle."
+
+| Version | Change | Status |
+|---|---|---|
+| 2.49.0 | **Lifecycle notes.** `status:` stays the stage; an abandoned spec says how it ended (another spec's `supersedes:` shows as "superseded by", else `dropped: "<why>"`), and `stale: "<what is out of date>"` flags an open spec whose text drifted. `list stale` / `list abandoned` filter on it, the table marks ⚠ stale and how abandoned specs ended, `--json` carries `stale`, `dropped`, `supersededBy`. The board turns a stale spec's ready work into one `review` row (FOCUS shows ⚠ stale); packs print `Stale:`, execute proposes a review first, and the review that re-plans deletes the line. The doctor checks both notes | in PR |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through

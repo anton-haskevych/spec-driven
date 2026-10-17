@@ -59,7 +59,7 @@ export interface FlightRow extends RowBase {
   next: FlightNext;
 }
 
-// "review": a spec with phases that nobody has reviewed or started yet.
+// "review": a spec with phases that nobody has reviewed or started yet, or a stale one.
 export type NextStep = "prep" | "create" | "review" | "execute";
 
 export interface ReadyRow extends RowBase {
@@ -83,6 +83,8 @@ export interface ReadyRow extends RowBase {
   sharesWith?: string[];
   // `after <spec> <phase> (<session>)`: another session works in this row's tree.
   treeBusy?: string;
+  // The spec's `stale:` text: its ready work is this one review row until a review re-plans it.
+  stale?: string;
 }
 
 export interface BlockedRow extends RowBase {
@@ -148,6 +150,7 @@ export interface FocusRow {
   stage?: SpecStage;
   due?: string;
   overdue: boolean;
+  stale?: string;
   now: FocusNow;
   sessions: FocusSession[];
   work: FocusWork[];

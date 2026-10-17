@@ -29,6 +29,8 @@ Read the picked phase's `in-flight/phase-<id>.md` (and a legacy `in-flight.md`) 
 
 **A parked phase** waits on the user: the pack prints `Parked: Phase <id> asks "<question>" · recommend <answer>` (without a pack, an unanswered `- Parked …` line under `## Needs you` in its in-flight file). Interactive: ask the question now, recommendation first, and run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase unpark <spec> <phase> "<their answer>"` when they answer. Crew worker: when the launch brief carries the answer (`Anton answered …`), record it with `phase unpark` in their words and commit before anything else; without one, hand off untouched. An `Answered …` line is the decision: build on it, don't ask again.
 
+**A stale spec** (the pack prints `Stale: <text>`; without a pack, `stale:` in its `CLAUDE.md`) has a plan that no longer matches the code or decisions. Don't build on it: say what is stale in one line and propose `/spec review <spec>` first, which re-plans and clears the flag. Execute only if the user says to go ahead anyway. Crew worker: hand off untouched, with the `Stale:` line as the reason.
+
 ### 0.3. Load Stage B context
 
 Run `resume.md` Stage B's reads — *Read stable references + active phase* through *Read supplementary phase files only when linked* — against the picked chunk: stable references + the active phase entry, then the scoped `code-map.md` and phase-filtered `ledger/INDEX.md` entries, then any supplementary phase file its `plan.md` explicitly links. Skip anything already loaded this session.

@@ -81,7 +81,13 @@ function specLanes(node: SpecNode, placement: Placement): SpecLanes {
   if (stage) return stageLanes(node, stage, placement);
   const state = placement.inputs.states.get(node.spec.name);
   if (!state) return { ready: [], blocked: [] };
-  return awaitsReview(state, placement) ? stageLanes(node, "review", placement) : phaseLanes(node, state, placement);
+  return openSpecLanes(node, state, placement);
+}
+
+// A stale spec, like an unreviewed one, offers its review in place of its phases.
+function openSpecLanes(node: SpecNode, state: SpecState, placement: Placement, origin?: BranchOrigin): SpecLanes {
+  const review = node.meta.stale !== undefined || awaitsReview(state, placement);
+  return review ? stageLanes(node, "review", placement, origin) : phaseLanes(node, state, placement, origin);
 }
 
 // A written spec's next session is its review, until a review lands anywhere or a phase starts.
@@ -125,7 +131,7 @@ function branchOnlyLanes(workspaces: readonly WorkspaceView[], placement: Placem
       if (seen.has(name) || placement.inputs.nodes.has(name) || !state || !isOnBoard(node)) return [];
       seen.add(name);
       const origin = { workspace: workspace.path, branch: workspace.branch ?? workspace.path };
-      return [awaitsReview(state, placement) ? stageLanes(node, "review", placement, origin) : phaseLanes(node, state, placement, origin)];
+      return [openSpecLanes(node, state, placement, origin)];
     }),
   );
 }
@@ -135,7 +141,7 @@ function stageLanes(node: SpecNode, step: Exclude<NextStep, "execute">, { inputs
   const target = origin ? { workspace: origin.workspace } : { newWorktree: name };
   const reasons = blockers(neighborhood(inputs.nodes, name)).map((link) => `needs ${link.other}${link.phases ? `#${link.phases}` : ""}`);
   if (reasons.length > 0) return { ready: [], blocked: [{ spec: name, ...(origin ? { target } : {}), reasons }] };
-  const { priority, due, updated } = node.meta;
+  const { priority, due, updated, stale } = node.meta;
   const row: ReadyRow = {
     spec: name,
     next: step,
@@ -148,6 +154,7 @@ function stageLanes(node: SpecNode, step: Exclude<NextStep, "execute">, { inputs
     updated,
     unblocks: unblocks.get(rowKey({ spec: name })) ?? 0,
     safe: origin === undefined,
+    ...(stale ? { stale } : {}),
   };
   return { ready: [row], blocked: [] };
 }

@@ -69,9 +69,8 @@ function readyCells(board: Board): string[][] {
 }
 
 function readyNote(row: ReadyRow, board: Board): string {
-  const note = placementNote(row, board);
-  if (row.focusBand === undefined) return note;
-  return note ? `${row.focusBand} · ${note}` : row.focusBand;
+  const parts = [row.focusBand, row.stale ? `⚠ stale: ${row.stale}` : undefined, placementNote(row, board)];
+  return parts.filter(Boolean).join(" · ");
 }
 
 function placementNote(row: ReadyRow, board: Board): string {

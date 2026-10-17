@@ -78,9 +78,10 @@ function specPack(projectDir: string, request: ContextRequest, name: string, inf
   const ready = readySet(state, nodes);
   const playbooks = playbooksForSpec(projectDir, state.spec);
   const settings = settingsLine(projectDir);
+  const stale = nodes.get(state.spec.name)?.meta.stale;
   const body = mode === "execute"
-    ? executeBody(projectDir, { state, doctor, relations, ready, held, playbooks, settings, lessons: loadProjectLessons(projectDir) }, request.hint)
-    : resumePack({ state, doctor, relations, ready, held, playbooks, settings, lessons: [] });
+    ? executeBody(projectDir, { state, doctor, relations, ready, held, playbooks, settings, stale, lessons: loadProjectLessons(projectDir) }, request.hint)
+    : resumePack({ state, doctor, relations, ready, held, playbooks, settings, stale, lessons: [] });
   return packBlock(state.spec.name, mode, inferredFrom, body);
 }
 

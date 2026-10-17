@@ -16,7 +16,14 @@ export function orderBacklog(items: readonly BacklogItem[]): BacklogItem[] {
   return [...items].sort((a, b) => compareSchedule(a, b) || a.slug.localeCompare(b.slug));
 }
 
+// Lifecycle tokens match a flag or a status, never a name.
+export const STALE_FILTER = "stale";
+export const FINISHED_STATUSES: ReadonlySet<string> = new Set(["done", "good-enough", "abandoned"]);
+
 export function matchesSpec(row: SpecRow, filter: string): boolean {
+  const wanted = filter.toLowerCase();
+  if (wanted === STALE_FILTER) return row.stale !== undefined;
+  if (FINISHED_STATUSES.has(wanted)) return row.status === wanted;
   const values = [row.status, row.priority, ...row.area, ...row.domain, ...row.scope];
   return matchesValue(values, filter) || includesText([row.name], filter);
 }
