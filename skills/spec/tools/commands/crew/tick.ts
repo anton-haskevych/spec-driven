@@ -10,7 +10,7 @@ import { claimFor, closeOut, isClaimLive } from "../../crew/close-out-run";
 import { runFileStore, systemCrewDeps, type CrewDeps, type RunFileStore } from "../../crew/deps";
 import { overseerLine, whoseRun } from "../../crew/overseer";
 import { pickRows } from "../../crew/pick";
-import { parseRunFile, withLaunched, withLog, withOverseer, type LaunchedEntry } from "../../crew/run-state";
+import { parseRunFile, withLaunched, withLog, withOverseer, type LaunchedEntry, type RunFile } from "../../crew/run-state";
 import { actionLines, afterCloseOut, nextAction } from "../../crew/tick-step";
 import { parseLaunchTitle } from "../../launch/title";
 import { loadAgents, type Agent } from "../../sessions/agents";
@@ -21,6 +21,7 @@ import { systemPlaceDeps } from "../trees";
 import { launchCrewSession, type CrewLaunchRequest, type CrewLaunchResult } from "./launch-session";
 
 export const CREW_TICK_USAGE = "crew tick [--no-launch]";
+const NO_RUNNER = "crew tick: can't tell who runs this crew; run crew start again. Launching nothing";
 
 export interface TickWorld {
   sessions: Result<LiveSession[]>;
@@ -66,10 +67,13 @@ export async function crewTick(projectDir: string, args: readonly string[], deps
   const remaining = run.launched.filter((entry) => !passed.removed.has(entry.id));
   store.value.write(withLog(withLaunched(text, remaining), passed.logs));
 
-  // Pausing (or a stood-down run) closes sessions out but never starts new ones.
-  const holding = args.includes("--no-launch") || run.state === "stood-down";
-  if (holding) report.forYou.push(...passed.relaunches.map((relaunch) => `Relaunch held (pausing): ${relaunch.spec} ${relaunch.phase}`));
-  const launched = holding ? 0 : await fillSlots(remaining, agents.value, passed.relaunches, world.value, run, ports, report);
+  // Pausing (or a stood-down run) closes sessions out but never starts new ones; neither does a run
+  // that doesn't say whose it is, since every pick and launch is offered to the runner.
+  const { runner } = run;
+  const held = args.includes("--no-launch") || run.state === "stood-down" ? "pausing" : runner === undefined ? "no runner" : undefined;
+  if (held === "no runner") report.forYou.push(NO_RUNNER);
+  if (held) report.forYou.push(...passed.relaunches.map((relaunch) => `Relaunch held (${held}): ${relaunch.spec} ${relaunch.phase}`));
+  const launched = held || runner === undefined ? 0 : await fillSlots(remaining, agents.value, passed.relaunches, world.value, { ...run, runner }, ports, report);
   return [...report.done, ...report.forYou, `Tick: ${passed.removed.size} closed out · ${launched} launched · ${report.forYou.length} for you`].join("\n");
 }
 
@@ -102,7 +106,7 @@ function closeOutLaunched(launched: readonly LaunchedEntry[], agents: readonly A
   return passed;
 }
 
-async function fillSlots(remaining: readonly LaunchedEntry[], agents: readonly Agent[], relaunches: ReadonlyArray<{ spec: string; phase: string }>, world: TickWorld, run: ReturnType<typeof parseRunFile>, ports: TickPorts, report: Report): Promise<number> {
+async function fillSlots(remaining: readonly LaunchedEntry[], agents: readonly Agent[], relaunches: ReadonlyArray<{ spec: string; phase: string }>, world: TickWorld, run: RunFile & { runner: string }, ports: TickPorts, report: Report): Promise<number> {
   const workers = remaining.flatMap((entry) => {
     const title = parseLaunchTitle(entry.title);
     return title?.sub === "execute" ? [{ entry, spec: title.spec }] : [];
@@ -110,7 +114,7 @@ async function fillSlots(remaining: readonly LaunchedEntry[], agents: readonly A
   const occupied = workers.filter(({ entry }) => agents.some((agent) => agent.id === entry.id && agent.state !== "stopped")).length;
   let slots = run.caps.workers - occupied;
   const busy = new Set([...workers.map((worker) => worker.spec), ...relaunches.map((relaunch) => relaunch.spec)]);
-  const picks = [...relaunches, ...pickRows(world.ready, world.states, busy, run.unanswered, Math.max(0, slots - relaunches.length))];
+  const picks = [...relaunches, ...pickRows({ ready: world.ready, states: world.states, busy, unanswered: run.unanswered, slots: Math.max(0, slots - relaunches.length), me: run.runner })];
   let launched = 0;
   for (const pick of picks) {
     if (slots <= 0) {

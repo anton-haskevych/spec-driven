@@ -101,6 +101,28 @@ describe("crew tick", () => {
     expect(lines.slice(1)).toEqual(["Relaunch held (pausing): checkout 3", "Tick: 1 closed out · 0 launched · 1 for you"]);
   });
 
+  test("refills only with the runner's specs and specs nobody owns", async () => {
+    setUp([], 2);
+    const ready = [readyRow({ spec: "cross-studio", phase: "1a", owner: "taras" }), readyRow({ spec: "checkout", phase: "2", owner: "anton" }), readyRow({ spec: "billing", phase: "1" })];
+    const { fake, calls } = ports({ ready }, []);
+    await crewTick(repo.dir, [], crewDeps({ env }), fake);
+    expect(calls.launched).toEqual(["checkout 2", "billing 1"]);
+  });
+
+  test("a run with no runner still closes out, but launches nothing and says why", async () => {
+    setUp([{ id: "a1", title: "checkout execute 3", at: "t0" }], 2);
+    writeFileSync(runPath(), readFileSync(runPath(), "utf8").replace("runner: anton-haskevych\n", ""));
+    const again = DONE.replace("next nothing", "next same phase");
+    const { fake, calls } = ports({ ready: [readyRow({ spec: "billing", phase: "1" })] }, [agent("a1", "done")], { a1: crewOk(again) });
+    const lines = (await crewTick(repo.dir, [], crewDeps({ env }), fake)).split("\n");
+    expect(calls).toEqual({ stopped: ["a1"], launched: [] });
+    expect(lines.slice(1)).toEqual([
+      "crew tick: can't tell who runs this crew; run crew start again. Launching nothing",
+      "Relaunch held (no runner): checkout 3",
+      "Tick: 1 closed out · 0 launched · 2 for you",
+    ]);
+  });
+
   test("another live overseer: prints it and does nothing", async () => {
     const other = "9a8b7c6d-0000-4000-8000-000000000000";
     setUp([{ id: "a1", title: "checkout execute 1", at: "t0" }], 1, other);
