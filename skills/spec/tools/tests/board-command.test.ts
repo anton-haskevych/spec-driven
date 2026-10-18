@@ -102,7 +102,16 @@ describe("board focus --who (real git)", () => {
 
   test("text names the person; me with nothing on the board is none", async () => {
     expect(await boardCommand(repo.dir, ["focus", "--who", "taras", "--local"], deps)).toContain("\n\nFOCUS · taras\n  MUST\n  2  second  0/1  ready 1  — (Taras Korpach)\n```");
-    expect(await boardCommand(repo.dir, ["--who", "me", "--local"], deps)).toContain("\n\nFOCUS · me\n  none\n\nIN FLIGHT");
+    expect(await boardCommand(repo.dir, ["--who", "me", "--local"], deps)).toContain("\n\nSPEC-TESTS\n  owns  —\n  (--local: no claims or PRs)\n\nFOCUS · me\n  none\n\nIN FLIGHT");
+  });
+
+  test("bare --who opens with the person section; --json carries it as people whatever the lane", async () => {
+    expect(await boardCommand(repo.dir, ["--who", "taras", "--local"], deps)).toContain(" need you\n\nTARAS\n  owns  second ready 1\n  (--local: no claims or PRs)\n\nFOCUS · taras\n");
+    expect(await boardCommand(repo.dir, ["focus", "--who", "taras", "--local"], deps)).not.toContain("TARAS");
+    const { board } = JSON.parse(await boardCommand(repo.dir, ["focus", "--who", "taras", "--json", "--local"], deps));
+    expect(board.people).toEqual([{ person: "taras", mine: false, owns: [{ spec: "second", now: { kind: "ready", phases: ["1"], step: "execute" } }], onNow: [], prs: [], local: true }]);
+    const { board: plain } = JSON.parse(await boardCommand(repo.dir, ["--json", "--local"], deps));
+    expect(plain).not.toHaveProperty("people");
   });
 
   test("--who with another lane, or without a name, is a usage error", async () => {

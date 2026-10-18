@@ -67,5 +67,6 @@ describe("personWork", () => {
     const work = personWork(local, buildBoard(local, NOW, ME), "taras");
     expect(work.local).toBe(true);
     expect(work.owns).toHaveLength(3);
+    expect(personWork(local, buildBoard(local, NOW, ME), "me")).not.toHaveProperty("sessions");
   });
 });

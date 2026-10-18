@@ -37,8 +37,13 @@ const NO_SCAN: WorkspaceScanResult = { scans: [], counts: { merged: 0, unknownBa
 export async function loadBoard(projectDir: string, request: BoardRequest, runners: BoardRunners, now: Date): Promise<Result<Board>> {
   const inputs = await loadBoardInputs(projectDir, request, runners);
   if (!inputs.ok) return inputs;
-  const me = runnerName(gitAt(projectDir, runners.runner));
-  return { ok: true, value: buildBoard(inputs.value, now, me.ok ? me.value : undefined) };
+  return { ok: true, value: buildBoard(inputs.value, now, boardMe(projectDir, runners.runner)) };
+}
+
+// Board.me: the configured git name, absent when git has none.
+export function boardMe(projectDir: string, runner: Runner): string | undefined {
+  const me = runnerName(gitAt(projectDir, runner));
+  return me.ok ? me.value : undefined;
 }
 
 export async function loadBoardInputs(projectDir: string, request: BoardRequest, runners: BoardRunners): Promise<Result<BoardInputs>> {

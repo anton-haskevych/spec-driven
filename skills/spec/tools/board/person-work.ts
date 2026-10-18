@@ -1,4 +1,6 @@
 import { ownerOf, samePerson } from "../core/people";
+import type { Result } from "../core/result";
+import type { LiveSession } from "../sessions/live";
 import { isFinished, type SpecNode } from "../graph/nodes";
 import { attributeSessions } from "./attribution";
 import { focusNow, focusSession } from "./focus";
@@ -22,7 +24,7 @@ export function personWork(inputs: BoardInputs, board: Board, who: string): Pers
     owns: ownedSpecs(inputs, board, theirs),
     onNow: liveClaims(inputs, theirs, mine),
     prs: authoredPrs(inputs, theirs),
-    ...(mine ? { sessions: mySessions(inputs) } : {}),
+    ...(mine && inputs.sessions !== "local" ? { sessions: mySessions(inputs.sessions, inputs) } : {}),
     ...(inputs.prs === "local" ? { local: true as const } : {}),
   };
 }
@@ -57,9 +59,9 @@ function authoredPrs({ prs }: BoardInputs, theirs: Matches): PersonPr[] {
 }
 
 // attributeSessions keeps this repo's sessions only (gotcha-session-files-span-every-repo).
-function mySessions(inputs: BoardInputs): PersonSession[] {
-  if (inputs.sessions === "local" || !inputs.sessions.ok) return [];
-  const { bySpec, unattributed } = attributeSessions(inputs.sessions.value, inputs, new Set(inputs.nodes.keys()));
-  const placed = [...bySpec].flatMap(([spec, sessions]) => sessions.map((session) => ({ ...focusSession(session, spec), spec })));
+function mySessions(sessions: Result<LiveSession[]>, inputs: BoardInputs): PersonSession[] {
+  if (!sessions.ok) return [];
+  const { bySpec, unattributed } = attributeSessions(sessions.value, inputs, new Set(inputs.nodes.keys()));
+  const placed = [...bySpec].flatMap(([spec, found]) => found.map((session) => ({ ...focusSession(session, spec), spec })));
   return [...placed, ...unattributed.map((session) => focusSession(session))];
 }

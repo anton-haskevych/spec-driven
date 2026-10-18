@@ -1,9 +1,12 @@
 import { parseArgs } from "node:util";
-import { loadBoard, type BoardRunners } from "../board/load";
+import { buildBoard } from "../board/lanes";
+import { boardMe, loadBoard, loadBoardInputs, type BoardRunners } from "../board/load";
 import type { Board } from "../board/model";
 import { boardFor, offerFor } from "../board/people";
+import { personWork } from "../board/person-work";
 import { LANES, renderBoard, type Lane } from "../board/render";
 import type { Env } from "../core/env";
+import type { Result } from "../core/result";
 import { systemAsyncRunner, systemRunner } from "../core/run";
 import { defaultClaudeHome } from "../sessions/live";
 import { ownSessionId } from "../sessions/own";
@@ -33,10 +36,20 @@ export function systemBoardDeps(): BoardDeps {
 export async function boardCommand(projectDir: string, args: readonly string[], deps: BoardDeps = systemBoardDeps()): Promise<string> {
   const parsed = parseBoardArgs(args);
   if (typeof parsed === "string") return parsed;
-  const loaded = await loadBoard(projectDir, { local: parsed.local, ownSessionId: ownSessionId(deps.env) }, deps, deps.now);
+  const loaded = await load(projectDir, parsed, deps);
   const board = loaded.ok ? { ok: true as const, value: filtered(loaded.value, parsed) } : loaded;
   if (parsed.json) return JSON.stringify(board.ok ? { board: board.value } : { board: null, error: board.reason }, null, 2);
   return board.ok ? fenced(renderBoard(board.value, { lane: parsed.lane, who: parsed.who })) : `board unavailable: ${board.reason}`;
+}
+
+// personWork reads BoardInputs, which loadBoard doesn't return.
+async function load(projectDir: string, args: BoardArgs, deps: BoardDeps): Promise<Result<Board>> {
+  const request = { local: args.local, ownSessionId: ownSessionId(deps.env) };
+  if (!args.who) return loadBoard(projectDir, request, deps, deps.now);
+  const inputs = await loadBoardInputs(projectDir, request, deps);
+  if (!inputs.ok) return inputs;
+  const board = buildBoard(inputs.value, deps.now, boardMe(projectDir, deps.runner));
+  return { ok: true, value: { ...board, people: [personWork(inputs.value, board, args.who)] } };
 }
 
 export function fenced(text: string): string {
