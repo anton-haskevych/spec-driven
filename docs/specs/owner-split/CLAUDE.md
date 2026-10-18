@@ -11,6 +11,7 @@ related:
   - pr-babysit: also edits core/git.ts; runnerName sits beside authorName, no shared logic
   - spec-loop-automation: also edits core/git.ts; no shared logic
   - active-work-view: built --who, people.ts matching and the owner field on focus rows; this extends them past FOCUS
+ship: auto
 ---
 
 # Owner Split Spec
