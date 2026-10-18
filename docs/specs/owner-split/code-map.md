@@ -21,6 +21,8 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/crew/run-state.ts` | run.md `runner:`, the crew's identity | `decision-crew-identity-is-the-run-file` |
 | `skills/spec/tools/commands/crew/tick.ts` | refill and close-out; reads the runner | |
 | `skills/spec/tools/commands/crew/launch-session.ts` | every crew start passes here; hands `onlyFor` to placement | |
+| `skills/spec/tools/launch/place-for-launch.ts` | `LaunchPlace.onlyFor` reaches placement for execute only; babysit never gated | `decision-launch-gate-in-place-tree` |
+| `skills/spec/tools/tests/trees-place-owner.test.ts` | real-git owner gate fixture: base owner, branch-only owner, malformed owner | |
 | `skills/spec/tools/board/people.ts` | `--who` (that person's work) and `--for` (offered to them) filters | `decision-offer-filter-is-its-own-flag` |
 | `skills/spec/tools/board/lanes.ts` | ready rows are built here | |
 | `skills/spec/tools/core/git.ts` | identity (`authorName`, `runnerName`) | `gotcha-invalid-owner-reads-as-shared` |

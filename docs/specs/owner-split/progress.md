@@ -15,6 +15,6 @@
 ## Phases
 
 - [x] Phase 1 — Owners, assigned and read everywhere → `phases/phase-1-owners-everywhere.md`
-- [ ] Phase 2 — The crew works only its runner's specs → `phases/phase-2-crew-follows-owner.md`
+- [x] Phase 2 — The crew works only its runner's specs → `phases/phase-2-crew-follows-owner.md`
 - [ ] Phase 3 — Suggestions follow the owner → `phases/phase-3-suggestions-follow-owner.md`
 - [ ] Phase 4 — What is X working on → `phases/phase-4-who-is-on-what.md`
