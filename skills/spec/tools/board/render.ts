@@ -30,7 +30,8 @@ export function renderBoard(board: Board, options: { lane?: Lane; who?: string }
   };
   const shown = LANES.filter((name) => name !== "focus" || board.lanes.focus.length > 0 || options.who !== undefined);
   const body = options.lane ? [sections[options.lane]] : [...shown.map((name) => sections[name]), footer(board)];
-  return [header(board, now), ...body].join("\n\n");
+  const unknown = board.who?.unknown ? ["Can't tell who you are (no git user.name): showing everyone's work, owners marked."] : [];
+  return [header(board, now), ...unknown, ...body].join("\n\n");
 }
 
 function header(board: Board, now: Date): string {

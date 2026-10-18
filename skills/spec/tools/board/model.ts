@@ -5,7 +5,7 @@ import type { FocusBand } from "../core/spec-meta";
 import type { SessionStatus } from "../sessions/live";
 import type { SpecStage } from "./inputs";
 
-export const BOARD_VERSION = 2;
+export const BOARD_VERSION = 3;
 
 export type Target = { workspace: string } | { newWorktree: string };
 
@@ -168,6 +168,8 @@ export interface Board {
   here: string;
   // runnerName, the configured git name: who "my" claims and PRs belong to. Absent when git has none.
   me?: string;
+  // `--for me` with no runner name: the ready lane is everyone's, owners marked.
+  who?: { unknown: true };
   mainCheckout?: string;
   base: { branch: string; sha: string; date: string; mode: BaseMode; reason?: string };
   lanes: { focus: FocusRow[]; inFlight: FlightRow[]; ready: ReadyRow[]; blocked: BlockedRow[]; needsYou: AttentionRow[] };

@@ -1,4 +1,4 @@
-import { ownerOf, personKey, samePerson } from "../core/people";
+import { isOffered, ownerOf, personKey, samePerson } from "../core/people";
 import type { SpecMeta } from "../core/spec-meta";
 import type { Board, FocusClaim, FocusRow, FocusWork, PrCell } from "./model";
 
@@ -39,6 +39,14 @@ export function boardFor(board: Board, who: string): Board {
   const { otherSessions, ...footer } = board.footer;
   const focus = focusFor(board.lanes.focus, who, board.me);
   return { ...board, lanes: { ...board.lanes, focus }, footer: isMe(who, board.me) && otherSessions ? { ...footer, otherSessions } : footer };
+}
+
+// Ready rows offered to `who` (theirs or nobody's), plus `keep`'s; the other lanes stay everyone's.
+export function offerFor(board: Board, who: string, keep?: string): Board {
+  const person = who === ME ? board.me : who;
+  if (person === undefined) return { ...board, who: { unknown: true } };
+  const ready = board.lanes.ready.filter((row) => row.spec === keep || isOffered(row.owner, person));
+  return { ...board, lanes: { ...board.lanes, ready } };
 }
 
 export function focusFor(rows: readonly FocusRow[], who: string, me?: string): FocusRow[] {
