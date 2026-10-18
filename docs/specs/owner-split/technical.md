@@ -1,120 +1,127 @@
 # Owner Split — Technical
 
 Paths relative to `skills/spec/tools/`. Ground truth: `research/2026-10-17-wave-1-owner-seams.md`
-(seams) and `research/2026-10-17-craft-owner-split.md` (names, fixtures, extraction).
+(seams), `research/2026-10-17-craft-owner-split.md` (names, fixtures, extraction) and
+`reviews/2026-10-17-crew-gate-and-offer-filter.md` (what changed and why).
 
 ## Data
 
 | Where | Field | Read by |
 |---|---|---|
-| spec `CLAUDE.md` | `owner: <name>` (exists) | `readOwnerField` (lifted out of `readFocusFields`, `core/spec-meta.ts:93-97`) |
-| phase file frontmatter | `owner: <name>` (new read) | `loadPhase` → `PhaseState.owner` (`core/spec-state.ts:14-28,55-73`) |
-| backlog idea frontmatter | `owner: <name>` (new read) | `parseBacklogItem` → `BacklogItem.owner` (`backlog/items.ts:9-19,36-46`) |
-| `ReadyRow` | `owner?: string` = phase owner ?? spec owner | `phaseRow` (`board/lanes.ts:162-182`), `stageLanes` (`:139-160`, spec owner) |
+| spec `CLAUDE.md` | `owner: <name>` (exists) | `readFocusFields` (`core/spec-meta.ts:93-97`), unchanged parse and doctor message |
+| `SpecMeta` | `ownerInvalid?: true` (new) | set when `owner:` is present but not a name; `ownerOf(meta)` returns `INVALID_OWNER` for it |
+| `ReadyRow` | `owner?: string` = `ownerOf(node.meta)` | `phaseRow` (`board/lanes.ts:162-182`), `stageLanes` (`:139-160`) |
+| `FlightRow`, `BlockedRow` | `owner?: string` (display, person section) | `board/flight.ts:20-39`, blocked push in `board/lanes.ts:113` |
 
-`readOwnerField(data) → { owner?: string; problems: string[] }`, shaped like `readShipField`
-(`core/spec-meta.ts:44-47,101-105`). Problem text unchanged: `owner <json> is not a name`.
-Phase problems ride on `PhaseState` like `schedule.problems` (`doctor/schedule.ts:15`); backlog
-problems in `doctor/backlog-item.ts`.
+Phases and backlog ideas get no owner (`ledger/decision-spec-level-owners-only.md`).
 
-## Identity
+## People and identity
+
+```ts
+// core/people.ts (NEW; personKey, samePerson and UNKNOWN move here from board/people.ts)
+export const UNKNOWN = "unknown";          // replaces claims/remote.ts:16 and board/people.ts:4
+export const INVALID_OWNER = "?";          // a malformed owner: offered to no one
+export function personKey(name: string): string
+export function samePerson(a: string, b: string): boolean
+export function hasMatchKey(name: string): boolean   // personKey(name).length >= 3
+// Offer a row to a person when nobody owns it or they do.
+export function isOffered(owner: string | undefined, person: string): boolean
+// owner === undefined || (owner !== INVALID_OWNER && samePerson(owner, person))
+export function ownerOf(meta: SpecMeta): string | undefined
+```
 
 ```ts
 // core/git.ts, beside authorName
 export function runnerName(git: Git): Result<string>
-// git -c user.useConfigOnly=true var GIT_AUTHOR_IDENT → name before " <"
-// fails: { ok: false, reason: "can't tell who you are; set git user.name" }
+// git -c user.useConfigOnly=true -c user.email=spec-driven@invalid var GIT_AUTHOR_IDENT
+//   → the name before " <"
+// fails: "can't tell who you are; set git user.name"
+//        "git user.name <name> is too short to match anyone; use at least 3 letters"  (!hasMatchKey)
 ```
 
-`authorName` stays for the board's display "me" and claim holders (`claims/remote.ts:22` keeps
-`?? "unknown"`). One exported `UNKNOWN` replaces `claims/remote.ts:16` and `board/people.ts:4`.
+`authorName` keeps one job: the claim holder (`claims/remote.ts:22`, `?? UNKNOWN`).
+`board/load.ts:39` passes `runnerName` (value only when ok) as `Board.me`.
 
-## Matching
+## Landing a spec key on main
 
 ```ts
-// board/people.ts
-// Offer a row to a person when nobody owns it or they do.
-export function isOffered(owner: string | undefined, person: string): boolean
-// owner === undefined || samePerson(owner, person)
+// core/land-spec-field.ts (NEW, beside core/land-on-main.ts; lifted from commands/ship.ts shipEdit/planShip)
+export function landSpecField(projectDir: string, runner: Runner, edit: SpecFieldEdit): Promise<MainLanding<SpecFieldEdit>>
+// SpecFieldEdit: { spec, key, value | undefined, same(current) → boolean, message }
+// findSpecs on base → refuse none ("land the spec first") / many → unchanged → set or remove line → landOnMain
 ```
+
+`ship.ts` becomes argument parsing plus copy on top of it; `focus` keeps its own band logic.
 
 ## CLI contracts
 
 | Command | Change |
 |---|---|
-| `spec.ts owner <spec> <name\|me\|none>` | New. Model: `commands/ship.ts` (`landOnMain`, `setFrontmatterLine` / `removeFrontmatterLine`, `findSpecs`). `me` → `runnerName`. Lines in design.md → CLI copy. Registered in `spec.ts` and the commands table (`tests/commands-table.test.ts`). |
-| `board [lane] --who <name\|me>` | Guard at `commands/board.ts:45` lifted. `boardFor` filters ready / flight / blocked rows to `isOffered(row.owner, who)`; FOCUS keeps `focusFor`. Bare `board --who X` renders the person section, then the filtered lanes. `--json` returns the filtered model. `--who me` with no runner name → unfiltered model + `who: { unknown: true }` and the "Can't tell…" line in text. |
+| `spec.ts owner <spec> <name\|me\|none>` | New, on `landSpecField`. `me` → `runnerName`; a name without a 3-char match key is refused. Lines in design.md → CLI copy. Registered in `spec.ts` and the commands table (`tests/commands-table.test.ts`). |
+| `board ready --for <name\|me> [--keep <spec>]` | New flags, ready lane only (`board --for` without `ready` filters the ready lane in the full board). Ready rows kept when `isOffered(row.owner, name)` or `row.spec === keep`. Flight, blocked, you, FOCUS untouched. `--for me` with no runner name → unfiltered + `who: { unknown: true }` in JSON and the "Can't tell…" line in text. |
+| `board [lane] --who <name\|me>` | Meaning unchanged ("that person's work"). Guard at `commands/board.ts:45` stays for lanes; bare `board --who X` gains the person section (phase 4). |
 | `BOARD_VERSION` | 2 → 3 (`board/model.ts:8`); `tests/board-command.test.ts:36` pin. |
-| `crew start` | Resolves `runnerName`; refuses on failure; success line adds `for <name>`. Run file frontmatter gains `runner: <name>` (`crew/run-state.ts:29-42,62-65`). |
-| `crew tick` | `TickWorld` gains `me: Result<string>`; `systemTickPorts.world()` fills it and passes it to `buildBoard` (`commands/crew/tick.ts:25-30,133-139`). Failure → `crew tick: can't tell who runs this crew; …` and no refill. |
-| `pickRows` | New `me: string` param; guard `if (!isOffered(row.owner, me)) continue;` (`crew/pick.ts:18-20`). |
-| `launchCrewSession` | For `execute`: owner read from base before `placeForLaunch` (`commands/crew/launch-session.ts:42`) via an injected `OwnerReader` port; refusal `crew launch: <spec> is <owner>'s; this crew is <me>'s. …`. Babysit not gated. |
-
-### Base owner read (launch gate)
-
-```ts
-// commands/crew/owner-on-base.ts
-export type OwnerReader = (spec: string, phase: string) => string | undefined;
-export function ownerOnBase(projectDir: string, runner: Runner): OwnerReader
-// originTip (no fetch) → baseProject(git, sha).dir → findSpecs(dir, spec)
-// → readOwnerField(CLAUDE.md) and loadSpecState(folder) phase owner; phase ?? spec
-// not on base → same read against projectDir (trees/place.ts:106-107 precedent)
-```
-
-Tick passes a reader built from the nodes and states it already loaded (`tick.ts:135-138`)
-instead of reading base again.
+| `crew start` | Resolves `runnerName`; refuses on failure; writes `runner: <name>` to run.md (`crew/run-state.ts` `RunFile`/`NewRun`/`parseRunFile`); line becomes `Crew: started for <name> · overseer …` (pins in `tests/crew-overseer-command.test.ts:24,33,41`). Takeover rewrites `runner:` from the new session's `runnerName` and says so when it changed. |
+| `crew tick` | Reads `run.runner`. Missing → close-out runs as usual, the refill is held like `--no-launch`, and `crew tick: can't tell who runs this crew; run crew start again. Launching nothing` goes to *for you*. No git call added; `buildBoard` unchanged. |
+| `pickRows` | One object param `{ ready, states, busy, unanswered, slots, me }`; guard `if (!isOffered(row.owner, me)) continue;` (`crew/pick.ts:18-20`). `fillSlots` reads `run.runner`. |
+| `launchCrewSession` | Reads `runner` from the run file it already parses (`launch-session.ts:36`); no runner → `crew launch: can't tell who runs this crew; run crew start again`. Passes `onlyFor: runner` for `execute` through `placeForLaunch`; babysit unchanged. Signature unchanged. |
+| `placeTree` | `PlaceOptions.onlyFor?: string`. After `groupPhases`, owner = `ownerOf` of `inputs.nodes.get(spec).meta`, else of the checkout's `CLAUDE.md` for a branch-only spec. Not offered → `<spec> is <owner>'s; this crew is <me>'s. Open it in your own session instead`, plus `; its work so far is on <branch> in <path>. Push it or hand it to <owner>` when `findTree` finds the group's tree. Never `addPlacedTree`. |
 
 ## Suggestions (prose that changes)
 
 | File | Change |
 |---|---|
-| `SKILL.md` *Next sessions* step 1 | `board ready --who me --json`; the session's own spec keeps row 1; on `who.unknown` print the "Can't tell…" line |
-| `SKILL.md` *Priority, due dates and owners* | owner = assigned on someone's word via `spec.ts owner`; never the creator; phase beats spec |
-| `SKILL.md` *Tools* | one bullet for `spec.ts owner` |
-| `execute.md` §0.2, `commands/context.ts:30-31` `APPLY_TOP_READY` | `board ready --who me --json --local` |
-| packs (`context/packs.ts:43-48`, `commands/context.ts:94-106`) | ready list filtered with `isOffered` before `firstUnheld`; a chunk hint still wins |
-| `oversee-crew.md` §1–§2, refusal list `:92-94`, `:119`; `crew-brief.md` | pick rule adds "owned by someone else"; new refusal bullets; "Anton" → "the person running the crew" |
-| `list.md:11-12,25,59`; `idea.md:23` | "what is X on" → `board --who X`; "X is Taras's" → `spec.ts owner X taras` |
+| `SKILL.md` *Next sessions* step 1 | `board ready --for me --keep <this session's spec> --json`; own spec still row 1; on `who.unknown` print the "Can't tell…" line |
+| `SKILL.md` *Priority, due dates and owners* | owner = spec-level, assigned on someone's word via `spec.ts owner`, never the creator; phases and ideas have none |
+| `SKILL.md` *Tools* | one bullet for `spec.ts owner`; Board bullet names `--for`/`--keep` |
+| `execute.md` §0.2, `commands/context.ts:30-31` `APPLY_TOP_READY` | `board ready --for me --json --local` |
+| `oversee-crew.md` §1.2 + heartbeat, §2 pick rule, refusal list `:92-94`, `:119`; `crew-brief.md` | plan reads `board ready --for me --json`; pick rule adds "owned by someone else"; new refusal bullets; "Anton" → "the person running the crew" |
+| `list.md:11-12,25,59`; `idea.md:23` | "what is X on" → `board --who X`; "X is Taras's" → `spec.ts owner X taras`; ideas carry no owner |
+
+Packs are not touched.
 
 ## Person section
 
 ```ts
-// board/render-person.ts
-export function personSection(board: Board, now: Date, who: string): string
+// board/person-work.ts (NEW): pure, from BoardInputs
+export function personWork(inputs: BoardInputs, board: Board, who: string): PersonWork
+// board/render-person.ts (NEW)
+export function personSection(work: PersonWork, now: Date): string
 ```
 
-Data, all already on the board model or its inputs:
-- **owns:** every spec node whose `meta.owner` matches, with its lane state (ready phase, blocked reason, in flight, done). Needs the spec owner on flight/blocked rows too: `owner?` added there the same way as on `ReadyRow`.
+- **owns:** spec nodes whose `meta.owner` matches, with lane state from the board (ready phase, blocked reason, in flight, done).
 - **on now:** remote claims whose `holder.user` matches (`claims/held.ts:27-33`), dropping phases done on base; for me, local claims too.
-- **PRs:** open PRs whose `author` matches (`pr/checks/rollup.ts:94`), all specs, not only focus-linked.
+- **PRs:** open PRs whose `author` matches (`pr/checks/rollup.ts:94`), all specs.
 - **sessions (me only):** `attributeSessions` (`board/attribution.ts`), repo-scoped.
 
-`Board` gains `people?: { who: string; owns: …; claims: …; prs: … }` only under `--who`, so
-the unfiltered JSON is unchanged apart from the version.
+`commands/board.ts` builds it when `--who` is set (`loadBoardInputs` + `buildBoard`, not `loadBoard`) and attaches `Board.people`; the unfiltered JSON is unchanged apart from the version.
 
 ## File tree
 
 ```
 skills/spec/tools/
-├── core/git.ts                     runnerName, UNKNOWN
-├── core/spec-meta.ts               readOwnerField
-├── core/spec-state.ts              PhaseState.owner
-├── backlog/items.ts                BacklogItem.owner
-├── board/model.ts                  owner on ready/flight/blocked rows, people, BOARD_VERSION 3
-├── board/lanes.ts                  phase ?? spec owner
-├── board/people.ts                 isOffered, boardFor over every lane
-├── board/render.ts                 (owner) in readyNote
+├── core/people.ts                  NEW personKey, samePerson, isOffered, ownerOf, UNKNOWN, INVALID_OWNER
+├── core/git.ts                     runnerName
+├── core/spec-meta.ts               ownerInvalid
+├── core/land-spec-field.ts         NEW landSpecField (from ship.ts)
+├── board/model.ts                  owner on ready/flight/blocked rows, who, people, BOARD_VERSION 3
+├── board/lanes.ts, board/flight.ts owner on rows
+├── board/load.ts                   Board.me from runnerName
+├── board/people.ts                 imports matching from core; offerFilter (--for/--keep)
+├── board/render.ts                 (owner) / (owner?) in readyNote
+├── board/person-work.ts            NEW personWork
 ├── board/render-person.ts          NEW personSection
 ├── commands/owner.ts               NEW spec.ts owner
-├── commands/board.ts               --who on every lane
-├── commands/crew/owner-on-base.ts  NEW OwnerReader
-├── commands/crew/launch-session.ts gate before placement
-├── commands/crew/tick.ts           me in TickWorld
-├── commands/crew/overseer.ts       crew start resolves me
-├── crew/pick.ts                    owner guard
+├── commands/ship.ts                on landSpecField
+├── commands/board.ts               --for, --keep; person section under --who
+├── commands/crew/launch-session.ts runner from run.md → onlyFor
+├── commands/crew/tick.ts           runner from run.md; close out when unknown
+├── commands/crew/overseer.ts       crew start resolves and records the runner
+├── crew/pick.ts                    object param, owner guard
 ├── crew/run-state.ts               runner: in frontmatter
-├── context/packs.ts                filtered ready before firstUnheld
-└── tests/git-repo.ts               anonymousRunner (no identity)
+├── trees/place.ts                  PlaceOptions.onlyFor
+├── launch/place-for-launch.ts      passes onlyFor for execute
+└── tests/git-repo.ts               anonymousRunner (no identity, env blanked)
 ```
 
-New files stay under 250 lines, functions under 50 (`principles.md`).
+New files stay under 250 lines, functions under 50, params at most 4 (`principles.md`).

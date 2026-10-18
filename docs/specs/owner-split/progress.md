@@ -9,7 +9,7 @@
 ## Success metrics
 
 - A crew run in CRM by Anton launches zero workers on `owner: taras` specs, with no skip rows in run.md.
-- `board --who taras` lists all 6 of Taras's specs, not only the 4 in focus.
+- `board --who taras` lists all 6 of Taras's specs, not only the 4 in focus. Both machines on the release that ships this.
 - "Assign X to Taras" is one `spec.ts owner` call, seen on both machines after a fetch.
 
 ## Phases

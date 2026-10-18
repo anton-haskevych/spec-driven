@@ -28,9 +28,9 @@ its owner, and unowned work to anyone. "Who is on what" becomes a question anyon
 - The overseer's start message and ready list
 - "Next sessions" at the end of prep, create, review and handoff
 - Asking what a person is working on (today this only covers the focus list)
-- An owner on a single phase or a backlog idea, which beats the spec's owner
 
 ## Out of scope
 - Hiding anything from the board: it still shows everyone's work, owner marked
 - Blocking a person who deliberately opens someone else's spec in their own session
 - Assigning owners to existing specs, or cleaning the overseer's run file (done by hand)
+- Owners on a single phase or a backlog idea: specs only for now (review 2026-10-17)
