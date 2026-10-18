@@ -20,7 +20,7 @@ Triggered by `/spec idea <text>`, or by the user saying "idea: …", "add to the
    <what and why, in the user's words, under 120 words>
    ```
 
-   Leave out `priority` and `due` unless the user gave them; never invent urgency. Add `owner:` only when the user named the one person who must do it.
+   Leave out `priority` and `due` unless the user gave them; never invent urgency. Ideas carry no `owner:`: owners are set on specs, on someone's word, with `spec.ts owner`.
 3. **Confirm in one line**: `Added idea <slug>` plus its priority or due if set. Don't commit unless the session is committing anyway.
 
 ## Close or drop

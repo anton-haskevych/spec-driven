@@ -56,7 +56,7 @@ Change the set only when the user says so: every write lands on `origin/<default
 
 A 2.37.0 number (`focus: 10`) shows under SHOULD and the doctor warns; `focus add X <band>` rewrites it and `focus drop X` removes it.
 
-Print the tool's line. A refusal (`focus add: …`, `focus: push to main refused: …`) means nothing was written; pass it on. "X is Taras's" is not a focus write: set `owner: taras` in X's `CLAUDE.md` with an ordinary spec-doc edit.
+Print the tool's line. A refusal (`focus add: …`, `focus: push to main refused: …`) means nothing was written; pass it on. "X is Taras's" is not a focus write: run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts owner X taras` ("X is mine" → `owner X me`, "X is nobody's" → `owner X none`) and print its line. Owners are spec-level and set only on someone's word, never for the spec's creator; phases and ideas carry none.
 
 ## 2. Without Bun
 
