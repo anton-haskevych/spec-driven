@@ -6,6 +6,7 @@ import { prClaimGroup } from "../claims/pr-claim";
 import { heldName } from "../claims/rules";
 import type { BoardInputs, HeldClaim } from "./inputs";
 import type { FlightRow } from "./model";
+import { ownerField } from "./people";
 import { resolvedPhaseKeys, rowKey, splitKey } from "./phase-keys";
 
 export interface WorkspaceReady {
@@ -25,6 +26,7 @@ export function flightRows(activity: ReadonlyMap<string, PhaseActivity>, inputs:
     .toSorted((a, b) => KEY_ORDER.compare(rowKey(a), rowKey(b)))
     .map(({ spec, phase, tickedIn, wipIn, held }): FlightRow => {
       const [workspace = held?.status === "remote" ? "" : (held?.claim.workspace ?? ""), ...alsoIn] = tickedIn.length > 0 ? tickedIn : wipIn;
+      const node = specNode(spec, inputs);
       const prGroup = workspaceState(spec, workspace, inputs)?.phases.find((candidate) => candidate.id === phase)?.edges.pr ?? (phase === undefined ? undefined : prClaimGroup(phase));
       return {
         spec,
@@ -33,6 +35,7 @@ export function flightRows(activity: ReadonlyMap<string, PhaseActivity>, inputs:
         workspace,
         ...(alsoIn.length > 0 && tickedIn.length > 0 ? { alsoIn } : {}),
         ...(held ? { holder: heldName(held) } : {}),
+        ...(node ? ownerField(node.meta) : {}),
         ...(workspace ? { target: { workspace } } : {}),
         next: tickedIn.length > 0 ? "ticked on branch, not merged" : "executing",
       };

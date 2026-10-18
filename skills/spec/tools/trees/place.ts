@@ -7,7 +7,11 @@ import type { HeldClaim } from "../claims/rules";
 import { gitAt, gitCommonDir, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { defaultBranch } from "../core/run";
-import { resolveSpec } from "../core/spec-folders";
+import { readTextIfExists } from "../core/files";
+import { parseFrontmatter } from "../core/frontmatter";
+import { INVALID_OWNER, isOffered, ownerOf } from "../core/people";
+import { resolveSpec, type SpecFolder } from "../core/spec-folders";
+import { readSpecMeta } from "../core/spec-meta";
 import { loadSpecState, type SpecState } from "../core/spec-state";
 import type { Env } from "../core/env";
 import { loadSettings } from "../playbook/settings";
@@ -36,8 +40,10 @@ export type Placement = { branch: string; path: string; rootNotice?: string } & 
 );
 
 // existingOnly: a babysitter needs the tree that holds the PR's code, never a fresh one.
+// onlyFor: the crew's runner; a spec owned by someone else is refused before any tree is cut.
 export interface PlaceOptions {
   existingOnly?: boolean;
+  onlyFor?: string;
 }
 
 interface PlaceWorld {
@@ -49,6 +55,8 @@ interface PlaceWorld {
   activity: ReadonlyMap<string, PhaseActivity>;
   // Base first, then this checkout's own copy: a phase added on a branch isn't on base yet.
   views: SpecState[];
+  // ownerOf the spec on base (where `spec.ts owner` lands), else of this checkout's copy.
+  owner?: string;
 }
 
 // `phase` may be a PR claim id (`pr-<group>`), which places the group's tree.
@@ -60,6 +68,8 @@ export async function placeTree(projectDir: string, spec: string, phase: string,
   if (!group.ok) return group;
   const name = treeName(spec, group.value.prGroup);
   const found = findTree(name, group.value, world.value);
+  const refused = options.onlyFor === undefined ? undefined : ownerRefusal(spec, world.value.owner, options.onlyFor, found && { branch: found.branch ?? name.branch, path: found.path });
+  if (refused) return { ok: false, reason: refused };
   if (!found) return options.existingOnly ? { ok: false, reason: `no tree for ${name.branch}` } : addPlacedTree(projectDir, name, world.value, deps);
   const view = { sessions, claims, worktreePaths: worktrees.map((worktree) => worktree.path), ownSessionId: ownSessionId(deps.env) };
   const holder = treeHolder(found.path, view, () => hasUncommittedChanges(found.path, deps.runner));
@@ -102,15 +112,31 @@ async function loadPlaceWorld(projectDir: string, spec: string, deps: PlaceDeps)
   if (!worktrees.ok) return worktrees;
   const inputs = await loadBoardInputs(projectDir, { local: true }, deps);
   if (!inputs.ok) return inputs;
-  const { states, workspaces } = inputs.value;
+  const { nodes, states, workspaces } = inputs.value;
   const own = resolveSpec(projectDir, spec);
   const views = [states.get(spec), typeof own === "string" ? undefined : loadSpecState(own)].filter((view) => view !== undefined);
   if (views.length === 0) return { ok: false, reason: typeof own === "string" ? own : `no spec named ${spec}` };
+  const baseMeta = nodes.get(spec)?.meta;
+  const owner = baseMeta ? ownerOf(baseMeta) : typeof own === "string" ? undefined : checkoutOwner(own);
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   return {
     ok: true,
-    value: { git, defaultBranch: branch, worktrees: worktrees.value, sessions, claims: heldClaims(git, sessions, states), activity: phaseActivity(states, workspaces), views },
+    value: { git, defaultBranch: branch, worktrees: worktrees.value, sessions, claims: heldClaims(git, sessions, states), activity: phaseActivity(states, workspaces), views, ...(owner === undefined ? {} : { owner }) },
   };
+}
+
+function checkoutOwner(folder: SpecFolder): string | undefined {
+  const parsed = parseFrontmatter(readTextIfExists(join(folder.dir, "CLAUDE.md")) ?? "");
+  return parsed.kind === "ok" ? ownerOf(readSpecMeta(parsed.data)) : undefined;
+}
+
+// The crew asks for a spec its runner may not take; deliberate sessions never pass onlyFor.
+function ownerRefusal(spec: string, owner: string | undefined, onlyFor: string, tree: { branch: string; path: string } | undefined): string | undefined {
+  if (owner === undefined || isOffered(owner, onlyFor)) return undefined;
+  const malformed = owner === INVALID_OWNER;
+  const whose = malformed ? `${spec}'s owner: is malformed` : `${spec} is ${owner}'s`;
+  const refusal = `${whose}; this crew is ${onlyFor}'s. Open it in your own session instead`;
+  return tree ? `${refusal}; its work so far is on ${tree.branch} in ${tree.path}. Push it or hand it to ${malformed ? "its owner" : owner}` : refusal;
 }
 
 function groupPhases(views: readonly SpecState[], spec: string, phase: string): Result<GroupPhases & { prGroup?: string }> {

@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { hasMatchKey } from "./people";
 import type { Result } from "./result";
 import type { RunOptions, RunResult, Runner } from "./run";
 
@@ -32,9 +33,26 @@ export function gitFailureReason(stderr: string): string {
   return lines.find((line) => REJECTED_REF.test(line)) ?? lines.find((line) => ERROR_LINE.test(line)) ?? lines[0] ?? "";
 }
 
+// Who claims are written as. git may invent it from the OS account, so it never decides who "me" is.
 export function authorName(git: Git): string | undefined {
   const ident = git.out(["var", "GIT_AUTHOR_IDENT"]);
-  return (ident.ok && ident.value.split(" <")[0]?.trim()) || undefined;
+  return (ident.ok && identName(ident.value)) || undefined;
+}
+
+// useConfigOnly refuses a missing email as well as a missing name; the placeholder email keeps a name-only config working.
+const CONFIGURED_IDENT = ["-c", "user.useConfigOnly=true", "-c", "user.email=spec-driven@invalid", "var", "GIT_AUTHOR_IDENT"];
+
+// Who runs the tools: the configured git name, or a refusal, never a guess.
+export function runnerName(git: Git): Result<string> {
+  const ident = git.out(CONFIGURED_IDENT);
+  const name = ident.ok ? identName(ident.value) : "";
+  if (!name) return { ok: false, reason: "can't tell who you are; set git user.name" };
+  if (!hasMatchKey(name)) return { ok: false, reason: `git user.name ${name} is too short to match anyone; use at least 3 letters` };
+  return { ok: true, value: name };
+}
+
+function identName(ident: string): string {
+  return ident.split(" <")[0]?.trim() ?? "";
 }
 
 // Shared by the main checkout and every linked worktree: state kept here is per clone, never committed.

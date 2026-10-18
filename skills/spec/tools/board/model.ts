@@ -5,7 +5,7 @@ import type { FocusBand } from "../core/spec-meta";
 import type { SessionStatus } from "../sessions/live";
 import type { SpecStage } from "./inputs";
 
-export const BOARD_VERSION = 2;
+export const BOARD_VERSION = 3;
 
 export type Target = { workspace: string } | { newWorktree: string };
 
@@ -13,6 +13,8 @@ interface RowBase {
   spec: string;
   phase?: string;
   target?: Target;
+  // ownerOf the spec: a name, INVALID_OWNER, or absent when nobody owns it.
+  owner?: string;
 }
 
 // "remote": another machine's claim; `since` is when it was claimed.
@@ -157,15 +159,53 @@ export interface FocusRow {
   unattributedPrs: PrCell[];
 }
 
-export type BaseMode = "fetched" | "offline" | "busy" | "local";
+export type OwnedNow = FocusNow | { kind: "finished"; status: string };
+
+export interface OwnedSpec {
+  spec: string;
+  now: OwnedNow;
+}
+
+// A live claim; `host` names another machine, absent for this one.
+export interface PersonClaim {
+  spec: string;
+  phase: string;
+  since: string;
+  host?: string;
+}
+
+export interface PersonPr {
+  branch: string;
+  cell: PrCell;
+}
+
+export interface PersonSession extends FocusSession {
+  spec?: string;
+}
+
+// `board --who`: one person across every spec. `sessions` only for me; `local`: --local skipped claims and PRs.
+export interface PersonWork {
+  person: string;
+  mine: boolean;
+  owns: OwnedSpec[];
+  onNow: PersonClaim[];
+  prs: PersonPr[];
+  sessions?: PersonSession[];
+  local?: true;
+}
+
+export type BaseMode ="fetched" | "offline" | "busy" | "local";
 
 export interface Board {
   version: typeof BOARD_VERSION;
   repo: string;
   generatedAt: string;
   here: string;
-  // The git author name: who "my" claims and PRs belong to.
+  // runnerName, the configured git name: who "my" claims and PRs belong to. Absent when git has none.
   me?: string;
+  // `--for me` with no runner name: the ready lane is everyone's, owners marked.
+  who?: { unknown: true };
+  people?: PersonWork[];
   mainCheckout?: string;
   base: { branch: string; sha: string; date: string; mode: BaseMode; reason?: string };
   lanes: { focus: FocusRow[]; inFlight: FlightRow[]; ready: ReadyRow[]; blocked: BlockedRow[]; needsYou: AttentionRow[] };

@@ -33,11 +33,11 @@ own spec stays row 1; on `who.unknown` print the line above the rows. `APPLY_TOP
 
 ## Deliverables
 
-- [ ] `board ready --for <name|me>` keeps mine-or-shared ready rows; other lanes and FOCUS unchanged (`board-command.test.ts`)
-- [ ] `--keep <spec>` keeps that spec's rows under `--for`
-- [ ] `--for me` with no runner name → unfiltered + `who.unknown` + the line; `BOARD_VERSION` 3
-- [ ] `APPLY_TOP_READY`, execute §0.2 and the overseer's plan use `--for me`
-- [ ] `SKILL.md` *Next sessions* and *Tools* → Board describe the filter, `--keep` and the unknown line
+- [x] `board ready --for <name|me>` keeps mine-or-shared ready rows; other lanes and FOCUS unchanged (`board-command.test.ts`)
+- [x] `--keep <spec>` keeps that spec's rows under `--for`
+- [x] `--for me` with no runner name → unfiltered + `who.unknown` + the line; `BOARD_VERSION` 3
+- [x] `APPLY_TOP_READY`, execute §0.2 and the overseer's plan use `--for me`
+- [x] `SKILL.md` *Next sessions* and *Tools* → Board describe the filter, `--keep` and the unknown line
 
 ## Phase-local notes
 

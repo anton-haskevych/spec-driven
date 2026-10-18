@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { realpathSync } from "node:fs";
 import { join } from "node:path";
-import { authorName, gitAt, gitCommonDir, gitFailureReason, stateDir, stateDirIn } from "../core/git";
-import { isolatedRunner, repoWithOrigin } from "./git-repo";
+import { authorName, gitAt, gitCommonDir, gitFailureReason, runnerName, stateDir, stateDirIn } from "../core/git";
+import { anonymousRunner, isolatedRunner, repoWithOrigin } from "./git-repo";
 import { stubRunner } from "./stub-runner";
 
 describe("gitAt", () => {
@@ -68,6 +68,45 @@ describe("authorName", () => {
 
   test("is undefined when git can't say", () => {
     expect(authorName(gitAt("/repo", stubRunner([[["git", "var"], { code: 128, stderr: "fatal: no name" }]])))).toBeUndefined();  });
+});
+
+describe("runnerName", () => {
+  const RUNNER_IDENT = ["git", "-c", "user.useConfigOnly=true", "-c", "user.email=spec-driven@invalid", "var", "GIT_AUTHOR_IDENT"];
+  const NOT_SET = { ok: false, reason: "can't tell who you are; set git user.name" } as const;
+
+  test("is the configured name, with a placeholder email so a name-only config works", () => {
+    const runner = stubRunner([[RUNNER_IDENT, { stdout: "Taras K <spec-driven@invalid> 1792296445 -0700\n" }]]);
+    expect(runnerName(gitAt("/repo", runner))).toEqual({ ok: true, value: "Taras K" });
+  });
+
+  test("refuses when git has no configured name, instead of guessing one from the OS account", () => {
+    const repo = repoWithOrigin("spec-git-runner-none-");
+    try {
+      expect(runnerName(gitAt(repo.dir, anonymousRunner))).toEqual(NOT_SET);
+    } finally {
+      repo.cleanup();
+    }
+  });
+
+  test("reads a repo-local user.name with no email set", () => {
+    const repo = repoWithOrigin("spec-git-runner-local-");
+    try {
+      repo.git("config", "user.name", "Taras Korpach");
+      expect(runnerName(gitAt(repo.dir, anonymousRunner))).toEqual({ ok: true, value: "Taras Korpach" });
+    } finally {
+      repo.cleanup();
+    }
+  });
+
+  test("refuses a name with under 3 letters to match on, such as a Cyrillic one", () => {
+    const repo = repoWithOrigin("spec-git-runner-cyrillic-");
+    try {
+      repo.git("config", "user.name", "Тарас");
+      expect(runnerName(gitAt(repo.dir, anonymousRunner))).toEqual({ ok: false, reason: "git user.name Тарас is too short to match anyone; use at least 3 letters" });
+    } finally {
+      repo.cleanup();
+    }
+  });
 });
 
 describe("gitCommonDir", () => {

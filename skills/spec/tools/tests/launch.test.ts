@@ -195,6 +195,15 @@ describe("launchCommand", () => {
     ].join("\n"));
   });
 
+  test("a hand launch of execute is never gated by owner", async () => {
+    const places: unknown[] = [];
+    await launchCommand("/w", ["execute", "spec-board", "6"], async (spec, phase, options) => {
+      places.push([spec, phase, options]);
+      return { ok: true, value: { kind: "found", branch: "feat/spec-board-pr-b", path: "/trees/spec-board-pr-b" } };
+    }, {}, stubRunner([]));
+    expect(places).toEqual([["spec-board", "6", {}]]);
+  });
+
   test("babysit with no tree for the group launches nothing", async () => {
     const report = await launchCommand("/w", ["babysit", "spec-board", "B"], async () => ({ ok: false, reason: "no tree for feat/spec-board-pr-b" }), {}, stubRunner([]));
     expect(report).toBe("launch: no tree for feat/spec-board-pr-b");

@@ -1,7 +1,8 @@
 import { alignColumns } from "../core/columns";
+import { personKey } from "../core/people";
 import { ago, EMPTY, lane, monthDay, prCell } from "./cells";
 import type { Board, FlightNext, FocusClaim, FocusNow, FocusRow, FocusSession, FocusWork } from "./model";
-import { ME, personKey } from "./people";
+import { ME } from "./people";
 
 const READY_SHOWN = 3;
 const OTHER_SESSIONS_SHOWN = 5;
@@ -35,7 +36,7 @@ function nowCell(row: FocusRow): string {
   return parts.filter(Boolean).join(" · ");
 }
 
-function nowText(now: FocusNow): string {
+export function nowText(now: FocusNow): string {
   switch (now.kind) {
     case "flight":
       return flightText(now.phases, now.next);

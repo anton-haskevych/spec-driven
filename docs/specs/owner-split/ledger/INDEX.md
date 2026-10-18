@@ -6,6 +6,8 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 ## Gotchas
 - `gotcha-invalid-owner-reads-as-shared.md` — [phase 1+] — malformed or unmatchable owner means shared; use ownerOf + isOffered
 - `docs/specs/_ledger/gotcha-git-use-config-only-needs-an-email.md` — [general] — useConfigOnly fails on a missing email too: pass a placeholder email
+- `docs/specs/_ledger/gotcha-empty-git-author-name-overrides-user-name.md` — [general] — An empty GIT_AUTHOR_NAME overrides user.name: unset identity env, never blank it
+- `docs/specs/_ledger/gotcha-board-lane-json-is-the-whole-model.md` — [general] — board <lane> --json is the whole model; the lane only shapes text
 
 ## Principles
 - `principle-packs-never-filter-by-owner.md` — [general] — packs serve a chosen spec; filtering prints a false "complete"

@@ -33,7 +33,7 @@ describe("crew check", () => {
     tree.git("push", "-q", "-u", "origin", "feat/checkout-pr-a");
     const crew = join(repo.dir, ".git", "spec-board", "crew");
     mkdirSync(crew, { recursive: true });
-    const run = newRunFile({ overseer: "own", started: "2026-10-12T20:00:00-07:00", caps: { workers: 1, babysitters: 1 } });
+    const run = newRunFile({ overseer: "own", runner: "anton-haskevych", started: "2026-10-12T20:00:00-07:00", caps: { workers: 1, babysitters: 1 } });
     writeFileSync(join(crew, "run.md"), withLaunched(run, [{ id: "f1a579ba", title, at: launchedAt }]));
     home = mkdtempSync(join(tmpdir(), "crew-home-"));
     mkdirSync(join(home, "projects", "-tree-a"), { recursive: true });

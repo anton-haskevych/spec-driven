@@ -47,12 +47,12 @@ it"); "Anton" becomes "the person running the crew" wherever it means the crew's
 
 ## Deliverables
 
-- [ ] `runner:` in run.md: `crew start` resolves, refuses when unknown, records it and prints `Crew: started for <name> · …`; takeover rewrites it
-- [ ] Tick reads the runner; unknown → close-out runs, refill held, one *for you* line
-- [ ] `pickRows({ …, me })` skips rows whose owner isn't offered to `me` (`crew-tick-step.test.ts`)
-- [ ] `PlaceOptions.onlyFor` in `placeTree`: base owner, checkout fallback, refusal before any tree, tree named when it exists (real-git test)
-- [ ] `launchCrewSession` passes `onlyFor: runner` for execute; babysit and plain `launch` unchanged
-- [ ] `oversee-crew.md` / `crew-brief.md` / `execute.md`: pick rule, refusal bullets, "the person running the crew"
+- [x] `runner:` in run.md: `crew start` resolves, refuses when unknown, records it and prints `Crew: started for <name> · …`; takeover rewrites it
+- [x] Tick reads the runner; unknown → close-out runs, refill held, one *for you* line
+- [x] `pickRows({ …, me })` skips rows whose owner isn't offered to `me` (`crew-tick-step.test.ts`)
+- [x] `PlaceOptions.onlyFor` in `placeTree`: base owner, checkout fallback, refusal before any tree, tree named when it exists (real-git test)
+- [x] `launchCrewSession` passes `onlyFor: runner` for execute; babysit and plain `launch` unchanged
+- [x] `oversee-crew.md` / `crew-brief.md` / `execute.md`: pick rule, refusal bullets, "the person running the crew"
 
 ## Phase-local notes
 

@@ -8,8 +8,9 @@ Answers "what can I start next, what waits on what, and what's open": a board of
 |---|---|
 | `/spec list` (nothing after it) | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list` — the board |
 | One lane: `focus`, `ready`, `blocked`, `in flight` / `flight`, `needs you` / `you` | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board <focus\|ready\|blocked\|flight\|you>` — that lane, uncapped |
-| "my focus", "what am I on" | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board focus --who me` |
-| "what's Taras on", "Taras's focus" | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board focus --who taras` |
+| "what am I on", "what am I working on" | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board --who me` |
+| "what's Taras on", "what is Taras working on" | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board --who taras` |
+| "my focus", "Taras's focus" | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board focus --who <me\|taras>` |
 | `table`, `all`, or any other filter | `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts list [table] [all] [<filter>]` — the table |
 
 **The board** reads `origin/<default>` (fetched, 10 s timeout) plus every worktree's unmerged spec docs, so it is the same from any checkout or worktree (the current one is marked `◀ here`). Lanes: FOCUS first, when any spec has `focus:` (one row per focus spec under a MUST / SHOULD / COULD sub-header, numbered 1…n down the lane: progress, what is happening now — executing, ready, needs deploy, blocked, paused, or `merging #n` while a finished spec's linked PR is open — and who is on it, per person, me first: `<person>: <sessions> · <claims> · <PRs>`, from this repo's sessions on this machine, other machines' claims and the open PRs its `pr-opening.md` links, by author; an owner with nobody on the row shows as `— (<owner>)`; `other sessions:` lists this repo's other sessions), in flight (phases ticked or half-done in a worktree), ready (ranked: focus specs first, in lane order and marked with their band, `must`; then overdue, priority, due, unblocks most, recently updated; ★ = shares no files with anything in flight; a phase whose need is ticked only in one worktree is ready `in <worktree>`; a spec only on a branch says `only on <branch>`; a stale spec is one `/spec review` row marked `⚠ stale: <text>`, and its FOCUS row shows `⚠ stale`), blocked (with the reasons), needs you (overdue work, a done phase another one waits to see deployed, a session idle 2+ days that still holds a live claim). The header says when origin couldn't be fetched. If the board can't be built (not a git repo, no origin), the tool prints the table and a `board unavailable: <reason>` line.
@@ -22,7 +23,7 @@ Answers "what can I start next, what waits on what, and what's open": a board of
 - **⚠ stale**: the Status cell reads `<status> ⚠ stale: <text>` and the summary counts them.
 - Order: open before finished, then `p1` → `p3` → no priority, then the nearest due day, then the most recent status change or review (`updated:`; sessions don't bump it). A due day that has passed shows `⚠ overdue`.
 
-**`--who`** keeps the focus rows a person owns (`owner:`) or works on; a name matches by prefix, so `taras` finds `Taras Korpach` and `taraskorpach`. When it prints `none`, the person may be on specs outside the focus set: run `spec.ts board flight --json` and list the rows whose `holder` starts with their name (`<user>@<host>`, another machine's claim). Someone whose git name and gh login share no prefix shows under two names; say so if both appear.
+**`--who`** answers what a person is working on. Bare `board --who <name|me>` opens with their section, across every spec and lane: `owns` (the specs whose `owner:` names them, with each one's state), `on now` (their live claims, on any machine), `PRs` (their open PRs), and for `me` this machine's `sessions` in this repo; `—` when a part is empty. `--local` shows `owns` only. The FOCUS lane below it keeps the focus rows they own or work on (`board focus --who` prints that lane alone). A name matches by prefix, so `taras` finds `Taras Korpach` and `taraskorpach`; someone whose git name and gh login share no prefix shows under two names, so say so if both appear. `--json` carries the section as `people`.
 
 **For another agent or skill**: `spec.ts board --json [--local]` is the board model (`{ board }`, or `{ board: null, error }`); `spec.ts list --json [<filter>]` is the table's data, with `stale`, `dropped` and `supersededBy` per spec when set. `--local` skips the fetch.
 
@@ -56,7 +57,7 @@ Change the set only when the user says so: every write lands on `origin/<default
 
 A 2.37.0 number (`focus: 10`) shows under SHOULD and the doctor warns; `focus add X <band>` rewrites it and `focus drop X` removes it.
 
-Print the tool's line. A refusal (`focus add: …`, `focus: push to main refused: …`) means nothing was written; pass it on. "X is Taras's" is not a focus write: set `owner: taras` in X's `CLAUDE.md` with an ordinary spec-doc edit.
+Print the tool's line. A refusal (`focus add: …`, `focus: push to main refused: …`) means nothing was written; pass it on. "X is Taras's" is not a focus write: run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts owner X taras` ("X is mine" → `owner X me`, "X is nobody's" → `owner X none`) and print its line. Owners are spec-level and set only on someone's word, never for the spec's creator; phases and ideas carry none.
 
 ## 2. Without Bun
 

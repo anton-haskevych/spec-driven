@@ -92,7 +92,7 @@ function isShown(node: SpecNode, inputs: BoardInputs): boolean {
   return openLinkedPr(node.spec.name, inputs) !== undefined;
 }
 
-function focusNow(node: SpecNode, lanes: BuiltLanes, inputs: BoardInputs): FocusNow {
+export function focusNow(node: SpecNode, lanes: BuiltLanes, inputs: BoardInputs): FocusNow {
   const name = node.spec.name;
   const ofSpec = <Row extends { spec: string }>(rows: readonly Row[]) => rows.filter((row) => row.spec === name);
   return flightNow(ofSpec(lanes.inFlight)) ?? readyNow(ofSpec(lanes.ready)) ?? deployNow(name, inputs) ?? blockedNow(ofSpec(lanes.blocked)) ?? pausedNow(node) ?? mergingNow(node, inputs) ?? { kind: "none" };
@@ -143,7 +143,7 @@ function remoteClaims(spec: string, { claims }: BoardInputs): PersonClaim[] {
   return claims.flatMap(({ claim, status, holder }) => (status === "remote" && holder && claim.spec === spec ? [{ user: holder.user, phase: claim.phase, since: claim.claimedAt }] : []));
 }
 
-function focusSession(session: LiveSession, spec?: string): FocusSession {
+export function focusSession(session: LiveSession, spec?: string): FocusSession {
   const title = session.name === undefined ? undefined : parseLaunchTitle(session.name);
   const launched = title && title.spec === spec ? { sub: title.sub, ...(title.phase ? { phase: title.phase } : {}) } : {};
   return { label: sessionLabel(session.name, session.sessionId), ...launched, status: session.status, since: session.updatedAt.toISOString() };

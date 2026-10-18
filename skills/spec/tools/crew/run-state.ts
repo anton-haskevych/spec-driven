@@ -28,6 +28,8 @@ export interface OpenQuestion {
 
 export interface RunFile {
   overseer?: string;
+  // Who the crew works for (`runnerName` at crew start): it picks and launches only their work and shared work.
+  runner?: string;
   state?: string;
   caps: Caps;
   launched: LaunchedEntry[];
@@ -36,6 +38,7 @@ export interface RunFile {
 
 export interface NewRun {
   overseer: string;
+  runner: string;
   started: string;
   caps: Caps;
   cli?: string;
@@ -49,9 +52,11 @@ export function parseRunFile(text: string): RunFile {
   const parsed = parseFrontmatter(text);
   const data = parsed.kind === "ok" ? parsed.data : {};
   const overseer = stringField(data, "overseer");
+  const runner = stringField(data, "runner");
   const state = stringField(data, "state");
   return {
     ...(overseer ? { overseer } : {}),
+    ...(runner ? { runner } : {}),
     ...(state ? { state } : {}),
     caps: { workers: numberField(data, "workers") ?? DEFAULT_CAPS.workers, babysitters: numberField(data, "babysitters") ?? DEFAULT_CAPS.babysitters },
     launched: sectionLines(text, "Launched").flatMap(launchedEntry),
@@ -59,13 +64,18 @@ export function parseRunFile(text: string): RunFile {
   };
 }
 
-export function newRunFile({ overseer, started, caps, cli }: NewRun): string {
-  const frontmatter = [`overseer: ${overseer}`, `started: ${started}`, "state: running", `workers: ${caps.workers}`, `babysitters: ${caps.babysitters}`, ...(cli ? [`cli: ${cli}`] : [])];
+export function newRunFile({ overseer, runner, started, caps, cli }: NewRun): string {
+  const frontmatter = [`overseer: ${overseer}`, `runner: ${runner}`, `started: ${started}`, "state: running", `workers: ${caps.workers}`, `babysitters: ${caps.babysitters}`, ...(cli ? [`cli: ${cli}`] : [])];
   return ["---", ...frontmatter, "---", "", "## Launched", "", "## Questions", "", "## Stood down", "", "## Log", ""].join("\n");
 }
 
 export function withOverseer(text: string, overseer: string): string {
   const patched = setFrontmatterLine(text, "overseer", overseer);
+  return patched.kind === "ok" ? patched.text : text;
+}
+
+export function withRunner(text: string, runner: string): string {
+  const patched = setFrontmatterLine(text, "runner", runner);
   return patched.kind === "ok" ? patched.text : text;
 }
 

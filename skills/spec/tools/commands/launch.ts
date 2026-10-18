@@ -32,7 +32,7 @@ export async function launchCommand(projectDir: string, args: readonly string[],
   if (!spec || target === undefined) return launchReport(projectDir, positionals, env, runner);
 
   const placeIt = place ?? ((name, id, options) => placeTree(projectDir, name, id, systemPlaceDeps(), options));
-  const placed = await placeForLaunch(subCommand ?? "", spec, target, placeIt);
+  const placed = await placeForLaunch({ subCommand: subCommand ?? "", spec, target }, placeIt);
   if (!placed.ok) return `launch: ${placed.reason}`;
   const placement = renderPlacement(placed);
   if (brief === undefined) return [placement, launchReport(placed.value.path, positionals, env, runner)].join("\n");

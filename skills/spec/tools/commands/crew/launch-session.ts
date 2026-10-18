@@ -34,12 +34,14 @@ export interface CrewLaunchResult {
 export async function launchCrewSession(request: CrewLaunchRequest, store: RunFileStore, deps: CrewDeps, place: PlaceFn): Promise<CrewLaunchResult> {
   const runText = store.read();
   if (runText === undefined) return { text: "crew launch: no run.md yet; run crew start first" };
-  const overseer = parseRunFile(runText).overseer ?? "unknown";
+  const run = parseRunFile(runText);
+  if (run.runner === undefined) return { text: "crew launch: can't tell who runs this crew; run crew start again" };
+  const overseer = run.overseer ?? "unknown";
   const positionals = [request.subCommand, request.spec, request.target, ...(request.hold ? ["hold"] : [])];
   const valid = sessionLaunch(".", positionals);
   if (!valid.ok) return { text: `crew launch: ${valid.reason}` };
 
-  const placed = await placeForLaunch(request.subCommand, request.spec, request.target, place);
+  const placed = await placeForLaunch({ subCommand: request.subCommand, spec: request.spec, target: request.target, onlyFor: run.runner }, place);
   if (!placed.ok) return { text: `launch: ${placed.reason}` };
   const placement = renderPlacement(placed);
   const tree = placed.value.path;

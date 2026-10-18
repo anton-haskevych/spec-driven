@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { CloseOut } from "../crew/close-out";
 import { findCrewLine } from "../crew/crew-line";
+import { INVALID_OWNER } from "../core/people";
 import { pickRows } from "../crew/pick";
 import { actionLines, afterCloseOut, nextAction } from "../crew/tick-step";
 import type { SpecState } from "../core/spec-state";
@@ -69,7 +70,7 @@ describe("pickRows", () => {
 
   test("takes execute rows in board order, one per spec, up to the free slots", () => {
     const ready = [readyRow({ spec: "a", phase: "1" }), readyRow({ spec: "a", phase: "2" }), readyRow({ spec: "b", phase: "4" }), readyRow({ spec: "c", phase: "1" })];
-    expect(pickRows(ready, states, new Set(), [], 2)).toEqual([{ spec: "a", phase: "1" }, { spec: "b", phase: "4" }]);
+    expect(pickRows({ ready, states, busy: new Set(), unanswered: [], slots: 2, me: "anton" })).toEqual([{ spec: "a", phase: "1" }, { spec: "b", phase: "4" }]);
   });
 
   test("skips prep rows, busy trees, worktree-only rows, task phases, specs with a worker and unanswered questions", () => {
@@ -83,6 +84,16 @@ describe("pickRows", () => {
       readyRow({ spec: "asked", phase: "5" }),
       readyRow({ spec: "free", phase: "7" }),
     ];
-    expect(pickRows(ready, states, new Set(["running"]), [{ id: "q1", spec: "asked", phase: "5" }], 5)).toEqual([{ spec: "free", phase: "7" }]);
+    expect(pickRows({ ready, states, busy: new Set(["running"]), unanswered: [{ id: "q1", spec: "asked", phase: "5" }], slots: 5, me: "anton" })).toEqual([{ spec: "free", phase: "7" }]);
+  });
+
+  test("takes only rows owned by the crew's runner or by nobody; a malformed owner goes to no one", () => {
+    const ready = [
+      readyRow({ spec: "theirs", phase: "1", owner: "taras" }),
+      readyRow({ spec: "broken", phase: "1", owner: INVALID_OWNER }),
+      readyRow({ spec: "mine", phase: "2", owner: "anton" }),
+      readyRow({ spec: "shared", phase: "3" }),
+    ];
+    expect(pickRows({ ready, states, busy: new Set(), unanswered: [], slots: 5, me: "Anton Haskevych" })).toEqual([{ spec: "mine", phase: "2" }, { spec: "shared", phase: "3" }]);
   });
 });

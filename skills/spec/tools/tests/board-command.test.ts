@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { BOARD_USAGE, boardCommand, type BoardDeps } from "../commands/board";
 import { listCommand } from "../commands/list";
 import { NOW } from "./board-factories";
-import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
+import { anonymousRunner, isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { asyncStubRunner, cannedGh, stubRunner } from "./stub-runner";
 
 describe("board and list commands (real git)", () => {
@@ -33,7 +33,7 @@ describe("board and list commands (real git)", () => {
 
   test("board --json prints the versioned model for agents", async () => {
     const { board } = JSON.parse(await boardCommand(repo.dir, ["--json", "--local"], deps));
-    expect(board.version).toBe(2);
+    expect(board.version).toBe(3);
     expect(board.base.mode).toBe("local");
     expect(board.lanes.ready.map((row: { spec: string; phase: string; title: string }) => `${row.spec}#${row.phase} ${row.title}`)).toEqual(["a#1 One"]);
     expect(board.lanes.blocked).toEqual([{ spec: "a", phase: "2", reasons: ["needs 1"] }]);
@@ -102,12 +102,76 @@ describe("board focus --who (real git)", () => {
 
   test("text names the person; me with nothing on the board is none", async () => {
     expect(await boardCommand(repo.dir, ["focus", "--who", "taras", "--local"], deps)).toContain("\n\nFOCUS · taras\n  MUST\n  2  second  0/1  ready 1  — (Taras Korpach)\n```");
-    expect(await boardCommand(repo.dir, ["--who", "me", "--local"], deps)).toContain("\n\nFOCUS · me\n  none\n\nIN FLIGHT");
+    expect(await boardCommand(repo.dir, ["--who", "me", "--local"], deps)).toContain("\n\nSPEC-TESTS\n  owns  —\n  (--local: no claims or PRs)\n\nFOCUS · me\n  none\n\nIN FLIGHT");
+  });
+
+  test("bare --who opens with the person section; --json carries it as people whatever the lane", async () => {
+    expect(await boardCommand(repo.dir, ["--who", "taras", "--local"], deps)).toContain(" need you\n\nTARAS\n  owns  second ready 1\n  (--local: no claims or PRs)\n\nFOCUS · taras\n");
+    expect(await boardCommand(repo.dir, ["focus", "--who", "taras", "--local"], deps)).not.toContain("TARAS");
+    const { board } = JSON.parse(await boardCommand(repo.dir, ["focus", "--who", "taras", "--json", "--local"], deps));
+    expect(board.people).toEqual([{ person: "taras", mine: false, owns: [{ spec: "second", now: { kind: "ready", phases: ["1"], step: "execute" } }], onNow: [], prs: [], local: true }]);
+    const { board: plain } = JSON.parse(await boardCommand(repo.dir, ["--json", "--local"], deps));
+    expect(plain).not.toHaveProperty("people");
   });
 
   test("--who with another lane, or without a name, is a usage error", async () => {
     expect(await boardCommand(repo.dir, ["ready", "--who", "taras"], deps)).toBe(`usage: ${BOARD_USAGE}`);
     expect(await boardCommand(repo.dir, ["focus", "--who"], deps)).toBe(`usage: ${BOARD_USAGE}`);
+  });
+});
+
+describe("board ready --for (real git)", () => {
+  let repo: TestRepo;
+  const claudeHome = mkdtempSync(join(tmpdir(), "spec-board-for-claude-"));
+  mkdirSync(join(claudeHome, "sessions"));
+  const deps: BoardDeps = { runner: isolatedRunner, asyncRunner: isolatedAsyncRunner, claudeHome, now: NOW, env: {} };
+  const spec = (name: string, meta: string) => {
+    repo.write(`docs/specs/${name}/CLAUDE.md`, `---\nstatus: active\n${meta}---\n`);
+    repo.write(`docs/specs/${name}/progress.md`, "- [ ] Phase 1 — One → `phases/phase-1-one.md`\n- [ ] Phase 2 — Two → `phases/phase-2-two.md`\n");
+    repo.write(`docs/specs/${name}/phases/phase-1-one.md`, "---\nneeds: []\n---\n- [ ] item\n");
+    repo.write(`docs/specs/${name}/phases/phase-2-two.md`, "---\nneeds: [1]\n---\n- [ ] item\n");
+    repo.write(`docs/specs/${name}/reviews/2026-10-01-panel.md`, "# panel\n");
+  };
+  const lanes = async (args: string[], runner = isolatedRunner) => {
+    const { board } = JSON.parse(await boardCommand(repo.dir, [...args, "--json", "--local"], { ...deps, runner }));
+    const specs = (rows: { spec: string }[]) => rows.map((row) => row.spec).toSorted();
+    return { ready: specs(board.lanes.ready), blocked: specs(board.lanes.blocked), who: board.who };
+  };
+
+  beforeAll(() => {
+    repo = repoWithOrigin("spec-board-for-");
+    spec("mine", "owner: spec-tests\n");
+    spec("shared", "");
+    spec("theirs", "owner: Taras Korpach\n");
+    spec("typo", "owner: [taras]\n");
+    repo.commitAll("specs");
+    repo.git("push", "-q", "origin", "main");
+  });
+
+  afterAll(() => {
+    repo.cleanup();
+    rmSync(claudeHome, { recursive: true, force: true });
+  });
+
+  test("keeps the ready rows mine or nobody's; other lanes keep everyone's", async () => {
+    const everyone = ["mine", "shared", "theirs", "typo"];
+    expect(await lanes(["ready", "--for", "me"])).toEqual({ ready: ["mine", "shared"], blocked: everyone, who: undefined });
+    expect(await lanes(["--for", "taras"])).toEqual({ ready: ["shared", "theirs"], blocked: everyone, who: undefined });
+  });
+
+  test("--keep keeps that spec's rows too", async () => {
+    expect((await lanes(["ready", "--for", "me", "--keep", "theirs"])).ready).toEqual(["mine", "shared", "theirs"]);
+  });
+
+  test("--for me with no git name shows everyone, says so, and marks who as unknown", async () => {
+    expect(await lanes(["ready", "--for", "me"], anonymousRunner)).toEqual({ ready: ["mine", "shared", "theirs", "typo"], blocked: ["mine", "shared", "theirs", "typo"], who: { unknown: true } });
+    const text = await boardCommand(repo.dir, ["ready", "--for", "me", "--local"], { ...deps, runner: anonymousRunner });
+    expect(text).toContain("\nCan't tell who you are (no git user.name): showing everyone's work, owners marked.\n\nREADY");
+  });
+
+  test("--for on another lane, or --keep without --for, is a usage error", async () => {
+    expect(await boardCommand(repo.dir, ["flight", "--for", "me"], deps)).toBe(`usage: ${BOARD_USAGE}`);
+    expect(await boardCommand(repo.dir, ["ready", "--keep", "mine"], deps)).toBe(`usage: ${BOARD_USAGE}`);
   });
 });
 

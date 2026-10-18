@@ -49,6 +49,13 @@ describe("readSpecMeta", () => {
     expect(readSpecMeta({ focus: 20 }).focus).toBe("should");
     expect(readSpecMeta({ focus: "top" }).focus).toBeUndefined();
   });
+
+  test("marks an owner that is present but not a name, so it never reads as shared", () => {
+    expect(readSpecMeta({ owner: ["taras"] })).toMatchObject({ ownerInvalid: true });
+    expect(readSpecMeta({ owner: ["taras"] }).owner).toBeUndefined();
+    expect(readSpecMeta({ owner: "taras" })).not.toHaveProperty("ownerInvalid");
+    expect(readSpecMeta({})).not.toHaveProperty("ownerInvalid");
+  });
 });
 
 describe("shipMode", () => {

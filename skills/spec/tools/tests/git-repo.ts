@@ -18,6 +18,23 @@ export const isolatedRunner: Runner = {
   run: (argv, options = {}) => systemRunner.run(argv, { ...options, env: { ...ISOLATED_GIT_ENV, ...options.env } }),
 };
 
+const IDENTITY_ENV = ["GIT_AUTHOR_NAME", "GIT_AUTHOR_EMAIL", "GIT_COMMITTER_NAME", "GIT_COMMITTER_EMAIL", "EMAIL"];
+const NO_SHARED_CONFIG = { GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" };
+
+// A machine with no git identity, for code under test only: build repos with isolatedRunner.
+// The keys are unset, not blanked: an empty GIT_AUTHOR_NAME overrides a repo's user.name.
+export const anonymousRunner: Runner = {
+  run(argv, options = {}) {
+    const saved = IDENTITY_ENV.map((key) => [key, process.env[key]] as const);
+    for (const key of IDENTITY_ENV) delete process.env[key];
+    try {
+      return systemRunner.run(argv, { ...options, env: { ...NO_SHARED_CONFIG, ...options.env } });
+    } finally {
+      for (const [key, value] of saved) if (value !== undefined) process.env[key] = value;
+    }
+  },
+};
+
 export const isolatedAsyncRunner: AsyncRunner = {
   run: (argv, options = {}) => systemAsyncRunner.run(argv, { ...options, env: { ...ISOLATED_GIT_ENV, ...options.env } }),
 };

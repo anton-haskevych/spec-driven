@@ -7,7 +7,7 @@ import { gitAt } from "../core/git";
 import { renderBoard } from "../board/render";
 import { NOW } from "./board-factories";
 import type { RunOptions } from "../core/run";
-import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
+import { anonymousRunner, isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { cannedGh } from "./stub-runner";
 import { createTree } from "./tree";
 
@@ -168,9 +168,15 @@ describe("loadBoard with worktrees (real git)", () => {
     }
   });
 
-  test("the board knows me by the git author name, offline too", async () => {
+  test("the board knows me by the configured git name, offline too", async () => {
     const board = await loadBoard(repo.dir, { local: true }, runners, NOW);
     expect(board.ok && board.value.me).toBe("spec-tests");
+  });
+
+  test("with no configured git name the board has no me, not a name guessed from the OS account", async () => {
+    const board = await loadBoard(repo.dir, { local: true }, { ...runners, runner: anonymousRunner }, NOW);
+    if (!board.ok) throw new Error(board.reason);
+    expect(board.value).not.toHaveProperty("me");
   });
 
   test("gh and session failures leave ? and unknown cells and say why in the footer", async () => {

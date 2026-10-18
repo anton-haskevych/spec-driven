@@ -1,8 +1,8 @@
+import { isOffered, ownerOf, personKey, samePerson } from "../core/people";
+import type { SpecMeta } from "../core/spec-meta";
 import type { Board, FocusClaim, FocusRow, FocusWork, PrCell } from "./model";
 
 export const ME = "me";
-const UNKNOWN = "unknown";
-const MIN_PREFIX = 3;
 
 export interface PersonClaim extends FocusClaim {
   user: string;
@@ -13,16 +13,9 @@ export interface AuthoredPr {
   cell: PrCell;
 }
 
-export function personKey(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-// A git name and a gh login rarely agree exactly ("Taras Korpach" vs "taras"), so one side may be a prefix.
-export function samePerson(a: string, b: string): boolean {
-  const [x, y] = [personKey(a), personKey(b)];
-  const [shorter, longer] = x.length <= y.length ? [x, y] : [y, x];
-  if (shorter === UNKNOWN || longer === UNKNOWN || shorter.length < MIN_PREFIX) return false;
-  return longer.startsWith(shorter);
+export function ownerField(meta: SpecMeta): { owner?: string } {
+  const owner = ownerOf(meta);
+  return owner === undefined ? {} : { owner };
 }
 
 // Only "me" matches by prefix; everyone else is keyed exactly, so two teammates never merge.
@@ -46,6 +39,14 @@ export function boardFor(board: Board, who: string): Board {
   const { otherSessions, ...footer } = board.footer;
   const focus = focusFor(board.lanes.focus, who, board.me);
   return { ...board, lanes: { ...board.lanes, focus }, footer: isMe(who, board.me) && otherSessions ? { ...footer, otherSessions } : footer };
+}
+
+// Ready rows offered to `who` (theirs or nobody's), plus `keep`'s; the other lanes stay everyone's.
+export function offerFor(board: Board, who: string, keep?: string): Board {
+  const person = who === ME ? board.me : who;
+  if (person === undefined) return { ...board, who: { unknown: true } };
+  const ready = board.lanes.ready.filter((row) => row.spec === keep || isOffered(row.owner, person));
+  return { ...board, lanes: { ...board.lanes, ready } };
 }
 
 export function focusFor(rows: readonly FocusRow[], who: string, me?: string): FocusRow[] {

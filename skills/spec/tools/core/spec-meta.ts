@@ -21,6 +21,8 @@ export interface SpecMeta {
   due?: string;
   focus?: FocusBand;
   owner?: string;
+  // `owner:` is present but not a name; read owners through ownerOf (core/people.ts).
+  ownerInvalid?: true;
   ship?: ShipMode;
   // Open work whose spec text no longer matches the code or decisions: a health flag, not a status.
   stale?: string;
@@ -37,6 +39,7 @@ export type LifecycleFields = Partial<Record<LifecycleNote, string>> & { problem
 export interface FocusFields {
   focus?: FocusBand;
   owner?: string;
+  ownerInvalid?: true;
   problems: string[];
   warnings: string[];
 }
@@ -48,7 +51,7 @@ export interface ShipField {
 
 export function readSpecMeta(data: FrontmatterData): SpecMeta {
   const { priority, due } = readSchedule(data);
-  const { focus, owner } = readFocusFields(data);
+  const { focus, owner, ownerInvalid } = readFocusFields(data);
   return {
     area: stringList(data, "area"),
     domain: stringList(data, "domain"),
@@ -58,6 +61,7 @@ export function readSpecMeta(data: FrontmatterData): SpecMeta {
     due,
     focus,
     owner,
+    ...(ownerInvalid ? { ownerInvalid } : {}),
     ship: readShipField(data).ship,
     ...lifecycleNotes(readLifecycleFields(data)),
   };
@@ -93,7 +97,10 @@ export function readFocusFields(data: FrontmatterData): FocusFields {
   if (Object.hasOwn(data, "owner")) {
     const owner = stringField(data, "owner");
     if (owner !== undefined) fields.owner = owner;
-    else fields.problems.push(`owner ${JSON.stringify(data.owner)} is not a name`);
+    else {
+      fields.ownerInvalid = true;
+      fields.problems.push(`owner ${JSON.stringify(data.owner)} is not a name`);
+    }
   }
   return fields;
 }

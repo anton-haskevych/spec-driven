@@ -180,6 +180,24 @@ describe("renderBoard", () => {
     expect(output).toContain("4 ★  far · 1    /spec execute      unblocks 2");
   });
 
+  test("an owned ready row leads its note with the owner; a malformed owner shows (owner?)", () => {
+    const output = renderBoard(
+      board({
+        lanes: lanes({
+          ready: [
+            readyRow({ spec: "theirs", owner: "taras", focusBand: "must", unblocks: 2 }),
+            readyRow({ spec: "typo", owner: "?" }),
+            readyRow({ spec: "shared", unblocks: 1 }),
+          ],
+        }),
+      }),
+    );
+
+    expect(output).toContain("1 ★  theirs · 1  /spec execute      (taras) · must · unblocks 2");
+    expect(output).toContain("2 ★  typo · 1    /spec execute      (owner?)");
+    expect(output).toContain("3 ★  shared · 1  /spec execute      unblocks 1");
+  });
+
   test("merged trees are one needs-you row with the action", () => {
     const output = renderBoard(board({ lanes: lanes({ needsYou: [{ kind: "prune", trees: 43 }] }) }), { lane: "you" });
     expect(output).toContain("  prune 43 merged trees  say yes to remove them (trees prune --apply)");

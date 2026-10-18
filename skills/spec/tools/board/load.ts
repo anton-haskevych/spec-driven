@@ -1,6 +1,6 @@
 import { basename, dirname, join } from "node:path";
 import { readTextIfExists } from "../core/files";
-import { authorName, gitAt, type Git } from "../core/git";
+import { gitAt, runnerName, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { defaultBranch, type AsyncRunner, type Runner } from "../core/run";
 import type { SpecState } from "../core/spec-state";
@@ -36,7 +36,14 @@ const NO_SCAN: WorkspaceScanResult = { scans: [], counts: { merged: 0, unknownBa
 
 export async function loadBoard(projectDir: string, request: BoardRequest, runners: BoardRunners, now: Date): Promise<Result<Board>> {
   const inputs = await loadBoardInputs(projectDir, request, runners);
-  return inputs.ok ? { ok: true, value: buildBoard(inputs.value, now, authorName(gitAt(projectDir, runners.runner))) } : inputs;
+  if (!inputs.ok) return inputs;
+  return { ok: true, value: buildBoard(inputs.value, now, boardMe(projectDir, runners.runner)) };
+}
+
+// Board.me: the configured git name, absent when git has none.
+export function boardMe(projectDir: string, runner: Runner): string | undefined {
+  const me = runnerName(gitAt(projectDir, runner));
+  return me.ok ? me.value : undefined;
 }
 
 export async function loadBoardInputs(projectDir: string, request: BoardRequest, runners: BoardRunners): Promise<Result<BoardInputs>> {

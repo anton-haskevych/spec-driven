@@ -1,7 +1,9 @@
 import { alignColumns } from "../core/columns";
+import { INVALID_OWNER } from "../core/people";
 import { ago, clock, lane, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
 import type { AttentionRow, Board, FlightRow, ReadyRow } from "./model";
 import { focusSection } from "./render-focus";
+import { personSection } from "./render-person";
 
 export type Lane = "focus" | "flight" | "ready" | "blocked" | "you";
 export const LANES: readonly Lane[] = ["focus", "flight", "ready", "blocked", "you"];
@@ -29,7 +31,9 @@ export function renderBoard(board: Board, options: { lane?: Lane; who?: string }
   };
   const shown = LANES.filter((name) => name !== "focus" || board.lanes.focus.length > 0 || options.who !== undefined);
   const body = options.lane ? [sections[options.lane]] : [...shown.map((name) => sections[name]), footer(board)];
-  return [header(board, now), ...body].join("\n\n");
+  const unknown = board.who?.unknown ? ["Can't tell who you are (no git user.name): showing everyone's work, owners marked."] : [];
+  const people = options.lane ? [] : (board.people ?? []).map((work) => personSection(work, now));
+  return [header(board, now), ...unknown, ...people, ...body].join("\n\n");
 }
 
 function header(board: Board, now: Date): string {
@@ -69,8 +73,13 @@ function readyCells(board: Board): string[][] {
 }
 
 function readyNote(row: ReadyRow, board: Board): string {
-  const parts = [row.focusBand, row.stale ? `⚠ stale: ${row.stale}` : undefined, placementNote(row, board)];
+  const parts = [ownerMark(row.owner), row.focusBand, row.stale ? `⚠ stale: ${row.stale}` : undefined, placementNote(row, board)];
   return parts.filter(Boolean).join(" · ");
+}
+
+function ownerMark(owner: string | undefined): string | undefined {
+  if (owner === undefined) return undefined;
+  return owner === INVALID_OWNER ? "(owner?)" : `(${owner})`;
 }
 
 function placementNote(row: ReadyRow, board: Board): string {
