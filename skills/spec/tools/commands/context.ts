@@ -28,7 +28,7 @@ const INFERRING_MODES = new Set(["resume", "status", "execute"]);
 const CONVERSATION_FIRST = "If this conversation already resumed or executed another spec, use that one instead (re-run `spec.ts context <mode> <that spec>`).";
 const NOTHING_HERE = "No spec named, and nothing in this tree points at one (no claim here, no changed spec files).";
 const APPLY_TOP_READY =
-  "If this conversation already resumed or executed a spec, use that one. Otherwise run `spec.ts board ready --json --local`, take its top row (focus specs rank first) and run its `next` sub-command for that spec (with the phase for execute) in this session. Say so in one line, `<next> <spec> [<phase>] — <title>`, under `Say if wrong:`.";
+  "If this conversation already resumed or executed a spec, use that one. Otherwise run `spec.ts board ready --for me --json --local` (your work and unowned work), take its top row (focus specs rank first) and run its `next` sub-command for that spec (with the phase for execute) in this session. Say so in one line, `<next> <spec> [<phase>] — <title>`, under `Say if wrong:`.";
 
 export type HeldReader = (projectDir: string) => HeldPhases;
 

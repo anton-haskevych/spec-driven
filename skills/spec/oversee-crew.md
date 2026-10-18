@@ -29,7 +29,7 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
 
 | Command | Bash call | Takes |
 |---|---|---|
-| `crew overseer`, `crew start`, `crew check <id>`, `board --json`, `claim list`, `pr status`, `ready` | foreground | under 60 s |
+| `crew overseer`, `crew start`, `crew check <id>`, `board --for me --json`, `claim list`, `pr status`, `ready` | foreground | under 60 s |
 | `crew tick`, `crew launch …` | foreground, `timeout: 300000` | reads the board, places trees, launches |
 | `crew wait <id…>` (the roster wait) | **`run_in_background: true`** | up to 30 min, exits once |
 
@@ -49,7 +49,7 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
 1. **Main checkout only.** `git rev-parse --git-dir` must equal `git rev-parse --git-common-dir`.
    Otherwise say `Type /spec oversee-crew in the main checkout` and stop: a worktree's file guard
    blocks writes to `<crew>`.
-2. **Read** `board --json`, `claude agents --json --all`, `claim list`, `claude --version`, `settings`
+2. **Read** `board --for me --json` (its ready lane holds only this person's specs and unowned ones), `claude agents --json --all`, `claim list`, `claude --version`, `settings`
    (the standing go: `pr.ship`, `crew:` caps and `self-approve`), and `<crew>/run.md` if it exists.
 3. **Another overseer?** `crew overseer`. `Overseer: another live overseer <id> · <name>` → say
    `Another overseer (<id>) is running this crew` and stop. Any other line: this session runs it
@@ -105,7 +105,7 @@ address, a babysitter): `crew launch execute <spec> <phase> [--note <text>]…` 
 
 Start `crew wait <every ## Launched id>` in background Bash. When it exits (`<id> <state>`, `<id> gone`
 or `heartbeat`), run `crew tick`, act on each line it prints, then start the next wait. On `heartbeat`
-also re-read `board --json` and act on review rows (§4, *After review*).
+also re-read `board --for me --json` and act on review rows (§4, *After review*).
 
 `crew tick` acts only on ids in `## Launched`. It closes out each finished worker (`crew check`: tree
 clean, pushed, a `[handoff]` commit since the launch with a `Crew:` line, claim released), stops and
@@ -152,7 +152,7 @@ missing <what>` or `Close-out: waiting (pr-<group> claim live)`.
    A stop-and-ask message goes to *Needs you* instead.
 
 **After review.** The board's needs-you rows tell held PRs apart; act on each at every heartbeat and
-every `board --json` read:
+every `board --for me --json` read:
 
 - `pr-review` (`#n awaiting review → open the PR`) → *Needs you* once per PR: `#n is green and labelled
   hold-for-review. How to review is in the PR.`
