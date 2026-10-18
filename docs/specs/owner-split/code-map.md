@@ -11,6 +11,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/core/land-spec-field.ts` | set or remove one key in a spec's `CLAUDE.md` on main (`ship`, `owner`) | 1 |
 | `skills/spec/tools/commands/owner.ts` | `spec.ts owner` | 1 |
 | `skills/spec/tools/board/person-work.ts` | person section data from `BoardInputs` | 4 |
+| `skills/spec/tools/board/render-person.ts` | person section text; reuses FOCUS's `nowText` for lane states | 4 |
 
 ## Existing files touched
 

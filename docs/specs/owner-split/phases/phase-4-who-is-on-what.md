@@ -36,7 +36,7 @@ claims and PRs: the section says `owns` only and notes `(--local: no claims or P
 - [x] `personWork`: owned specs with lane state, live remote claims, PRs by author, my sessions (unit tests from `BoardInputs` fixtures)
 - [x] `personSection` render with design.md copy; empty and `--local` cases
 - [x] `board --who X` prints the section above today's output; `--json` carries `people`; `board-command.test.ts:105` updated
-- [ ] `list.md` answers "what is X on" with `board --who X`; fallback removed
+- [x] `list.md` answers "what is X on" with `board --who X`; fallback removed
 
 ## Phase-local notes
 
