@@ -1,4 +1,5 @@
 import { authorName, type Git } from "../core/git";
+import { UNKNOWN } from "../core/people";
 import type { Result } from "../core/result";
 import type { RunOptions } from "../core/run";
 import { CLAIM_REFS, claimRef, decodeRemotePayload, encodeRemotePayload, pushOutcome, type Holder, type PushOutcome, type RemotePayload } from "./remote-payload";
@@ -13,13 +14,12 @@ export type PushedClaim = { kind: "pushed"; sha: string } | Exclude<PushOutcome,
 
 export const REMOTE_TIMEOUT_MS = 10_000;
 const FETCHED_REFS = "refs/spec-claims-remote";
-const UNKNOWN_USER = "unknown";
 const LS_REMOTE_NO_MATCH = 2;
 
 const NETWORK: Omit<RunOptions, "cwd"> = { timeoutMs: REMOTE_TIMEOUT_MS, env: { GIT_TERMINAL_PROMPT: "0" } };
 
 export function readHolder(git: Git, host: string): Holder {
-  return { user: authorName(git) ?? UNKNOWN_USER, host };
+  return { user: authorName(git) ?? UNKNOWN, host };
 }
 
 export function pushClaim(git: Git, payload: RemotePayload, lease: Lease): PushedClaim {

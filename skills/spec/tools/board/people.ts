@@ -1,8 +1,7 @@
+import { personKey, samePerson } from "../core/people";
 import type { Board, FocusClaim, FocusRow, FocusWork, PrCell } from "./model";
 
 export const ME = "me";
-const UNKNOWN = "unknown";
-const MIN_PREFIX = 3;
 
 export interface PersonClaim extends FocusClaim {
   user: string;
@@ -11,18 +10,6 @@ export interface PersonClaim extends FocusClaim {
 export interface AuthoredPr {
   author?: string;
   cell: PrCell;
-}
-
-export function personKey(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-// A git name and a gh login rarely agree exactly ("Taras Korpach" vs "taras"), so one side may be a prefix.
-export function samePerson(a: string, b: string): boolean {
-  const [x, y] = [personKey(a), personKey(b)];
-  const [shorter, longer] = x.length <= y.length ? [x, y] : [y, x];
-  if (shorter === UNKNOWN || longer === UNKNOWN || shorter.length < MIN_PREFIX) return false;
-  return longer.startsWith(shorter);
 }
 
 // Only "me" matches by prefix; everyone else is keyed exactly, so two teammates never merge.
