@@ -95,4 +95,28 @@ describe("crew launch", () => {
     expect(await crewLaunch(repo.dir, ["prep", "checkout"], crewDeps())).toStartWith("usage: crew launch");
     expect(await crewLaunch(repo.dir, ["execute", "checkout", "3", "hold"], crewDeps())).toStartWith("usage: crew launch");
   });
+
+  test("a worker's placement is gated to the crew's runner; a babysitter's is not", async () => {
+    setUp();
+    const places: unknown[] = [];
+    const recording = async (spec: string, phase: string, options: object) => {
+      places.push([spec, phase, options]);
+      return { ok: true as const, value: fresh("/trees/checkout-pr-a") };
+    };
+    const deps = crewDeps({ runner: claudeAnd([[["claude", "--bg"], { stdout: BACKGROUNDED }]]) });
+    await crewLaunch(repo.dir, ["execute", "checkout", "3"], deps, recording);
+    await crewLaunch(repo.dir, ["babysit", "checkout", "B"], deps, recording);
+    expect(places).toEqual([
+      ["checkout", "3", { onlyFor: "anton-haskevych" }],
+      ["checkout", "pr-B", { existingOnly: true }],
+    ]);
+  });
+
+  test("a run with no runner launches nothing", async () => {
+    setUp();
+    const run = join(crew(), "run.md");
+    writeFileSync(run, readFileSync(run, "utf8").replace("runner: anton-haskevych\n", ""));
+    expect(await crewLaunch(repo.dir, ["execute", "checkout", "3"], crewDeps(), placeAt(fresh("/t")))).toBe("crew launch: can't tell who runs this crew; run crew start again");
+    expect(existsSync(join(crew(), "briefs"))).toBe(false);
+  });
 });
