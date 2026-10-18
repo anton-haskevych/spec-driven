@@ -27,6 +27,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/core/spec-meta.ts` | `owner:` parsing | `gotcha-invalid-owner-reads-as-shared` |
 | `skills/spec/tools/commands/board.ts` | flag parsing for `--who`/`--for`/`--keep` | |
 | `skills/spec/tools/commands/ship.ts` | moves onto `landSpecField` | |
+| `skills/spec/tools/tests/git-repo.ts` | `anonymousRunner`: a machine with no git identity, for identity tests | `gotcha-empty-git-author-name-overrides-user-name` |
 
 ## External references
 

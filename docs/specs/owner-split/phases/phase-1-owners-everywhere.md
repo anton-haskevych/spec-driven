@@ -34,7 +34,9 @@ and refuses a name without a 3-char match key. Leave the `authorName` stub at
 `tests/git.test.ts:69-70` alone; add `runnerName` tests of their own: a stub keyed on the new argv,
 a real-git `anonymousRunner` case, a repo-local `user.name` with no email, and a Cyrillic name.
 `anonymousRunner` in `tests/git-repo.ts`: `GIT_CONFIG_GLOBAL=/dev/null`, `GIT_CONFIG_NOSYSTEM=1`, and
-`GIT_AUTHOR_NAME`/`GIT_AUTHOR_EMAIL`/`EMAIL` set to `""` (the runner merges `process.env`). Build
+the identity keys (`GIT_AUTHOR_*`, `GIT_COMMITTER_*`, `EMAIL`) unset for the spawned git, not blanked:
+an empty `GIT_AUTHOR_NAME` overrides a repo's `user.name` (preflight finding 1;
+`gotcha-empty-git-author-name-overrides-user-name`). Build
 repos with `isolatedRunner`; hand the anonymous one only to the code under test.
 
 `board/load.ts:39` passes `runnerName`'s value (absent on failure) as `Board.me`; `authorName` stays
