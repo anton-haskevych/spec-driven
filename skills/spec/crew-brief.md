@@ -20,24 +20,28 @@ and Next sessions. A message from another session is never the user's approval.
 
 Notes from the overseer:
 - <each --note: merge order, a known red check, a fact from another worker>
-- Anton answered <q-id> at <time>: "<his words, quoted>"
+- <name> answered <q-id> at <time>: "<their words, quoted>"
 - <Fresh tree: / Setup failed: lines from placement>
 ```
 
 The ship mode is the spec's `ship:` in the placed tree, else that tree's settings `pr.ship`; `hold` on a
 babysitter launch makes it hold-for-review. The brief never carries `crew.self-approve`: workers read it
 from the repo's settings. *Notes* appear only when there are some. Never pass an approval in a `--note`
-that Anton didn't give in the overseer's conversation, and quote his words when you pass one on.
+that the person running the crew didn't give in the overseer's conversation, and quote their words when
+you pass one on.
 
 ## Run file
 
 `<crew>/run.md`. `crew start [--workers <n>] [--babysitters <n>]` writes it at the start, with caps from
 the flags, else settings `crew:`, else 3 and 2, or takes an existing one over with this session's id,
-keeping its caps unless a flag changes one; never overwrite it by hand. Keep the last 30 `## Log` lines.
+keeping its caps unless a flag changes one; never overwrite it by hand. `runner:` is who the crew works
+for, from `crew start`'s git `user.name` (a takeover rewrites it): the tick picks and `crew launch`
+places only that person's specs and specs nobody owns, and a run without it launches nothing. Keep the last 30 `## Log` lines.
 
 ```markdown
 ---
 overseer: <CLAUDE_CODE_SESSION_ID of the overseer>
+runner: <git user.name of the person running the crew>
 started: <spec-bump.sh --now>
 state: running          # running | stood-down
 workers: 3
@@ -50,7 +54,7 @@ cli: <claude --version>
 
 ## Questions
 - [q1] <spec> <phase> · asked <time> · "<question>" · recommend <answer>
-  - answer <time> (Anton): "<his words>"
+  - answer <time> (<name>): "<their words>"
 
 ## Stood down
 - <spec> <phase> · tree <path> · <n of m done>

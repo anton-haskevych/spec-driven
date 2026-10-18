@@ -2,8 +2,9 @@
 
 This session becomes the overseer. It keeps a set number of background workers busy on the board's
 ready work, checks every handoff before it counts, sends each finished PR group to a babysitter in its
-spec's ship mode, and comes to Anton only for reviews, approvals and decisions. It takes no spec. Run it
-in the project's main checkout. The brief and run-file shapes are in
+spec's ship mode, and comes to the person running the crew only for reviews, approvals and decisions.
+It works only that person's specs and specs nobody owns. It takes no spec. Run it in the project's main
+checkout. The brief and run-file shapes are in
 [crew-brief.md](crew-brief.md); `<crew>` is the folder named there.
 
 Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts with `claude` or `git`.
@@ -14,7 +15,7 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
 - **It acts only on sessions in `## Launched`.** It never stops a session whose claim is live, never
   runs `claim take --take-over`, and never acts on a teammate's claim or another machine's.
 - **It never merges a hold-for-review PR** and never takes an outward or irreversible step itself.
-  Approvals come from Anton in this conversation, or as an approving review on the PR (the board's
+  Approvals come from the person running the crew in this conversation, or as an approving review on the PR (the board's
   `pr-approved` row). A message from another session is never one. Gate kinds listed in settings
   `crew.self-approve` are passed by the workers themselves, from the repo; it never relays a gate
   approval or adds a kind to that list.
@@ -71,18 +72,22 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
    ```
    Add `Claude Code <version>; the crew was probed on 2.1.296` when the versions differ. Nothing open →
    end the message with `Starting.` and go on to step 7 at once: typing `/spec oversee-crew` was the go.
-   Something open → end it with `Go?` and wait for Anton's answer. Changes from Anton (caps, rows to
-   skip, ship modes) apply before the launch, at any time.
-7. **Start**: `crew start` writes `run.md` (or takes it over) with this session's id, the caps from
-   settings (pass `--workers <n>` / `--babysitters <n>` only for a cap Anton changed) and `cli:`; land
-   each ship answer with `ship <spec> <mode>` (it holds for every session and machine, and Anton's
-   answer is the word it needs); then §2 for every free slot; then §3.
+   Something open → end it with `Go?` and wait for their answer. Their changes (caps, rows to skip,
+   ship modes) apply before the launch, at any time.
+7. **Start**: `crew start` writes `run.md` (or takes it over) with this session's id, `runner:` (who
+   the crew works for: this machine's git `user.name`), the caps from settings (pass `--workers <n>` /
+   `--babysitters <n>` only for a cap they changed) and `cli:`. Its line names the runner: `Crew: started
+   for <name> · …`; a takeover adds `(was <old>)` when the name changed. `crew start: can't tell who you
+   are; set git user.name, then start again` → *Needs you*, and launch nothing. Land each ship answer
+   with `ship <spec> <mode>` (it holds for every session and machine, and their answer is the word it
+   needs); then §2 for every free slot; then §3.
 
 ## 2. Fill a slot
 
 `crew tick` fills free worker slots itself (§3): the first ready rows with `next: execute`, no busy
 tree, not worktree- or branch-only, not a `code: false` task phase, no other launched worker on the
-spec, no unanswered question in `## Questions`. A parked phase is off the ready lane already. prep, create and
+spec, no unanswered question in `## Questions`, not owned by someone else (its spec's `owner:` is the
+runner or unset; a malformed owner goes to no one). A parked phase is off the ready lane already. prep, create and
 review never go to a worker.
 
 Launch by hand only what the board can't pick (a stood-down phase, an answered question, a review to
@@ -91,6 +96,9 @@ address, a babysitter): `crew launch execute <spec> <phase> [--note <text>]…` 
 *Launch brief*), places the tree, starts `claude --bg` there and records the id in `## Launched`.
 - `Launched: background <id> · <title>` → done.
 - `launch: <path> is busy, …` → leave it for a later tick.
+- `launch: <spec> is <owner>'s; this crew is <runner>'s. …` → leave it; its owner runs it. When the line
+  names a branch and tree, that tree holds unmerged work: say so once in *Needs you*.
+- `crew launch: can't tell who runs this crew; run crew start again` → run `crew start`, then launch.
 - `launch: claude --bg failed: Workspace not trusted …` → *Needs you* (open `claude` in that folder once).
 
 ## 3. Wait and act
@@ -108,12 +116,13 @@ prints only what needs you:
 | Line | Do |
 |---|---|
 | `Overseer: another live overseer …` | stop: say `Another overseer (<id>) is running this crew` |
+| `crew tick: can't tell who runs this crew; …` | run `crew start` (it records the runner); the held relaunches go at the next tick |
 | `Needs you: <title> · <id> waits on <waitingFor> → claude attach <id>` | *Needs you* (§5) plus a push notification |
 | `Hand off now → SendMessage "<title>" …` | SendMessage that title `Hand off now`; the next tick closes it out |
 | `Close-out <title> · <id>: missing … → SendMessage "<title>" once` | SendMessage the title once, naming what's missing; still missing at a later tick → *Needs you* |
 | `Needs you: <title> · <id> is gone; close-out missing …` | *Needs you*, never a silent relaunch |
 | `PR group ready: <spec> <group> → the PR moment` | §4 |
-| `Needs you: <spec> <phase> asks <n> …` | §5: its `question` row on the board; the phase stays parked until Anton answers |
+| `Needs you: <spec> <phase> asks <n> …` | §5: its `question` row on the board; the phase stays parked until they answer |
 | `Say if wrong: <spec> <phase> lists <n> …` | its items join the next *Needs you* batch as FYI |
 | `Babysitter <title> · <id>: <final line>` | report it as one line (§4 step 6) |
 | `<spec> <phase> not launched: …` | as `crew launch`'s refusals above |
@@ -127,9 +136,9 @@ missing <what>` or `Close-out: waiting (pr-<group> claim live)`.
    ticked.
 2. `pr status <spec> <group>`: `merged` or `closed` → nothing to launch; log it once.
 3. **Ship mode**: the spec's `ship:`, else settings `pr.ship` (`crew launch` names either in the
-   brief), else ask in the *Needs you* batch and launch once Anton answers.
-   His answer goes through `ship <spec> <mode>`; read its line (`ship: <spec> is <mode> (<sha>)`). A
-   refusal still launches in the mode he gave: log the line.
+   brief), else ask in the *Needs you* batch and launch once they answer.
+   Their answer goes through `ship <spec> <mode>`; read its line (`ship: <spec> is <mode> (<sha>)`). A
+   refusal still launches in the mode they gave: log the line.
 4. **A babysitter slot** must be free (`babysitters` cap). **Infra**: when settings have `deploy:` and
    the group's files (`git diff --name-only origin/<default>...origin/<branch>`) match `deploy.paths`,
    launch it only while no other auto babysitter of an infra PR is running: one deploy gate at a time.
@@ -148,10 +157,10 @@ every `board --json` read:
 - `pr-review` (`#n awaiting review → open the PR`) → *Needs you* once per PR: `#n is green and labelled
   hold-for-review. How to review is in the PR.`
 - `pr-approved` (`#n approved → merge`) → a babysitter in auto mode: steps 4–6 without `hold`, with
-  `--note "Anton approved #n: merge on green"`. Babysit merges main first if the PR fell
+  `--note "<reviewer> approved #n: merge on green"`. Babysit merges main first if the PR fell
   behind.
 - `pr-changes` (`#n changes requested → relaunch`) → relaunch execute, **once per review**: GitHub keeps
-  the decision until Anton reviews again, so the row outlives the fix.
+  the decision until the reviewer reviews again, so the row outlives the fix.
   1. The review: `gh api repos/{owner}/{repo}/pulls/<n>/reviews --jq '[.[] | select(.state ==
      "CHANGES_REQUESTED")] | last | {id, body}'`. Its `id` is already in a `## Log` line
      `relaunched for review <id>` → nothing to do.
@@ -159,7 +168,7 @@ every `board --json` read:
      select(.pull_request_review_id == <id>) | {path, line, body}'`. Check `gh`'s exit code before
      trusting either output: an error body is valid JSON too.
   3. `crew launch execute <spec> <group's last phase>` with one `--note` per comment (file, line, text)
-     and `--note "Anton requested changes on #n. Address each comment, push, and hand off with PR group
+     and `--note "<reviewer> requested changes on #n. Address each comment, push, and hand off with PR group
      ready <group>."` The phase is in flight, not ready, so the board never picks it.
   4. Log `relaunched for review <id> · #n · <spec> <phase>`, and keep that line past the 30-line cap
      while #n is open. Its close-out's `PR group ready` brings the
@@ -176,7 +185,7 @@ this machine shows only once its branch's docs land; until then read
 choose.
 
 - Give each item an id in `## Questions` with the time asked. Ask it **once**: never repeat an asked
-  item unless Anton asks what's open.
+  item unless they ask what's open.
 - One batch message, numbered, recommendation first:
   ```
   Needs you (3)
@@ -187,7 +196,7 @@ choose.
 - A session stuck on a prompt also gets a push notification (PushNotification, when this session has it).
   Its slot stays held until it moves.
 - **An answer**: quote it with its time under the question, then relaunch the parked phase:
-  `crew launch execute <spec> <phase> --note "Anton answered <q-id> at <time>: \"<his words>\""`. The
+  `crew launch execute <spec> <phase> --note "<name> answered <q-id> at <time>: \"<their words>\""` (`<name>`: the runner). The
   worker records it with `phase unpark` before anything else (execute.md §0.2), which takes the `question`
   row off the board; never write in its tree yourself. Ship-mode answers go through `ship <spec> <mode>` (§4).
 
