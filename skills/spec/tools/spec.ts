@@ -11,6 +11,7 @@ import { CLAIM_USAGE, claimCommand } from "./commands/claim";
 import { CREW_USAGE, crewCommand } from "./commands/crew";
 import { FOCUS_USAGE, focusCommand } from "./commands/focus";
 import { LIST_USAGE, listCommand } from "./commands/list";
+import { OWNER_USAGE, ownerCommand } from "./commands/owner";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
 import { PR_USAGE, prCommand } from "./commands/pr";
@@ -49,6 +50,7 @@ export const COMMANDS: Record<string, Command> = {
   crew: { usage: CREW_USAGE, run: (dir, args) => crewCommand(dir, args) },
   focus: { usage: FOCUS_USAGE, run: (dir, args) => focusCommand(dir, args) },
   ship: { usage: SHIP_USAGE, run: (dir, args) => shipCommand(dir, args) },
+  owner: { usage: OWNER_USAGE, run: (dir, args) => ownerCommand(dir, args) },
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },
   trees: { usage: TREES_USAGE, run: (dir, args) => treesCommand(dir, args) },
 };

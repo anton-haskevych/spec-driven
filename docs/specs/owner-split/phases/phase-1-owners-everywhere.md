@@ -50,7 +50,7 @@ write `owner` on it: `me` → `runnerName`, `none` → remove the line, already-
 - [x] Ready, flight and blocked rows carry `owner` via `ownerOf`; `(owner)` / `(owner?)` in the ready note only when set
 - [x] `runnerName` fail-closed (placeholder email, 3-char key) + `anonymousRunner`; `Board.me` from `runnerName`
 - [x] `landSpecField` extracted; `ship` on it with tests unchanged
-- [ ] `spec.ts owner <spec> <name|me|none>` lands on `origin/<default>`; refuses short names; registered in `spec.ts` and the commands table
+- [x] `spec.ts owner <spec> <name|me|none>` lands on `origin/<default>`; refuses short names; registered in `spec.ts` and the commands table
 - [ ] `SKILL.md` owners paragraph + *Tools* bullet, `list.md:59`, `idea.md:23` say: spec-level, assigned on someone's word via `spec.ts owner`, never the creator; phases and ideas carry none
 
 ## Phase-local notes
