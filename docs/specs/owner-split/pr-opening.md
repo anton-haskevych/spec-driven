@@ -5,6 +5,7 @@
 Spec written 2026-10-17 from prep (wave 1 + craft). 4 code phases, one PR (Anton, 2026-10-17):
 **PR A: phases 1–4** on `feat/owner-split-pr-a`. Order: 1 first; then 2, 3 and 4 (3 after 2 and 4 after 3: shared files, not dependencies).
 One minor version, picked at merge (main's minor + 1).
+PR #31 merged 2026-10-17 as 9978d9c (squash).
 
 ## Pre-PR checks
 
