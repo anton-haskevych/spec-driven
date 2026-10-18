@@ -1,4 +1,5 @@
 import { alignColumns } from "../core/columns";
+import { INVALID_OWNER } from "../core/people";
 import { ago, clock, lane, monthDay, prCell, rowName, sessionCell, stamp, workspaceCell, workspaceName } from "./cells";
 import type { AttentionRow, Board, FlightRow, ReadyRow } from "./model";
 import { focusSection } from "./render-focus";
@@ -69,8 +70,13 @@ function readyCells(board: Board): string[][] {
 }
 
 function readyNote(row: ReadyRow, board: Board): string {
-  const parts = [row.focusBand, row.stale ? `⚠ stale: ${row.stale}` : undefined, placementNote(row, board)];
+  const parts = [ownerMark(row.owner), row.focusBand, row.stale ? `⚠ stale: ${row.stale}` : undefined, placementNote(row, board)];
   return parts.filter(Boolean).join(" · ");
+}
+
+function ownerMark(owner: string | undefined): string | undefined {
+  if (owner === undefined) return undefined;
+  return owner === INVALID_OWNER ? "(owner?)" : `(${owner})`;
 }
 
 function placementNote(row: ReadyRow, board: Board): string {

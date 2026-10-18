@@ -65,6 +65,20 @@ describe("buildBoard", () => {
     expect(board.lanes.blocked).toEqual([{ spec: "gamma", reasons: ["needs alpha"] }]);
   });
 
+  test("ready, blocked and in-flight rows carry their spec's owner; a malformed one reads as INVALID_OWNER", () => {
+    const alpha = specFixture("alpha", { meta: { owner: "taras" }, phases: [done("1"), open("2", ["1"]), open("3", ["2"]), open("4", ["1"])] });
+    const beta = specFixture("beta", { meta: { ownerInvalid: true }, stage: "prep" });
+    const gamma = specFixture("gamma", { meta: { owner: "taras" }, stage: "create", relations: [{ type: "needs", target: "beta" }] });
+    const shared = specFixture("shared", { phases: [open("1")] });
+    const claims = [heldClaim("live", { spec: "alpha", phase: "4", workspace: "/trees/alpha" })];
+    const board = buildBoard(boardInputs([alpha, beta, gamma, shared], { claims }), NOW);
+
+    expect(board.lanes.ready.map((row) => [row.spec, row.owner])).toEqual([["alpha", "taras"], ["beta", "?"], ["shared", undefined]]);
+    expect(board.lanes.ready.find((row) => row.spec === "shared")).not.toHaveProperty("owner");
+    expect(board.lanes.blocked.map((row) => [row.spec, row.phase, row.owner])).toEqual([["alpha", "3", "taras"], ["gamma", undefined, "taras"]]);
+    expect(board.lanes.inFlight.map((row) => [row.spec, row.phase, row.owner])).toEqual([["alpha", "4", "taras"]]);
+  });
+
   test("finished and paused specs are left out; paused ones are counted", () => {
     const board = buildBoard(
       boardInputs(

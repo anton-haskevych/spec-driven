@@ -13,6 +13,8 @@ interface RowBase {
   spec: string;
   phase?: string;
   target?: Target;
+  // ownerOf the spec: a name, INVALID_OWNER, or absent when nobody owns it.
+  owner?: string;
 }
 
 // "remote": another machine's claim; `since` is when it was claimed.

@@ -9,6 +9,7 @@ import { flightRows, isOnBoard, readyInWorkspaces } from "./flight";
 import { focusLane, focusOrder, withFocusPositions } from "./focus";
 import { joinFlightRows } from "./joins";
 import { parkedPhases } from "./parked";
+import { ownerField } from "./people";
 import type { BaseRef, BoardInputs, WorkspaceView } from "./inputs";
 import { BOARD_VERSION, type Board, type BlockedRow, type NextStep, type ReadyRow } from "./model";
 import { rowKey } from "./phase-keys";
@@ -110,7 +111,7 @@ function phaseLanes(node: SpecNode, state: SpecState, placement: Placement, orig
   for (const { phase, reasons } of waiting.filter(({ phase }) => landed(phase))) {
     const inWorkspace = readyIn.get(phase.id);
     if (inWorkspace) lanes.ready.push(readyInRow(phaseRow(node, state, phase, placement), inWorkspace, placement.inputs));
-    else lanes.blocked.push({ spec: name, phase: phase.id, ...(origin ? { target: { workspace: origin.workspace } } : {}), reasons });
+    else lanes.blocked.push({ spec: name, phase: phase.id, ...(origin ? { target: { workspace: origin.workspace } } : {}), ...ownerField(node.meta), reasons });
   }
   return lanes;
 }
@@ -140,7 +141,7 @@ function stageLanes(node: SpecNode, step: Exclude<NextStep, "execute">, { inputs
   const name = node.spec.name;
   const target = origin ? { workspace: origin.workspace } : { newWorktree: name };
   const reasons = blockers(neighborhood(inputs.nodes, name)).map((link) => `needs ${link.other}${link.phases ? `#${link.phases}` : ""}`);
-  if (reasons.length > 0) return { ready: [], blocked: [{ spec: name, ...(origin ? { target } : {}), reasons }] };
+  if (reasons.length > 0) return { ready: [], blocked: [{ spec: name, ...(origin ? { target } : {}), ...ownerField(node.meta), reasons }] };
   const { priority, due, updated, stale } = node.meta;
   const row: ReadyRow = {
     spec: name,
@@ -148,6 +149,7 @@ function stageLanes(node: SpecNode, step: Exclude<NextStep, "execute">, { inputs
     title: node.title ?? name,
     target,
     ...(origin ? { onlyOn: origin.branch } : {}),
+    ...ownerField(node.meta),
     priority,
     due,
     overdue: isOverdue(due, today),
@@ -169,6 +171,7 @@ function phaseRow(node: SpecNode, state: SpecState, phase: PhaseState, { inputs,
     target: tree.target,
     ...(tree.busy ? { treeBusy: tree.busy } : {}),
     ...(origin ? { onlyOn: origin.branch } : {}),
+    ...ownerField(node.meta),
     next: "execute",
     title: phase.name,
     prGroup: phase.edges.pr,

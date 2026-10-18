@@ -45,9 +45,9 @@ write `owner` on it: `me` → `runnerName`, `none` → remove the line, already-
 
 ## Deliverables
 
-- [ ] `core/people.ts` with `personKey`, `samePerson`, `hasMatchKey`, `isOffered`, `ownerOf`, `UNKNOWN`, `INVALID_OWNER`; tests (unset, match, prefix, other person, invalid, short, non-ASCII)
-- [ ] `ownerInvalid` on `SpecMeta`; spec owner parse and doctor messages unchanged (`spec-meta.test.ts:37-43`, `doctor.test.ts:35-41` green)
-- [ ] Ready, flight and blocked rows carry `owner` via `ownerOf`; `(owner)` / `(owner?)` in the ready note only when set
+- [x] `core/people.ts` with `personKey`, `samePerson`, `hasMatchKey`, `isOffered`, `ownerOf`, `UNKNOWN`, `INVALID_OWNER`; tests (unset, match, prefix, other person, invalid, short, non-ASCII)
+- [x] `ownerInvalid` on `SpecMeta`; spec owner parse and doctor messages unchanged (`spec-meta.test.ts:37-43`, `doctor.test.ts:35-41` green)
+- [x] Ready, flight and blocked rows carry `owner` via `ownerOf`; `(owner)` / `(owner?)` in the ready note only when set
 - [ ] `runnerName` fail-closed (placeholder email, 3-char key) + `anonymousRunner`; `Board.me` from `runnerName`
 - [ ] `landSpecField` extracted; `ship` on it with tests unchanged
 - [ ] `spec.ts owner <spec> <name|me|none>` lands on `origin/<default>`; refuses short names; registered in `spec.ts` and the commands table

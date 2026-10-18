@@ -1,4 +1,5 @@
-import { personKey, samePerson } from "../core/people";
+import { ownerOf, personKey, samePerson } from "../core/people";
+import type { SpecMeta } from "../core/spec-meta";
 import type { Board, FocusClaim, FocusRow, FocusWork, PrCell } from "./model";
 
 export const ME = "me";
@@ -10,6 +11,11 @@ export interface PersonClaim extends FocusClaim {
 export interface AuthoredPr {
   author?: string;
   cell: PrCell;
+}
+
+export function ownerField(meta: SpecMeta): { owner?: string } {
+  const owner = ownerOf(meta);
+  return owner === undefined ? {} : { owner };
 }
 
 // Only "me" matches by prefix; everyone else is keyed exactly, so two teammates never merge.
