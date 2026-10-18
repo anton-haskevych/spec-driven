@@ -25,7 +25,7 @@ describe("crew tick", () => {
   function setUp(launched: LaunchedEntry[], workers = 1, overseer = OWN) {
     repo = repoWithOrigin("crew-tick-");
     mkdirSync(join(repo.dir, ".git", "spec-board", "crew"), { recursive: true });
-    writeFileSync(runPath(), withLaunched(newRunFile({ overseer, started: "2026-10-12T20:00:00-07:00", caps: { workers, babysitters: 1 } }), launched));
+    writeFileSync(runPath(), withLaunched(newRunFile({ overseer, runner: "anton-haskevych", started: "2026-10-12T20:00:00-07:00", caps: { workers, babysitters: 1 } }), launched));
   }
 
   function ports(world: Partial<TickWorld>, agents: Agent[], verdicts: Record<string, CloseOut> = {}) {

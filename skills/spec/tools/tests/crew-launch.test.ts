@@ -18,7 +18,7 @@ describe("crew launch", () => {
   function setUp(withRun = true) {
     repo = repoWithOrigin("crew-launch-");
     mkdirSync(crew(), { recursive: true });
-    if (withRun) writeFileSync(join(crew(), "run.md"), newRunFile({ overseer: "48777164-0d07", started: "2026-10-12T20:00:00-07:00", caps: { workers: 2, babysitters: 1 } }));
+    if (withRun) writeFileSync(join(crew(), "run.md"), newRunFile({ overseer: "48777164-0d07", runner: "anton-haskevych", started: "2026-10-12T20:00:00-07:00", caps: { workers: 2, babysitters: 1 } }));
   }
 
   const fresh = (path: string): Placement => ({ kind: "added", path, branch: "feat/checkout-pr-a", how: "created", setup: { copied: [] }, bootstrap: "fresh-tree" });

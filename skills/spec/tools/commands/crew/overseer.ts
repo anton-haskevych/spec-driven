@@ -1,10 +1,11 @@
 import { parseArgs } from "node:util";
 import { setFrontmatterLine } from "../../core/frontmatter-patch";
+import { gitAt, runnerName } from "../../core/git";
 import type { Result } from "../../core/result";
 import { isoTimestamp } from "../../core/schedule";
 import { runFileStore, systemCrewDeps, type CrewDeps } from "../../crew/deps";
 import { overseerLine, whoseRun, type OverseerVerdict } from "../../crew/overseer";
-import { newRunFile, parseRunFile, withOverseer, type Caps } from "../../crew/run-state";
+import { newRunFile, parseRunFile, withOverseer, withRunner, type Caps } from "../../crew/run-state";
 import { loadSettings } from "../../playbook/settings";
 import { ownSessionId } from "../../sessions/own";
 
@@ -26,12 +27,20 @@ export function crewStart(projectDir: string, args: readonly string[], deps: Cre
   if (verdict.value.kind === "other") return `crew start: ${overseerLine(verdict.value).replace("Overseer: ", "")}`;
   const own = ownSessionId(deps.env);
   if (!own) return "crew start: CLAUDE_CODE_SESSION_ID is unset; run it from the overseer session";
+  // The crew's one "me" for the whole run: the tick and every launch read it back from run.md.
+  const runner = runnerName(gitAt(projectDir, deps.runner));
+  if (!runner.ok) return `crew start: ${runner.reason}, then start again`;
 
   const existing = store.value.read();
-  const text = existing === undefined ? newRunFile({ overseer: own, started: isoTimestamp(deps.now()), caps: { ...settingsCaps(projectDir), ...caps.value }, ...cliVersion(deps) }) : merged(existing, own, caps.value);
+  const previous = existing === undefined ? undefined : parseRunFile(existing).runner;
+  const text =
+    existing === undefined
+      ? newRunFile({ overseer: own, runner: runner.value, started: isoTimestamp(deps.now()), caps: { ...settingsCaps(projectDir), ...caps.value }, ...cliVersion(deps) })
+      : merged(withRunner(existing, runner.value), own, caps.value);
   store.value.write(text);
   const run = parseRunFile(text);
-  return `Crew: ${startedHow(verdict.value)} · overseer ${own} · ${run.caps.workers} workers, ${run.caps.babysitters} babysitters`;
+  const was = previous !== undefined && previous !== runner.value ? ` (was ${previous})` : "";
+  return `Crew: ${startedHow(verdict.value)} for ${runner.value}${was} · overseer ${own} · ${run.caps.workers} workers, ${run.caps.babysitters} babysitters`;
 }
 
 // A new run starts from settings crew:; a run being taken over keeps the caps it has.

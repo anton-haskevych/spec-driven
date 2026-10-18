@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { LOG_LINES, newRunFile, parseRunFile, withLaunched, withLog, withOverseer } from "../crew/run-state";
+import { LOG_LINES, newRunFile, parseRunFile, withLaunched, withLog, withOverseer, withRunner } from "../crew/run-state";
 
 const RUN = `---
 overseer: 4efef1e3-0f75-4623-beeb-95b1e6509824
@@ -70,10 +70,17 @@ describe("writers", () => {
     expect(parseRunFile(withOverseer(RUN, "48777164-0d07")).overseer).toBe("48777164-0d07");
   });
 
-  test("newRunFile carries the overseer, caps and every section", () => {
-    const text = newRunFile({ overseer: "abc", started: "2026-10-12T21:00:00-07:00", caps: { workers: 4, babysitters: 1 }, cli: "2.1.296" });
+  test("withRunner adds the runner to a run written before it had one, then replaces it", () => {
+    expect(parseRunFile(RUN).runner).toBeUndefined();
+    const added = withRunner(RUN, "anton-haskevych");
+    expect(parseRunFile(added).runner).toBe("anton-haskevych");
+    expect(parseRunFile(withRunner(added, "taras")).runner).toBe("taras");
+  });
+
+  test("newRunFile carries the overseer, runner, caps and every section", () => {
+    const text = newRunFile({ overseer: "abc", runner: "anton-haskevych", started: "2026-10-12T21:00:00-07:00", caps: { workers: 4, babysitters: 1 }, cli: "2.1.296" });
     const run = parseRunFile(text);
-    expect(run).toMatchObject({ overseer: "abc", state: "running", caps: { workers: 4, babysitters: 1 }, launched: [] });
+    expect(run).toMatchObject({ overseer: "abc", runner: "anton-haskevych", state: "running", caps: { workers: 4, babysitters: 1 }, launched: [] });
     for (const heading of ["## Launched", "## Questions", "## Stood down", "## Log"]) expect(text).toContain(heading);
   });
 });
