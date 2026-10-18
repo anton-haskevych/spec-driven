@@ -15,7 +15,8 @@ straight to `main`.
   1366 pass, 0 fail across 174 files at 557f8a7; typecheck clean; frozen install: no changes; doctor: clean
 - [x] `bun run typecheck` clean
 - [x] `bun install --frozen-lockfile` clean (no new runtime deps)
-- [ ] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added
+- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added
+  2.50.0 (main at 2.49.0); `version.py`: all declarations match; ROADMAP row under *Owner split (2.50)*
 - [x] New and touched tool files under 250 lines, functions under 50 (`principles.md`)
   28 touched non-test files: largest `board/model.ts` 224 lines; 353 functions scanned (ast-grep), none at 50+. `tests/context.test.ts` is 378 lines on main already (this branch changed 1 line).
 - [x] `bun skills/spec/tools/spec.ts doctor owner-split` has no errors
@@ -48,4 +49,5 @@ straight to `main`.
   $ git config user.name "Taras Korpach"; git config --get user.email   # (unset)
   {"ok":true,"value":"Taras Korpach"}
   ```
-- [ ] Before merge, tell Anton: CRM `permission-aware-ui` (`owner: taras`) stops being picked by his crew, and a relaunch of it is refused naming the branch holding its unmerged work
+- [x] Before merge, tell Anton: CRM `permission-aware-ui` (`owner: taras`) stops being picked by his crew, and a relaunch of it is refused naming the branch holding its unmerged work
+  The overseer told Anton before launching this PR (overseer brief, 2026-10-17)

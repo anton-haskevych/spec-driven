@@ -144,6 +144,15 @@ the ability to filter on its life cycle."
 |---|---|---|
 | 2.49.0 | **Lifecycle notes.** `status:` stays the stage; an abandoned spec says how it ended (another spec's `supersedes:` shows as "superseded by", else `dropped: "<why>"`), and `stale: "<what is out of date>"` flags an open spec whose text drifted. `list stale` / `list abandoned` filter on it, the table marks ⚠ stale and how abandoned specs ended, `--json` carries `stale`, `dropped`, `supersededBy`. The board turns a stale spec's ready work into one `review` row (FOCUS shows ⚠ stale); packs print `Stale:`, execute proposes a review first, and the review that re-plans deletes the line. The doctor checks both notes | in PR |
 
+## Owner split (2.50)
+
+Anton (2026-10-17): his crew started workers on Taras's specs; each person must get only their own
+work plus shared work, and be able to ask what the other is doing.
+
+| Version | Change | Status |
+|---|---|---|
+| 2.50.0 | **Owners, assigned and read everywhere.** `spec.ts owner <spec> <name \| me \| none>` writes `owner:` on a spec's `CLAUDE.md` on main, only on someone's word; no owner means shared. "Me" is the git `user.name` (`runnerName`), fail-closed when unset. `crew launch` and `crew tick` start only the runner's or shared specs, and a launch of someone else's spec is refused naming the branch that holds its unmerged work. *Next sessions* and execute's top ready row read `board ready --for me`; plain `board` marks owned rows `(owner)` and hides nothing. `board --who <name\|me>` opens with that person's section: specs they own, what they have claimed or opened, and their PRs | in PR |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through
