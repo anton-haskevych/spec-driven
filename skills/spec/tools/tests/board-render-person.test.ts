@@ -50,6 +50,11 @@ describe("personSection", () => {
     );
   });
 
+  test("a PR whose CI never ran shows no verdict", () => {
+    const section = personSection(work({ prs: [{ branch: "feat/gift-cards-pr-a", cell: { number: 970, listed: true, draft: true, verdict: "none" } }] }), NOW);
+    expect(section.split("\n").at(-1)).toBe("  PRs     #970 draft gift-cards pr-a");
+  });
+
   test("nothing at all is one line", () => {
     expect(personSection(work(), NOW)).toBe("TARAS — owns nothing, nothing on now");
   });

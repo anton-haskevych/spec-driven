@@ -30,10 +30,12 @@ function claimText(claim: PersonClaim, now: Date): string {
   return `${claim.spec} ${claim.phase} · claimed ${ago(new Date(claim.since), now)} ago ${claim.host ? `on ${claim.host}` : "here"}`;
 }
 
-// Spec PR branches read `feat/<spec>-pr-<group>` (trees/naming.ts).
+// Spec PR branches read `feat/<spec>-pr-<group>` (trees/naming.ts). `none` (CI never ran) is
+// dropped: between the row's `·` separators it read as an item of its own.
 function prText({ branch, cell }: PersonPr): string {
   const name = branch.replace(/^feat\//, "").replace(/-pr-([^-]+)$/, " pr-$1");
-  return `#${cell.number}${cell.draft ? " draft" : ""} ${name}${cell.verdict ? ` · ${cell.verdict}` : ""}`;
+  const verdict = cell.verdict && cell.verdict !== "none" ? ` · ${cell.verdict}` : "";
+  return `#${cell.number}${cell.draft ? " draft" : ""} ${name}${verdict}`;
 }
 
 function sessionsCell(sessions: readonly PersonSession[]): string {
