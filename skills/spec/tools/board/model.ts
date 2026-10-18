@@ -166,7 +166,7 @@ export interface Board {
   repo: string;
   generatedAt: string;
   here: string;
-  // The git author name: who "my" claims and PRs belong to.
+  // runnerName, the configured git name: who "my" claims and PRs belong to. Absent when git has none.
   me?: string;
   mainCheckout?: string;
   base: { branch: string; sha: string; date: string; mode: BaseMode; reason?: string };
