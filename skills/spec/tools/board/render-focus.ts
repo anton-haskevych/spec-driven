@@ -36,7 +36,7 @@ function nowCell(row: FocusRow): string {
   return parts.filter(Boolean).join(" · ");
 }
 
-function nowText(now: FocusNow): string {
+export function nowText(now: FocusNow): string {
   switch (now.kind) {
     case "flight":
       return flightText(now.phases, now.next);
