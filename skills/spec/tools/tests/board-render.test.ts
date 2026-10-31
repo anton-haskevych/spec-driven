@@ -200,7 +200,7 @@ describe("renderBoard", () => {
 
   test("merged trees are one needs-you row with the action", () => {
     const output = renderBoard(board({ lanes: lanes({ needsYou: [{ kind: "prune", trees: 43 }] }) }), { lane: "you" });
-    expect(output).toContain("  prune 43 merged trees  say yes to remove them (trees prune --apply)");
+    expect(output).toContain("  prune 43 merged trees  the next handoff removes them (trees prune --auto)");
   });
 
   test("the footer lists worktree counts, duplicates and unavailable sources", () => {

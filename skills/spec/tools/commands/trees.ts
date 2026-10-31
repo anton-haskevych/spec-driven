@@ -1,21 +1,30 @@
 import { homedir } from "node:os";
-import { gitAt } from "../core/git";
+import { gitAt, stateDir } from "../core/git";
 import type { Result } from "../core/result";
 import { placeTree, type PlaceDeps, type Placement } from "../trees/place";
 import { applyPrune, findPrunable } from "../trees/prune";
+import { backgroundPruneArgv, detachedSpawner, recordPruneRun, startBackgroundPrune, type Spawner } from "../trees/prune-background";
+import { renderPruneApplied, renderPruneList, renderPruneSummaryLine } from "../trees/prune-render";
 import { systemAsyncRunner, systemRunner } from "../core/run";
 import { defaultClaudeHome } from "../sessions/live";
 
-export const TREES_USAGE = "trees place <spec> <phase> [--json] | trees prune [--apply]";
+export const TREES_USAGE = "trees place <spec> <phase> [--json] | trees prune [--apply | --auto [--wait]]";
 
 const JSON_FLAG = "--json";
 const APPLY_FLAG = "--apply";
+// Handoff's run, on Anton's standing yes (2026-10-30): applies without asking, in a detached process so nobody waits.
+const AUTO_FLAG = "--auto";
+// The detached process itself: does the work and records its one line for the next handoff.
+const WAIT_FLAG = "--wait";
+const PRUNE_FLAGS = new Set([APPLY_FLAG, AUTO_FLAG, WAIT_FLAG]);
+
+export type TreesDeps = PlaceDeps & { spawner?: Spawner };
 
 export function systemPlaceDeps(): PlaceDeps {
   return { runner: systemRunner, asyncRunner: systemAsyncRunner, claudeHome: defaultClaudeHome(), env: process.env, home: homedir() };
 }
 
-export async function treesCommand(projectDir: string, args: readonly string[], deps: PlaceDeps = systemPlaceDeps()): Promise<string> {
+export async function treesCommand(projectDir: string, args: readonly string[], deps: TreesDeps = systemPlaceDeps()): Promise<string> {
   if (args[0] === "prune") return pruneCommand(projectDir, args.slice(1), deps);
   const json = args.includes(JSON_FLAG);
   const [action, spec, phase, ...extra] = args.filter((arg) => arg !== JSON_FLAG);
@@ -25,20 +34,24 @@ export async function treesCommand(projectDir: string, args: readonly string[], 
   return renderPlacement(placed);
 }
 
-async function pruneCommand(projectDir: string, args: readonly string[], deps: PlaceDeps): Promise<string> {
-  const apply = args.includes(APPLY_FLAG);
-  if (args.some((arg) => arg !== APPLY_FLAG)) return `usage: ${TREES_USAGE}`;
+async function pruneCommand(projectDir: string, args: readonly string[], deps: TreesDeps): Promise<string> {
+  if (args.some((arg) => !PRUNE_FLAGS.has(arg))) return `usage: ${TREES_USAGE}`;
+  const auto = args.includes(AUTO_FLAG);
+  const runDir = auto ? stateDir(gitAt(projectDir, deps.runner), "prune") : undefined;
+  if (runDir && !runDir.ok) return `trees: ${runDir.reason}`;
+  if (runDir && !args.includes(WAIT_FLAG)) return startBackgroundPrune(projectDir, runDir.value, deps.spawner ?? detachedSpawner, backgroundPruneArgv());
   const found = await findPrunable(projectDir, deps);
-  if (!found.ok) return `trees: ${found.reason}`;
-  const { candidates, prsUnchecked, sessionsUnread } = found.value;
-  const unchecked = [
-    ...(prsUnchecked ? [`PR merges not checked (${prsUnchecked}); only trees already in base are listed.`] : []),
-    ...(sessionsUnread ? [`Open sessions can't be read (${sessionsUnread}), so every tree is kept.`] : []),
-  ];
-  if (candidates.length === 0) return ["trees: nothing to prune", ...unchecked].join("\n");
-  if (apply) return [...applyPrune(gitAt(projectDir, deps.runner), candidates), ...unchecked].join("\n");
-  const rows = candidates.map(({ path, branch, evidence }) => `  ${[path, branch, evidence].filter(Boolean).join(" · ")}`);
-  return [`prune ${candidates.length} merged ${candidates.length === 1 ? "tree" : "trees"} (idle, nothing unpushed; trees with edits are kept):`, ...rows, ...unchecked].join("\n");
+  if (!found.ok) {
+    if (runDir) recordPruneRun(runDir.value, `trees: ${found.reason}`);
+    return `trees: ${found.reason}`;
+  }
+  const report = found.value;
+  if (!auto && !args.includes(APPLY_FLAG)) return renderPruneList(report);
+  const outcomes = applyPrune(gitAt(projectDir, deps.runner), report.candidates);
+  if (!runDir) return renderPruneApplied(outcomes, report);
+  const line = renderPruneSummaryLine(outcomes, report);
+  recordPruneRun(runDir.value, line);
+  return line;
 }
 
 export function renderPlacement(placed: Result<Placement>): string {
