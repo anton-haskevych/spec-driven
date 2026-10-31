@@ -16,11 +16,14 @@ import { treeOccupant } from "./find";
 import type { PlaceDeps } from "./place";
 import { PLACE_FETCH_TIMEOUT_MS } from "./place";
 import { pruneCandidates, type MergedHead, type PruneCandidate, type TreeFacts } from "./prune-rules";
+import { strayFolders } from "./strays";
 
 export type PruneDeps = Omit<PlaceDeps, "home">;
 
 export interface PruneReport {
   candidates: PruneCandidate[];
+  // Folders beside the trees that git doesn't list as worktrees; never removed.
+  strays: string[];
   // Why PR merges weren't checked; then only trees already in base are listed.
   prsUnchecked?: string;
   // Why open sessions couldn't be read; then every tree is kept.
@@ -45,17 +48,26 @@ export async function findPrunable(projectDir: string, deps: PruneDeps): Promise
   const facts = await treeFacts(git, worktrees.value, base.value, projectDir, { sessions, deps });
   const prs = await merged;
   const candidates = pruneCandidates(facts, prs.ok ? prs.value : undefined, branch);
-  return { ok: true, value: { candidates, ...(prs.ok ? {} : { prsUnchecked: prs.reason }), ...(sessions.ok ? {} : { sessionsUnread: sessions.reason }) } };
+  return { ok: true, value: { candidates, strays: strayFolders(worktrees.value), ...(prs.ok ? {} : { prsUnchecked: prs.reason }), ...(sessions.ok ? {} : { sessionsUnread: sessions.reason }) } };
+}
+
+export interface PruneOutcome {
+  path: string;
+  branch?: string;
+  // Why the tree is still there; unset when it was removed.
+  kept?: string;
+  // Why its branch is still there after the tree went.
+  branchKept?: string;
 }
 
 // `worktree remove` without --force refuses a tree with edited or untracked files: that is the clean check.
-export function applyPrune(git: Git, candidates: readonly PruneCandidate[]): string[] {
+export function applyPrune(git: Git, candidates: readonly PruneCandidate[]): PruneOutcome[] {
   return candidates.map(({ path, branch }) => {
     const removed = git.out(["worktree", "remove", path]);
-    if (!removed.ok) return `kept ${path}: ${removed.reason}`;
-    if (!branch) return `removed ${path}`;
+    if (!removed.ok) return { path, ...(branch ? { branch } : {}), kept: removed.reason };
+    if (!branch) return { path };
     const deleted = git.out(["branch", "-D", branch]);
-    return deleted.ok ? `removed ${path} and branch ${branch}` : `removed ${path}; branch ${branch} kept: ${deleted.reason}`;
+    return deleted.ok ? { path, branch } : { path, branch, branchKept: deleted.reason };
   });
 }
 

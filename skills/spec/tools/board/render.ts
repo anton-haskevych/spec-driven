@@ -113,7 +113,7 @@ function attentionCells(row: AttentionRow, now: Date): string[] {
     case "claim":
       return ["claim by a closed session", `${rowName(row)} → resume or release`];
     case "prune":
-      return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "say yes to remove them (trees prune --apply)"];
+      return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "the next handoff removes them (trees prune --auto)"];
     case "idle-claim":
       return [`claim idle ${ago(new Date(row.since), now)}`, `${row.spec} · ${row.phases.join(", ")} → switch to ${row.session} or take it over`];
     case "remote-claim":

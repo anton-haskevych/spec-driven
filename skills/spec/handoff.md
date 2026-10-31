@@ -146,6 +146,8 @@ Pushing is confined: the branch goes to its own name, and only committed spec do
 
 Then release this session's claims on the spec, so another session can pick the phase up: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim release <spec-name>`. Keep its `claim:` lines for *Signal completion*. `phase <id> was taken over by <holder> <age> ago; your work is on <branch>` means another session took the phase with `--take-over`. Print it as is: the user needs to know their commits on that branch are now someone else's starting point. Releasing a half-done phase is safe: `claim take` refuses it in any other worktree while the work sits in this one. Without Bun, skip it.
 
+Then start removing the merged trees: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts trees prune --auto`. It returns at once: a detached process removes every worktree whose branch is merged, fully pushed and has no session open in it, with its branch, never this session's own tree, and keeps going after the tab closes. `git worktree remove` keeps any tree with edits, and folders git doesn't list as worktrees are named, never removed. This is a standing yes (given 2026-10-30, recorded in CRM's `agent-session-papercuts` brief): run it without asking, never ask before it, and never wait on it. Keep its one line (`Pruning merged trees in the background · last run: Pruned …`, or a `trees:` refusal) for *Signal completion*. Without Bun, skip it.
+
 ## 4. Signal completion
 
 Open with SKILL.md → *Reports* (once: §1's update flow skipped its own), then print:
@@ -159,6 +161,7 @@ Ledger entries added: <count> — <comma-separated slugs>
 In-flight state: <"has pending work" | "clean boundary">
 <the Remote: line, plus any refusal line, from Commit>
 <the claim: lines from Commit>
+<the Pruning line from Commit>
 
 Unblocked: <specs whose needs point at phases finished this session, from `spec.ts graph <spec-name>`; omit the line if none>
 ---
