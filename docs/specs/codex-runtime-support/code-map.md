@@ -59,6 +59,10 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 | `T/tests/fixtures/codex-resource-execution/`, `T/tests/runtime-codex-resource-execution.test.ts` | Actual native old-path shell failure across update, fresh candidate success, hashed historical script and explicit authentication/model limits | phase 1 |
 | `T/runtime/codex/scan.ts`, `decode.ts` | Paginated current-source scan and conservative native response decoding | phase 1 |
 | `T/tests/fixtures/runtime-2.51.0/` | Actual historical claim/occupancy/prune modules, reversible import relocation and hashes | phase 1 |
+| `T/runtime/identity.ts`, `resolve-identity.ts` | Shared source/session equality and keys; explicit initiating identity with configured-source/conflict refusals; opt-in pending command integration | phase 2 |
+| `T/runtime/read-sessions.ts` | Async injected source composition, read once per source, bound coverage checks and healthy-source retention | phase 2 |
+| `T/runtime/codex/sessions.ts` | Source-bound injected connect/scan/close reader reusing the existing paginated scanner | phase 2 |
+| `T/tests/runtime-identity.test.ts`, `runtime-read-sessions.test.ts`, `runtime-session-readers.test.ts` | Identity collisions/conflicts, per-source failures and attribution, fixture-only host reader lifecycle | phase 2 |
 
 ## Existing files touched
 
@@ -66,3 +70,5 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 |---|---|---|
 | `T/sessions/live.ts` | Re-exports shared status/name types; reader behavior stays unchanged | `ledger/decision-runtime-boundaries.md` |
 | `tsconfig.json`, `.github/workflows/plugin-metadata.yml` | Bun-only type environment and locally verified Bun 1.4.4 CI runtime | `ledger/gotcha-bun-docs-exceed-installed-api.md` |
+| `T/runtime/claude/sessions.ts`, `runtime/sessions.ts` | Injected Claude reader wraps unchanged normalization; narrow Claude/Codex source types | `ledger/decision-runtime-boundaries.md` |
+| `T/runtime/codex/scan.ts`, `decode.ts` | Codex source type prevents a Claude label at the native boundary | `ledger/decision-runtime-boundaries.md` |
