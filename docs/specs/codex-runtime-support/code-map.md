@@ -75,6 +75,7 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 | `T/runtime/codex/scan.ts`, `decode.ts` | Paginated current-source scan and conservative native response decoding | phase 1 |
 | `T/tests/fixtures/runtime-2.51.0/` | Actual historical claim/occupancy/prune modules, reversible import relocation and hashes | phase 1 |
 | `T/runtime/identity.ts`, `resolve-identity.ts` | Shared source/session equality and keys; explicit initiating identity with configured-source/conflict refusals; opt-in pending command integration | phase 2 |
+| `T/runtime/is-session-descendant.ts`, `runtime/sessions.ts`, `runtime/codex/decode.ts` | Native parentage retained as qualified refs; pure observed descendant traversal for recon occupation exemption, without claim activation | phase 2 |
 | `T/runtime/read-sessions.ts` | Async injected source composition, read once per source, bound coverage checks and healthy-source retention | phase 2 |
 | `T/runtime/codex/sessions.ts` | Source-bound injected connect/scan/close reader reusing the existing paginated scanner | phase 2 |
 | `T/tests/runtime-identity.test.ts`, `runtime-read-sessions.test.ts`, `runtime-session-readers.test.ts` | Identity collisions/conflicts, per-source failures and attribution, fixture-only host reader lifecycle | phase 2 |
