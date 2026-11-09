@@ -2,6 +2,8 @@
 
 ## Gotchas
 
+- `gotcha-bun-docs-exceed-installed-api.md` — [general] — verify current Bun docs against the installed API and keep socket cleanup bounded
+
 - `gotcha-codex-session-launch-needs-worktree-and-boot.md` — [general] — explicit native cwd, reviewed spec snapshot and self-contained boot before Codex launch
 
 - `gotcha-old-readers-ignore-runtime-claims.md` — [phase 2+] — Older Claude readers cannot safely judge Codex claims

@@ -28,3 +28,11 @@ The shared policy can accept a normalized runtime without changing Claude behavi
 ## Implementation guidance
 
 Use the existing Bun runtime and Result/Runner idioms. The WebSocket choice is provisional until the actual configured endpoints work with maintained facilities. This phase must not broaden global hooks, install a daemon or rewrite Claude session reading. Source code stays provider-neutral; runtime libraries remain outer details.
+
+## Phase-local notes
+
+Three execution chunks completed on 2026-11-08; Phase 1 remains open. Baseline: `3f831db`; bounded read-only proof: `1a9cbab`; historical reader proof: `b33e296`. See [probe observations](../research/phase-1/2026-11-08-read-only-probe.md), [Bun 1.4.4 research](../research/phase-1/2026-11-08-bun-1.4.4-toolchain.md) and [old-reader observations](../research/phase-1/2026-11-08-old-reader-observations.md).
+
+The old-version item is partial: actual 2.51.0 modules/provenance/hazard fixtures exist; supported native resume and installation fencing are not proved. The lifecycle item is pending: synthetic attention decoding and the launcher's disconnect observation do not establish owned worker/descendant guarantees. Native activation/retention/loaded version/hook trust remain pending. No native critical failure has yet justified a design fork; do not park merely for incomplete proof.
+
+Native Bun Unix WebSocket worked against the actual configured endpoint on 1.4.4. Source discovery covers only that configured default Unix daemon on CLI/app-server 0.167.0; other environment modes refuse explicitly. This does not enable managed Codex use. CI now uses 1.4.4; explicit ESNext library scope exposes Bun's actual WebSocket typings without casts. Preserve the canonical tsc gate alongside locally verified bun check.

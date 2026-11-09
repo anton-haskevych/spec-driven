@@ -1,7 +1,7 @@
 ---
 created: 2026-11-08T19:10:00-08:00
-updated: 2026-11-08T19:10:00-08:00
-status: draft
+updated: 2026-11-08T19:24:46-08:00
+status: active
 area: [agent-tooling]
 domain: [runtime-integration]
 scope: [feature, refactor]
@@ -33,7 +33,7 @@ One spec workflow, two properly integrated execution runtimes. Claude Code remai
 
 ## Relationship to code
 
-This is a design, not a live architecture mirror. Existing behavior is in `skills/spec/`, especially `tools/sessions`, `tools/claims`, `tools/launch`, `tools/crew`, `tools/board` and `tools/trees`. Read the [parent plugin guide](../../../../CLAUDE.md) for repository conventions. No source code, installed plugin or settings are changed by this spec.
+This is a design, not a live architecture mirror. Existing behavior is in `skills/spec/`, especially `tools/sessions`, `tools/claims`, `tools/launch`, `tools/crew`, `tools/board` and `tools/trees`. Read the [parent plugin guide](../../../../CLAUDE.md) for repository conventions. Phase 1 has local session values, Claude characterization, read-only Codex observations and actual historical-reader fixtures. Production runtime composition remains Claude-only; installed plugins and settings are unchanged.
 
 ## Review state
 

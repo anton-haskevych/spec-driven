@@ -43,3 +43,22 @@ Verified 2026-11-08 at 22e7ec7. `T` = `skills/spec/tools/`.
 Existing tests to extend: `sessions-own`, `sessions-live`, `sessions-agents`, `sessions-transcript`, `claim-command`, `claims-live`, `claims-rules`, `board-claims`, `sessions-by-workspace`, `trees-place-owner`, `trees-prune`, `launch`, `launch-background`, `crew-launch`, `crew-wait`, `crew-tick`, `crew-check`, `hook` and `skill-wiring`.
 
 Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native refresh/install/verification procedure. Its broad sync helper refreshes all marketplaces, so do not invoke that blanket operation for this spec. Any necessary companion change must stay scoped and be declared during phase recon.
+
+## Introduced by this spec
+
+| File | Role | Phase |
+|---|---|---|
+| `T/runtime/sessions.ts` | Plain source/session/coverage values; shared status/name type exports | phase 1 |
+| `T/runtime/claude/sessions.ts` | Pure opt-in mapping of the unchanged Claude reader result | phase 1 |
+| `T/runtime/capabilities.ts` | Observed/unverified/unsupported/unavailable outcomes; managed features stay unverified | phase 1 |
+| `T/runtime/codex/probe.ts` | Explicit bounded read-only version/endpoint/identity proof; sanitized agent report | phase 1 |
+| `T/runtime/codex/transport.ts` | Bun Unix WebSocket initialization, bounded requests and write-method refusal | phase 1 |
+| `T/runtime/codex/scan.ts`, `decode.ts` | Paginated current-source scan and conservative native response decoding | phase 1 |
+| `T/tests/fixtures/runtime-2.51.0/` | Actual historical claim/occupancy/prune modules, reversible import relocation and hashes | phase 1 |
+
+## Existing files touched
+
+| File | Why we care | Ledger |
+|---|---|---|
+| `T/sessions/live.ts` | Re-exports shared status/name types; reader behavior stays unchanged | `ledger/decision-runtime-boundaries.md` |
+| `tsconfig.json`, `.github/workflows/plugin-metadata.yml` | Bun-only type environment and locally verified Bun 1.4.4 CI runtime | `ledger/gotcha-bun-docs-exceed-installed-api.md` |

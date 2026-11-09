@@ -32,4 +32,8 @@ The current 2.51.0 claim command is Claude-only. Record a missing Codex claim ho
 
 ## This launch
 
-Preparation complete; actual native session/turn details are recorded after the launch is verified. No user secrets belong in this entry.
+Native implementation thread: `01a1be43-b195-7342-ae88-f22eb84ae7a5`. Its shell exports that value in CODEX_THREAD_ID; read-only thread/read independently matched it and the assigned worktree cwd on CLI/app-server 0.167.0. The launcher's observer reported that the session remained active after launcher disconnect and verified worktree-local commands. This is one launch observation, not full worker lifecycle proof. The owned turn ID was not captured by this implementation session.
+
+This session's `trees place` returned the assigned existing worktree. `claim take` returned `claim: no session id; not claimed`; no shared claim was changed. Three local chunks then reached the execute stop rule. Future agents should reuse the same branch/worktree and its current in-flight boot; do not create a second tree from old mainline spec metadata.
+
+The Phase 1 probe additionally verified native Bun 1.4.4 Unix WebSocket at the configured endpoint, so future implementation probes do not need the launcher's Python library. Keep the historical launcher observation distinct from a production adapter. The proxy timeout remains a failed proxy attempt, not proof against direct app-server stdio.
