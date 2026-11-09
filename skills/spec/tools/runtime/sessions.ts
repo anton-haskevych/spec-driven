@@ -29,6 +29,7 @@ export interface RuntimeSession {
   name?: string;
   nameSource?: NameSource;
   continuation?: SessionRef;
+  parent?: SessionRef;
   attention?: "approval" | "input" | "error";
 }
 

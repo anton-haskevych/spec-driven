@@ -9,6 +9,24 @@ const observedAt = "2026-11-09T04:00:00Z";
 const metadata = (status: unknown) => ({ thread: { id: "own", cwd: "/work", updatedAt: 1794196800, status } });
 
 describe("native session values", () => {
+  test("retains native parentThreadId as a qualified delegation reference", () => {
+    const raw = metadata({ type: "idle" });
+    expect(codexSession({ thread: { ...raw.thread, parentThreadId: "parent" } }, "own", source, observedAt)).toMatchObject({
+      ok: true, value: { parent: { source, id: "parent" } },
+    });
+    for (const fields of [{}, { parentThreadId: null }, { forkedFromId: "parent" }]) {
+      const result = codexSession({ thread: { ...raw.thread, ...fields } }, "own", source, observedAt);
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.value).not.toHaveProperty("parent");
+    }
+  });
+
+  test("malformed or self-parent metadata cannot grant delegation", () => {
+    for (const parentThreadId of ["", "  ", 7, {}, "own"]) {
+      expect(codexSession({ thread: { ...metadata({ type: "idle" }).thread, parentThreadId } }, "own", source, observedAt).ok).toBe(false);
+    }
+  });
+
   test("keeps input/approval/error attention while never mapping unloaded or future states to idle", () => {
     for (const flag of ["waitingOnApproval", "waitingOnUserInput"]) {
       const result = codexSession(metadata({ type: "active", activeFlags: [flag] }), "own", source, observedAt);

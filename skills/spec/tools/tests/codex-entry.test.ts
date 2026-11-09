@@ -15,6 +15,11 @@ let pilot: TestRepo;
 let request: CodexEntryRequest;
 let deps: CodexEntryDeps;
 let calls: string[];
+let threads: Record<string, ReturnType<typeof nativeThread>>;
+
+function nativeThread(id: string, parentThreadId?: string) {
+  return { thread: { id, cwd: request.cwd, updatedAt: 1794225600, status: { type: "idle" }, parentThreadId: parentThreadId ?? null } };
+}
 
 beforeEach(() => {
   legacy = repoWithOrigin("codex-entry-legacy-");
@@ -27,12 +32,13 @@ beforeEach(() => {
   request = { cwd: realpathSync(pilot.dir), legacyProjectDir: legacy.dir, revision: assets.value.revision,
     request: { mode: "execute", name: "checkout", hint: "2" } };
   calls = [];
+  threads = { "native-own": nativeThread("native-own") };
   deps = { assets: assets.value, env: { CODEX_THREAD_ID: "native-own" }, runner: isolatedRunner, now: () => "2026-11-09T12:00:00Z",
     observe: async (input) => {
-      const rpc: ReadOnlyRpc = { close() { calls.push("close"); }, async request(method) {
+      const rpc: ReadOnlyRpc = { close() { calls.push("close"); }, async request(method, params) {
         calls.push(method);
-        return { ok: true, value: method === "thread/loaded/list" ? { data: ["native-own"], nextCursor: null }
-          : { thread: { id: "native-own", cwd: request.cwd, updatedAt: 1794225600, status: { type: "idle" } } } };
+        return { ok: true, value: method === "thread/loaded/list" ? { data: Object.keys(threads), nextCursor: null }
+          : threads[String(params.threadId)] };
       } };
       return probeCodex(input, { observedAt: "now", connect: async () => ({ ok: true, value: rpc }),
         runner: asyncStubRunner([[ ["codex", "app-server", "daemon", "version"], { stdout: JSON.stringify({
@@ -48,6 +54,15 @@ function output(result: Awaited<ReturnType<typeof runCodexEntry>>): string {
   if (!result.ok) throw new Error(result.reason);
   return result.value;
 }
+
+test("native recon descendants remain loaded through bootstrap and recall", async () => {
+  threads.child = nativeThread("child", "native-own");
+  threads.grandchild = nativeThread("grandchild", "child");
+  expect(output(await runCodexEntry(request, deps))).toContain("Workflow: local-pilot");
+  expect(output(await runCodexEntry({ ...request, command: ["lessons", "recall", "code.ts"] }, deps))).toContain("Workflow: local-pilot");
+  threads.independent = nativeThread("independent");
+  expect(await runCodexEntry(request, deps)).toMatchObject({ ok: false, reason: "another native session occupies the exclusive pilot checkout" });
+});
 
 test("native entry binds candidate bytes, actual ID/cwd and one scan to stored context", async () => {
   const text = output(await runCodexEntry(request, deps));

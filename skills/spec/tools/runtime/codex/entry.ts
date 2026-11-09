@@ -10,6 +10,7 @@ import { findSpecs } from "../../core/spec-folders";
 import { loadSpecState } from "../../core/spec-state";
 import { run } from "../../spec";
 import { sameSession } from "../identity";
+import { isSessionDescendant } from "../is-session-descendant";
 import { verifyPilotWorkspace } from "../pilot-workspace";
 import { resolveIdentity } from "../resolve-identity";
 import type { CodexSource, SessionRef } from "../sessions";
@@ -57,7 +58,9 @@ export async function runCodexEntry(request: CodexEntryRequest, deps: CodexEntry
   if (observed?.cwd !== workspace.value || native.snapshot.coverage.length !== 1 || native.snapshot.coverage[0]?.state !== "complete") {
     return { ok: false, reason: "initiating native ID/cwd and complete source coverage required" };
   }
-  if (native.snapshot.sessions.some((session) => !sameSession(session.ref, own.value) && (session.cwd === workspace.value || session.cwd.startsWith(`${workspace.value}/`)))) {
+  if (native.snapshot.sessions.some((session) => !sameSession(session.ref, own.value)
+    && !isSessionDescendant(session, own.value, native.snapshot.sessions)
+    && (session.cwd === workspace.value || session.cwd.startsWith(`${workspace.value}/`)))) {
     return { ok: false, reason: "another native session occupies the exclusive pilot checkout" };
   }
   return dispatchPilot({ request, argv, target: target.value, own: own.value, native }, deps);

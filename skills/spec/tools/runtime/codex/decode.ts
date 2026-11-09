@@ -23,6 +23,10 @@ export function codexSession(value: unknown, expectedId: string, source: CodexSo
   if (!t || t.id !== expectedId || typeof t.cwd !== "string" || !isAbsolute(t.cwd) || typeof t.updatedAt !== "number") {
     return { ok: false, reason: "invalid Codex thread metadata" };
   }
+  const parent = t.parentThreadId;
+  if (parent !== undefined && parent !== null && (typeof parent !== "string" || !parent.trim() || parent === expectedId)) {
+    return { ok: false, reason: "invalid Codex parent thread metadata" };
+  }
   const changedAt = new Date(t.updatedAt * 1000);
   if (!Number.isFinite(changedAt.getTime())) return { ok: false, reason: "invalid Codex thread timestamp" };
   const state = threadState(t.status);
@@ -30,6 +34,7 @@ export function codexSession(value: unknown, expectedId: string, source: CodexSo
   return { ok: true, value: {
     ref: { source, id: expectedId }, cwd: t.cwd, ...state.value, observedAt,
     changedAt: changedAt.toISOString(), changedFrom: "updatedAt",
+    ...(typeof parent === "string" ? { parent: { source, id: parent } } : {}),
     ...(typeof t.name === "string" && t.name ? { name: t.name } : {}),
   } };
 }
