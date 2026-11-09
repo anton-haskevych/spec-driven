@@ -37,3 +37,9 @@ Native implementation thread: `01a1be43-b195-7342-ae88-f22eb84ae7a5`. Its shell 
 This session's `trees place` returned the assigned existing worktree. `claim take` returned `claim: no session id; not claimed`; no shared claim was changed. Three local chunks then reached the execute stop rule. Future agents should reuse the same branch/worktree and its current in-flight boot; do not create a second tree from old mainline spec metadata.
 
 The Phase 1 probe additionally verified native Bun 1.4.4 Unix WebSocket at the configured endpoint, so future implementation probes do not need the launcher's Python library. Keep the historical launcher observation distinct from a production adapter. The proxy timeout remains a failed proxy attempt, not proof against direct app-server stdio.
+
+## Session 2 — inherited-cwd launch
+
+The native `create_thread` launch from controller `01a1be10-2c87-7511-ac8e-3309a8dbe079` inherited **this assigned worktree**, so it was a correct launch without a cwd parameter. The earlier warning applies when the launching controller is in another checkout; it is not a blanket prohibition on `create_thread`.
+
+Implementation thread `01a1be5d-e805-7d12-b1b6-1a533f5c8fdf`, owned implementation turn `01a1be5d-e903-7232-8cca-5650a4bb62f7`: read-only native `thread/read` independently verified ID, assigned cwd and `inProgress` turn on CLI/app-server 0.167.0. Shell CODEX_THREAD_ID matched. This is session identity evidence, not an owned scratch-worker proof. The inherited branch was clean at `90e01c8da3683cdfceaecd2ef01f423b30a07b79`; placement returned that existing tree and claim-taking honestly returned `claim: no session id; not claimed`.
