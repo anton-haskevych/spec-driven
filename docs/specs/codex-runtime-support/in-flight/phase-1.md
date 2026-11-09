@@ -1,51 +1,69 @@
 # Phase 1 — in-flight state and next-session boot
 
-**Session ended:** 2026-11-08 (session 2)
+**Session ended:** 2026-11-08 (controller handoff after implementation session 2)
 **Active phase:** 1 — Runtime contracts and Claude compatibility baseline
-**Stop reason:** Three completed chunks and a demonstrated native cache-retention failure. Phase 1 is parked on the design question below; Phase 2 is not ready.
+**Stop reason:** Anton requested a clean controller handoff after clarifying update behavior. The earlier parked product question is answered. Phase 1 remains incomplete; Phase 2 is not ready.
 
 ## Assignment and approval
 
-Reuse `/Users/antonhaskevych/claude-worktrees/spec-driven/codex-runtime-support-pr-a`, branch `feat/codex-runtime-support-pr-a`. Anton approved the reviewed Phase 1 proof work; its original design Gate stays ticked. Do not re-ask that approval. The new retention/cutover design question is a separate unresolved fork; do not treat the original approval as its answer. No second worktree, live install changes, Phase 2, push, PR, merge or release.
+Reuse `/Users/antonhaskevych/claude-worktrees/spec-driven/codex-runtime-support-pr-a`, branch `feat/codex-runtime-support-pr-a`. This branch's committed spec/code is the operational truth; the planning copy in the main source checkout may be older. No second worktree is needed.
 
-## Where things stand
+Anton approved the reviewed Phase 1 proof work and its original design Gate is ticked. He has now also confirmed the update experience below. Do not ask those approvals again. This handoff does not authorize Phase 2, live installation/profile changes, pushing, PR publication, merge or release. Local tested work/commits and controlled Phase 1 proofs remain the scope.
 
-- Session 2 local commits: `6af0e17` shared bounded probe RPC/events with read-only facade preserved; `9f71f28` actual owned lifecycle proof/fixtures; `d6ca4ed` isolated native cache eviction/trust observations and parked activation. Handoff metadata follows separately. Session 1 completed baseline/read-only/historical-reader work; do not redo it.
-- Lifecycle deliverable is checked for the bounded configured-source 0.167.0/Bun 1.4.4 proof. Real owned disconnect/reconnect and user-input attention passed. Foreground interrupt removed the controlled descendants; yielded exec retained them after interrupted status, then exact native terminal termination removed all three. Request ID zero and matching resolution were observed. All nine finite fixture PIDs were absent before verified archive. No fallback PID kill or detached worker runner was introduced.
-- Isolated native installation used the complete actual historical 22e7ec7 package, a loopback Git marketplace and disposable CODEX_HOME. Scoped marketplace upgrade and selected-plugin add worked without copied auth. Materialized localVersion/catalog moved to a labelled fixture candidate. The old version cache was removed while its original client still held an already-started thread with the old hook list. The fresh thread loaded the candidate hook as enabled but untrusted.
-- **Do not overstate that failure:** no active model turn ran in the isolated home. Running model release attestation and native CLI/desktop resume fencing are still unverified. Empty thread/read(includeTurns) returned -32601; successful loaded-hook observations and archive acknowledgements are the actual thread evidence. This falsifies assuming native retention for all started threads, not a claim of a live user incident.
-- Two deliverables remain unchecked: complete managed old-version cutover, and complete native activation/retention/loaded-release/hook-trust proof. Automatic activation and all other managed features remain disabled. Production claims/board/tree/crew/launch composition remains Claude-only.
+## Decision resolved in the controller conversation
 
-## Current validation
+**Read `ledger/decision-plugin-updates-preserve-session-versions.md` first.**
 
-Bun 1.4.4: affected runtime slice **35 pass, 0 fail across 8 files**; canonical `bun run typecheck`, `bun check` (452 files), authored version consistency (2.51.0), spec doctor and diff whitespace checks passed. Do not relabel the prior session's 1399-test full-suite result as a session-2 run. New reusable transport/evidence tests were red before implementation/fixtures; native throwaway probes are separate operational observations. No default test accesses native home or starts a worker.
+- Running sessions retain the plugin version they loaded. After a newer compatible release is installed, new sessions use that installed release while older sessions remain open.
+- Spawning a new session is distinct from checking/fetching/installing the latest published release.
+- Anton did not adopt the earlier blanket wait-for-all-old-sessions / quiescent-update recommendation. The parked product question was answered with `phase unpark`; preserve its historical question/answer below.
+- Claude's documented version-selection behavior supports this target. It does not prove Codex's old-session script/resource availability after cache eviction.
+- Do not conflate compatible plugin release coexistence with the separate initial incompatible writer-contract transition: 2.51.0 readers cannot see Codex claims. That rollout fence still needs proof.
 
-## Required startup and context
+The controller changed documentation and phase-answer metadata only. No runtime code, native installs, model/approval settings or feature gates were changed. Existing conservative implementation checks/fixtures are not automatically green just because the desired behavior is now settled.
 
-1. Confirm cwd/branch/status. Read `~/.claude/CLAUDE.md`, `/Users/antonhaskevych/IdeaProjects/claude-plugins/CLAUDE.md` and applicable repository/subsystem rules; this external worktree has no root CLAUDE.md or .claude/rules directory. This is the plugin repo, not CRM.
-2. Use this branch's `skills/spec/SKILL.md`, `execute.md`, `principles.md`. Run doctor/context here. **Honor the parked question first.** Record Anton's actual answer with phase unpark before further implementation; absent an answer, hand off untouched. Installed caches are not this branch's workflow truth.
-3. Load spec stable references, Phase 1 plan, code-map/ledger INDEX, applicable ledger entries and all three reviews. Read dated Phase 1 contracts/Bun/read-only/old-reader notes as needed; new primary notes are `2026-11-08-owned-lifecycle-{recon,preflight,observations}.md` and `2026-11-08-isolated-install-{recon,preflight,observations}.md` in `research/phase-1/`.
-4. Read new ledgers `gotcha-native-interrupt-needs-terminal-cleanup.md` and `gotcha-native-install-evicts-previous-cache.md`. Recon/preflight/TDD still apply before the next bounded unit. No next-phase context is prepared by this handoff.
+## Implementation already completed — do not repeat
 
-## Native identity and launch
+- Session 1: `3f831db` Claude baseline/session values, `1a9cbab` bounded read-only Codex proof, `b33e296` actual 2.51.0 reader hazards; handoff `90e01c8`.
+- Session 2: `6af0e17` shared bounded RPC/events with read-only facade, `9f71f28` owned native lifecycle proof/fixtures, `d6ca4ed` isolated native cache eviction/trust observations; handoff `7edf200`.
+- Production claims/board/tree/crew/launch composition stays Claude-only. No managed Codex writer, crew or update feature has been enabled.
+- Bun 1.4.4 native Unix WebSocket read probe allowlists read methods, validates exact CLI/app-server 0.167.0, bounds time/pages/IDs, preserves partial observations with unavailable coverage and correlates own ID/cwd. Other environments refuse explicitly.
+- Actual historical 22e7ec7 claim/held/occupancy/prune modules/provenance are frozen in fixtures. They show old-reader takeover/release hazards and pruning with no recognized claim; readable closed claims still protect pending trees. This does not prove supported native old-version reentry fencing.
+- Bounded owned lifecycle proof passed disconnect/reconnect and real blocking input attention (including request ID zero). Foreground interrupt removed marked descendants. Yielded exec retained them until exact native terminal termination, which removed the controlled parent/child/grandchild. Nine finite fixture PIDs were absent before verified archive. No fallback PID kill or detached worker runner was added.
+- Isolated install used the actual historical package, loopback Git marketplace and disposable CODEX_HOME. Scoped marketplace refresh/selected install and fresh catalog/materialized version worked without copied auth. A started old thread retained old hook metadata; fresh candidate thread saw enabled but untrusted new hooks. Native install removed the old version cache.
 
-Session 2 thread `01a1be5d-e805-7d12-b1b6-1a533f5c8fdf`, implementation turn `01a1be5d-e903-7232-8cca-5650a4bb62f7`: independently native-read with matching assigned cwd and inProgress turn. Source controller `01a1be10-2c87-7511-ac8e-3309a8dbe079` used create_thread from this worktree; inherited cwd was correct. The tool has no cwd override, so a controller in another checkout must use an explicit-cwd launch route instead. This correction and the IDs are in the existing launch ledger.
+## Evidence limits and validation
 
-Placement returned this existing tree; claim take honestly returned `claim: no session id; not claimed`. The authored 2.51.0 claim command is Claude-only. Never fabricate CLAUDE_CODE_SESSION_ID, edit shared claims or start Phase 2 to bypass that limitation. The approved spec snapshot is already on this branch, not old origin/main metadata.
+The isolated install ran **no active model turn across the update**. Its cache eviction is not proof that running old-session execution broke or survived. Empty-thread `thread/read(includeTurns)` returned -32601; successful old/new loaded-hook observations and archive acknowledgements are the actual evidence. Native CLI/desktop resume fencing, actual per-turn loaded-release/resource access, positive hook trust/re-review and safe rollback are unproved.
 
-## Scratch cleanup and limits
+Session 1 validation: 1,399 full-suite tests passed across 180 files. Session 2 validation: 35 affected runtime tests passed across 8 files, canonical tsc, Bun check (452 files), version consistency (2.51.0), spec doctor and diff checks. Do not report either as a full-suite run from this documentation-only controller handoff. Controller validation is recorded in the handoff commit: spec doctor, graph/readiness, Markdown/whitespace and documentation-only diff checks.
 
-Owned lifecycle thread `01a1be62-c39d-70f2-8613-35757e58e354` is verified archived with history retained; its four owned turns and cleanup observations are in executable fixtures. Approval-enabled environments, daemon restart, detached/self-daemonizing children and real crew close-out remain unverified. Native plan-mode input reused the observed configured model/effort and unchanged permissions.
+## Exact next step
 
-Isolated empty metadata threads `01a1be6f-c592-7101-aa1a-cbb8fcf0755e` and `01a1be70-ca46-7b90-8eaf-407beea65960` were archived successfully. Exact owned standalone app-server/HTTP PIDs 26719/26553 are stopped; no server/watch/background shell remains. Scratch artifacts (no credentials) remain at `/tmp/codex-runtime-phase1-session2/` and `/var/folders/4m/6k_8m_6d6fl_3crcj4zl19pr0000gn/T/codex-phase1-install-gfuuxyva/`; they are experiments, not production registries. The second candidate preparation never succeeded; only fixture phase1.1 was installed. See the observation note for the overwritten temporary journal field and other intermediate errors.
+Continue the two unchecked Phase 1 obligations, starting with a bounded isolated proof of **old loaded-session execution/resource access during native plugin update while a fresh session selects the new install**.
 
-No main checkout, live cache/install, personal bridge/global hooks/settings or CRM changed. No push/publication occurred. Handoff skips broad tree pruning because this assignment is confined to this worktree and the old reader does not establish mixed-source safety.
+1. Read the decision ledger and isolated-install notes. Define what the old session actually needs on disk, how its loaded release is attested, and how to distinguish harmless old-path eviction from actual execution breakage. Verify real old-session script/tool execution, not only a catalog listing, manifest string or loaded hook metadata.
+2. Use supported native flows in an authorized isolated environment; preserve live installs and credentials. If authenticated execution, desktop isolation or native trust cannot be obtained safely, report the exact missing capability rather than copying auth, bypassing trust or pretending an empty thread is a running-model proof.
+3. Separately finish the initial writer-contract/old-session native reentry proof, positive hook trust/re-review and compatible rollback evidence. Reuse scoped plugin-publish/native install verification; never blanket marketplace sync.
+4. If actual proof demonstrates a necessary-resource failure, present that concrete design fork and the smallest supported solution. Do not silently restore the blanket wait-for-all-old-sessions rule or patch caches/create a second activation authority.
+5. Do scoped recon/preflight/TDD before code, preserve the existing successful proofs, and tick only proof actually achieved. Do not enter Phase 2 until Phase 1 is genuinely complete. Handoff at the workflow stop boundary.
 
-## Pick up after the answer
+## Startup read set
 
-Apply the reviewed retention decision to the design/technical requirements before new implementation. Recommended direction is staged freshness while any managed session uses the old release, with native activation only after a verified quiescent cutover; preserve native authority rather than patching old cache paths. This is a recommendation, not a recorded decision.
+Read `~/.claude/CLAUDE.md` and `/Users/antonhaskevych/IdeaProjects/claude-plugins/CLAUDE.md`; this external worktree has no root CLAUDE.md or .claude/rules. Use the branch's `skills/spec/SKILL.md`, `execute.md`, `principles.md` for `execute codex-runtime-support phase 1`. Installed caches are not the branch's workflow truth.
 
-Continue the two remaining Phase 1 proof obligations in an authorized isolated environment: native supported CLI/desktop old-session reentry fencing, active loaded-release identity, positive hook trust/re-review and safe rollback. Authentication/trust and desktop isolation need real supported native flows; do not copy auth, bypass trust or touch the live desktop to force a green result. Do not repeat the completed lifecycle variants or historical-reader hazards. Do not select/update a coordinator, enable mixed writers or enter Phase 2 before Phase 1 is actually complete and outward gates are honored.
+Load spec CLAUDE/product-brief/design/technical/progress/phase-1/code-map/ledger INDEX and the three review snapshots. Key evidence is under `research/phase-1/`: contracts recon/preflight, Bun 1.4.4 toolchain, read-only probe, old-reader observations, owned-lifecycle recon/preflight/observations, isolated-install recon/preflight/observations. Keep dated observation limits intact. New decision supersedes the prior recommendation in dated research; do not rewrite immutable research/reviews to hide that history.
+
+## Native identity, ownership and environment
+
+- Session 1 thread: `01a1be43-b195-7342-ae88-f22eb84ae7a5`.
+- Session 2 thread: `01a1be5d-e805-7d12-b1b6-1a533f5c8fdf`; turn `01a1be5d-e903-7232-8cca-5650a4bb62f7`. Both handed off; no active implementation session is assigned by this controller handoff.
+- This controller is already in the correct worktree. Native `create_thread` inherits it and can be used when Anton explicitly requests the next fresh session. In another cwd, an explicit-cwd route is needed. Use the existing launch ledger and this current boot file; no new worktree/spec snapshot is needed.
+- Placement previously returned this tree. 2.51.0 claim take returned `claim: no session id; not claimed`. Never invent CLAUDE_CODE_SESSION_ID, fake sessions or change shared claims to bypass the boot limitation. Preserve the explicit isolated assignment.
+- All owned scratch lifecycle/metadata threads were archived; their IDs and exact server cleanup evidence are in the observation notes. No server/watch/background shell was left by those experiments. Scratch artifacts without copied credentials remain under `/tmp/codex-runtime-phase1-session2/` and the isolated-install temporary root named in research; they are not production registries.
+- Approval-enabled native behavior, daemon restart, detached/self-daemonizing child cleanup and broader host modes remain unverified. This controller handoff started no scratch process or native session.
+- No live cache/install, personal bridge/global hooks/settings, main checkout or CRM edits. No push/PR/publication. Skip broad tree pruning: this assignment is confined to this worktree and the old reader does not establish mixed-source safety.
 
 ## Needs you
 - Parked 2026-11-08T19:58:38-08:00: Native 0.167.0 selected-plugin install evicted the previous cache with a started thread still held. Approve changing updates to stage while managed spec sessions use the old release, then activate only after a verified quiescent native cutover, with CLI/desktop reentry and trust proofs still required? · recommend: Yes: stage while old managed spec sessions remain; activate only after verified quiescence. Preserve native installation authority; do not patch caches or enable automatic activation before the remaining proofs.
+  - Answered 2026-11-08T20:18:42-08:00: Anton confirmed the Claude-style version-selection requirement on 2026-11-08: running sessions keep their loaded plugin version; new sessions use the latest installed version. Do not adopt a blanket wait-for-all-old-sessions/quiescent-update policy. Continue proving old-session script/resource access across native updates; this is a proof gap, not another request to approve that product behavior. Mixed incompatible writer-contract cutover and live installation/publication remain separately gated.

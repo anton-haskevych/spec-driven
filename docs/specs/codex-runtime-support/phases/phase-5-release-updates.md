@@ -25,4 +25,6 @@ A self-contained dual-runtime package and agent-operated freshness/activation pa
 
 ## Implementation guidance
 
-No invented native autoUpdate setting or unrelated harness cleanup. Validate native cache retention/install timing rather than assuming rollback is transactional. If supported native install semantics cannot satisfy safe activation, stage and report instead. Public publishing and changes to personal update scheduling remain separately approved rollout operations in pr-opening.md.
+No invented native autoUpdate setting or unrelated harness cleanup. Validate native cache retention/install timing rather than assuming rollback is transactional. Support the approved coexistence experience: old sessions retain their loaded version and fresh sessions use the newer installed release. Do not impose a blanket wait-for-all-old-sessions rule. If actual resource-access or rollback proof fails, report the specific incompatibility before enabling updates; cache eviction alone does not settle that proof. Public publishing and changes to personal update scheduling remain separately approved rollout operations in pr-opening.md.
+
+Decision to carry into implementation: `ledger/decision-plugin-updates-preserve-session-versions.md`. Existing sessions must remain usable across a compatible update; native installed/loaded state and trust remain authoritative.

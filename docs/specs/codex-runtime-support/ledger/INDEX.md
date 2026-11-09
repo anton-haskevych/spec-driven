@@ -2,7 +2,7 @@
 
 ## Gotchas
 
-- `gotcha-native-install-evicts-previous-cache.md` — [phase 1, phase 4, phase 5, phase 6] — isolated native reinstall evicts old cache; automatic activation blocked pending design answer
+- `gotcha-native-install-evicts-previous-cache.md` — [phase 1, phase 4, phase 5, phase 6] — isolated native reinstall evicts old cache; actual old-session execution still needs proof
 
 - `gotcha-native-interrupt-needs-terminal-cleanup.md` — [phase 1, phase 3, phase 6] — interrupt acknowledgement does not prove yielded descendants stopped
 
@@ -17,6 +17,8 @@
 - `principle-unknown-never-means-free.md` — [general] — Unknown evidence cannot release work
 
 ## Decisions
+
+- `decision-plugin-updates-preserve-session-versions.md` — [phase 1, phase 4, phase 5, phase 6] — old sessions retain loaded versions; fresh sessions use the updated install without a blanket wait-for-all rule
 
 - `decision-runtime-boundaries.md` — [general] — One workflow, adapters at runtime boundaries
 - `decision-source-based-immutable-releases.md` — [phase 5+] — Release behavior belongs in versioned artifacts

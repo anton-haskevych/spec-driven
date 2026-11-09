@@ -26,7 +26,7 @@ CLI + verified files       supported native APIs / transport
 3. Missing/unreadable/incomplete session evidence is unknown, never proof of absence or success. An unsupported feature is refused before creating a worktree, writing a brief or starting work.
 4. The current Claude behavior remains the baseline. Adding Codex cannot require a running Codex service on a machine that only uses Claude.
 5. Never delete, stop, archive or interrupt work the plugin cannot prove it owns. A completion report alone does not replace existing clean/pushed/handoff/claim-release checks.
-6. A running session is pinned to one immutable plugin release. Updates activate for fresh sessions; old release paths remain until no active plugin session uses them.
+6. A running session keeps its loaded plugin version. After a newer release is installed, fresh sessions use it even while older sessions remain open. Continued old-session tool/resource access must be proved; universal native cache-path retention is not assumed.
 7. Operator communication stays agentic: Anton does not run install/update/diagnostic scripts. The plugin reports one clear actionable status and performs authorized routine operations itself.
 
 ## Flows
@@ -50,6 +50,8 @@ Shared policy builds a launch request. A capability check precedes placement. A 
 For Codex, success requires demonstrated disconnect survival and child-process cleanup. If the native transport cannot satisfy the contract, phase 3 stops for a design decision; there is no silent fallback to Claude or an improvised detached-process runner.
 
 ### Updates
+
+**Chosen behavior:** keep existing sessions on their loaded version and let fresh sessions use the newer installed release. Do not make all old sessions closing a prerequisite for normal updates. Spawning a session and fetching/installing a release are distinct operations. Decision and evidence: `ledger/decision-plugin-updates-preserve-session-versions.md`.
 
 Check freshness automatically at entry and at most once per configured check interval (default: first entry of a fresh session; concurrent requests coalesce). Reuse the existing agent-operated native refresh/install/verification flow. Native installed/loaded state is authoritative. Phase 1 proves activation, retention and trust; only a demonstrated freshness gap justifies an owner-tracked bounded helper outside installed versions. Candidate observations do not become a second activation authority. Do not replace files under an active session or rerun the current user request. Offline, failed validation, incompatible runtime, and required hook trust are distinct states. Repeated failures do not produce a warning on every edit.
 
@@ -82,11 +84,11 @@ Check freshness automatically at entry and at most once per configured check int
 | Atomic state | Reuse atomic primitives/shared roots/section writers, with stable target reservations and generation-fenced updates | A new database or daemon registry | Existing state mechanisms already support local coordination. |
 | Hook scope | Native bundled Codex hook entrypoints gated by a real spec-session registration | All-purpose personal bridge; always loading spec context | The plugin owns its protocol; ordinary sessions stay cheap. |
 | Reviewers | Canonical personas + host binding; honor project overrides | Assume Markdown agents auto-register; copy seven drifting personas | Explicit loading provides the same review lenses on both hosts. |
-| Updates | Reuse existing scoped plugin-publish/native install/verification; add bounded freshness only for a proven gap | Cache patches, a second active-version selector, invented autoUpdate config, blanket sync | Native authority stays singular; early retention/trust proof constrains the actual implementation. |
+| Updates | Existing sessions retain their loaded version; new sessions use the newer installed release through the scoped native flow | Blanket wait for all old sessions; forced reload; cache patches; second activation selector | Claude-style coexistence is the chosen experience. Prove old-session execution/resource access and native trust without assuming cache retention. |
 | Capabilities | Prove each supported surface before enabling it | Advertise full parity based on discovered RPC names | Callable method names do not establish operational guarantees. |
 
 ## Compatibility and concurrency boundaries
 
-Mixed writer versions are not supported. A managed-route cutover must prevent old installed/cached tools from resuming through supported entry paths before Codex writes are enabled; a marker alone cannot do this. Arbitrary historical tools invoked manually outside those paths remain explicitly outside the guarantee. Prove the fence in phase 1; otherwise park mixed activation for a design decision.
+Mixed incompatible writer-contract versions are not supported; compatible plugin release versions may coexist. A managed-route cutover must prevent old installed/cached tools from resuming through supported entry paths before Codex writes are enabled; a marker alone cannot do this. Arbitrary historical tools invoked manually outside those paths remain explicitly outside the guarantee. Prove the fence in phase 1; otherwise park mixed activation for a design decision.
 
 Read-only planning snapshots are reused, but mutation uses fresh evidence under workspace/run coordination. Concurrent ticks reserve one stable target and numbered slot. A stop/archive failure retains ownership and capacity until acknowledged. User activity on a later unowned turn prevents automatic control of that continuation. These safety contracts are shared by both runtimes.

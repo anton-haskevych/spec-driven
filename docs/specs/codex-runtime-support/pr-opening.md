@@ -29,7 +29,7 @@ Groups land in order. Each is a coherent tested change; no PR claims full parity
 | Legacy state | Legacy Claude claims/run files decode; unknown schema/runtime stays unknown; all equality/release/remote paths are qualified |
 | Concurrent mutation | Managed resume after planning snapshot cannot race prune; simultaneous ticks cannot reserve one target or exceed worker caps |
 | Acknowledged close-out | Failed/lost stop or archive retains owned records/slots; user continuation on another turn is never controlled automatically |
-| Mixed old versions | Proven managed-route cutover fences old native resumes; actual legacy-reader claim/prune tests demonstrate protection; arbitrary manual historical code is unsupported; downgrade refuses incompatible live state |
+| Mixed incompatible writer contracts | Proven managed-route cutover fences old native resumes; actual legacy-reader claim/prune tests demonstrate protection; arbitrary manual historical code is unsupported; downgrade refuses incompatible live state |
 | Worker persistence | Native worker continues after launch-client disconnect, reconnects and survives controller restart |
 | Worker attention | Approval/input waits are distinguishable from completion, error and disconnection |
 | Worker stop | Exact owned turn interrupted; child processes cleaned up; archive preserves history/worktrees and never touches unrelated sessions |
@@ -37,7 +37,7 @@ Groups land in order. Each is a coherent tested change; no PR claims full parity
 | Completion | Native final assistant evidence is correctly paginated/wrapped and existing git/handoff/released-claim checks remain enforced |
 | Update current | Native refresh/install/reconcile selects verified version+revision+content; fresh session reports what it actually loaded |
 | Update failures | Offline, incompatible/corrupt candidate, partial install, concurrent check and trust-required cases preserve last good release |
-| In-progress update | Active sessions keep pinned tools/hooks; new catalog activates only in a fresh session |
+| In-progress update | Compatible updates may install with old sessions open; old loaded versions can still execute needed scripts/resources, while fresh sessions select the new installed version. No blanket wait-for-all rule; native trust remains required |
 | Reinstall/update durability | Reinstallation erases no required adaptation because all runtime behavior ships in source artifacts |
 | Host limits | Alternate homes, unsupported daemons/no-daemon/remote hosts are capability-tested or clearly refused, never advertised as complete coverage |
 

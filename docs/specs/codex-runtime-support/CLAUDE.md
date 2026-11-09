@@ -1,6 +1,6 @@
 ---
 created: 2026-11-08T19:10:00-08:00
-updated: 2026-11-08T19:24:46-08:00
+updated: 2026-11-08T20:22:34-08:00
 status: active
 area: [agent-tooling]
 domain: [runtime-integration]
@@ -33,8 +33,12 @@ One spec workflow, two properly integrated execution runtimes. Claude Code remai
 
 ## Relationship to code
 
-This is a design, not a live architecture mirror. Existing behavior is in `skills/spec/`, especially `tools/sessions`, `tools/claims`, `tools/launch`, `tools/crew`, `tools/board` and `tools/trees`. Read the [parent plugin guide](../../../../CLAUDE.md) for repository conventions. Phase 1 has local session values, Claude characterization, read-only Codex observations and actual historical-reader fixtures. Production runtime composition remains Claude-only; installed plugins and settings are unchanged.
+This is a design, not a live architecture mirror. Existing behavior is in `skills/spec/`, especially `tools/sessions`, `tools/claims`, `tools/launch`, `tools/crew`, `tools/board` and `tools/trees`. Read the authoring repository's parent `CLAUDE.md` for conventions; on this machine it is `~/IdeaProjects/claude-plugins/CLAUDE.md`. An external worktree has a different parent hierarchy. Phase 1 has local session values, Claude characterization, read-only Codex observations and actual historical-reader fixtures. Production runtime composition remains Claude-only; installed plugins and settings are unchanged.
 
 ## Review state
 
 Five independent reviews are synthesized in [dual-runtime boundaries](reviews/2026-11-08-dual-runtime-boundaries.md), with amendments applied. The [architecture constraints](reviews/2026-11-08-architecture-principles.md) and [targeted recheck](reviews/2026-11-08-proof-gates-recheck.md) make the draft ready for Anton to approve phase 1 proof work. No implementation capability is represented as proven.
+
+## Current handoff
+
+Phase 1 remains open. Anton confirmed Claude-style release coexistence: running sessions retain their loaded version; new sessions use the newer installed version. The former blanket quiescent-update question is answered, not an implementation blocker. Read `ledger/decision-plugin-updates-preserve-session-versions.md`, then `in-flight/phase-1.md` for the remaining old-session execution/resource-access and writer-contract/native trust proofs.
