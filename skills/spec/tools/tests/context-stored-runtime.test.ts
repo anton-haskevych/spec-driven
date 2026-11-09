@@ -106,3 +106,21 @@ test("identity conflicts refuse before filesystem/Git or source access", async (
   expect(await run(["context", "execute", "checkout"], repo.dir, { context: configured }))
     .toBe("context: conflicting Claude and Codex runtime identity evidence");
 });
+
+test("a caller's read-only claims check consumes the same disk rows before source access", async () => {
+  const bytes = writeClaim("2");
+  let checks = 0;
+  const configured = createStoredRuntimeContextCommand({
+    env: { CODEX_THREAD_ID: "same" }, now: () => "now", runner: isolatedRunner,
+    readers: [{ source: codex, read: async () => { throw new Error("must not read source"); } }],
+    checkClaims(value) {
+      checks++;
+      expect(value.claims).toHaveLength(1);
+      expect(value.claims[0]?.ref.source).toEqual(codex);
+      return { ok: false, reason: "caller refuses existing claims" };
+    },
+  });
+  expect(await configured.run(repo.dir, ["execute", "checkout", "2"])).toBe("context: caller refuses existing claims");
+  expect(checks).toBe(1);
+  expect(readFileSync(join(claimsDir, "checkout#2.json"), "utf8")).toBe(bytes);
+});

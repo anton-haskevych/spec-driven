@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { cpSync, realpathSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { runCodexEntry, type CodexEntryDeps, type CodexEntryRequest } from "../runtime/codex/entry";
 import { inspectCandidate } from "../runtime/codex/candidate";
@@ -132,4 +132,16 @@ test("handoff retains the actual mode while loading shared resume context and lo
   expect(text).toContain('mode="resume"');
   expect(text).not.toContain("Handoff complete");
   expect(output(await runCodexEntry({ ...request, command: ["settings"] }, deps))).toContain("plugin defaults");
+});
+
+test("stored claims cannot bypass ownership refusal through explicit phase hints or local mutations", async () => {
+  const dir = join(pilot.dir, ".git/spec-board/claims");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "checkout#2.json"), JSON.stringify({ schemaVersion: 1, spec: "checkout", phase: "2", workspace: request.cwd,
+    claimedAt: "now", ref: { source: { runtime: "codex", key: "unknown-source" }, id: "other" } }));
+  const phase = await Bun.file(join(pilot.dir, "docs/specs/checkout/phases/phase-2.md")).text();
+  for (const command of [undefined, ["phase", "tick", "checkout", "2", "#1"]]) {
+    expect(await runCodexEntry({ ...request, command }, deps)).toMatchObject({ ok: false, reason: expect.stringContaining("pilot requires no stored claims") });
+  }
+  expect(await Bun.file(join(pilot.dir, "docs/specs/checkout/phases/phase-2.md")).text()).toBe(phase);
 });

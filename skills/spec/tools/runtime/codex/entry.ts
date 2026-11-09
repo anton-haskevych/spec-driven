@@ -94,7 +94,14 @@ async function dispatchPilot(bound: BoundPilot, deps: CodexEntryDeps): Promise<R
   const context = createStoredRuntimeContextCommand({
     env: deps.env, binding: own, runner: deps.runner, now: deps.now,
     readers: [{ source: SOURCE, read: async () => bound.native.snapshot }],
+    checkClaims: ({ claims }) => claims.length
+      ? { ok: false, reason: "local-pilot requires no stored claims; shared ownership is unavailable, leave existing state untouched" }
+      : { ok: true, value: true },
   });
+  if (bound.argv[0] !== "context") {
+    const checked = await context.run(request.cwd, ["resume", target.spec, target.phase]);
+    if (!checked.startsWith("<spec-pack ")) return { ok: false, reason: checked || "native context unavailable; entry did not complete" };
+  }
   const output = await run(bound.argv, request.cwd, { workflow: target, context });
   if (bound.argv[0] === "context" && !output.startsWith("<spec-pack ")) return { ok: false, reason: output || "native context unavailable; entry did not complete" };
   const taxonomy = bound.argv[0] === "context" ? [

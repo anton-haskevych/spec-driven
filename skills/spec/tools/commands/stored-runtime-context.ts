@@ -11,6 +11,7 @@ import { runtimeContextPack, type RuntimeContextClaims, type RuntimeContextDeps 
 
 export interface StoredRuntimeContextDeps extends Omit<RuntimeContextDeps, "readClaims"> {
   legacySource?: ClaudeSource;
+  checkClaims?(claims: RuntimeContextClaims): Result<true>;
 }
 
 export function createStoredRuntimeContextCommand(deps: StoredRuntimeContextDeps) {
@@ -36,7 +37,9 @@ function readContextClaims(projectDir: string, deps: StoredRuntimeContextDeps): 
   const here = ownerOf(canonicalPath(projectDir), workspaces.value.map(({ path }) => path));
   if (!here) return { ok: false, reason: "context workspace is not registered with this repository" };
   const claims = documents.value.map(({ claim }) => claim);
-  return { ok: true, value: {
+  const value: RuntimeContextClaims = {
     claims, here: claims.filter((claim) => claim.workspace === here).map(({ spec, phase }) => ({ spec, phase })),
-  } };
+  };
+  const checked = deps.checkClaims?.(value);
+  return checked && !checked.ok ? checked : { ok: true, value };
 }
