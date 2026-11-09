@@ -37,7 +37,7 @@ Groups land in order. Each is a coherent tested change; no PR claims full parity
 | Completion | Native final assistant evidence is correctly paginated/wrapped and existing git/handoff/released-claim checks remain enforced |
 | Update current | Native refresh/install/reconcile selects verified version+revision+content; fresh session reports what it actually loaded |
 | Update failures | Offline, incompatible/corrupt candidate, partial install, concurrent check and trust-required cases preserve last good release |
-| In-progress update | Compatible updates may install with old sessions open; old loaded versions can still execute needed scripts/resources, while fresh sessions select the new installed version. No blanket wait-for-all rule; native trust remains required |
+| In-progress update | Document native old-path invalidation and recover in a fresh session using the installed release. Custom retention and uninterrupted old-session execution are deferred; native trust and incompatible writer-contract safety remain required |
 | Reinstall/update durability | Reinstallation erases no required adaptation because all runtime behavior ships in source artifacts |
 | Host limits | Alternate homes, unsupported daemons/no-daemon/remote hosts are capability-tested or clearly refused, never advertised as complete coverage |
 
@@ -60,7 +60,7 @@ Groups land in order. Each is a coherent tested change; no PR claims full parity
 - [ ] Verify new hook trust through native review; no bypass flags or forged hashes.
 - [ ] Run the acceptance harness on the actual selected release; report any unsupported surfaces accurately.
 - [ ] Remove migration-only cached adaptations when source-based replacement passes; keep unrelated harness work intact.
-- [ ] Exercise rollback within the compatible writer floor and retain previous artifacts until active sessions are gone.
+- [ ] Exercise supported recovery/rollback within the compatible writer floor. Start fresh sessions after native updates invalidate old paths; custom old-session retention is not required.
 
 ## Planning review
 

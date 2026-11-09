@@ -21,7 +21,7 @@ Explicit runtime composition; namespaced session identity; mixed-runtime livenes
 
 ## Out of scope
 
-Other harness cleanup, deduplicating unrelated skills, rewriting the spec workflow, changing ownership/ship/approval policy, changing Claude's defaults, replacing the crew scheduler, creating a generic third-party agent framework, reading/writing native databases or undocumented Codex transcripts, copying credentials, or automatically publishing this change.
+Other harness cleanup, deduplicating unrelated skills, rewriting the spec workflow, changing ownership/ship/approval policy, changing Claude's defaults, replacing the crew scheduler, creating a generic third-party agent framework, reading/writing native databases or undocumented Codex transcripts, copying credentials, automatically publishing this change, or custom resource retention to keep old sessions uninterrupted across native updates. Use fresh-session recovery for that update edge case (`ledger/decision-use-native-updates.md`).
 
 ## Supported environments
 
@@ -29,4 +29,4 @@ Target the installed Codex local CLI and desktop execution environments after ca
 
 ## Success
 
-Both runtimes pass the same workflow-policy contract suite. Mixed Claude/Codex use cannot steal a live or unknown claim or prune occupied work. Native Codex bootstrap, hooks, review and worker lifecycle have executable acceptance evidence. Installing/updating never rewrites running release code; the next fresh session gets the validated release, and a failed update retains the previous working release with an actionable reason.
+Both runtimes pass the same workflow-policy contract suite. Mixed Claude/Codex use cannot steal a live or unknown claim or prune occupied work. Native Codex bootstrap, hooks, review and worker lifecycle have executable acceptance evidence. The native install/update flow selects a validated release for fresh sessions, reports failures honestly and provides fresh-session recovery when an older session's helper paths become unavailable. Seamless old-session continuity is not a release gate.

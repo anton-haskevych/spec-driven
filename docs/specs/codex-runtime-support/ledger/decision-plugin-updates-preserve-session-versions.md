@@ -2,6 +2,7 @@
 kind: decision
 applies-to: [phase 1, phase 4, phase 5, phase 6]
 created: 2026-11-08T20:20:14-08:00
+superseded-by: decision-use-native-updates.md
 ---
 
 # Keep existing sessions on their loaded version; new sessions use the updated install

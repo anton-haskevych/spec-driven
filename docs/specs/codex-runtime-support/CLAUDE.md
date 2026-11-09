@@ -41,6 +41,4 @@ Five independent reviews are synthesized in [dual-runtime boundaries](reviews/20
 
 ## Current handoff
 
-Phase 1 remains open. Anton confirmed Claude-style release coexistence: running sessions retain their loaded version; new sessions use the newer installed version. The former blanket quiescent-update question is answered, not an implementation blocker. Read `ledger/decision-plugin-updates-preserve-session-versions.md`, then `in-flight/phase-1.md` for the remaining old-session execution/resource-access and writer-contract/native trust proofs.
-
-Session 3 now proves historical pinned script paths fail under direct native user-shell execution after selected installation, while candidate paths work in a fresh thread. Active-model release attestation remains unproved because the isolated profile has no account/authentication. The concrete retention fork and proposed bounded bundle feasibility proof are in `research/phase-1/2026-11-08-resource-execution-observations.md`; this proposal is not approved or enabled.
+Phase 1 remains open at 5/7. Anton stopped custom update-retention work as an edge case. Current scope is native updates with fresh-session recovery; uninterrupted old-session updates are deferred. Read `ledger/decision-use-native-updates.md` and `in-flight/phase-1.md`. Preserve the historical evidence without reopening its retention proposal. Core ownership, native activation/version reporting and hook trust remain the remaining Phase 1 work; no later capability is enabled by this scope reduction.

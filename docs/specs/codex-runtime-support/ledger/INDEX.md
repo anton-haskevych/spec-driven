@@ -18,6 +18,8 @@
 
 ## Decisions
 
+- `decision-use-native-updates.md` — [phase 1, phase 4, phase 5, phase 6] — native updates with fresh-session recovery; seamless old-session continuity deferred
+
 - `decision-plugin-updates-preserve-session-versions.md` — [phase 1, phase 4, phase 5, phase 6] — old sessions retain loaded versions; fresh sessions use the updated install without a blanket wait-for-all rule
 
 - `decision-runtime-boundaries.md` — [general] — One workflow, adapters at runtime boundaries

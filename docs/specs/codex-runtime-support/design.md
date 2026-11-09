@@ -26,7 +26,7 @@ CLI + verified files       supported native APIs / transport
 3. Missing/unreadable/incomplete session evidence is unknown, never proof of absence or success. An unsupported feature is refused before creating a worktree, writing a brief or starting work.
 4. The current Claude behavior remains the baseline. Adding Codex cannot require a running Codex service on a machine that only uses Claude.
 5. Never delete, stop, archive or interrupt work the plugin cannot prove it owns. A completion report alone does not replace existing clean/pushed/handoff/claim-release checks.
-6. A running session keeps its loaded plugin version. After a newer release is installed, fresh sessions use it even while older sessions remain open. Continued old-session tool/resource access must be proved; universal native cache-path retention is not assumed.
+6. Native installation selects the release for fresh sessions. Updates may invalidate an older session's helper paths; recover by starting a fresh session. Seamless old-session continuity and custom retention are deferred.
 7. Operator communication stays agentic: Anton does not run install/update/diagnostic scripts. The plugin reports one clear actionable status and performs authorized routine operations itself.
 
 ## Flows
@@ -51,9 +51,9 @@ For Codex, success requires demonstrated disconnect survival and child-process c
 
 ### Updates
 
-**Chosen behavior:** keep existing sessions on their loaded version and let fresh sessions use the newer installed release. Do not make all old sessions closing a prerequisite for normal updates. Spawning a session and fetching/installing a release are distinct operations. Decision and evidence: `ledger/decision-plugin-updates-preserve-session-versions.md`.
+**Chosen scope:** use native updates and start a fresh session if an update invalidates an old session's helper paths. Do not build custom retention or require all old sessions to close for every update. Seamless old-session continuity is deferred so it does not hold up the core workflow. Decision: `ledger/decision-use-native-updates.md`.
 
-Check freshness automatically at entry and at most once per configured check interval (default: first entry of a fresh session; concurrent requests coalesce). Reuse the existing agent-operated native refresh/install/verification flow. Native installed/loaded state is authoritative. Phase 1 proves activation, retention and trust; only a demonstrated freshness gap justifies an owner-tracked bounded helper outside installed versions. Candidate observations do not become a second activation authority. Do not replace files under an active session or rerun the current user request. Offline, failed validation, incompatible runtime, and required hook trust are distinct states. Repeated failures do not produce a warning on every edit.
+Check freshness automatically at entry and at most once per configured check interval (default: first entry of a fresh session; concurrent requests coalesce). Reuse the existing agent-operated native refresh/install/verification flow. Native installed/loaded state is authoritative. Phase 1 records activation, trust and native limitations. Candidate observations do not become a second activation authority. Do not add plugin code that rewrites active tools or reruns the current user request. Offline, failed validation, incompatible runtime, and required hook trust are distinct states. Repeated failures do not produce a warning on every edit.
 
 `Current` means latest successfully checked compatible release, with checked-at time and revision. `Update available` is not `active`. Trust review is not auto-bypassed. During this spec's rollout, installing the managed update behavior requires explicit design/release approval; it remains restricted to spec-driven.
 
@@ -66,8 +66,8 @@ Check freshness automatically at entry and at most once per configured check int
 | Coverage unavailable | `Cannot prove this workspace is free: <runtime> session status is unavailable. No claim or worktree was changed.` |
 | Capability unverified | `Codex background sessions are not enabled: <probe that must pass>. Nothing was launched.` |
 | Ambiguous launch | `Worker launch outcome is unknown. The slot is held while this launch is reconciled.` |
-| Update staged | `Spec-driven <version> is ready for your next fresh session; this session remains on <old>.` |
-| Update blocked | `Spec-driven update needs <trust review / compatible Codex / validation fix>. Continuing on <old>.` |
+| Update installed | `Spec-driven <version> is installed. Start a fresh session to use it.` |
+| Update blocked | `Spec-driven update needs <trust review / compatible Codex / validation fix>.` |
 | Offline | `Could not check for a newer release. Continuing on verified <version>, last checked <time>.` |
 
 ## Decisions and alternatives
@@ -84,7 +84,7 @@ Check freshness automatically at entry and at most once per configured check int
 | Atomic state | Reuse atomic primitives/shared roots/section writers, with stable target reservations and generation-fenced updates | A new database or daemon registry | Existing state mechanisms already support local coordination. |
 | Hook scope | Native bundled Codex hook entrypoints gated by a real spec-session registration | All-purpose personal bridge; always loading spec context | The plugin owns its protocol; ordinary sessions stay cheap. |
 | Reviewers | Canonical personas + host binding; honor project overrides | Assume Markdown agents auto-register; copy seven drifting personas | Explicit loading provides the same review lenses on both hosts. |
-| Updates | Existing sessions retain their loaded version; new sessions use the newer installed release through the scoped native flow | Blanket wait for all old sessions; forced reload; cache patches; second activation selector | Claude-style coexistence is the chosen experience. Prove old-session execution/resource access and native trust without assuming cache retention. |
+| Updates | Native scoped install flow; fresh-session recovery if old helper paths disappear | Custom retention; blanket wait for all old sessions; cache patches; second activation selector | Seamless old-session continuity is an edge case deferred by Anton; focus on the core workflow. |
 | Capabilities | Prove each supported surface before enabling it | Advertise full parity based on discovered RPC names | Callable method names do not establish operational guarantees. |
 
 ## Compatibility and concurrency boundaries
