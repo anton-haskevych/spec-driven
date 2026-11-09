@@ -7,6 +7,9 @@ export interface SourceRef {
   key: string;
 }
 
+export type ClaudeSource = SourceRef & { runtime: "claude" };
+export type CodexSource = SourceRef & { runtime: "codex" };
+
 export interface SessionRef {
   source: SourceRef;
   id: string;

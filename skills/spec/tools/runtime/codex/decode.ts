@@ -1,7 +1,7 @@
 import { isAbsolute } from "node:path";
 import { isRecord } from "../../core/frontmatter";
 import type { Result } from "../../core/result";
-import type { RuntimeSession, SourceRef } from "../sessions";
+import type { CodexSource, RuntimeSession } from "../sessions";
 
 export interface LoadedPage {
   ids: string[];
@@ -18,7 +18,7 @@ export function loadedPage(value: unknown): Result<LoadedPage> {
   return { ok: true, value: { ids: value.data, ...(typeof value.nextCursor === "string" ? { next: value.nextCursor } : {}) } };
 }
 
-export function codexSession(value: unknown, expectedId: string, source: SourceRef, observedAt: string): Result<RuntimeSession> {
+export function codexSession(value: unknown, expectedId: string, source: CodexSource, observedAt: string): Result<RuntimeSession> {
   const t = isRecord(value) && isRecord(value.thread) ? value.thread : undefined;
   if (!t || t.id !== expectedId || typeof t.cwd !== "string" || !isAbsolute(t.cwd) || typeof t.updatedAt !== "number") {
     return { ok: false, reason: "invalid Codex thread metadata" };

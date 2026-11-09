@@ -1,4 +1,4 @@
-import type { RuntimeSession, SessionSnapshot, SourceRef } from "../sessions";
+import type { CodexSource, RuntimeSession, SessionSnapshot } from "../sessions";
 import { codexSession, loadedPage } from "./decode";
 import type { ReadOnlyRpc } from "./transport";
 
@@ -8,7 +8,7 @@ export interface ScanResult {
   reason?: string;
 }
 
-export async function scanLoaded(rpc: ReadOnlyRpc, source: SourceRef, observedAt: string): Promise<ScanResult> {
+export async function scanLoaded(rpc: ReadOnlyRpc, source: CodexSource, observedAt: string): Promise<ScanResult> {
   const sessions: RuntimeSession[] = [];
   const cursors = new Set<string>();
   const ids = new Set<string>();
