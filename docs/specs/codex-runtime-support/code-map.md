@@ -63,6 +63,11 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 | `T/runtime/read-sessions.ts` | Async injected source composition, read once per source, bound coverage checks and healthy-source retention | phase 2 |
 | `T/runtime/codex/sessions.ts` | Source-bound injected connect/scan/close reader reusing the existing paginated scanner | phase 2 |
 | `T/tests/runtime-identity.test.ts`, `runtime-read-sessions.test.ts`, `runtime-session-readers.test.ts` | Identity collisions/conflicts, per-source failures and attribution, fixture-only host reader lifecycle | phase 2 |
+| `T/context/references.ts`, `select-phase.ts` | Loaded optional spec references and pure execute phase selection; renderers perform no file reads | phase 2 |
+| `T/trees/place-system.ts` | Legacy Claude system adapter for narrow PlacementDeps; loading, addition/setup and dirty checks stay outside placement policy | phase 2 |
+| `T/claims/snapshot-held.ts` | Pure qualified claim-to-held-phase policy; exact-source unknown coverage remains held | phase 2 |
+| `T/commands/runtime-context.ts` | Opt-in read-only shared context composition: explicit identity/configured readers/source-qualified claim inputs; no production CLI/native config wiring | phase 2 |
+| `T/tests/context-runtime.test.ts`, `claims-snapshot-held.test.ts`, `context-async.test.ts`, `context-rendering.test.ts`, `trees-placement-ports.test.ts` | Fixture evidence for qualified phase picking, read-once snapshots, pure rendering and narrow placement ports | phase 2 |
 
 ## Existing files touched
 
@@ -72,3 +77,5 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 | `tsconfig.json`, `.github/workflows/plugin-metadata.yml` | Bun-only type environment and locally verified Bun 1.4.4 CI runtime | `ledger/gotcha-bun-docs-exceed-installed-api.md` |
 | `T/runtime/claude/sessions.ts`, `runtime/sessions.ts` | Injected Claude reader wraps unchanged normalization; narrow Claude/Codex source types | `ledger/decision-runtime-boundaries.md` |
 | `T/runtime/codex/scan.ts`, `decode.ts` | Codex source type prevents a Claude label at the native boundary | `ledger/decision-runtime-boundaries.md` |
+| `T/commands/context.ts`, `context/packs.ts` | Async ContextDeps boundary and pure pack rendering; default system path remains Claude-only | `ledger/decision-runtime-boundaries.md` |
+| `T/trees/place.ts`, `commands/trees.ts`, `commands/launch.ts`, `commands/crew/{launch,tick}.ts` | Request + narrow PlacementDeps; legacy PlaceDeps type retained for prune/historical fixture compatibility | `ledger/decision-runtime-boundaries.md` |

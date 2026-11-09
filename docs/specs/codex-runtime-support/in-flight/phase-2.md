@@ -5,27 +5,31 @@
 
 ## Where things stand
 
-- Two tested implementation commits on the inherited `feat/codex-runtime-support-pr-a` tree, baseline `a4db045`: `ab5cbf8` qualified identity resolution; `333ffba` source-bound reader composition. This handoff adds only spec bookkeeping.
-- `runtime/identity.ts` is the single source/session key/equality implementation. `resolve-identity.ts` accepts injected environment/configured sources/optional explicit host binding. Dual-runtime evidence, mismatched IDs, missing/unconfigured/ambiguous sources refuse; no `CODEX_SESSION_ID` fallback. Legacy `sessions/own.ts` remains Claude-only.
-- `readSessionSnapshot` composes each injected reader once per call with a shared observation time. Exact source coverage binding, duplicate source/row handling, failure isolation and partial rows are fixture-tested. Source keys remain opaque configuration, not endpoint inference.
-- `claudeSessionReader` wraps the existing mapper with injected file/PID loading. `codexSessionReader` wraps the existing paginated scanner with injected connect/close ownership. The native boundary takes a narrowed CodexSource. No native write API or source registry added.
-- Red-first runs failed on the expected missing modules; green: 60 tests across 10 focused files, `bun run typecheck`, `git diff --check`. Includes actual disposable Unix WebSocket transport tests; no live Codex daemon or model session calls. Full suite/PR gates have not run because the PR group is unfinished.
-- Phase 2 is partially complete. Compound checkboxes were split to distinguish finished adapters from pending command integration. Qualified storage, takeover/release, remote codecs, six read consumers, activation/rollback, mutation revalidation and cross-process race coverage remain open.
+- Continued the inherited clean tree `feat/codex-runtime-support-pr-a` from `ab751c8`. Three implementation commits: `6b6d134` async context/pure rendering; `102e6fc` narrow placement ports; `d2332fc` source-qualified read-only context. This handoff is spec bookkeeping only.
+- `contextPack(projectDir, request, ContextDeps)` is async. One awaited held map supplies selection and related-spec attribution. `selectExecutePhase` and `executePack` are pure; `loadPackReferences(diskReader(...))` supplies optional files before rendering. Command fixtures now inject empty ownership readers and the old oversized test file is split.
+- `placeTree(PlaceRequest, PlacementDeps)` consumes loadWorld/addTree/dirty-check ports. `placeDepsFor(projectDir, PlaceDeps)` in `trees/place-system.ts` wraps the unchanged legacy system behavior. All four production callers migrated. The old `PlaceDeps` type retains its fields because prune and the hash-verified historical fixture import it. No historical runtime source changed.
+- `runtimeContextPack` is opt-in, with injected env/readers/optional binding/source-qualified claim reader/clock. It reuses resolveIdentity and readSessionSnapshot, then projects through `heldPhasesFromSnapshot` into the shared context command. Configuration/claim-read errors return Result failures. Each source and claim reader runs once per invocation. Healthy rows remain useful; exact-source unavailable/missing/duplicate coverage keeps a claim held; equal IDs in different sources are not self.
+- The new read-only context API accepts normalized in-memory claims only; it does not read legacy claim files, discover endpoints/homes, certify current ID/cwd or wire the CLI default. Those boundaries and all qualified storage/mutations remain pending. Default context/placement/board/claims/prune/crew still use Claude-only legacy composition.
+- Verification: 78 tests across 13 context/identity/snapshot/reader files; 94 across 9 placement/launch/crew/prune/historical-reader files. All 172 passed, plus `bun run typecheck`, `git diff --check`, doctor clean. New tests were run red on missing APIs before implementation. Full suite/PR gates have not run; PR group A remains incomplete.
 
 ## Implicit context
 
-- Delegated scope: reuse this worktree and local commits; no profile/install changes, copied auth, push, PR, merge or release. No retention/disposable-login research. No long-running process or server was started; fixture sockets were stopped by their tests.
-- No Codex workflow claim was taken: the available production writer is still the unfenced Claude-only contract. Do not alias CODEX_THREAD_ID into CLAUDE_CODE_SESSION_ID. Likewise no workflow tree placement/pruning or remote claim mirroring ran. The delegated tree was already selected explicitly. No claim needs releasing.
-- Mixed writes/crew remain disabled; the existing capability guard stays unverified. Adapter tests are not cutover, native-hook, installed-host or execute→handoff acceptance evidence. Existing identity/cwd observation in the Phase 1 probe is not automatically supplied by the new resolver.
-- No new durable ledger entry was needed: implementation follows the existing runtime-boundary, unknown-coverage and value-first decisions. No unanswered user decision for the next adapter chunk.
+- No workflow claim was taken or released: production ownership writers remain the unfenced Claude-only contract. Never alias CODEX_THREAD_ID into CLAUDE_CODE_SESSION_ID. This tree was explicitly inherited; no placement/prune command or remote claim mirroring ran against it.
+- Delegated restrictions persist: no profile/install changes, copied auth, native retention/login research, push, PR, merge or release. No live Codex daemon, model session or own account was queried; adapters used injected fixtures only. No server/watcher/background process remains from this session; all disposable Git fixtures cleaned up.
+- Mixed writes/crew stay disabled. The adapter tests do not establish installed-host execute→handoff, native hooks, cutover or rollback acceptance. The existing unverified capability guard remains unchanged.
+- No new durable ledger decision; this work follows runtime-boundary, unknown-coverage and value-first decisions. The read-only bridge intentionally avoids the current decoder because it drops unknown identity fields. No pending user fork.
 
 ## Pick up from here
 
-- Continue Phase 2 with execute recon/preflight of narrow contextPack/placeTree dependencies and separation of async input loading from pure rendering. Then propagate one configured snapshot through the six consumers, together with qualified identities; do not flatten normalized sessions into naked-ID ownership policy as a shortcut.
-- Reuse the new identity helpers/readers rather than adding independent keys or scans. Keep endpoint/home binding and supported-source/current-ID observation explicit at the future composition boundary. Preserve unknown coverage until source configuration and evidence suffice.
-- Existing adapter checks can be rerun with:
+- Continue Phase 2 with a useful storage-to-context slice: recon/preflight versioned qualified claim decoding (including explicit legacy Claude source binding, unknown fields/versions, takeover references) so the injected readClaims port can be backed by real data safely. Keep write activation separate; never feed a qualified record through the lossy legacy decoder and guess its source afterward.
+- Then reuse the existing identity/snapshot/policy in production command composition and the remaining board/claim/placement/prune consumers. `trees/find`, claims/held, board joins/attribution, remote-take and overseer self/mirror/release paths still need qualified migration. Placement's new ports are ready, but its world/tree policy is still LiveSession/naked-ID based; do not flatten RuntimeSession rows to fit it.
+- Preserve unknown source coverage and require full participating-source evidence before placement/removal. The planning snapshot is read-only; mutation-time revalidation under workspace coordination and resume-before-prune interleaving coverage remain open.
+- Use one explicitly bound supported configuration when native acceptance is authorized; reuse Phase 1's existing observations and adapters. Do not restart broad platform/retention/install research.
+
+Focused new checks:
 
 ```sh
-bun test skills/spec/tools/tests/runtime-identity.test.ts skills/spec/tools/tests/runtime-read-sessions.test.ts skills/spec/tools/tests/runtime-session-readers.test.ts skills/spec/tools/tests/runtime-codex-decode.test.ts skills/spec/tools/tests/runtime-codex-probe.test.ts skills/spec/tools/tests/runtime-codex-transport.test.ts skills/spec/tools/tests/runtime-codex-rpc.test.ts skills/spec/tools/tests/runtime-claude.test.ts skills/spec/tools/tests/sessions-live.test.ts skills/spec/tools/tests/sessions-own.test.ts
+bun test skills/spec/tools/tests/context-runtime.test.ts skills/spec/tools/tests/claims-snapshot-held.test.ts skills/spec/tools/tests/context-async.test.ts skills/spec/tools/tests/context-rendering.test.ts skills/spec/tools/tests/trees-placement-ports.test.ts
 bun run typecheck
+bun skills/spec/tools/spec.ts doctor codex-runtime-support
 ```
