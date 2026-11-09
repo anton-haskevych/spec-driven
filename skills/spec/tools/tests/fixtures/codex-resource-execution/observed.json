@@ -1,0 +1,243 @@
+{
+  "cliVersion": "0.167.0",
+  "bunVersion": "1.4.4",
+  "historicalSource": "22e7ec7b6aae89c4a13c299e1dff024a26a1d1bc",
+  "historicalFiles": {
+    ".codex-plugin/plugin.json": "b45d4ad36f9b9b5a0183e94173fac438681967ed3e786c07b63d7dd1d666c910",
+    "skills/spec/SKILL.md": "698c013e84cde5d71037d85eda019eeda7c3193ec4cac8f84f3d1c6afa3d6c4b",
+    "scripts/version.py": "8a7a6677408b8a9c8ba396b2830549ef5506ed471eedbed911290d5fc7b3743e",
+    "skills/spec/tools/spec.ts": "78d78006b4a32c97fa729989964c22f2b97065db41b60c45445bdd2dda038620",
+    "skills/spec/taxonomy.md": "4a5eab29308bfbc234bd3275bf2d29c26dc06d52b2ab666cef5c6cdef032cf11"
+  },
+  "candidateVersion": "2.51.0-phase1.2",
+  "candidateChange": "three version declarations only",
+  "executionRoute": "thread/shellCommand",
+  "activeModelReleaseAttestation": "unverified",
+  "account": {
+    "at": "2026-11-09T04:45:53.425Z",
+    "accountPresent": false,
+    "requiresOpenaiAuth": true
+  },
+  "oldThread": {
+    "id": "01a1bea0-85c2-78f0-9a78-9060954dcd15",
+    "cwd": "<scratch>/workspace",
+    "turns": [
+      "01a1bea0-b3bf-7950-8933-3bb09b2bf8db",
+      "01a1bea1-8622-7ec1-9765-f37c2bd0f6d9",
+      "01a1bea2-16d1-79f1-90be-c5e17433bc9e",
+      "01a1bea2-17a1-7d10-b69a-319d98475c38"
+    ]
+  },
+  "freshThread": {
+    "id": "01a1bea2-17d6-71e1-919d-c2f30eb88701",
+    "cwd": "<scratch>/workspace",
+    "turns": [
+      "01a1bea2-17dc-76e1-a432-de448b8df35d",
+      "01a1bea2-1944-7833-b9b8-8258eb825739"
+    ]
+  },
+  "before": {
+    "version": {
+      "at": "2026-11-09T04:46:05.451Z",
+      "threadId": "01a1bea0-85c2-78f0-9a78-9060954dcd15",
+      "turnId": "01a1bea0-b3bf-7950-8933-3bb09b2bf8db",
+      "itemId": "0ab45545-0097-4dd7-9994-8781bc349080",
+      "command": "python3 <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/scripts/version.py",
+      "nativeCommand": "/bin/zsh -lc 'python3 <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/scripts/version.py'",
+      "cwd": "<scratch>/workspace",
+      "source": "userShell",
+      "status": "completed",
+      "exitCode": 0,
+      "output": "All version declarations match: 2.51.0\n",
+      "turnStatus": "completed",
+      "pluginId": null,
+      "scriptPath": null
+    },
+    "settings": {
+      "at": "2026-11-09T04:46:59.208Z",
+      "threadId": "01a1bea0-85c2-78f0-9a78-9060954dcd15",
+      "turnId": "01a1bea1-8622-7ec1-9765-f37c2bd0f6d9",
+      "itemId": "dc47f72d-f832-4313-88bd-d26ccf25e929",
+      "command": "bun <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/skills/spec/tools/spec.ts settings",
+      "nativeCommand": "/bin/zsh -lc 'bun <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/skills/spec/tools/spec.ts settings'",
+      "cwd": "<scratch>/workspace",
+      "source": "userShell",
+      "status": "completed",
+      "exitCode": 0,
+      "output": "Settings: plugin defaults (no docs/specs/_playbook/settings.md): docs on branch \u00b7 PRs draft \u00b7 merge: ask the user\n",
+      "turnStatus": "completed",
+      "pluginId": null,
+      "scriptPath": null
+    }
+  },
+  "after": {
+    "version": {
+      "at": "2026-11-09T04:47:36.349Z",
+      "threadId": "01a1bea0-85c2-78f0-9a78-9060954dcd15",
+      "turnId": "01a1bea2-16d1-79f1-90be-c5e17433bc9e",
+      "itemId": "cad34bbe-3f43-4fdd-b098-dfc4f19f8ac2",
+      "command": "python3 <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/scripts/version.py",
+      "nativeCommand": "/bin/zsh -lc 'python3 <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/scripts/version.py'",
+      "cwd": "<scratch>/workspace",
+      "source": "userShell",
+      "status": "failed",
+      "exitCode": 2,
+      "output": "<python>: can't open file '<scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/scripts/version.py': [Errno 2] No such file or directory\n",
+      "turnStatus": "completed",
+      "pluginId": null,
+      "scriptPath": null
+    },
+    "settings": {
+      "at": "2026-11-09T04:47:36.403Z",
+      "threadId": "01a1bea0-85c2-78f0-9a78-9060954dcd15",
+      "turnId": "01a1bea2-17a1-7d10-b69a-319d98475c38",
+      "itemId": "30c0e3c0-f5b9-4664-a09a-25269b8879fb",
+      "command": "bun <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/skills/spec/tools/spec.ts settings",
+      "nativeCommand": "/bin/zsh -lc 'bun <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/skills/spec/tools/spec.ts settings'",
+      "cwd": "<scratch>/workspace",
+      "source": "userShell",
+      "status": "failed",
+      "exitCode": 1,
+      "output": "error: Module not found \"<scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/skills/spec/tools/spec.ts\"\n",
+      "turnStatus": "completed",
+      "pluginId": null,
+      "scriptPath": null
+    }
+  },
+  "fresh": {
+    "version": {
+      "at": "2026-11-09T04:47:36.768Z",
+      "threadId": "01a1bea2-17d6-71e1-919d-c2f30eb88701",
+      "turnId": "01a1bea2-17dc-76e1-a432-de448b8df35d",
+      "itemId": "e9761666-8a4c-4d1f-a14d-b92ca4810ad3",
+      "command": "python3 <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0-phase1.2/scripts/version.py",
+      "nativeCommand": "/bin/zsh -lc 'python3 <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0-phase1.2/scripts/version.py'",
+      "cwd": "<scratch>/workspace",
+      "source": "userShell",
+      "status": "completed",
+      "exitCode": 0,
+      "output": "All version declarations match: 2.51.0-phase1.2\n",
+      "turnStatus": "completed",
+      "pluginId": null,
+      "scriptPath": null
+    },
+    "settings": {
+      "at": "2026-11-09T04:47:36.874Z",
+      "threadId": "01a1bea2-17d6-71e1-919d-c2f30eb88701",
+      "turnId": "01a1bea2-1944-7833-b9b8-8258eb825739",
+      "itemId": "344a1f47-423f-4654-a60e-dd0282e41014",
+      "command": "bun <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0-phase1.2/skills/spec/tools/spec.ts settings",
+      "nativeCommand": "/bin/zsh -lc 'bun <scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0-phase1.2/skills/spec/tools/spec.ts settings'",
+      "cwd": "<scratch>/workspace",
+      "source": "userShell",
+      "status": "completed",
+      "exitCode": 0,
+      "output": "Settings: plugin defaults (no docs/specs/_playbook/settings.md): docs on branch \u00b7 PRs draft \u00b7 merge: ask the user\n",
+      "turnStatus": "completed",
+      "pluginId": null,
+      "scriptPath": null
+    }
+  },
+  "retention": {
+    "historicalCacheExists": false,
+    "candidateCacheExists": true
+  },
+  "catalog": {
+    "before": {
+      "version": "2.51.0",
+      "specSkill": {
+        "name": "spec-driven:spec",
+        "description": "Run pre-spec reconnaissance (prep), load an existing spec to resume work, execute the next chunk, update progress after implementation, review with the collegium panel, or create a new one. Also captures ideas into the backlog and lists what's open by priority. Use when starting a session around a feature, when the user mentions a spec by name, when asked to prep, scope, or review/critique a spec, after completing implementation work, when the user says \"idea:\", \"add to the backlog\" or \"jot this down for later\", or asks what's open, what's next or what matters most.",
+        "path": "<scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0/skills/spec/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "spec-driven@phase1-execution-proof"
+      }
+    },
+    "after": {
+      "version": "2.51.0-phase1.2",
+      "specSkill": {
+        "name": "spec-driven:spec",
+        "description": "Run pre-spec reconnaissance (prep), load an existing spec to resume work, execute the next chunk, update progress after implementation, review with the collegium panel, or create a new one. Also captures ideas into the backlog and lists what's open by priority. Use when starting a session around a feature, when the user mentions a spec by name, when asked to prep, scope, or review/critique a spec, after completing implementation work, when the user says \"idea:\", \"add to the backlog\" or \"jot this down for later\", or asks what's open, what's next or what matters most.",
+        "path": "<scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0-phase1.2/skills/spec/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "spec-driven@phase1-execution-proof"
+      }
+    }
+  },
+  "nativeUpgrade": [
+    {
+      "argv": [
+        "codex",
+        "plugin",
+        "marketplace",
+        "upgrade",
+        "phase1-execution-proof",
+        "--json"
+      ],
+      "exitCode": 0,
+      "response": {
+        "selectedMarketplaces": [
+          "phase1-execution-proof"
+        ],
+        "upgradedRoots": [
+          "<scratch>/home/.tmp/marketplaces/phase1-execution-proof"
+        ],
+        "errors": []
+      }
+    },
+    {
+      "argv": [
+        "codex",
+        "plugin",
+        "add",
+        "spec-driven@phase1-execution-proof",
+        "--json"
+      ],
+      "exitCode": 0,
+      "response": {
+        "pluginId": "spec-driven@phase1-execution-proof",
+        "name": "spec-driven",
+        "marketplaceName": "phase1-execution-proof",
+        "version": "2.51.0-phase1.2",
+        "installedPath": "<scratch>/home/plugins/cache/phase1-execution-proof/spec-driven/2.51.0-phase1.2",
+        "authPolicy": "ON_USE"
+      }
+    }
+  ],
+  "safety": {
+    "liveInstallChanges": false,
+    "credentialsCopied": false,
+    "trustBypassed": false,
+    "modelOrPermissionOverrides": false
+  },
+  "cleanup": {
+    "at": "2026-11-09T04:48:12.271Z",
+    "archivedThreadIds": [
+      "01a1bea0-85c2-78f0-9a78-9060954dcd15",
+      "01a1bea2-17d6-71e1-919d-c2f30eb88701"
+    ],
+    "remainingTerminals": 0,
+    "processes": [
+      {
+        "pid": 57750,
+        "argv": "<python> <scratch>/serve-market.py",
+        "absent": true
+      },
+      {
+        "pid": 58137,
+        "argv": "codex app-server --listen unix:///tmp/codex-phase1-execution-lp5dbgsz.sock",
+        "absent": true
+      }
+    ]
+  },
+  "limits": {
+    "modelTurnsStarted": 0,
+    "oldLoadedSkillAttestation": "unverified",
+    "nativeCliResumeFence": "unverified",
+    "nativeDesktopResumeFence": "unverified",
+    "positiveHookTrust": "unverified",
+    "compatibleRollback": "unverified"
+  }
+}

@@ -56,6 +56,7 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 | `T/runtime/codex/probe-rpc.ts` | Shared bounded Unix WebSocket probe transport, explicit experimental opt-in and native event observation; no production control wiring | phase 1 |
 | `T/tests/fixtures/codex-lifecycle/` | Actual owned lifecycle observations and hashed finite process fixture; no native writes in default tests | phase 1 |
 | `T/tests/fixtures/codex-install/` | Actual isolated install/catalog/untrusted-hook/cache-eviction observations; active model and native resume remain unproved | phase 1 |
+| `T/tests/fixtures/codex-resource-execution/`, `T/tests/runtime-codex-resource-execution.test.ts` | Actual native old-path shell failure across update, fresh candidate success, hashed historical script and explicit authentication/model limits | phase 1 |
 | `T/runtime/codex/scan.ts`, `decode.ts` | Paginated current-source scan and conservative native response decoding | phase 1 |
 | `T/tests/fixtures/runtime-2.51.0/` | Actual historical claim/occupancy/prune modules, reversible import relocation and hashes | phase 1 |
 

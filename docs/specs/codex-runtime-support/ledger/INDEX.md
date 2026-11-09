@@ -2,7 +2,7 @@
 
 ## Gotchas
 
-- `gotcha-native-install-evicts-previous-cache.md` — [phase 1, phase 4, phase 5, phase 6] — isolated native reinstall evicts old cache; actual old-session execution still needs proof
+- `gotcha-native-install-evicts-previous-cache.md` — [phase 1, phase 4, phase 5, phase 6] — native old-path shell execution fails after update; model/trusted retention route unproved
 
 - `gotcha-native-interrupt-needs-terminal-cleanup.md` — [phase 1, phase 3, phase 6] — interrupt acknowledgement does not prove yielded descendants stopped
 
