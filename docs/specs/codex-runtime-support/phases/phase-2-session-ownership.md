@@ -24,7 +24,7 @@ Both runtimes participate in the same ownership and worktree decisions with expl
 
 - [x] Add SourceRef binding and a single source-qualified identity equality/key helper.
 - [ ] Update trees/find, claims/held, board/joins/attribution, remote-take, overseer and every codec/self/mirror/release path to the shared qualified identity helper.
-- [ ] Extract narrow dependency objects for contextPack and placeTree before adding native ports; separate async context input loading from pure pack/phase rendering.
+- [x] Extract narrow dependency objects for contextPack and placeTree before adding native ports; separate async context input loading from pure pack/phase rendering.
 - [ ] Add workspace-coordinated mutation-time liveness/claim revalidation and an interleaving test for resume-after-preview-before-prune; the planning snapshot alone never authorizes removal.
 
 ## Implementation guidance

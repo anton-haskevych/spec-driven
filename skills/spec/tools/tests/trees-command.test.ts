@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { treesCommand } from "../commands/trees";
 import type { RunOptions } from "../core/run";
 import { placeTree, type PlaceDeps } from "../trees/place";
+import { placeDepsFor } from "../trees/place-system";
 import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { createTree, type Tree } from "./tree";
 
@@ -54,10 +55,10 @@ describe("trees place (real git)", () => {
   });
 
   test("a babysitter's PR claim id places in its group's existing tree, and existing-only never cuts one", async () => {
-    expect(await placeTree(repo.dir, "a", "pr-A", deps(), { existingOnly: true })).toEqual({ ok: true, value: { kind: "found", branch: "feat/a-pr-a", path: treePath() } });
-    expect(await placeTree(repo.dir, "a", "pr-B", deps(), { existingOnly: true })).toEqual({ ok: false, reason: "no tree for feat/a-pr-b" });
+    expect(await placeTree({ spec: "a", phase: "pr-A", existingOnly: true }, placeDepsFor(repo.dir, deps()))).toEqual({ ok: true, value: { kind: "found", branch: "feat/a-pr-a", path: treePath() } });
+    expect(await placeTree({ spec: "a", phase: "pr-B", existingOnly: true }, placeDepsFor(repo.dir, deps()))).toEqual({ ok: false, reason: "no tree for feat/a-pr-b" });
     expect(existsSync(join(home, "claude-worktrees", "work", "a-pr-b"))).toBe(false);
-    expect(await placeTree(repo.dir, "a", "pr-Z", deps(), { existingOnly: true })).toEqual({ ok: false, reason: "PR group Z is not in a" });
+    expect(await placeTree({ spec: "a", phase: "pr-Z", existingOnly: true }, placeDepsFor(repo.dir, deps()))).toEqual({ ok: false, reason: "PR group Z is not in a" });
   });
 
   const sessionInTree = (status: "busy" | "idle") =>

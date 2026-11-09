@@ -4,6 +4,7 @@ import { runFileStore, systemCrewDeps, type CrewDeps } from "../../crew/deps";
 import { launchCrewSession, type CrewLaunchRequest } from "./launch-session";
 import type { PlaceFn } from "../../launch/place-for-launch";
 import { placeTree } from "../../trees/place";
+import { placeDepsFor } from "../../trees/place-system";
 import { systemPlaceDeps } from "../trees";
 
 export const CREW_LAUNCH_USAGE = "crew launch execute <spec> <phase> | crew launch babysit <spec> <group> [hold] [--note <text>]…";
@@ -13,7 +14,7 @@ export async function crewLaunch(projectDir: string, args: readonly string[], de
   if (!request.ok) return request.reason;
   const store = runFileStore(projectDir, deps.runner);
   if (!store.ok) return `crew launch: ${store.reason}`;
-  const placeIt = place ?? ((spec, phase, options) => placeTree(projectDir, spec, phase, systemPlaceDeps(), options));
+  const placeIt = place ?? ((spec, phase, options) => placeTree({ spec, phase, ...options }, placeDepsFor(projectDir, systemPlaceDeps())));
   return (await launchCrewSession(request.value, store.value, deps, placeIt)).text;
 }
 

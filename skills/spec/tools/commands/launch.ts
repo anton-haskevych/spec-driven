@@ -9,6 +9,7 @@ import { freshTreeNotes, placeForLaunch, type PlaceFn } from "../launch/place-fo
 import type { Env } from "../core/env";
 import { launchArgv, pickTerminal } from "../launch/terminal";
 import { placeTree } from "../trees/place";
+import { placeDepsFor } from "../trees/place-system";
 import { renderPlacement, systemPlaceDeps } from "./trees";
 
 export { LAUNCH_USAGE } from "../launch/command-line";
@@ -31,7 +32,7 @@ export async function launchCommand(projectDir: string, args: readonly string[],
   const [subCommand, spec, target] = positionals;
   if (!spec || target === undefined) return launchReport(projectDir, positionals, env, runner);
 
-  const placeIt = place ?? ((name, id, options) => placeTree(projectDir, name, id, systemPlaceDeps(), options));
+  const placeIt = place ?? ((spec, phase, options) => placeTree({ spec, phase, ...options }, placeDepsFor(projectDir, systemPlaceDeps())));
   const placed = await placeForLaunch({ subCommand: subCommand ?? "", spec, target }, placeIt);
   if (!placed.ok) return `launch: ${placed.reason}`;
   const placement = renderPlacement(placed);

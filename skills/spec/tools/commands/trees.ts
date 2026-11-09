@@ -2,6 +2,7 @@ import { homedir } from "node:os";
 import { gitAt, stateDir } from "../core/git";
 import type { Result } from "../core/result";
 import { placeTree, type PlaceDeps, type Placement } from "../trees/place";
+import { placeDepsFor } from "../trees/place-system";
 import { applyPrune, findPrunable } from "../trees/prune";
 import { backgroundPruneArgv, detachedSpawner, recordPruneRun, startBackgroundPrune, type Spawner } from "../trees/prune-background";
 import { renderPruneApplied, renderPruneList, renderPruneSummaryLine } from "../trees/prune-render";
@@ -12,9 +13,7 @@ export const TREES_USAGE = "trees place <spec> <phase> [--json] | trees prune [-
 
 const JSON_FLAG = "--json";
 const APPLY_FLAG = "--apply";
-// Handoff's run, on Anton's standing yes (2026-10-30): applies without asking, in a detached process so nobody waits.
 const AUTO_FLAG = "--auto";
-// The detached process itself: does the work and records its one line for the next handoff.
 const WAIT_FLAG = "--wait";
 const PRUNE_FLAGS = new Set([APPLY_FLAG, AUTO_FLAG, WAIT_FLAG]);
 
@@ -29,7 +28,7 @@ export async function treesCommand(projectDir: string, args: readonly string[], 
   const json = args.includes(JSON_FLAG);
   const [action, spec, phase, ...extra] = args.filter((arg) => arg !== JSON_FLAG);
   if (action !== "place" || !spec || !phase || extra.length > 0) return `usage: ${TREES_USAGE}`;
-  const placed = await placeTree(projectDir, spec, phase, deps);
+  const placed = await placeTree({ spec, phase }, placeDepsFor(projectDir, deps));
   if (json) return JSON.stringify(placed.ok ? { placement: placed.value } : { placement: null, error: placed.reason }, null, 2);
   return renderPlacement(placed);
 }
