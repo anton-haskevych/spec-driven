@@ -1,0 +1,215 @@
+{
+  "revision": "22e7ec7b6aae89c4a13c299e1dff024a26a1d1bc",
+  "version": "2.51.0",
+  "files": [
+    {
+      "path": "claims/rules.ts",
+      "sha256": "f61fab943b9e045a5db146cc02e29fa7c1c6210bc00bc49962fbdff0115e0377",
+      "imports": [
+        {
+          "original": "../board/activity",
+          "relocated": "../../../../board/activity"
+        },
+        {
+          "original": "../board/phase-keys",
+          "relocated": "../../../../board/phase-keys"
+        },
+        {
+          "original": "../core/result",
+          "relocated": "../../../../core/result"
+        },
+        {
+          "original": "../core/spec-state",
+          "relocated": "../../../../core/spec-state"
+        },
+        {
+          "original": "../sessions/label",
+          "relocated": "../../../../sessions/label"
+        },
+        {
+          "original": "../sessions/live",
+          "relocated": "../../../../sessions/live"
+        },
+        {
+          "original": "./pr-claim",
+          "relocated": "../../../../claims/pr-claim"
+        },
+        {
+          "original": "./remote-payload",
+          "relocated": "../../../../claims/remote-payload"
+        }
+      ]
+    },
+    {
+      "path": "claims/store.ts",
+      "sha256": "d9edd5f792093f2bc74a3adfb5d47d1fdb0b2371510176734ca474b0e59a87c9",
+      "imports": [
+        {
+          "original": "../core/frontmatter",
+          "relocated": "../../../../core/frontmatter"
+        },
+        {
+          "original": "../core/git",
+          "relocated": "../../../../core/git"
+        },
+        {
+          "original": "../core/result",
+          "relocated": "../../../../core/result"
+        },
+        {
+          "original": "../pr/gh-records",
+          "relocated": "../../../../pr/gh-records"
+        }
+      ]
+    },
+    {
+      "path": "claims/atomic-file.ts",
+      "sha256": "583ce9de8ff13922dc2beb4399ea87d2baf647a6f65dd0b5584c0cb20883ecb9",
+      "imports": []
+    },
+    {
+      "path": "claims/held.ts",
+      "sha256": "32e5847c85078f4edad29aa839c128f64bd32da0ef9bd4a1f878382c85bbc57f",
+      "imports": [
+        {
+          "original": "../core/git",
+          "relocated": "../../../../core/git"
+        },
+        {
+          "original": "../core/result",
+          "relocated": "../../../../core/result"
+        },
+        {
+          "original": "../core/spec-state",
+          "relocated": "../../../../core/spec-state"
+        },
+        {
+          "original": "../sessions/live",
+          "relocated": "../../../../sessions/live"
+        },
+        {
+          "original": "../workspaces/list",
+          "relocated": "../../../../workspaces/list"
+        },
+        {
+          "original": "./remote",
+          "relocated": "../../../../claims/remote"
+        }
+      ]
+    },
+    {
+      "path": "trees/find.ts",
+      "sha256": "f7b1afe22bf811c81ae2a695045601db4fac83131c4de1e8cf3c54d90ae214c2",
+      "imports": [
+        {
+          "original": "../board/activity",
+          "relocated": "../../../../board/activity"
+        },
+        {
+          "original": "../board/phase-keys",
+          "relocated": "../../../../board/phase-keys"
+        },
+        {
+          "original": "../core/result",
+          "relocated": "../../../../core/result"
+        },
+        {
+          "original": "../sessions/by-workspace",
+          "relocated": "../../../../sessions/by-workspace"
+        },
+        {
+          "original": "../sessions/label",
+          "relocated": "../../../../sessions/label"
+        },
+        {
+          "original": "../sessions/live",
+          "relocated": "../../../../sessions/live"
+        },
+        {
+          "original": "../workspaces/list",
+          "relocated": "../../../../workspaces/list"
+        },
+        {
+          "original": "./naming",
+          "relocated": "../../../../trees/naming"
+        }
+      ]
+    },
+    {
+      "path": "trees/prune-rules.ts",
+      "sha256": "e9410f7ff03ec2534d9f5fa2729fcd6c55a4a2f4127301a46194293536325659",
+      "imports": [
+        {
+          "original": "../workspaces/list",
+          "relocated": "../../../../workspaces/list"
+        }
+      ]
+    },
+    {
+      "path": "trees/prune.ts",
+      "sha256": "b04ef9ddc6c637caca9007c17bd3fdf8561c82352dbe72a6878470b818533a06",
+      "imports": [
+        {
+          "original": "../core/git",
+          "relocated": "../../../../core/git"
+        },
+        {
+          "original": "../core/frontmatter",
+          "relocated": "../../../../core/frontmatter"
+        },
+        {
+          "original": "../core/result",
+          "relocated": "../../../../core/result"
+        },
+        {
+          "original": "../core/run",
+          "relocated": "../../../../core/run"
+        },
+        {
+          "original": "../pr/gh-lists",
+          "relocated": "../../../../pr/gh-lists"
+        },
+        {
+          "original": "../pr/gh-records",
+          "relocated": "../../../../pr/gh-records"
+        },
+        {
+          "original": "../publish/snapshot",
+          "relocated": "../../../../publish/snapshot"
+        },
+        {
+          "original": "../sessions/live",
+          "relocated": "../../../../sessions/live"
+        },
+        {
+          "original": "../sessions/own",
+          "relocated": "../../../../sessions/own"
+        },
+        {
+          "original": "../sessions/proc-starts",
+          "relocated": "../../../../sessions/proc-starts"
+        },
+        {
+          "original": "../workspaces/list",
+          "relocated": "../../../../workspaces/list"
+        },
+        {
+          "original": "../workspaces/owner",
+          "relocated": "../../../../workspaces/owner"
+        },
+        {
+          "original": "./place",
+          "relocated": "../../../../trees/place"
+        },
+        {
+          "original": "./place",
+          "relocated": "../../../../trees/place"
+        },
+        {
+          "original": "./strays",
+          "relocated": "../../../../trees/strays"
+        }
+      ]
+    }
+  ]
+}
