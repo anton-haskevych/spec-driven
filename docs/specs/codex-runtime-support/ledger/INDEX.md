@@ -2,6 +2,8 @@
 
 ## Gotchas
 
+- `gotcha-native-install-evicts-previous-cache.md` — [phase 1, phase 4, phase 5, phase 6] — isolated native reinstall evicts old cache; automatic activation blocked pending design answer
+
 - `gotcha-native-interrupt-needs-terminal-cleanup.md` — [phase 1, phase 3, phase 6] — interrupt acknowledgement does not prove yielded descendants stopped
 
 - `gotcha-bun-docs-exceed-installed-api.md` — [general] — verify current Bun docs against the installed API and keep socket cleanup bounded

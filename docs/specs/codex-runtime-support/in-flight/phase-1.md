@@ -38,3 +38,6 @@ Start the remaining owned scratch-worker proof: establish a probe-owned native t
 Then test supported native CLI/desktop resume/installation cutover against the historical readers, and native activation/retention/loaded-version/trust in an authorized isolated probe environment. Preserve live installs. Compare the existing plugin-publish scoped marketplace upgrade → selected-plugin add → native verification; never its blanket sync. Do not select an update coordinator before this evidence.
 
 Retain Phase 1/outward gates: no Phase 2 work, mixed writers, background crews, automatic updates or release. Update checkboxes only as actual proof completes.
+
+## Needs you
+- Parked 2026-11-08T19:58:38-08:00: Native 0.167.0 selected-plugin install evicted the previous cache with a started thread still held. Approve changing updates to stage while managed spec sessions use the old release, then activate only after a verified quiescent native cutover, with CLI/desktop reentry and trust proofs still required? · recommend: Yes: stage while old managed spec sessions remain; activate only after verified quiescence. Preserve native installation authority; do not patch caches or enable automatic activation before the remaining proofs.
