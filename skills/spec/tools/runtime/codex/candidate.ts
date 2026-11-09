@@ -13,6 +13,7 @@ const REQUIRED = [
   ".codex-plugin/plugin.json", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json", "scripts/version.py",
   "skills/spec/SKILL.md", "skills/spec/native-entry.md", "skills/spec/capabilities.md", "skills/spec/taxonomy.md",
   "skills/spec/execute.md", "skills/spec/resume.md", "skills/spec/update.md", "skills/spec/handoff.md", "skills/spec/status.md",
+  "skills/spec/scripts/spec-bump.sh",
   "skills/spec/tools/codex.ts", "skills/spec/tools/spec.ts", "skills/spec/tools/runtime/codex/entry.ts",
 ];
 
@@ -24,7 +25,7 @@ export function inspectCandidate(path: string): Result<CandidateAssets> {
       return { ok: false, reason: "invalid native candidate manifest" };
     }
     const paths = new Set(REQUIRED);
-    for (const pattern of ["skills/**/*.md", "skills/**/*.ts", "agents/*.md"]) {
+    for (const pattern of ["skills/**/*", "agents/*.md"]) {
       for (const file of new Bun.Glob(pattern).scanSync({ cwd: root })) {
         if (!file.startsWith("skills/spec/tools/tests/")) paths.add(file);
       }

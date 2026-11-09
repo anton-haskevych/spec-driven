@@ -28,12 +28,14 @@ test("copied source identifies actual bytes without Git or installed runtime dep
 test("same catalog version cannot hide changed candidate code or canonical workflow", () => {
   const before = inspectCandidate(tree.root);
   if (!before.ok) throw new Error(before.reason);
-  for (const path of ["skills/spec/tools/spec.ts", "skills/spec/execute.md", "agents/principal-engineer.md"]) {
-    writeFileSync(join(tree.root, path), `${readFileSync(join(tree.root, path), "utf8")}\nchanged\n`);
+  for (const path of ["skills/spec/tools/spec.ts", "skills/spec/execute.md", "agents/principal-engineer.md", "skills/spec/scripts/spec-bump.sh"]) {
+    const original = readFileSync(join(tree.root, path), "utf8");
+    writeFileSync(join(tree.root, path), `${original}\nchanged\n`);
     const after = inspectCandidate(tree.root);
     if (!after.ok) throw new Error(after.reason);
     expect(after.value.version).toBe(before.value.version);
     expect(after.value.revision).not.toBe(before.value.revision);
+    writeFileSync(join(tree.root, path), original);
   }
 });
 
