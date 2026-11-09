@@ -30,10 +30,10 @@ Existing runtime identity/readers and configured context commands; minimal nativ
 
 ## Complete the local cycle
 
-- [ ] Validate exclusive separate-clone/common-directory isolation with existing Git primitives and an actual legacy prune-enumeration fixture. Refuse same-common-directory managed use until Phase 2b; disable remote claim mirroring and all unready automation.
-- [ ] Invoke existing lesson recall before edits and per-file/doctor validation after spec edits while native hooks are pending; prove invalid-edit feedback and correction without a new validator.
+- [x] Validate exclusive separate-clone/common-directory isolation with existing Git primitives and an actual legacy prune-enumeration fixture. Refuse same-common-directory managed use until Phase 2b; disable remote claim mirroring and all unready automation.
+- [x] Invoke existing lesson recall before edits and per-file/doctor validation after spec edits while native hooks are pending; prove invalid-edit feedback and correction without a new validator.
 - [ ] Support local progress/ledger/in-flight updates and commits through shared workflow rules, then explicit fresh-session pickup. Report unavailable push/publication, ownership, launches and cleanup honestly; do not mark the full managed handoff complete.
-- [ ] Add the installed-candidate/local-cycle acceptance driver and focused Claude regressions. Resolve obsolete automatic-update/retention capability wording only where touched; introduce no updater.
+- [x] Add the installed-candidate/local-cycle acceptance driver and focused Claude regressions. Resolve obsolete automatic-update/retention capability wording only where touched; introduce no updater.
 
 ## Implementation guidance
 
@@ -47,7 +47,9 @@ Remaining shared claims, board, placement, pruning and remote identity work is i
 
 The six completed foundations and three connected-entry items are fixture-tested implementation, not installed acceptance. `tools/codex.ts` binds actual candidate content, qualified identity and the existing native probe/snapshot to `createStoredRuntimeContextCommand`. Its read-only checks refuse missing target/revision/identity, unsupported source/home, shared common directories, linked pilot checkouts and other observed Codex occupation. Every command also refuses existing stored claims using the same context disk rows: a phase hint cannot bypass missing managed ownership. `runtime/workflow-capabilities.ts` guards before dispatch; canonical modes follow `skills/spec/capabilities.md`. Raw `spec.ts` from Codex refuses; Claude dispatch stays unchanged. The entry reports no acquired ownership. Read ../in-flight/phase-2.md for exact state and the assigned tree.
 
-The copied candidate fixture runs the actual packaged CLI with a disposable Unix socket/CLI response fixture and no `.git` or `node_modules`. It is not a native install, model-driven execute/handoff cycle or fresh pickup. Basic common-directory checks do not replace the remaining historical-prune isolation proof. No source claim is written or remote action enabled.
+The copied candidate fixture runs the actual packaged CLI with a disposable Unix socket/CLI response fixture and no `.git` or `node_modules`. It now exercises explicit recall, existing per-file invalid-edit feedback/correction, phase/progress/ledger/in-flight updates, local code check/commit and fresh-process pickup with a different synthetic ID. It is not a native install, model-driven execute/handoff cycle or fresh native pickup. The frozen historical enumerator proves separate-clone exclusion beside an actually nominated linked worktree with the same origin/HEAD; no removal runs. No source claim is written or remote action enabled.
+
+`doctor <spec> --file <spec-relative-path>` reuses `issuesForWrittenFile`; absent/outside files refuse. Shared context/park advice follows the declared workflow, retaining unchanged Claude hook/push guidance. `skills/spec/installed-local-cycle.md` is the packaged agent-operated real acceptance driver. The local-handoff/fresh-pickup item remains open until both real model sessions pass; the implemented source cycle cannot tick that acceptance. Phase 2 and its native PR gates remain open.
 
 Installed evidence must identify the candidate files actually executed. Do not infer candidate use from a catalog version or the already installed cached skill. Preserve all existing proof fixtures and do not repeat platform/login/retention research.
 

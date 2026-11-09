@@ -41,7 +41,7 @@ Phase 1 is complete. Phase 2 has qualified identity/source readers, raw claim de
 
 Read in-flight/phase-2.md for exact implementation state. The assigned source tree remains ~/claude-worktrees/spec-driven/codex-runtime-support-pr-a on feat/codex-runtime-support-pr-a. This replan does not move it, create the pilot clone or change a live installation.
 
-The entry connection chunk is implemented. The next chunk proves the isolated local cycle: actual historical prune enumeration, explicit recall/invalid-edit correction and the installed-candidate acceptance driver. A pilot using unready shared ownership must have a separate Git common directory and no remote claim/cleanup/launch fallthrough. Same-repository daily use remains required in Phase 2b.
+The local-cycle implementation is complete: actual historical prune enumeration proves clone exclusion, existing recall/doctor exercise invalid-edit correction, and the copied-candidate cycle proves local bookkeeping/commit/fresh-process pickup. `skills/spec/installed-local-cycle.md` drives the separate real installed model acceptance. That handoff/fresh native pickup remains pending; source fixtures do not pass it. A pilot using unready shared ownership must retain a separate Git common directory and no remote claim/cleanup/launch fallthrough. Same-repository daily use remains required in Phase 2b.
 
 PR grouping changes are branch-local until published through the existing authorized process. Do not auto-launch a regrouped phase using old origin/default metadata. Native acceptance must identify the actual candidate assets/revision; the installed cached release is not this branch.
 

@@ -52,6 +52,8 @@ Phase 4 restores full managed execute/handoff, the rest of the interactive modes
 
 Phase 3 reuses pure launch planning and existing terminals. A capability check precedes placement/brief writes. Native request/skill syntax and cwd are explicit; configured model/permissions remain native. A terminal acknowledgement does not fabricate a session/worker handle.
 
+Approved later DX belongs to Phase 3: a thin `spec` command using existing entry/launch composition, default to the initiating host, and discover the needed source/candidate automatically without manual shell setup. No new framework; the restricted pilot's explicit bootstrap remains in force until this feature is accepted.
+
 Next-session suggestions/replies, prep spin-offs and interactive babysitter launches retain existing selection and busy-tree rules. Do not launch from stale branch-only phase regrouping.
 
 ## Managed launch and crew

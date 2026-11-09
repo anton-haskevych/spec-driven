@@ -27,6 +27,10 @@ Document the pilot once in shared mode/capability handling so execute/handoff au
 
 A fresh native acceptance session must execute candidate assets, not merely see a candidate catalog/version. Existing cached skills and branch files may differ. Keep the assigned implementation tree explicit while regrouped metadata remains branch-local.
 
+`skills/spec/installed-local-cycle.md` is the source-packaged agent-operated installed acceptance driver. It uses the existing entry, recall, `doctor <spec> --file <spec-relative-path>`, phase updates and local Git; no second validator or install/launch framework. The copied-candidate socket cycle is deterministic source evidence only. Its fresh CLI process/fixture ID cannot prove a fresh native model session. Real installed acceptance remains a required gate.
+
+Phase 3 owns approved later launch DX: thin `spec` dispatch, initiating-host default and automatic source/candidate discovery without manual shell setup. Reuse this composition; Phase 2 adds no discovery or new command framework.
+
 ## Dependency direction
 
 ```text
@@ -179,7 +183,7 @@ Review host binding resolves project overrides before plugin personas. When nati
 
 Use the existing manifests, marketplace metadata and scripts/version.py. Phase 2 ships minimum Codex entry/assets; Phase 4 adds complete native hooks/bindings and remaining required files. Keep paths relative to the plugin and avoid personal bridges or development checkouts. Check manifest/version agreement using existing checks.
 
-The hosts own plugin installation, version selection and updates. Add no updater, freshness polling, coalescing helper, release-state records, scheduler, activation coordinator or diagnostic subsystem. Normal native install/discovery and hook review are acceptance checks in pr-opening.md. Use fresh-session recovery when an update invalidates an old helper path; retention is deferred.
+The hosts own plugin installation, version selection and updates. Add no updater, freshness polling, coalescing helper, release-state records, scheduler, activation coordinator or diagnostic subsystem. Normal native install/discovery and hook review are acceptance checks in pr-opening.md. Use fresh-session recovery when an update invalidates an old helper path; no retention subsystem is planned.
 
 Historical native installation/resource observations stay immutable. They establish limits, not a requirement to build replacement host machinery. Ownership compatibility and native hook trust remain gates on the respective implemented capabilities.
 

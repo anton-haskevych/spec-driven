@@ -6,7 +6,7 @@ Existing seam inventory began at 22e7ec7 on 2026-11-08; introduced/touched rows 
 
 | Phase | Integration owner |
 |---|---|
-| 2 | Entry/assets and guards are composed; finish historical prune-isolation proof, explicit validation and installed-candidate/local-cycle acceptance |
+| 2 | Entry/assets/guards, historical prune-isolation proof, explicit validation and source local-cycle driver are implemented; real installed model handoff/fresh pickup remains pending |
 | 2b | Claim codecs/mutations/remote joins, board/list, tree placement/prune and their shared system composition |
 | 4 | All interactive mode/persona/project-override binding, complete managed handoff and native hook/manifest assets |
 | 3 | Normal launch planning/terminal binding, next sessions, spin-offs and interactive babysitter launches |
@@ -90,6 +90,8 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 | `T/codex.ts`, `runtime/codex/entry.ts`, `skills/spec/native-entry.md` | Source-packaged explicit request/candidate/identity/cwd bootstrap to existing stored context; one native snapshot, local restricted reporting | phase 2 |
 | `T/runtime/codex/candidate.ts`, `runtime/pilot-workspace.ts` | Actual asset content fingerprint without installed Git; read-only common-directory/exclusive-checkout checks, not full isolation acceptance | phase 2 |
 | `T/tests/{workflow-capabilities,pilot-workspace,codex-entry,codex-candidate,codex-packaged-entry}.test.ts` | Guard/refusal tests and copied-package CLI execution through a disposable daemon fixture; no live install or model acceptance | phase 2 |
+| `T/commands/doctor-file.ts`, `T/tests/doctor-file.test.ts` | Agent-operated per-file doctor uses existing checker; missing/outside/symlink-outside refusal and invalid-edit correction | phase 2 |
+| `skills/spec/installed-local-cycle.md` | Packaged agent-operated two-session installed acceptance driver; no installer/launch framework or inferred native pass | phase 2 |
 
 ## Existing files touched
 
@@ -103,3 +105,4 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 | `T/spec.ts`, `skills/spec/{SKILL,execute,handoff,update}.md` | Context override plus pre-dispatch pilot guards and shared automatic-action contract; raw Codex executable refuses, Claude path unchanged | `ledger/decision-runtime-boundaries.md` |
 | `.codex-plugin/plugin.json`, `T/runtime/capabilities.ts` | Explicit relative skills packaging; native-installation evidence replaces obsolete updater/retention capability wording | `ledger/decision-source-based-immutable-releases.md` |
 | `T/trees/place.ts`, `commands/trees.ts`, `commands/launch.ts`, `commands/crew/{launch,tick}.ts` | Request + narrow PlacementDeps; legacy PlaceDeps type retained for prune/historical fixture compatibility | `ledger/decision-runtime-boundaries.md` |
+| `T/commands/{doctor,phase,context,runtime-context}.ts`, `T/context/packs.ts` | Explicit per-file doctor dispatch and declared-workflow lesson/park feedback; default Claude behavior preserved | `ledger/decision-runtime-boundaries.md` |
