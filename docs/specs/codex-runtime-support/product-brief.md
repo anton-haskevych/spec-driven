@@ -19,7 +19,7 @@ The same current plugin release supports Claude Code and Codex without disposabl
 
 Delivery priority: one usable Codex execute → handoff flow, developed incrementally. Phase-specific safety acceptance gates feature activation rather than all adapter development (`ledger/decision-deliver-value-incrementally.md`).
 
-Explicit runtime composition; namespaced session identity; mixed-runtime liveness and claims; normal and background sessions; scoped hooks; canonical reviewer personas; clean-install packaging; freshness checks, staged activation and rollback; behavioral compatibility tests and CI release gates.
+Explicit runtime composition; namespaced session identity; mixed-runtime liveness and claims; normal and background sessions; scoped hooks; canonical reviewer personas; required native manifest/assets in the existing release; normal host installation/update and fresh-session recovery; behavioral compatibility tests and CI release gates.
 
 ## Out of scope
 

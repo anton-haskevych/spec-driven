@@ -53,9 +53,9 @@ For Codex, success requires demonstrated disconnect survival and child-process c
 
 **Chosen scope:** use native updates and start a fresh session if an update invalidates an old session's helper paths. Do not build custom retention or require all old sessions to close for every update. Seamless old-session continuity is deferred so it does not hold up the core workflow. Decision: `ledger/decision-use-native-updates.md`.
 
-Check freshness automatically at entry and at most once per configured check interval (default: first entry of a fresh session; concurrent requests coalesce). Reuse the existing agent-operated native refresh/install/verification flow. Native installed/loaded state is authoritative. Phase 1 records activation, trust and native limitations. Candidate observations do not become a second activation authority. Do not add plugin code that rewrites active tools or reruns the current user request. Offline, failed validation, incompatible runtime, and required hook trust are distinct states. Repeated failures do not produce a warning on every edit.
+Use native host installation/update mechanisms and the existing release process. The plugin implements no update polling, freshness helper, release-state journal or coordinator. Normal installation verification lives in pr-opening.md; Phase 4 includes required manifests and runtime files. Native hook trust remains required. Restart affected sessions after updates when necessary.
 
-`Current` means latest successfully checked compatible release, with checked-at time and revision. `Update available` is not `active`. Trust review is not auto-bypassed. During this spec's rollout, installing the managed update behavior requires explicit design/release approval; it remains restricted to spec-driven.
+Report the selected native installed release honestly. Native trust is not bypassed. Live installation and public release still require their normal rollout approval; no managed updater is being introduced.
 
 ## Status copy
 
@@ -68,7 +68,7 @@ Check freshness automatically at entry and at most once per configured check int
 | Ambiguous launch | `Worker launch outcome is unknown. The slot is held while this launch is reconciled.` |
 | Update installed | `Spec-driven <version> is installed. Start a fresh session to use it.` |
 | Update blocked | `Spec-driven update needs <trust review / compatible Codex / validation fix>.` |
-| Offline | `Could not check for a newer release. Continuing on verified <version>, last checked <time>.` |
+| Native update failure | `Native plugin update failed: <host reason>.` |
 
 ## Decisions and alternatives
 

@@ -15,6 +15,8 @@ Canonical `skills/spec/SKILL.md`, mode bindings, plugin-owned host entrypoints, 
 
 ## Deliverables
 
+- [ ] Include Codex entrypoints, hook declarations and required runtime files in the existing plugin release; use the existing version helper and remove development-path/personal-bridge dependencies. No installer/updater.
+
 - [ ] Add explicit Codex bootstrap that pins the loaded release, registers spec-session identity and invokes existing taxonomy/playbook/context commands with the actual user request.
 - [ ] Bind all five canonical review personas on Codex and preserve project overrides. Use explicit persona loading where native custom-role discovery is unavailable; never overwrite user roles.
 - [ ] Add plugin-owned Codex patch path translation and reuse recall/file-validation logic across add/update/delete/move/multi-file edits; preserve Claude hook behavior.

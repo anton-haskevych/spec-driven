@@ -10,7 +10,7 @@ Phase 1 proof work is authorized in a separate Codex worktree session by Anton o
 |---|---|---|
 | A | 1–2 | Proven boundaries, Claude baseline and safe cross-runtime ownership |
 | B | 3–4 | Operational Codex lifecycle and native workflow binding |
-| C | 5–6 | Durable distribution, update coordination and compatibility enforcement |
+| C | 6 | Dual-runtime compatibility and CI enforcement; Phase 5 withdrawn |
 
 Groups land in order. Each is a coherent tested change; no PR claims full parity until the entire acceptance matrix passes. Follow `docs/specs/_playbook/settings.md`: ready PRs, squash merge. No direct implementation commits to main. Choose the release version from main at merge using `scripts/version.py`; do not pre-bump to a guessed latest number. This spec-writing session creates no branch, PR, push, release or live install.
 
@@ -35,8 +35,7 @@ Groups land in order. Each is a coherent tested change; no PR claims full parity
 | Worker stop | Exact owned turn interrupted; child processes cleaned up; archive preserves history/worktrees and never touches unrelated sessions |
 | Worker retries | Lost responses, repeated ticks and restarts do not create duplicate workers; unknown launch outcomes keep their slot |
 | Completion | Native final assistant evidence is correctly paginated/wrapped and existing git/handoff/released-claim checks remain enforced |
-| Update current | Native refresh/install/reconcile selects verified version+revision+content; fresh session reports what it actually loaded |
-| Update failures | Offline, incompatible/corrupt candidate, partial install, concurrent check and trust-required cases preserve last good release |
+| Native install/update | Existing host mechanisms select the release; fresh sessions discover required skills/hooks/files. No plugin-owned updater or freshness state |
 | In-progress update | Document native old-path invalidation and recover in a fresh session using the installed release. Custom retention and uninterrupted old-session execution are deferred; native trust and incompatible writer-contract safety remain required |
 | Reinstall/update durability | Reinstallation erases no required adaptation because all runtime behavior ships in source artifacts |
 | Host limits | Alternate homes, unsupported daemons/no-daemon/remote hosts are capability-tested or clearly refused, never advertised as complete coverage |
@@ -45,6 +44,7 @@ Groups land in order. Each is a coherent tested change; no PR claims full parity
 
 - [ ] Phase design gate approved; per-phase recon and phase-preflight complete before coding.
 - [ ] `bun test`, `bun run typecheck`, `python3 scripts/version.py` and frozen install pass.
+- [ ] Normal native installation discovers the Codex manifest/hooks/required files without development or personal-bridge dependencies. Use the existing release process; hosts own updates.
 - [ ] New/touched units satisfy structural size/function/parameter and import-boundary gates; no double casts or hand-written transport protocol.
 - [ ] Source adapters pass shared behavior tests with no host-state reads in unit tests.
 - [ ] Each supported native surface has controlled, scrubbed integration evidence and fixture cleanup.

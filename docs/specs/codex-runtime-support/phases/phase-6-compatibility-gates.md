@@ -1,5 +1,5 @@
 ---
-needs: [5]
+needs: [4]
 pr: C
 ---
 
@@ -19,7 +19,7 @@ The repository ships a repeatable compatibility harness and release gates that k
 - [ ] Add controlled native host harnesses for clean installation, the full four-command loop, scoped hooks and owned worker lifecycle, with isolated state and guaranteed fixture cleanup.
 - [ ] Wire deterministic contracts, packaging/version drift checks and import-boundary guards into CI; make missing native integration credentials/runtime explicit rather than a passing parity test.
 - [ ] Add release-candidate integration gates and an evidence manifest recording plugin revision, CLI/API versions, capabilities, scenario results and supported environments.
-- [ ] Document the agent-operated update/recovery procedure and ship a freshness/compatibility diagnostic that reports unsupported or stale installations without changing user work.
+- [ ] Document native installation, supported configurations and fresh-session recovery using existing commands. No freshness checker, updater or update coordinator.
 
 - [ ] Add concurrent/interleaving contracts: actual legacy readers, supported old-resume fencing, equal native IDs across sources, target/slot races, resume-before-prune, failed close-out acknowledgement and user continuation of an owned thread.
 

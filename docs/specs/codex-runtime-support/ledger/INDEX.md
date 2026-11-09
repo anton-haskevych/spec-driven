@@ -18,6 +18,8 @@
 
 ## Decisions
 
+- `decision-native-host-updates-only.md` — [general] — withdraw Phase 5; native hosts own updates, integration/release checks use existing flow
+
 - `decision-deliver-value-incrementally.md` — [general] — build adapters now; gate activation on feature-specific proof
 
 - `decision-use-native-updates.md` — [phase 1, phase 4, phase 5, phase 6] — native updates with fresh-session recovery; seamless old-session continuity deferred
