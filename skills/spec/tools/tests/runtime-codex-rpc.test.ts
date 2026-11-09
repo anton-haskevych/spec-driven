@@ -17,7 +17,10 @@ test("probe RPC distinguishes server requests and notifications from responses s
     websocket: {
       message(ws, data) {
         const request = JSON.parse(String(data));
-        if (request.method === "initialize") ws.send(JSON.stringify({ id: request.id, result: {} }));
+        if (request.method === "initialize") {
+          expect(request.params.capabilities).toEqual({ experimentalApi: true });
+          ws.send(JSON.stringify({ id: request.id, result: {} }));
+        }
         if (request.method === "thread/read") {
           ws.send(JSON.stringify({ id: request.id, method: "item/tool/requestUserInput", params: { threadId: "owned", turnId: "turn", isBlocking: true } }));
           ws.send(JSON.stringify({ method: "thread/status/changed", params: { threadId: "owned", status: { type: "active", activeFlags: ["waitingOnUserInput"] } } }));
@@ -27,7 +30,7 @@ test("probe RPC distinguishes server requests and notifications from responses s
     },
   });
   cleanup.push(() => server.stop(true));
-  const result = await connectProbeRpc({ url: `ws+unix://${socket}`, timeoutMs: 500 }, (frame) => frames.push(frame));
+  const result = await connectProbeRpc({ url: `ws+unix://${socket}`, timeoutMs: 500, experimentalApi: true }, (frame) => frames.push(frame));
   expect(result.ok).toBe(true);
   if (!result.ok) return;
   cleanup.push(result.value.close);

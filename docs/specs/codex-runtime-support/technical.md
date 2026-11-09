@@ -131,6 +131,8 @@ Candidate lifecycle: `thread/start` → explicit name and canonical skill bindin
 
 Lifecycle records: planned → starting → running → attention / finished / failed / interrupted → verified close-out → archived. A lost launch response is `outcome-unknown`, not failed/retryable. Persist the launch key before calling out; use existing atomic state helpers. Hold the slot until authoritative reconciliation identifies the worker. No blind retry of thread creation. An archive attempt never runs while an unacknowledged active turn or child process remains.
 
+Phase 1 observed a yielded model exec surviving turn interruption on configured 0.167.0; exact native `thread/backgroundTerminals/terminate` then removed its marked parent/child/grandchild. Native terminal process IDs are not OS PIDs. Future worker control must account for yielded terminals and verify cleanup separately before archive/capacity release. This bounded single-source proof does not establish detached-process, approval-enabled or daemon-restart support; see `ledger/gotcha-native-interrupt-needs-terminal-cleanup.md`.
+
 Completion evidence comes from the newest relevant owned turn. Native item pages contain wrappers `{turnId,item,...}`; assistant text is `item.text` for `item.type === "agentMessage"`. Prefer a final-phase report, but retain existing handoff/git/claim evidence requirements. Bound history reads, paginate explicitly and never infer completion from transport disconnect.
 
 ## Native skill, persona and hook binding

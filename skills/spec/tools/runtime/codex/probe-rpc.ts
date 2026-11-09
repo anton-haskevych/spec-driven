@@ -15,7 +15,7 @@ export interface ConnectionOptions {
 
 const MAX_FRAME_BYTES = 2 * 1024 * 1024;
 
-export async function connectProbeRpc(options: ConnectionOptions, observe: (frame: Record<string, unknown>) => void): Promise<Result<ProbeRpc>> {
+export async function connectProbeRpc(options: ConnectionOptions & { experimentalApi?: true }, observe: (frame: Record<string, unknown>) => void): Promise<Result<ProbeRpc>> {
   if (!options.url.startsWith("ws+unix:///") || !Number.isSafeInteger(options.timeoutMs) || options.timeoutMs < 1 || options.timeoutMs > 30_000) {
     return { ok: false, reason: "unsupported Codex probe endpoint or deadline" };
   }
@@ -24,6 +24,7 @@ export async function connectProbeRpc(options: ConnectionOptions, observe: (fram
   const client = rpcClient(opened.value, options.timeoutMs, observe);
   const initialized = await client.send("initialize", {
     clientInfo: { name: "spec-driven-capability-probe", version: "1" },
+    ...(options.experimentalApi ? { capabilities: { experimentalApi: true } } : {}),
   });
   if (!initialized.ok || !isRecord(initialized.value)) {
     client.close();

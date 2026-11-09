@@ -1,0 +1,230 @@
+{
+  "cliVersion": "0.167.0",
+  "appServerVersion": "0.167.0",
+  "bunVersion": "1.4.4",
+  "source": "configured-local-daemon",
+  "threadId": "01a1be62-c39d-70f2-8613-35757e58e354",
+  "ownershipKey": "8499e782-fd4d-46b0-851b-df3e62057a56",
+  "createdAt": "2026-11-09T03:38:26.044Z",
+  "cwd": "/Users/antonhaskevych/claude-worktrees/spec-driven/codex-runtime-support-pr-a",
+  "effective": {
+    "model": "gpt-6.1-sol",
+    "reasoningEffort": "high",
+    "approvalPolicy": "never",
+    "sandbox": {
+      "type": "dangerFullAccess"
+    }
+  },
+  "processFixtureSha256": "151d1c0c188d632837cfcf4194defb46798372970f91eb29783b856184dbd6b5",
+  "foreground": {
+    "turnId": "01a1be64-dc24-7491-a693-8588bd45b801",
+    "markers": [
+      {
+        "key": "cd97953c-086b-49b2-9dde-98d249f9bb05",
+        "depth": 0,
+        "pid": 20365,
+        "ppid": 73436,
+        "at": "2026-11-09T03:40:49.444Z"
+      },
+      {
+        "key": "cd97953c-086b-49b2-9dde-98d249f9bb05",
+        "depth": 1,
+        "pid": 20369,
+        "ppid": 20365,
+        "at": "2026-11-09T03:40:49.454Z"
+      },
+      {
+        "key": "cd97953c-086b-49b2-9dde-98d249f9bb05",
+        "depth": 2,
+        "pid": 20370,
+        "ppid": 20369,
+        "at": "2026-11-09T03:40:49.463Z"
+      }
+    ],
+    "interrupt": {
+      "at": "2026-11-09T03:40:49.509Z",
+      "response": {}
+    },
+    "turnAfterInterrupt": "interrupted",
+    "afterInterrupt": {
+      "at": "2026-11-09T03:40:49.519Z",
+      "processes": []
+    }
+  },
+  "yielded": {
+    "turnId": "01a1be65-d4dd-7111-b2fb-0d947d39df7f",
+    "markers": [
+      {
+        "key": "6fe735f8-0f15-4021-933c-b9d511eff5c2",
+        "depth": 0,
+        "pid": 21009,
+        "ppid": 73436,
+        "at": "2026-11-09T03:41:51.551Z"
+      },
+      {
+        "key": "6fe735f8-0f15-4021-933c-b9d511eff5c2",
+        "depth": 1,
+        "pid": 21010,
+        "ppid": 21009,
+        "at": "2026-11-09T03:41:51.562Z"
+      },
+      {
+        "key": "6fe735f8-0f15-4021-933c-b9d511eff5c2",
+        "depth": 2,
+        "pid": 21011,
+        "ppid": 21010,
+        "at": "2026-11-09T03:41:51.574Z"
+      }
+    ],
+    "interrupt": {
+      "at": "2026-11-09T03:41:52.246Z",
+      "response": {}
+    },
+    "turnAfterInterrupt": "interrupted",
+    "afterInterrupt": {
+      "at": "2026-11-09T03:41:52.258Z",
+      "processes": [
+        21009,
+        21010,
+        21011
+      ]
+    },
+    "disconnectedAt": "2026-11-09T03:41:51.671Z",
+    "reconnected": {
+      "at": "2026-11-09T03:41:52.198Z",
+      "turnId": "01a1be65-d4dd-7111-b2fb-0d947d39df7f",
+      "turnStatus": "inProgress",
+      "processes": [
+        21009,
+        21010,
+        21011
+      ]
+    },
+    "initialTerminals": {
+      "data": [
+        {
+          "itemId": "exec-59953d91-2e8e-46f5-b51a-989ecb36a2eb",
+          "processId": "53098",
+          "command": "bun /tmp/codex-runtime-phase1-session2/process-tree.ts 6fe735f8-0f15-4021-933c-b9d511eff5c2",
+          "cwd": "/Users/antonhaskevych/claude-worktrees/spec-driven/codex-runtime-support-pr-a",
+          "osPid": null,
+          "cpuPercent": null,
+          "rssKb": null
+        }
+      ],
+      "nextCursor": null
+    },
+    "terminatedProcessId": "53098",
+    "terminate": {
+      "at": "2026-11-09T03:41:52.289Z",
+      "response": {
+        "terminated": true
+      }
+    },
+    "afterTerminate": {
+      "at": "2026-11-09T03:41:52.316Z",
+      "processes": []
+    },
+    "finalTerminals": {
+      "data": [],
+      "nextCursor": null
+    }
+  },
+  "attention": {
+    "intentAt": "2026-11-09T03:42:41.825Z",
+    "events": [
+      {
+        "at": "2026-11-09T03:42:41.883Z",
+        "method": "thread/status/changed",
+        "status": {
+          "type": "active",
+          "activeFlags": []
+        }
+      },
+      {
+        "at": "2026-11-09T03:42:44.651Z",
+        "method": "thread/status/changed",
+        "status": {
+          "type": "active",
+          "activeFlags": [
+            "waitingOnUserInput"
+          ]
+        }
+      },
+      {
+        "at": "2026-11-09T03:42:44.652Z",
+        "method": "item/tool/requestUserInput",
+        "id": 0,
+        "turnId": "01a1be66-aacf-7473-b81a-a18535ba718c",
+        "itemId": "call_95b7cbc12a114664a968eaaf64d2a13e",
+        "isBlocking": true
+      },
+      {
+        "at": "2026-11-09T03:42:44.727Z",
+        "method": "thread/status/changed",
+        "status": {
+          "type": "idle"
+        }
+      },
+      {
+        "at": "2026-11-09T03:42:44.728Z",
+        "method": "turn/completed",
+        "turnId": "01a1be66-aacf-7473-b81a-a18535ba718c",
+        "status": "interrupted"
+      },
+      {
+        "at": "2026-11-09T03:42:44.728Z",
+        "method": "serverRequest/resolved",
+        "requestId": 0
+      }
+    ],
+    "startAttempted": "2026-11-09T03:42:41.867Z",
+    "turnId": "01a1be66-aacf-7473-b81a-a18535ba718c",
+    "observation": {
+      "at": "2026-11-09T03:42:44.722Z",
+      "status": {
+        "type": "active",
+        "activeFlags": [
+          "waitingOnUserInput"
+        ]
+      },
+      "turnId": "01a1be66-aacf-7473-b81a-a18535ba718c",
+      "turnStatus": "inProgress"
+    },
+    "interrupt": {
+      "at": "2026-11-09T03:42:44.722Z",
+      "response": {}
+    },
+    "final": {
+      "status": {
+        "type": "idle"
+      },
+      "turnStatus": "interrupted"
+    }
+  },
+  "cleanup": {
+    "at": "2026-11-09T03:43:15.537Z",
+    "pids": [
+      18899,
+      18900,
+      18901,
+      20365,
+      20369,
+      20370,
+      21009,
+      21010,
+      21011
+    ],
+    "processes": []
+  },
+  "archived": {
+    "at": "2026-11-09T03:43:15.675Z",
+    "response": {}
+  },
+  "approvalAttention": "unverified: configured approval policy never",
+  "archiveVerified": {
+    "at": "2026-11-09T03:45:42.004Z",
+    "threadId": "01a1be62-c39d-70f2-8613-35757e58e354",
+    "archived": true
+  }
+}
