@@ -14,4 +14,3 @@
 
 - `decision-runtime-boundaries.md` — [general] — One workflow, adapters at runtime boundaries
 - `decision-source-based-immutable-releases.md` — [phase 5+] — Release behavior belongs in versioned artifacts
-

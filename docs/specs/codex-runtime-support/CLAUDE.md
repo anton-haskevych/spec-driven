@@ -16,7 +16,7 @@ related:
 
 One spec workflow, two properly integrated execution runtimes. Claude Code remains the compatibility baseline. Codex becomes a supported runtime for the complete prep → review → execute → handoff loop, including the session ownership, hooks and crew machinery that makes the loop reliable.
 
-**Planning only.** Anton approved the six-phase sequence on 2026-11-08, then explicitly required a written and reviewed spec before any implementation. Sequence approval is not design approval or permission to publish a release.
+**Phase 1 authorized.** After the written spec and independent reviews, Anton approved a new Codex session to execute Phase 1 on 2026-11-08. Its design Gate is recorded in the phase plan. Later phases, mixed-runtime enablement and public release remain gated.
 
 | File | Purpose |
 |---|---|

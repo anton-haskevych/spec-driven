@@ -2,7 +2,7 @@
 
 ## Current state
 
-Draft specification only. Phase sequence approved by Anton on 2026-11-08; design/implementation and public release are not approved yet. All implementation boxes remain unchecked. No source, installed plugin, settings, model defaults or daemon processes were modified during spec creation.
+Phase 1 proof work is authorized in a separate Codex worktree session by Anton on 2026-11-08. All implementation deliverables remain unchecked. Later phases, live installation and publication remain gated. No source or settings were changed during spec creation.
 
 ## PR groups
 
