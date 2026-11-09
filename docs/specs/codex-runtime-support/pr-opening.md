@@ -1,69 +1,68 @@
 # PR opening and release gates
 
-## Current state
+## Spec state
 
-Phase 1 proof work is authorized in a separate Codex worktree session by Anton on 2026-11-08. All implementation deliverables remain unchecked. Later phases, live installation and publication remain gated. No source or settings were changed during spec creation.
+Full Claude-to-Codex parity remains required; the first release is an explicitly restricted local pilot. Existing Phase 1/2 foundations are implemented; native entry, mixed writes, hooks and worker activation are still pending. See progress.md and workflow-parity.md for authoritative scope/status.
 
-## PR groups
-
-| Group | Phases | Purpose |
+| Group | Phases | Enabled value |
 |---|---|---|
-| A | 1–2 | Proven boundaries, Claude baseline and safe cross-runtime ownership |
-| B | 3–4 | Operational Codex lifecycle and native workflow binding |
-| C | 6 | Dual-runtime compatibility and CI enforcement; Phase 5 withdrawn |
+| A | 1, 2 | Existing foundations plus usable source-packaged isolated local cycle |
+| B | 2b, 4 | Shared normal-repository coordination and full interactive workflow/hooks |
+| C | 3 | Normal launches, next sessions, spin-offs and interactive babysitter launch |
+| D | 3b | Managed workers, unattended babysitting and overseer |
+| E | 6 | Complete parity closure and release enforcement |
 
-Groups land in order. Each is a coherent tested change; no PR claims full parity until the entire acceptance matrix passes. Follow `docs/specs/_playbook/settings.md`: ready PRs, squash merge. No direct implementation commits to main. Choose the release version from main at merge using `scripts/version.py`; do not pre-bump to a guessed latest number. This spec-writing session creates no branch, PR, push, release or live install.
-
-## Acceptance matrix
-
-| Scenario | Required evidence |
-|---|---|
-| Claude existing loop | Same prep/review/execute/handoff and launch/crew/claim/hook behavior against baseline fixtures and native smoke |
-| Codex fresh install | Packaged release discovers intended skill/native hooks/assets with no dependency on Claude installation or personal bridge |
-| Codex four-command loop | Context and project overrides load; a real phase can be claimed, worked and handed off through the shared policy |
-| Review | All five canonical lenses loaded, project overrides respected, no invalid Claude model names passed to Codex |
-| Plain sessions | No spec context, claims or expensive guard children until spec entry |
-| Hook protocol | Actual native patch calls trigger recall and after-edit spec validation, including multi-file/move and malformed payloads |
-| Mixed sessions | Claude and Codex see the same phase ownership/occupied trees; equal native IDs do not collide |
-| Source failures | Partial/unreadable/paginated/unknown states retain healthy rows and never justify takeover/prune |
-| Legacy state | Legacy Claude claims/run files decode; unknown schema/runtime stays unknown; all equality/release/remote paths are qualified |
-| Concurrent mutation | Managed resume after planning snapshot cannot race prune; simultaneous ticks cannot reserve one target or exceed worker caps |
-| Acknowledged close-out | Failed/lost stop or archive retains owned records/slots; user continuation on another turn is never controlled automatically |
-| Mixed incompatible writer contracts | Proven managed-route cutover fences old native resumes; actual legacy-reader claim/prune tests demonstrate protection; arbitrary manual historical code is unsupported; downgrade refuses incompatible live state |
-| Worker persistence | Native worker continues after launch-client disconnect, reconnects and survives controller restart |
-| Worker attention | Approval/input waits are distinguishable from completion, error and disconnection |
-| Worker stop | Exact owned turn interrupted; child processes cleaned up; archive preserves history/worktrees and never touches unrelated sessions |
-| Worker retries | Lost responses, repeated ticks and restarts do not create duplicate workers; unknown launch outcomes keep their slot |
-| Completion | Native final assistant evidence is correctly paginated/wrapped and existing git/handoff/released-claim checks remain enforced |
-| Native install/update | Existing host mechanisms select the release; fresh sessions discover required skills/hooks/files. No plugin-owned updater or freshness state |
-| In-progress update | Document native old-path invalidation and recover in a fresh session using the installed release. Custom retention and uninterrupted old-session execution are deferred; native trust and incompatible writer-contract safety remain required |
-| Reinstall/update durability | Reinstallation erases no required adaptation because all runtime behavior ships in source artifacts |
-| Host limits | Alternate homes, unsupported daemons/no-daemon/remote hosts are capability-tested or clearly refused, never advertised as complete coverage |
+Groups land in order. Each enables only accepted capabilities; missing later rows remain pending, not failed gates on an earlier delivery. Full-parity claims require the entire inventory. Existing settings require ready PRs and squash merge. Use scripts/version.py from current main at merge, never a guessed version. No direct implementation commits to main. Live personal install, publication and rollout require existing authorization. This planning revision performs none.
 
 ## Pre-PR checks
 
-- [ ] Phase design gate approved; per-phase recon and phase-preflight complete before coding.
-- [ ] `bun test`, `bun run typecheck`, `python3 scripts/version.py` and frozen install pass.
-- [ ] Normal native installation discovers the Codex manifest/hooks/required files without development or personal-bridge dependencies. Use the existing release process; hosts own updates.
-- [ ] New/touched units satisfy structural size/function/parameter and import-boundary gates; no double casts or hand-written transport protocol.
-- [ ] Source adapters pass shared behavior tests with no host-state reads in unit tests.
-- [ ] Each supported native surface has controlled, scrubbed integration evidence and fixture cleanup.
-- [ ] Doctor/graph/phase references are clean; code-map and phase-specific learnings current.
-- [ ] No skipped capability probe is counted as passing parity; unresolved invariants park implementation.
+### Common checks — every delivery
 
-## Rollout approval — after implementation
+- [ ] Run canonical Bun tests/typecheck, version agreement and frozen-install checks for the touched package.
+- [ ] Run Claude regressions for every touched seam, preserving commands, outputs, approvals, defaults, successful behavior and ordinary-session overhead. Record/test intentional improvements.
+- [ ] Add deterministic contracts and controlled native evidence for each capability enabled by this PR; identify exact executed candidate assets/revision, supported CLI/API/configuration and cleanup.
+- [ ] Package changed entry/hook/runtime assets in source through existing manifests/version mechanisms; no cache patch, personal bridge or development checkout dependency.
+- [ ] Doctor/graph/phase references, code-map and scoped ledger are current; new/touched code meets existing structural/import/type rules.
+- [ ] Unimplemented/unproved capabilities refuse before side effects and are reported as pending. A skipped native test, metadata observation or pure-function test cannot prove native execution.
 
-- [ ] Anton approves publishing the ready PR/release and the specific personal install/update integration changes.
-- [ ] Record installed Claude/Codex versions, existing cache modifications and active session/claim state; preserve recoverable source/config backup.
-- [ ] Establish writer-contract-compatible fresh sessions before enabling mixed-runtime writes.
-- [ ] Publish through the existing release/version workflow; update the two host installations through supported operations and verify their exact active revision.
-- [ ] Verify new hook trust through native review; no bypass flags or forged hashes.
-- [ ] Run the acceptance harness on the actual selected release; report any unsupported surfaces accurately.
-- [ ] Remove migration-only cached adaptations when source-based replacement passes; keep unrelated harness work intact.
-- [ ] Exercise supported recovery/rollback within the compatible writer floor. Start fresh sessions after native updates invalidate old paths; custom old-session retention is not required.
+### Group A — first real local use
 
-## Planning review
+- [ ] Native candidate entry uses the existing configured identity/context composition; current native ID/cwd and candidate assets/revision are verified.
+- [ ] One exclusive pilot clone has a distinct Git common directory and lies outside existing managed prune/claim state. Execute the actual historical clone's enumeration fixture; prove no pilot nomination. No marker-only boundary.
+- [ ] Entry, execute and handoff guard every unavailable automatic action, including remote mirroring, claim/takeover, placement/prune, board allocation, push/publication, next-session launch and crew; no Claude-default fallthrough.
+- [ ] Complete a real code chunk of this port using the pilot, with explicit recall/validation, invalid-edit feedback/correction, progress/ledger/in-flight updates, local commit and fresh-session pickup. Report it as a restricted local cycle, not managed parity.
 
-Five independent reviewers completed the initial design review. All recommended fix-then-proceed. Sixteen findings were consolidated into eleven verified/design amendments, applied in this spec; immutable synthesis: `reviews/2026-11-08-dual-runtime-boundaries.md`. Phase-1 capability/cutover probes and Anton’s final design approval remain gates, not completed implementation evidence.
+### Group B — normal shared daily work
 
-Targeted principal/adversarial recheck found no remaining high blockers for phase 1 proof work: `reviews/2026-11-08-proof-gates-recheck.md`. This does not authorize enabling later capabilities or skip final design approval.
+- [ ] Prove supported entry/resume/maintenance old-writer cutover and compatible rollback limits using actual historical-reader fixtures before shared Codex writes. A file floor/marker alone is insufficient.
+- [ ] Shared claim/board/list/tree behavior covers qualified/equal IDs, unknown schemas, legacy and remote records, parked sessions, healthy/unavailable sources and source-correct joins.
+- [ ] Coordinated managed entry/claim/place/prune revalidates current evidence; competing takes and resume-after-preview-before-removal cannot steal or remove live/unknown work.
+- [ ] Run all interactive modes, full managed execute/handoff/publication/cleanup, all seven canonical agents including five review lenses, and project overrides. Runtime-neutral tools preserve existing behavior/authorization.
+- [ ] Native trusted hooks actually invoke pre-edit recall and post-edit validation for multi-file/add/update/delete/move payloads, including malformed input and invalid edits; plain Claude/Codex sessions remain cheap.
+
+### Group C — normal launches
+
+- [ ] Correct runtime/spec/phase/cwd and native request reach a real fresh session through existing terminal selection; preserve Claude command/terminal goldens.
+- [ ] Next-session replies, spin-offs and normal babysitter launches preserve owner/busy/existing-tree rules and authoritative PR-group metadata; no duplicate on ambiguous outcome.
+- [ ] Native model/permissions retain configured values. Normal acknowledgement never fabricates owned-worker identity. Exercise terminal/UI behavior directly where claimed.
+
+### Group D — full unattended workflow
+
+- [ ] Prove actual native worker disconnect survival/reconnect/controller restart, approval/input attention, bounded paginated owned-turn completion and existing git/handoff/claim close-out.
+- [ ] Concurrent controllers, repeated ticks and lost launch responses preserve one target/slot reservation and cap; ambiguous starts hold capacity.
+- [ ] Exact-turn interrupt, yielded child-process cleanup and archive are acknowledged; lost/failed control retains ownership/capacity, later unowned continuation prevents control.
+- [ ] Exercise full babysit/overseer auto/hold/parking/owner/capacity policy and mixed-runtime/legacy worker records, with Claude regression evidence and guaranteed native cleanup.
+
+### Group E — full parity completion
+
+- [ ] Every workflow-parity.md row passes for both runtimes in the supported configuration; reconcile against the current canonical mode/command inventory.
+- [ ] Consolidated harness and CI enforce deterministic contracts/package/version/import boundaries and keep absent native credentials/runtime explicit.
+- [ ] Release evidence records exact plugin/assets, CLI/API versions, all scenarios, supported environments and recovery limits. Required missing features cannot be relabelled unsupported to close the port.
+
+### Native rollout — scoped to each enabled delivery
+
+- [ ] Obtain the existing authorization for any personal install/publication changes; record selected source/revision, installed host versions and recoverable source/config state.
+- [ ] Use existing release/version and native host install/update operations; verify fresh sessions execute the selected candidate/release and native hook trust when hooks are enabled.
+- [ ] For shared writes, establish compatible managed sessions before activation and exercise supported rollback within the writer floor. Do not require unrelated hosts/features before an isolated pilot.
+- [ ] Use fresh-session recovery after native old-path invalidation. No updater/freshness state/retention subsystem.
+- [ ] Remove only migration cache adaptations whose source replacement has passed; preserve unrelated setup. Full port completion still requires Group E.

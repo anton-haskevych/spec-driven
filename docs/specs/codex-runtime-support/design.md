@@ -2,93 +2,82 @@
 
 ## The experience
 
-Claude users keep their existing commands and behavior. A Codex user invokes the native spec skill (for example `$spec execute gift-cards`); native skill naming/discovery is proved in the clean-install tests rather than assumed from Claude's qualified slash syntax. Both enter the same shared mode files and business rules.
+Anton can use the same complete spec workflow in Claude Code or Codex. Claude keeps its current commands and behavior; native binding translates invocation/tool mechanics and uses the same canonical policies, documents and personas. workflow-parity.md defines the full scope.
 
-```text
-native skill invocation
-       ↓
-host bootstrap → runtime identity + supported capabilities + pinned release
-       ↓
-shared prep / review / execute / handoff policy
-       ↓
-small injected ports
-       ↓
-Claude adapter             Codex adapter
-CLI + verified files       supported native APIs / transport
-       ↘ normalized sessions, workers, evidence ↙
-          shared claims, board, worktree and crew policy
-```
+Deliver the first usable Codex cycle before automated workers. Use that cycle to finish this port. Deferred features remain assigned, required work.
+
+## Delivery boundaries
+
+| Delivery | User value | Boundaries |
+|---|---|---|
+| Phase 2 | Enter a spec, finish a real code chunk, commit local handoff, resume fresh | Explicit exclusive isolated-clone pilot; unavailable automation is reported and guarded |
+| Phases 2b + 4 | Use the normal shared repository and full interactive modes/reviewers/hooks | Proved shared ownership/cutover and real native hook feedback |
+| Phase 3 | Launch the correct fresh session, next work, spin-off or interactive babysitter | Native terminal plan/acknowledgement; no invented worker ownership |
+| Phase 3b | Run unattended workers, babysitters and overseer | Durable ownership, recovery, attention and safe close-out |
+| Phase 6 | Adopt the complete supported port with release enforcement | Every parity row passes; Claude has no regressions |
 
 ## Invariants
 
-1. Workflow decisions have one implementation: runtime adapters translate mechanics, not ownership, phase selection, handoff success, ship modes or approval policy.
-2. Resolve the initiating runtime once at the composition boundary. Persist it on every owned launch. A later overseer never infers a worker's backend from its own environment or an ID prefix.
-3. Missing/unreadable/incomplete session evidence is unknown, never proof of absence or success. An unsupported feature is refused before creating a worktree, writing a brief or starting work.
-4. The current Claude behavior remains the baseline. Adding Codex cannot require a running Codex service on a machine that only uses Claude.
-5. Never delete, stop, archive or interrupt work the plugin cannot prove it owns. A completion report alone does not replace existing clean/pushed/handoff/claim-release checks.
-6. Native installation selects the release for fresh sessions. Updates may invalidate an older session's helper paths; recover by starting a fresh session. Seamless old-session continuity and custom retention are deferred.
-7. Operator communication stays agentic: Anton does not run install/update/diagnostic scripts. The plugin reports one clear actionable status and performs authorized routine operations itself.
+1. One shared implementation of workflow policy: phase/owner/ship/approval decisions, success, handoff and crew rules are not forked by host.
+2. Preserve all Claude features and existing successful behavior. Deliberate improvements carry explicit regression evidence.
+3. Resolve initiating runtime/source/session once at composition. Persist qualified identity on every owned launch; never infer a worker backend from the controller environment.
+4. Missing/unreadable/incomplete evidence is unknown, never absence or success. Refuse unready operations before side effects.
+5. Never stop/archive/interrupt/remove work without proved ownership and current evidence. Completion text does not replace git/push/handoff/released-claim checks.
+6. Claude-only users require no Codex daemon. Native source participation is explicit; healthy results survive another source's failure.
+7. Native hosts own installation/update selection and trust. Fresh sessions recover from old-path invalidation; no custom updater or retention.
+8. The agent performs routine operations; Anton does not run maintenance scripts. Plain sessions receive no spec context or expensive guards before spec entry.
+9. A limited increment is labelled accurately. Missing features cannot become permanent omissions or passing parity results.
 
-## Flows
+## Native entry and local pilot
 
-### Enter a mode
+Native entry resolves the actual request, packaged asset root/revision and initiating ID/cwd, then invokes existing taxonomy/playbook/context composition. Codex performs explicit bootstrap instead of relying on Claude interpolation. Minimum entry belongs in Phase 2; full interactive/persona/native-hook binding belongs in Phase 4.
 
-1. Host entry invokes explicit bootstrap with the actual user request and selected native skill root.
-2. Resolve runtime and session identity, validate capabilities, and pin version/revision/contracts.
-3. Register that this session entered the spec workflow; attach scoped native hook behavior.
-4. Load taxonomy, playbooks and context through the existing commands. Codex executes needed bootstrap commands explicitly; it does not depend on Claude's shell interpolation.
-5. Dispatch to the same canonical mode file. Project overrides retain their current precedence.
+The early pilot runs one exclusive checkout in a separate clone with its own Git common directory, outside the original clone's linked-worktree/prune domain. Verify that boundary with existing Git primitives and a legacy-reader fixture. Do not build a clone/profile manager. A marker or explicitly assigned sibling worktree cannot protect against older Claude cleanup.
 
-### Concurrent work
+The pilot names its spec, phase and cwd explicitly. Allowed work is local context, implementation/spec edits, validation, progress/ledger/in-flight updates and local commits. It uses existing recall and per-file/doctor checks explicitly until trusted native hooks are active.
 
-A Claude and a Codex session in one repository see normalized records from both participating sources. Claims compare `(execution source, native ID)`, not naked strings; an execution source includes the runtime and an opaque configured-environment key. Source coverage is explicit. A claim on a healthy source can be evaluated even if another source fails; tree-wide destructive/placement decisions require coverage of every participating source. A failed source never globally hides the healthy source's rows.
+Shared capability handling must refuse unready claims/takeover/remote mirroring, automatic board-based target allocation, placement/prune, push/publication, next-session launch and crew before dispatch. Canonical execute/handoff instructions must recognize that declared restricted result instead of retrying through Claude defaults or reporting successful skipped actions. The pilot finishes a local handoff, not full managed handoff parity. No restriction changes Claude's default workflow.
 
-### Launch and crew
+A real code chunk from this spec, its local handoff and fresh-session pickup provide early adoption evidence. Test the candidate actually executed, not a catalog version. Full normal shared-repository workflow follows in 2b/4.
 
-Shared policy builds a launch request. A capability check precedes placement. A normal session uses the existing pure launch plan and terminal acknowledgement. Dedicated background creation has a separate adapter returning a proved owned worker handle. The plugin atomically reserves the run/target/slot before placement, then records source-qualified ownership before scheduling further actions. Roster, wait, stop and completion evidence route using that recorded handle. Controller restarts reconcile records; ambiguous launch outcomes occupy their slot and request attention instead of being blindly retried.
+## Shared daily workflow
 
-For Codex, success requires demonstrated disconnect survival and child-process cleanup. If the native transport cannot satisfy the contract, phase 3 stops for a design decision; there is no silent fallback to Claude or an improvised detached-process runner.
+Phase 2b wires the existing normalized observations into claims, board/list, placement and prune. References compare execution source plus native ID. Healthy claims can be evaluated independently of a failed unrelated source; tree-wide placement/cleanup requires coverage of all participating sources.
 
-### Updates
+Before qualified shared writes, prove compatible managed entry/resume/maintenance cutover. Old 2.51.0 readers cannot see Codex safely; a new marker alone does not constrain them. Unknown/older participating writers require restart/refusal. Rollback below the writer floor requires no incompatible live state or an explicitly reviewed migration.
 
-**Chosen scope:** use native updates and start a fresh session if an update invalidates an old session's helper paths. Do not build custom retention or require all old sessions to close for every update. Seamless old-session continuity is deferred so it does not hold up the core workflow. Decision: `ledger/decision-use-native-updates.md`.
+Phase 4 restores full managed execute/handoff, the rest of the interactive modes, canonical review/recon agents, project overrides and native recall/validation hooks. Existing approval, publish, ship, fresh-session and stop rules remain shared. See workflow-parity.md for every mode/tool owner.
 
-Use native host installation/update mechanisms and the existing release process. The plugin implements no update polling, freshness helper, release-state journal or coordinator. Normal installation verification lives in pr-opening.md; Phase 4 includes required manifests and runtime files. Native hook trust remains required. Restart affected sessions after updates when necessary.
+## Normal launch
 
-Report the selected native installed release honestly. Native trust is not bypassed. Live installation and public release still require their normal rollout approval; no managed updater is being introduced.
+Phase 3 reuses pure launch planning and existing terminals. A capability check precedes placement/brief writes. Native request/skill syntax and cwd are explicit; configured model/permissions remain native. A terminal acknowledgement does not fabricate a session/worker handle.
 
-## Status copy
+Next-session suggestions/replies, prep spin-offs and interactive babysitter launches retain existing selection and busy-tree rules. Do not launch from stale branch-only phase regrouping.
 
-| State | Agent-visible message |
-|---|---|
-| Ready | `Spec runtime: Codex · plugin <version> · session <id>` |
-| Identity unavailable | `Cannot claim this phase: the runtime did not provide a session identity.` |
-| Coverage unavailable | `Cannot prove this workspace is free: <runtime> session status is unavailable. No claim or worktree was changed.` |
-| Capability unverified | `Codex background sessions are not enabled: <probe that must pass>. Nothing was launched.` |
-| Ambiguous launch | `Worker launch outcome is unknown. The slot is held while this launch is reconciled.` |
-| Update installed | `Spec-driven <version> is installed. Start a fresh session to use it.` |
-| Update blocked | `Spec-driven update needs <trust review / compatible Codex / validation fix>.` |
-| Native update failure | `Native plugin update failed: <host reason>.` |
+## Managed launch and crew
+
+Phase 3b adds dedicated background creation with proved owned handles. Atomically reserve stable run/target/slot before external launch; persist source, exact turn/generation and release. Unknown launch outcomes hold capacity until reconciled, including after controller restart. Simultaneous ticks cannot duplicate targets or exceed caps.
+
+Roster/wait/attention/evidence/control route by the persisted handle. Completion is the owned turn plus existing close-out checks. Disconnect, missing rows and later user continuation do not prove completion. Lost stop/archive acknowledgements retain records/capacity; newer unowned activity prevents automatic control.
+
+Native disconnect survival and yielded child cleanup must be demonstrated. If the transport cannot satisfy a required feature, report the concrete gap rather than silently falling back to Claude or an improvised detached runner.
+
+## Validation and release
+
+Feature-owned contracts and real native acceptance ship with each increment. Claude regressions run at every PR. Phase 6 consolidates suites/CI and closes every parity row; it does not delay basic installation/workflow verification.
+
+Keep native hook trust and actual invocation required for automatic validation. Keep remote ownership and worker safety acceptance with the features that use them. Native update behavior uses existing release tooling and fresh-session recovery; no compatibility claim rests on a skipped probe.
 
 ## Decisions and alternatives
 
 | Decision | Chosen | Rejected alternative | Reason |
 |---|---|---|---|
-| Policy ownership | Reuse shared mode files, claims/board/tree/crew policy | Fork the workflow per host | Two policies would drift after each release. |
-| Runtime variation | Small injected ports and two concrete adapters | Scatter `if Codex` through use cases; giant universal runtime interface | Boundaries match actual variation, remain testable and avoid a framework. |
-| Existing I/O | Wrap existing Claude implementations as the Claude adapter | Rewrite working Claude behavior for symmetry | Characterization tests preserve existing behavior. |
-| Identity | Source-qualified session references and legacy decoder | Bare IDs; treating CODEX_HOME as a Claude home | Storage formats and lifetime semantics differ. |
-| Session reads | Reuse normalized session consumers with explicit per-source coverage | Treat all unarchived threads as live; failure as empty | History is not liveness; unknown cannot release work. |
-| Codex transport | Supported app-server transport behind a narrow client, selected by phase-1 proof | Assume proxy JSONL works; hand-read SQLite/rollout internals | Read-only Unix WebSocket worked; proxy and worker lifetime are unproven. |
-| Parsing/transport library | Runtime built-ins where capability-proved, otherwise established pinned library | Hand-written WebSocket/JSON framing | Use the toolchain's tested mechanisms; justify any new dependency. |
-| Atomic state | Reuse atomic primitives/shared roots/section writers, with stable target reservations and generation-fenced updates | A new database or daemon registry | Existing state mechanisms already support local coordination. |
-| Hook scope | Native bundled Codex hook entrypoints gated by a real spec-session registration | All-purpose personal bridge; always loading spec context | The plugin owns its protocol; ordinary sessions stay cheap. |
-| Reviewers | Canonical personas + host binding; honor project overrides | Assume Markdown agents auto-register; copy seven drifting personas | Explicit loading provides the same review lenses on both hosts. |
-| Updates | Native scoped install flow; fresh-session recovery if old helper paths disappear | Custom retention; blanket wait for all old sessions; cache patches; second activation selector | Seamless old-session continuity is an edge case deferred by Anton; focus on the core workflow. |
-| Capabilities | Prove each supported surface before enabling it | Advertise full parity based on discovered RPC names | Callable method names do not establish operational guarantees. |
-
-## Compatibility and concurrency boundaries
-
-Mixed incompatible writer-contract versions are not supported; compatible plugin release versions may coexist. A managed-route cutover must prevent old installed/cached tools from resuming through supported entry paths before Codex writes are enabled; a marker alone cannot do this. Arbitrary historical tools invoked manually outside those paths remain explicitly outside the guarantee. Prove the fence at Phase 2 mixed-write activation; otherwise park that capability for a design decision. Adapter development and fixture tests can proceed before activation proof.
-
-Read-only planning snapshots are reused, but mutation uses fresh evidence under workspace/run coordination. Concurrent ticks reserve one stable target and numbered slot. A stop/archive failure retains ownership and capacity until acknowledged. User activity on a later unowned turn prevents automatic control of that continuation. These safety contracts are shared by both runtimes.
+| Final scope | Complete daily workflow on both hosts | Treat a pilot/four-command demo as finished parity | Anton requires every existing feature |
+| Delivery order | Local use → shared interactive work → launch → workers | Bootstrap behind worker recovery | Adoption can help finish the port |
+| First-use boundary | Exclusive separate-clone pilot until shared coordination works | Assigned sibling tree or marker-only safety | Old readers can neither observe Codex nor obey new markers |
+| Policy ownership | Canonical modes with one capability contract | Host-specific workflow copy | Avoid divergent success/approval behavior |
+| Runtime variation | Existing small ports/concrete adapters | Universal provider framework or scattered host branches | Two actual runtimes need a bounded integration |
+| Identity and reads | Existing qualified refs and per-source coverage | Naked IDs, unknown-as-empty, native history-as-liveness | Protect correct ownership and healthy observations |
+| Coordination | Existing atomic state at mutation/worker boundaries | New database/daemon or stale planning authorization | Reuse proven mechanisms |
+| Hooks/reviewers | Native translation plus canonical logic/personas | Personal bridge, drifting copies or presumed auto-registration | Source-contained parity with real feedback |
+| Updates | Native install/update and fresh-session recovery | Updater, retention or second activation authority | Already resolved scope; focus on the workflow |

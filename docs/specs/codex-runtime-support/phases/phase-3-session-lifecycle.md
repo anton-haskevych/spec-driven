@@ -1,30 +1,30 @@
 ---
-needs: [2]
-pr: B
+needs: [2b, 4]
+pr: C
 ---
 
-# Phase 3 — Native launches and background worker lifecycle
+# Phase 3 — Normal launches, next sessions and spin-offs
 
 ## Outcome
 
-Normal Codex sessions and dedicated owned background workers use proven native lifecycle adapters while the existing crew policy stays shared.
+Codex can open the correct fresh interactive session from next-session suggestions, spin-offs and PR handoffs. Claude keeps its terminal behavior. Normal launching no longer waits for managed background-worker recovery.
 
 ## Files to touch
 
-`runtime/claude` and `runtime/codex` launch/control/evidence; `launch/command-line`, `background`, `commands/launch`; `sessions/agents`, `transcript`; crew launch/check/wait/tick and ownership journal.
+runtime/claude and runtime/codex normal launch binding; launch/command-line and terminal; commands/launch; canonical next-session, spin-off and babysit bindings; focused launch fixtures.
 
 ## Deliverables
 
-- [ ] Add runtime-specific normal launch plans with safe argument handling and canonical native skill invocation; retain shared terminal selection and Claude command goldens.
-- [ ] Implement proven Codex worker launch and durable owned handles; capability checks precede tree placement and brief creation, and permissions/models follow the selected host configuration.
-- [ ] Implement runtime-routed roster, wait, attention, bounded final-turn evidence, interrupt and archive for exact owned handles; never infer success from missing threads.
-- [ ] Add local atomic launch records and recovery for starting/outcome-unknown/running states. Repeated ticks, timeouts and overseer restarts cannot launch duplicates or free an unknown slot.
-- [ ] Integrate both worker backends into existing close-out and slot policy; verify disconnect survival, failed/interrupted workers, mixed-runtime takeover, approval/input waits and complete child-process cleanup in controlled fixtures.
-
-- [ ] Preserve NormalLaunchPlan/terminal acknowledgement; only WorkerLauncher returns WorkerHandle. Extract launchCommand dependencies before provider injection.
-- [ ] Reserve a stable run/target and numbered slot atomically before side effects; use generation/CAS merges and invocation-unique lock ownership. Test overlapping controllers, not only repeated ticks.
-- [ ] Persist launched turn/generation; fence completion/control to it. Keep stopping/archive-pending/control-outcome-unknown entries and their capacity until acknowledged; test later user continuation and lost stop/archive responses.
+- [ ] Add native normal launch plans with canonical skill/request binding, explicit cwd, safe arguments and configured model/permissions; retain Claude command goldens and terminal selection.
+- [ ] Extract launchCommand's remaining oversized dependency signature before provider injection, reusing existing Runner and terminal acknowledgement.
+- [ ] Route next-session suggestions/replies, prep spin-offs and normal babysitter launches through the selected host; preserve target selection, owner filtering, existing-only PR trees, busy refusal and fresh-session stop rules.
+- [ ] Check native capabilities before placement/brief/launch side effects and verify that the intended candidate/current release and assigned spec/phase/cwd reach the fresh session.
+- [ ] Add normal-launch, busy-tree, failure and no-duplicate-on-ambiguous-terminal-result coverage plus Claude regressions. Normal acknowledgement never fabricates a managed WorkerHandle.
 
 ## Implementation guidance
 
-Phase 1 proof is a hard precondition. No cache patch, Claude fallback, shell PID pretending to be a native session, or improvised detached runner. A transport failure during launch is ambiguous until reconciled. Stop/archive must preserve history, user-created sessions and worktrees.
+Keep normal launch planning separate from worker lifecycle. Reuse shared terminal plans and safe argument rendering; native binding translates syntax and tool mechanics only. Do not translate Claude model names/permission flags into guessed Codex equivalents.
+
+A launch must use authoritative phase/PR-group metadata. A replan only on this branch does not update origin/default placement. Continue in the explicitly assigned implementation tree until metadata is published through the authorized existing process; never auto-launch a stale regrouped phase.
+
+Real terminal and fresh-session checks are scoped PR gates in ../pr-opening.md. Background creation, durable workers and crew remain required in Phase 3b.

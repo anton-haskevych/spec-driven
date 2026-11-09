@@ -2,16 +2,21 @@
 
 ## Success metrics
 
-- Both runtimes pass the shared policy contracts and clean-install workflow scenarios.
-- No cache-only modifications are required after a reinstall or upgrade.
-- Live/unknown work cannot be stolen or pruned across runtimes.
-- Installed release and unsupported capabilities are reported truthfully.
+- Full workflow parity: every row in workflow-parity.md works on Codex in the supported configuration.
+- Claude keeps every existing feature and observable workflow; clear improvements require regression evidence.
+- The first restricted local cycle is usable before mixed coordination and background automation are complete.
+- Live/unknown work cannot be stolen, pruned or controlled; unimplemented capabilities remain explicit.
+- All adaptations ship in source; native hosts own updates, with fresh-session recovery.
 
 ## Phases
 
+Phase IDs preserve history; list order is delivery order. Later features remain required, not cut.
+
 - [x] Phase 1 — Runtime contracts and Claude compatibility baseline → `phases/phase-1-runtime-contracts.md`
-- [ ] Phase 2 — Codex identity and shared session visibility → `phases/phase-2-session-ownership.md`
-- [ ] Phase 3 — Native launches and background worker lifecycle → `phases/phase-3-session-lifecycle.md`
-- [ ] Phase 4 — Skill bootstrap, reviewer binding and scoped hooks → `phases/phase-4-native-workflow.md`
-Withdrawn: Phase 5 — folded into Phase 4 and the release checklist → `phases/phase-5-release-updates.md`
-- [ ] Phase 6 — Dual-runtime compatibility harness and CI gates → `phases/phase-6-compatibility-gates.md`
+- [ ] Phase 2 — First usable local Codex execute and handoff → `phases/phase-2-session-ownership.md`
+- [ ] Phase 2b — Shared ownership, board and worktree coordination → `phases/phase-2b-shared-coordination.md`
+- [ ] Phase 4 — Complete interactive workflow, reviewers and native hooks → `phases/phase-4-native-workflow.md`
+- [ ] Phase 3 — Normal launches, next sessions and spin-offs → `phases/phase-3-session-lifecycle.md`
+- [ ] Phase 3b — Managed workers, PR babysitting and overseer parity → `phases/phase-3b-managed-workers.md`
+Withdrawn: Phase 5 — native hosts own updates; packaging/checks stay with features → `phases/phase-5-release-updates.md`
+- [ ] Phase 6 — Full parity closure and release enforcement → `phases/phase-6-compatibility-gates.md`

@@ -3,42 +3,50 @@ needs: [1]
 pr: A
 ---
 
-# Phase 2 — Codex identity and shared session visibility
+# Phase 2 — First usable local Codex execute and handoff
 
 ## Outcome
 
-Both runtimes participate in the same ownership and worktree decisions with explicit source coverage and safe state compatibility.
+Anton can use a source-packaged Codex entry to complete a real code chunk, commit a local handoff and resume it in a fresh session. This is an explicitly restricted adoption pilot; full managed workflow parity remains required in the later phases.
 
 ## Files to touch
 
-`runtime/identity`, session adapters/composition; six code-map read seams and system factories; `claims/store`, `rules`, remote/takeover codecs; `crew/run-state` identity codecs; related fixtures.
+Existing runtime identity/readers and configured context commands; minimal native entry/manifest assets; shared spec entry/execute/handoff capability handling; focused bootstrap, dispatch and installed-candidate fixtures.
 
-## Deliverables
+## Completed foundations
 
 - [x] Add explicit initiating-runtime resolution and qualified identity, preserving legacy Claude decoding and refusing conflicting or unavailable identity evidence.
 - [x] Implement injected, paginated Codex loaded-session reading and per-source coverage composition.
 - [x] Add an opt-in read-only context entry using qualified claim inputs, one resolved identity and one configured snapshot, preserving exact-source unknown coverage in phase selection.
 - [x] Back the opt-in context command with versioned claim documents, explicit legacy Claude source binding and one disk read for both inference and held phases; refuse unknown versions/unreadable records and retain unknown fields.
-- [ ] Propagate async only through command I/O orchestration and reuse one snapshot per command.
-- [ ] Update take/release/takeover, remote claim serialization and overseer/worker records to qualified identities, preserving unknown fields and legacy Claude records.
-- [ ] Add writer-contract compatibility and activation/rollback guards; prove supported managed entry/cutover before enabling mixed writes so old readers cannot steal Codex claims. If native reentry cannot be fenced, return the specific activation choice; a marker alone is insufficient. This gate does not block building/fixture-testing adapters.
-- [ ] Wire board, context, claim, placement and pruning to the same composition. Add mixed-runtime equal-ID, unknown-source, busy-tree, legacy-record and cross-process race fixtures.
-
 - [x] Add SourceRef binding and a single source-qualified identity equality/key helper.
-- [ ] Update trees/find, claims/held, board/joins/attribution, remote-take, overseer and every codec/self/mirror/release path to the shared qualified identity helper.
 - [x] Extract narrow dependency objects for contextPack and placeTree before adding native ports; separate async context input loading from pure pack/phase rendering.
-- [ ] Add workspace-coordinated mutation-time liveness/claim revalidation and an interleaving test for resume-after-preview-before-prune; the planning snapshot alone never authorizes removal.
+
+## Next chunk — connect the entry
+
+- [ ] Bind a native Codex entry to createStoredRuntimeContextCommand and the existing dispatcher using one explicitly supported local source; verify actual initiating ID/cwd and candidate asset revision before work.
+- [ ] Enforce the pilot's allowed operations before command dispatch; update the shared mode capability contract so automatic execute/handoff actions cannot fall through to Claude defaults or report skipped ownership as success.
+- [ ] Package the minimum entry/assets in source using existing manifests/version tooling; add fixture coverage for entry, identity refusal and unsupported actions, keeping Claude dispatch behavior unchanged.
+
+## Complete the local cycle
+
+- [ ] Validate exclusive separate-clone/common-directory isolation with existing Git primitives and an actual legacy prune-enumeration fixture. Refuse same-common-directory managed use until Phase 2b; disable remote claim mirroring and all unready automation.
+- [ ] Invoke existing lesson recall before edits and per-file/doctor validation after spec edits while native hooks are pending; prove invalid-edit feedback and correction without a new validator.
+- [ ] Support local progress/ledger/in-flight updates and commits through shared workflow rules, then explicit fresh-session pickup. Report unavailable push/publication, ownership, launches and cleanup honestly; do not mark the full managed handoff complete.
+- [ ] Add the installed-candidate/local-cycle acceptance driver and focused Claude regressions. Resolve obsolete automatic-update/retention capability wording only where touched; introduce no updater.
 
 ## Implementation guidance
 
-Do not hide native state reads inside the existing Claude parser or make fixture tests read the host. Preserve healthy-source rows during another source's failure. A tree can be free only with sufficient coverage; an unavailable source never counts as empty. No remote ownership inference from local daemon data.
+Compose the tested functions already present; do not re-extract context/placement or build another runtime framework. Preserve raw claim documents separately from policy values. Propagate async only through the I/O paths this slice actually uses.
 
-Prioritize a useful execute → handoff slice in one supported configuration. Build and fixture-test incrementally; keep mixed mutations disabled until acceptance passes (`ledger/decision-deliver-value-incrementally.md`).
+The pilot is one exclusive checkout with a distinct Git common directory, outside the legacy clone's linked-worktree/prune domain. An assigned sibling worktree, marker or Codex-only prune refusal is insufficient. Use ordinary Git operations; build no clone/profile manager. No global/default Claude restrictions change. Shared mode capability handling defines the temporary pilot once; host bindings contain mechanics only.
+
+Remaining shared claims, board, placement, pruning and remote identity work is in Phase 2b. Full interactive modes/personas/native hooks are in Phase 4; normal launching in Phase 3; worker records/control in Phase 3b. The full scope is tracked in ../workflow-parity.md.
 
 ## Phase-local notes
 
-The first adapter chunk is opt-in: configured source arrays/host binding feed `runtime/resolve-identity.ts`; injected readers feed `runtime/read-sessions.ts`. Their source keys do not discover or certify endpoint/home configuration. The caller's connector must be bound to that exact configured source; current native ID/cwd observation and supported configuration acceptance still precede ownership activation. Legacy production factories remain unchanged. Completed adapter work is split from its pending command propagation above so a fixture-tested reader is not represented as a completed workflow.
+The six completed items above are the original fixture-tested foundations, not installed acceptance. commands/runtime-context.ts and commands/stored-runtime-context.ts are opt-in; default executable ownership remains Claude-only. Read ../in-flight/phase-2.md for current implementation details and the assigned tree.
 
-`commands/runtime-context.ts` is an opt-in read-only composition, not the CLI's default context entry. Its claim port returns one `RuntimeContextClaims` value with qualified claims and local-tree inference rows. `commands/stored-runtime-context.ts` backs that port with `claims/read-documents.ts`, resolves the existing common claims directory and worktree ownership, and feeds the same disk read into both outputs. `spec.ts run` accepts that configured context command explicitly; source discovery/current-ID observation, installed CLI bootstrap and production-wide wiring remain open. It resolves identity once, reads each configured source once and feeds the same HeldPhases into shared context selection/relations.
+Installed evidence must identify the candidate files actually executed. Do not infer candidate use from a catalog version or the already installed cached skill. Preserve all existing proof fixtures and do not repeat platform/login/retention research.
 
-`claims/document.ts` accepts schema 1 (`ref`, qualified `takenFrom`) or unversioned legacy records with an explicit Claude source. It retains the original parsed record beside the normalized projection; unknown versions/runtime markers and malformed records refuse the read-only command. No encoder, qualified writer or remote codec is activated. Placement now consumes narrow `PlacementDeps`; the old `PlaceDeps` shape remains for legacy system/prune and hashed historical fixture typing. It does not establish mixed placement safety.
+Running the real self-use scenario is a Phase 2 PR gate in ../pr-opening.md; building its entry/driver belongs here. Approval for a live personal installation/publication is separate from this planning change.

@@ -2,33 +2,46 @@
 
 ## User intent
 
-Anton: “Spec driven plugin is the biggest core daily workflow and this has to always be up to date and work perfectly.” He then required: “Before you do that fix, please spec it out correctly … Claude code is working fine, we need to add codex … properly integrated in a clean code manner, aligned with the best practices and no tech debt.”
+Anton uses the full spec-driven plugin in Claude Code every day and needs the same workflow in Codex. His original request was to add Codex properly, with shared clean code and durable source-based behavior.
+
+Latest direction: “I want this full claude code workflow with the spec to be fully ported onto codex too” and “claude code experience should stay the same (or improve if you see clear improvements) but not cut any corners or features or regress”.
+
+Prioritize immediate value and incremental improvements: deliver one useful native local cycle early, use it to finish the port, and retain the complete final scope. Change delivery order, not the definition of success.
 
 ## Outcome
 
-The same current plugin release supports Claude Code and Codex without disposable cache patches, competing copies of workflow policy, manual maintenance commands, or weakened ownership and worktree protections. Existing specs, decisions, claims, review personas and handoffs remain usable.
+The same plugin source/release supports Claude Code and Codex for every existing public mode and surrounding daily workflow. See workflow-parity.md for the complete inventory and phase ownership. Existing specs, decisions, claims, review personas, overrides and handoffs remain usable in place.
 
 ## Compatibility baseline
 
-- Published `main`, authored source and pre-existing installations are 2.51.0 at `22e7ec7b6aae89c4a13c299e1dff024a26a1d1bc`, checked against remote HEAD on 2026-11-08.
-- Claude Code's normal session launch, background crew, claims, lesson recall, spec validation and four-command loop already work. Preserve their observable contracts.
-- Two earlier Codex cache edits only changed normal launch and late background refusal. They are migration artifacts, not an acceptable long-term implementation.
-- The new implementation belongs in `~/IdeaProjects/claude-plugins/spec-driven`, not the CRM application or a personal Python bridge.
+Published 2.51.0 at 22e7ec7 was the verified 2026-11-08 starting point. Claude's existing command, launch, crew, claim, hook and approval behavior is the regression baseline. Reuse it; clear shared improvements require focused evidence and may not remove features.
+
+Two earlier Codex cache edits are migration artifacts, not the implementation. The port belongs in this plugin's authored source, not CRM or a personal bridge. Existing Phase 1 and Phase 2 foundations are retained.
+
+## Delivery
+
+1. Phase 2: source-packaged native entry and a real local execute → handoff → fresh pickup in an exclusive isolated clone. Explicit temporary restrictions prevent legacy automation/shared-state hazards.
+2. Phases 2b and 4: shared claims/board/worktrees, full interactive modes, canonical reviewers and actual native hooks.
+3. Phase 3: normal launches, next sessions, spin-offs and interactive PR babysitting.
+4. Phase 3b: owned background workers, unattended babysitting and overseer.
+5. Phase 6: close the complete parity inventory and consolidate release/CI enforcement.
+
+Every delivery includes tests and native evidence for what it enables plus Claude regressions. A pilot cannot close the full port.
 
 ## In scope
 
-Delivery priority: one usable Codex execute → handoff flow, developed incrementally. Phase-specific safety acceptance gates feature activation rather than all adapter development (`ledger/decision-deliver-value-incrementally.md`).
-
-Explicit runtime composition; namespaced session identity; mixed-runtime liveness and claims; normal and background sessions; scoped hooks; canonical reviewer personas; required native manifest/assets in the existing release; normal host installation/update and fresh-session recovery; behavioral compatibility tests and CI release gates.
+All 12 public modes, all 21 agent-operated command families and cross-mode behavior in workflow-parity.md; source-qualified ownership and liveness; normal/background sessions; canonical agents and project overrides; scoped native hooks; native packaging; existing install/update/release flow; compatible state transition; behavior/native acceptance and CI.
 
 ## Out of scope
 
-Other harness cleanup, deduplicating unrelated skills, rewriting the spec workflow, changing ownership/ship/approval policy, changing Claude's defaults, replacing the crew scheduler, creating a generic third-party agent framework, reading/writing native databases or undocumented Codex transcripts, copying credentials, automatically publishing this change, or custom resource retention to keep old sessions uninterrupted across native updates. Use fresh-session recovery for that update edge case (`ledger/decision-use-native-updates.md`).
+Unrelated harness cleanup; competing workflow copies; changing owner/ship/approval policy; removing Claude features; replacing the crew scheduler; a generic agent framework; native database/transcript spelunking; copied credentials; clone/profile managers; custom installers/updaters/freshness coordination; uninterrupted old-session resource retention. Native updates use fresh-session recovery.
 
-## Supported environments
+## Supported environments and safety
 
-Target the installed Codex local CLI and desktop execution environments after capability probes establish their session coverage and transport. Preserve the plugin's current Claude-supported hosts. Remote/cloud, alternate Codex homes, multiple daemons and no-daemon CLI sessions must be detected and either supported with evidence or reported explicitly as unsupported; they may never masquerade as an empty live-session list. Record the supported CLI/API range in the release. Do not silently promise every Codex surface.
+Start with one proved installed local Codex configuration, preserve every existing Claude-supported host, and qualify claims/control by execution source. Expand CLI/desktop coverage with evidence as the port proceeds. Additional homes, daemons, no-daemon, remote/cloud configurations must be explicitly supported or reported as outside tested coverage, never silently empty. They do not justify dropping a required workflow feature in the supported configuration.
+
+Before shared writes, preserve the actual old-reader compatibility gate. Before native hooks or workers activate, prove their native trust/lifecycle contracts. An exclusive separate-clone pilot avoids those shared mutation paths while they are built; a sibling worktree alone does not.
 
 ## Success
 
-Both runtimes pass the same workflow-policy contract suite. Mixed Claude/Codex use cannot steal a live or unknown claim or prune occupied work. Native Codex bootstrap, hooks, review and worker lifecycle have executable acceptance evidence. The native install/update flow selects a validated release for fresh sessions, reports failures honestly and provides fresh-session recovery when an older session's helper paths become unavailable. Seamless old-session continuity is not a release gate.
+Every workflow-parity.md row passes on the supported Codex environment and existing Claude behavior remains intact. The first useful cycle arrives before background automation. All runtime behavior survives native reinstall because it ships in source. Live/unknown work cannot be stolen, pruned or controlled, and unsupported capabilities are reported honestly.

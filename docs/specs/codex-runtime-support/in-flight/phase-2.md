@@ -1,9 +1,17 @@
 # In-flight state
 
 **Session ended:** 2026-11-09
-**Active phase:** 2 — Codex identity and shared session visibility
+**Active phase:** 2 — First usable local Codex execute and handoff
 
-## Where things stand
+## Re-plan overlay — approved 2026-11-09
+
+- Anton requires the full daily Claude workflow on Codex and no Claude feature cuts/regressions. The approved adoption-first scope is in ../reviews/2026-11-09-adoption-before-automation.md and ../workflow-parity.md.
+- All six completed Phase 2 foundations below remain valid. Remaining shared claim/board/tree/remote integration moved to Phase 2b; worker/overseer identity and lifecycle moved to 3b. Full interactive hooks/personas are in 4, before normal launches in 3.
+- Next chunk: connect minimum native entry to createStoredRuntimeContextCommand, verify actual ID/cwd/candidate assets, and guard unavailable commands before dispatch. Reuse existing composition and validators.
+- First useful adoption is an explicitly restricted separate-clone/common-directory pilot. This note does not create/approve a live install or establish isolation. No same-repository ownership or full-parity claim until its feature acceptance passes.
+- Continue implementation in this exact tree/branch, ~/claude-worktrees/spec-driven/codex-runtime-support-pr-a / feat/codex-runtime-support-pr-a. The replan is branch-local: do not invoke automatic placement/launch for regrouped phases from old origin/default metadata. Candidate acceptance must use candidate assets, not the cached released skill.
+
+## Where things stand — preceding implementation evidence
 
 - Continued the inherited clean `feat/codex-runtime-support-pr-a` from `0e359c4`. Implementation commits: `4b1c7ce` qualified claim document decoder; `69637b9` conservative disk reader; `e61b68a` configured storage-to-context command integration. Controller commit `f4296f2` independently withdrew the custom updater phase during this session; preserve it.
 - `claims/document.ts` decodes `schemaVersion: 1` records with `ref: SessionRef` and optional qualified `takenFrom`. Unversioned legacy `sessionId`/string `takenFrom` require an explicit `ClaudeSource`. Unsupported versions, alternate identity/version markers, malformed refs/takeovers and contradictory sessionId refuse decoding. The result keeps the original parsed record separately from a normalized `StoredSessionClaim`; unknown nested fields survive in the record. No encoder or writer was added.
@@ -22,9 +30,11 @@
 
 ## Pick up from here
 
-- Reuse the new document reader and configured context command; do not rebuild discovery or restart platform/login/retention research. The next useful Phase 2 slice is remaining qualified read consumers (claims/held, board joins/attribution, trees/find and placement's world policy) or the explicitly configured native context bootstrap when that acceptance is authorized. Preserve exact-source unavailable/missing coverage and healthy-source results.
-- Qualified take/release/takeover, remote payloads/mirror joins, overseer/run/worker records and every raw-ID equality path are still pending. Preserve unknown fields through the raw document when building codecs. Keep write activation separately gated on enforceable old-writer cutover; a schema marker alone provides no fence.
-- Planning snapshots never authorize removal: workspace-coordinated mutation-time revalidation and resume-after-preview-before-prune interleaving tests remain open. Do not flatten RuntimeSession rows into naked-ID LiveSession to fit legacy consumers.
+- Follow Phase 2's “Next chunk — connect the entry”. Inspect only its concrete seam; preserve all existing source/identity/context/claim-reader fixtures and exact-source unknown coverage.
+- The shared capability contract must handle automatic execute/handoff actions explicitly. A context override does not port claims, trees, board, launches or crew; default factory fallthrough is unsafe.
+- Keep original pending qualified mutation/remote joins/placement/prune coordination in Phase 2b. Keep worker record/generation/slot/control migration in Phase 3b. These are deferred implementation, not scope cuts.
+- Do not repeat platform/login/retention research or refactor completed context/placement seams. Use existing recall and file/doctor validation while native hooks are pending.
+- The preceding 99-test result is historical focused verification, not tests of this replan's unimplemented entry or a full PR gate.
 
 Focused checks:
 

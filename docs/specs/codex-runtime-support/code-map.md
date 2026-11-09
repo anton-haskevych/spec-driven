@@ -1,6 +1,21 @@
 # Code map
 
-Verified 2026-11-08 at 22e7ec7. `T` = `skills/spec/tools/`.
+Existing seam inventory began at 22e7ec7 on 2026-11-08; introduced/touched rows below include subsequent Phase 1/2 work through 6eeb4e1. Historical source line references can drift. `T` = `skills/spec/tools/`.
+
+## Remaining work by delivery
+
+| Phase | Integration owner |
+|---|---|
+| 2 | Reuse T/commands/stored-runtime-context.ts, runtime-context.ts, identity/readers and dispatcher; minimum native entry/assets, explicit pilot guards and validation |
+| 2b | Claim codecs/mutations/remote joins, board/list, tree placement/prune and their shared system composition |
+| 4 | All interactive mode/persona/project-override binding, complete managed handoff and native hook/manifest assets |
+| 3 | Normal launch planning/terminal binding, next sessions, spin-offs and interactive babysitter launches |
+| 3b | Background/control/evidence adapters, overseer and worker/run identity, crew lifecycle/reconciliation |
+| 6 | Existing feature-owned suites consolidated into full parity/CI/release evidence |
+
+The six existing Phase 2 foundations stay implemented; do not rebuild their abstractions. Pilot commands must not fall through the default Claude registry merely because context is correctly injected. workflow-parity.md owns the full feature inventory. Tests/native evidence accompany their feature; final consolidation is not deferred basic verification.
+
+## Existing seams
 
 | Existing file / seam | Current role | Planned change |
 |---|---|---|

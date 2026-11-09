@@ -1,30 +1,32 @@
 ---
-needs: [3]
+needs: [2b]
 pr: B
 ---
 
-# Phase 4 — Skill bootstrap, reviewer binding and scoped hooks
+# Phase 4 — Complete interactive workflow, reviewers and native hooks
 
 ## Outcome
 
-Codex's four-command loop loads the same workflows and personas and receives real native hook feedback without relying on Claude interpolation.
+Codex supports the complete interactive spec workflow with canonical personas, project overrides and actual native hook feedback in the supported normal repository. Claude's existing behavior and ordinary-session overhead remain unchanged. This phase precedes normal/background launch automation.
 
 ## Files to touch
 
-Canonical `skills/spec/SKILL.md`, mode bindings, plugin-owned host entrypoints, `tools/hooks/`, native plugin hook manifest; clean-session skill/reviewer/hook fixtures.
+Canonical skills/spec/SKILL.md and all public mode bindings; native entry/manifest assets introduced in Phase 2; tools/hooks; canonical agents and override resolution; installed-candidate and mode fixtures.
 
 ## Deliverables
 
-- [ ] Include Codex entrypoints, hook declarations and required runtime files in the existing plugin release; use the existing version helper and remove development-path/personal-bridge dependencies. No installer/updater.
-
-- [ ] Add explicit Codex bootstrap that pins the loaded release, registers spec-session identity and invokes existing taxonomy/playbook/context commands with the actual user request.
-- [ ] Bind all five canonical review personas on Codex and preserve project overrides. Use explicit persona loading where native custom-role discovery is unavailable; never overwrite user roles.
-- [ ] Add plugin-owned Codex patch path translation and reuse recall/file-validation logic across add/update/delete/move/multi-file edits; preserve Claude hook behavior.
-- [ ] Add scoped native hook wiring with per-session lifecycle and bounded/deduplicated recall; outside spec sessions it emits no spec context or expensive child guards.
-- [ ] Prove installed-plugin/version discovery, native hook trust/re-review, fresh-session bootstrap, reviewer loading and actual Pre/PostToolUse invocation, including invalid spec feedback. Function-only tests do not satisfy activation acceptance. This carries Phase 1's unproved positive hook-execution item; verify the implemented integration through normal authorized setup.
+- [ ] Extend the existing entry to all interactive modes: prep, create, resume, execute, review, update, handoff, status, list and idea; preserve aliases/argument inference, taxonomy, playbooks, phase selection, stop rules and existing approval/ship policy.
+- [ ] Exercise runtime-neutral doctor/lessons/graph/ready/gates/playbooks/phase/settings/focus/ship/owner/pr/push/publish-docs through native invocation without rebuilding their implementations. Restore the full managed local handoff/claim-release/cleanup/publication path after Phase 2b acceptance.
+- [ ] Bind all seven canonical agents, including the five review personas, debugger and deep-research-analyst; preserve recon/preflight invocation and project overrides. Load canonical instructions explicitly when native roles are unavailable; never overwrite user roles or pass Claude model names to Codex.
+- [ ] Translate all native patch paths and reuse existing recall/file-validation for add/update/delete/move/multi-file edits; retain Claude payload/output behavior.
+- [ ] Register plugin-owned native hooks once, gated by real spec-session registration, with bounded/deduplicated recall and correct handoff/Stop/parent/subagent identity behavior. Ordinary sessions load no spec context or expensive guard children.
+- [ ] Complete source manifest/hook/assets and installed-candidate tests for discovery, native trust/re-review, actual Pre/PostToolUse feedback and invalid-edit correction. Explicit pilot checks remain a fallback, never evidence that automatic hooks work.
+- [ ] Add shared interactive mode/override/hook regressions and real-loop acceptance drivers. Keep outstanding launch, babysit and overseer paths explicitly owned by Phases 3 and 3b in ../workflow-parity.md.
 
 ## Implementation guidance
 
-Native manifests must not cause duplicate Claude hook registration. Resolve plugin assets through native root variables. Handoff/Stop semantics and parent/subagent session IDs are explicit. Keep policy shared; host wrappers contain only binding/bootstrap. Hook activation/trust failures produce honest capability status.
+Extend Phase 2's bootstrap instead of creating another one. No personal bridge, home path or development checkout is a package dependency. A pinned release means identified candidate/installed assets, not custom retention or another activation selector.
 
-Build and fixture-test before requiring installed-host smoke evidence. Separate disposable sign-in is not a product prerequisite; do not advertise enforced native validation without positive execution/trust evidence (`ledger/decision-deliver-value-incrementally.md`).
+Native hook registration must not duplicate Claude discovery. Missing trust or invocation is an honest pending capability, not a passing hook result. Keep all workflow policy shared. No native hook guarantee is waived to reach parity.
+
+Installed smoke and actual review/loop runs live in ../pr-opening.md. No background-worker capability is a prerequisite for this phase.

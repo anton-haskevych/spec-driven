@@ -1,13 +1,15 @@
 ---
 kind: decision
-applies-to: [phase 5+]
+applies-to: [general]
 created: 2026-11-08T19:10:00-08:00
 ---
 
-# Release behavior belongs in versioned artifacts
+# Release behavior belongs in versioned source artifacts
 
-All host adaptations ship in source and self-contained packages. Pin active sessions to immutable release artifacts; stage verified updates for fresh sessions and honor native trust. Rejected: editing cache files, linking another host cache/node_modules, or automatically rerunning an active request. Version identity includes native installed content/revision, not just a manifest string.
+All host adaptations ship in source and self-contained packages. Identify the actual candidate/installed assets and revision executed by acceptance sessions; a catalog version or manifest string alone does not establish that this branch ran. Keep native trust authoritative.
 
-Review refinement: native installed/loaded state is authoritative. Reuse the existing plugin-publish scoped native install/verification flow, prove retention/trust in phase 1, and add only demonstrated freshness gaps. A local journal records observations; it never competes with native activation.
+Reuse existing manifests, scripts/version.py and the scoped native publish/install process. Native hosts own selection and updates. Phase 2 ships minimum entry/assets, Phase 4 adds full binding/hooks, and Phase 6 closes release enforcement. Existing sessions may need fresh-session recovery after native old-path invalidation.
 
-Update semantics clarified by Anton on 2026-11-08: existing sessions retain their loaded version while fresh sessions use the newer installed release. Staging does not mean waiting for all older sessions by default; see `decision-plugin-updates-preserve-session-versions.md`. Actual old-session asset availability remains a proof requirement.
+Rejected: cache-only patches, another host's cache/node_modules, automatic reruns, custom activation selection, staging/freshness journals or a retention subsystem. Earlier retention/staging proof obligations are superseded by decision-use-native-updates.md and decision-native-host-updates-only.md; do not revive them through this entry.
+
+Keep required writer-contract transition/rollback safety with shared-state activation in Phase 2b and required hook trust with Phase 4. These are capability acceptance, not permission to build a second update authority.

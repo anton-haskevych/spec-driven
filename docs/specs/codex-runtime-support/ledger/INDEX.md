@@ -2,31 +2,22 @@
 
 ## Gotchas
 
-- `gotcha-native-install-evicts-previous-cache.md` — [phase 1, phase 4, phase 5, phase 6] — native old-path shell execution fails after update; model/trusted retention route unproved
-
-- `gotcha-native-interrupt-needs-terminal-cleanup.md` — [phase 1, phase 3, phase 6] — interrupt acknowledgement does not prove yielded descendants stopped
-
-- `gotcha-bun-docs-exceed-installed-api.md` — [general] — verify current Bun docs against the installed API and keep socket cleanup bounded
-
-- `gotcha-codex-session-launch-needs-worktree-and-boot.md` — [general] — explicit native cwd, reviewed spec snapshot and self-contained boot before Codex launch
-
-- `gotcha-old-readers-ignore-runtime-claims.md` — [phase 2+] — Older Claude readers cannot safely judge Codex claims
+- `gotcha-native-install-evicts-previous-cache.md` — [phase 1, phase 2, phase 4, phase 6] — native old paths can disappear; use fresh-session recovery
+- `gotcha-native-interrupt-needs-terminal-cleanup.md` — [phase 1, phase 3b, phase 6] — interrupt acknowledgement does not prove descendant cleanup
+- `gotcha-bun-docs-exceed-installed-api.md` — [general] — verify installed Bun APIs and bound socket cleanup
+- `gotcha-codex-session-launch-needs-worktree-and-boot.md` — [general] — verify native cwd and actual candidate boot context
+- `gotcha-old-readers-ignore-runtime-claims.md` — [phase 2+] — old Claude readers cannot safely judge Codex claims
 
 ## Principles
 
-- `principle-claim-projection-is-not-a-write-model.md` — [phase 2, phase 6] — retain raw claim documents separately; policy projections cannot preserve unknown fields when written
-
-- `principle-unknown-never-means-free.md` — [general] — Unknown evidence cannot release work
+- `principle-claim-projection-is-not-a-write-model.md` — [phase 2, phase 2b, phase 3b, phase 6] — preserve raw documents separately from policy projections
+- `principle-unknown-never-means-free.md` — [general] — unknown evidence cannot release work
 
 ## Decisions
 
-- `decision-native-host-updates-only.md` — [general] — withdraw Phase 5; native hosts own updates, integration/release checks use existing flow
-
-- `decision-deliver-value-incrementally.md` — [general] — build adapters now; gate activation on feature-specific proof
-
-- `decision-use-native-updates.md` — [phase 1, phase 4, phase 5, phase 6] — native updates with fresh-session recovery; seamless old-session continuity deferred
-
-- `decision-plugin-updates-preserve-session-versions.md` — [phase 1, phase 4, phase 5, phase 6] — old sessions retain loaded versions; fresh sessions use the updated install without a blanket wait-for-all rule
-
-- `decision-runtime-boundaries.md` — [general] — One workflow, adapters at runtime boundaries
-- `decision-source-based-immutable-releases.md` — [phase 5+] — Release behavior belongs in versioned artifacts
+- `decision-deliver-value-incrementally.md` — [general, load-bearing] — useful increments now; full parity and Claude behavior remain required
+- `decision-native-host-updates-only.md` — [general] — native hosts own updates; Phase 5 stays withdrawn
+- `decision-use-native-updates.md` — [phase 1, phase 2, phase 4, phase 6] — native updates with fresh-session recovery; no custom retention
+- `decision-plugin-updates-preserve-session-versions.md` — [phase 1, phase 4, phase 5, phase 6] — superseded release requirement; retain historical evidence
+- `decision-runtime-boundaries.md` — [general] — one shared workflow, adapters at native boundaries
+- `decision-source-based-immutable-releases.md` — [general] — source-contained native assets; existing release mechanisms only

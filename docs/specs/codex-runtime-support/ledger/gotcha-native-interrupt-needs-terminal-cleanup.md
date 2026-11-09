@@ -1,6 +1,6 @@
 ---
 kind: gotcha
-applies-to: [phase 1, phase 3, phase 6]
+applies-to: [phase 1, phase 3b, phase 6]
 created: 2026-11-08T19:46:00-08:00
 ---
 

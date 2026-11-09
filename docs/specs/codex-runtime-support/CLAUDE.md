@@ -1,6 +1,6 @@
 ---
 created: 2026-11-08T19:10:00-08:00
-updated: 2026-11-08T20:22:34-08:00
+updated: 2026-11-09T02:17:51-08:00
 status: active
 area: [agent-tooling]
 domain: [runtime-integration]
@@ -14,33 +14,39 @@ related:
 
 # Claude Code and Codex Runtime Support
 
-One spec workflow, two properly integrated execution runtimes. Claude Code remains the compatibility baseline. Codex becomes a supported runtime for the complete prep → review → execute → handoff loop, including the session ownership, hooks and crew machinery that makes the loop reliable.
+Port Anton's complete daily Claude workflow to Codex. Preserve every existing Claude feature and observable behavior; clear improvements require deliberate intent and regression coverage. Shared policy stays canonical. Deliver useful increments sooner without shrinking final parity.
 
-**Incremental adapter development authorized.** Anton approved Phase 1 proof work, then accepted the value-first council re-plan to build a usable Codex workflow next. Phase 1's completed foundations are closed; native cutover and hook proofs remain gates on their feature activation in Phases 2 and 4. Mixed-runtime enablement, live installation and public release remain separately gated.
+**Re-plan approved.** Anton authorized adoption-first sequencing and explicitly retained the full port with no feature cuts or regressions. Phase 2 delivers an isolated local pilot; 2b supplies shared coordination; 4 completes interactive modes/reviewers/hooks; 3 adds normal launches; 3b adds managed workers/crew; 6 closes full parity. Existing checked implementation remains checked; unproved capabilities remain unproved.
 
 | File | Purpose |
 |---|---|
-| `product-brief.md` | Intent, constraints and non-goals |
-| `design.md` | Behavior, decisions, runtime-neutral flows and failure states |
-| `technical.md` | Ports, adapters, wire/storage compatibility, bootstrap and update contracts |
-| `progress.md` | Thin phase index |
-| `pr-opening.md` | PR groups, acceptance matrix and release gates |
-| `code-map.md` | Verified existing integration seams |
-| `phases/` | Approved sequence, deliverables and dependency edges |
-| `ledger/INDEX.md` | Decisions and implementation constraints |
-| `research/` | Dated source and current Codex capability evidence |
-| `reviews/` | Independent architecture review and synthesis |
+| product-brief.md | Intent, delivery priorities and scope |
+| workflow-parity.md | Required complete feature inventory and phase/evidence ownership |
+| design.md | User flows, delivery boundaries and invariants |
+| technical.md | Existing foundations, remaining integration and activation contracts |
+| progress.md | Phase index in delivery order |
+| pr-opening.md | Per-increment PR/acceptance checks and final release gates |
+| code-map.md | Existing source seams and implementation map |
+| phases/ | Scoped implementation increments |
+| ledger/INDEX.md | Decisions and implementation constraints |
+| research/ and reviews/ | Immutable historical evidence and review rationale |
 
 ## Relationship to code
 
-This is a design, not a live architecture mirror. Existing behavior is in `skills/spec/`, especially `tools/sessions`, `tools/claims`, `tools/launch`, `tools/crew`, `tools/board` and `tools/trees`. Read the authoring repository's parent `CLAUDE.md` for conventions; on this machine it is `~/IdeaProjects/claude-plugins/CLAUDE.md`. An external worktree has a different parent hierarchy. Phase 1 has local session values, Claude characterization, read-only Codex observations and actual historical-reader fixtures. Production runtime composition remains Claude-only; installed plugins and settings are unchanged.
+Read the authored repository's parent guide at ~/IdeaProjects/claude-plugins/CLAUDE.md; external worktree parents differ. Runtime policy is in skills/spec/, especially tools/{sessions,claims,launch,crew,board,trees}. The spec is a plan, not a claim that proposed interfaces exist.
+
+Phase 1 is complete. Phase 2 has qualified identity/source readers, raw claim decoding, configured disk-backed read-only context and pure input/render/placement seams. Default executable/production ownership remains Claude-only. Native bootstrap, shared writer activation and native hook execution are not completed by those fixtures. Reuse the existing composition; do not rebuild it.
+
+## Current plan and handoff
+
+Read in-flight/phase-2.md for exact implementation state. The assigned source tree remains ~/claude-worktrees/spec-driven/codex-runtime-support-pr-a on feat/codex-runtime-support-pr-a. This replan does not move it, create the pilot clone or change a live installation.
+
+The next chunk connects the native entry to the existing configured context command and enforces explicit pilot capabilities. A pilot using unready shared ownership must have a separate Git common directory and no remote claim/cleanup/launch fallthrough. Same-repository daily use remains required in Phase 2b.
+
+PR grouping changes are branch-local until published through the existing authorized process. Do not auto-launch a regrouped phase using old origin/default metadata. Native acceptance must identify the actual candidate assets/revision; the installed cached release is not this branch.
+
+Phase 5 remains withdrawn. Native hosts own updates. No updater, freshness helper, release-state coordinator, clone/profile manager or retention subsystem. Live personal installation, publication and rollout retain their existing separate authorization.
 
 ## Review state
 
-Five independent reviews are synthesized in [dual-runtime boundaries](reviews/2026-11-08-dual-runtime-boundaries.md), with amendments applied. The [architecture constraints](reviews/2026-11-08-architecture-principles.md) and [targeted recheck](reviews/2026-11-08-proof-gates-recheck.md) make the draft ready for Anton to approve phase 1 proof work. No implementation capability is represented as proven.
-
-## Current handoff
-
-Phase 5 is withdrawn (`ledger/decision-native-host-updates-only.md`). Phase 4 includes required native manifest/assets, installation checks live in pr-opening.md, and Phase 6 depends on Phase 4. Implement no updater, freshness helper or release-state coordinator.
-
-Phase 1 is complete under the approved incremental scope. Phase 2 supplies opt-in qualified identity/readers and a disk-backed read-only context command with exact-source held-phase policy and shared claim/inference inputs. Context input loading/rendering and placement policy/system I/O are separated. Read `in-flight/phase-2.md` for pending native bootstrap, remaining consumers and mutation integration; default CLI/production ownership composition remains Claude-only. Ownership cutover and positive native hook execution remain unproved activation gates, not completed tests. Custom retention and further isolated-login experiments are deferred. No live installation changed. Use this branch's reviewed plan and preserve historical evidence.
+Current approved rationale: reviews/2026-11-09-adoption-before-automation.md. Earlier reviews/research remain immutable historical evidence; superseded first-phase obligations do not reopen completed work. Full completion requires workflow-parity.md, not just the pilot demonstration.

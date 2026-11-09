@@ -1,6 +1,6 @@
 ---
 kind: principle
-applies-to: [phase 2, phase 6]
+applies-to: [phase 2, phase 2b, phase 3b, phase 6]
 created: 2026-11-09
 ---
 
