@@ -22,6 +22,7 @@ import { settingsReport } from "./commands/settings";
 import { SHIP_USAGE, shipCommand } from "./commands/ship";
 import { TREES_USAGE, treesCommand } from "./commands/trees";
 import { findProjectDir, findSpecs } from "./core/spec-folders";
+import { pilotCommandRefusal, type LocalPilot } from "./runtime/workflow-capabilities";
 
 export interface Command {
   usage: string;
@@ -30,6 +31,7 @@ export interface Command {
 
 export interface CommandDeps {
   context?: Pick<Command, "run">;
+  workflow?: LocalPilot;
 }
 
 export const COMMANDS: Record<string, Command> = {
@@ -64,6 +66,8 @@ export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)
   .join(" | ")}`;
 
 export async function run(argv: readonly string[], projectDir: string, deps: CommandDeps = {}): Promise<string> {
+  const refusal = deps.workflow && pilotCommandRefusal(argv, deps.workflow);
+  if (refusal) return `spec: ${refusal}`;
   const [name, ...args] = argv;
   if (name === "context" && deps.context) return deps.context.run(projectDir, args);
   const command = name !== undefined && Object.hasOwn(COMMANDS, name) ? COMMANDS[name] : undefined;
@@ -77,7 +81,12 @@ async function withStdinArgs(argv: readonly string[]): Promise<readonly string[]
 
 if (import.meta.main) {
   try {
-    console.log(await run(await withStdinArgs(Bun.argv.slice(2)), findProjectDir(process.cwd())));
+    if (process.env.CODEX_THREAD_ID) {
+      console.log("spec: Codex requires the packaged native entry; legacy dispatch is unavailable");
+      process.exitCode = 1;
+    } else {
+      console.log(await run(await withStdinArgs(Bun.argv.slice(2)), findProjectDir(process.cwd())));
+    }
   } catch (cause) {
     console.log(`spec tools failed: ${cause instanceof Error ? cause.message : String(cause)}`);
   }

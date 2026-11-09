@@ -20,6 +20,8 @@ hooks:
 
 # /spec — Feature Spec (Resume, Update, Review, Handoff, or Create)
 
+All hosts observe [capabilities.md](capabilities.md) before routing or running tools. An entry refusal stops the mode. Claude's existing interpolation and full managed workflow remain unchanged.
+
 !`cat ${CLAUDE_SKILL_DIR}/taxonomy.md`
 
 !`cat .claude/taxonomy.md 2>/dev/null || echo "No project taxonomy found — use free-form area/domain values."`

@@ -37,6 +37,8 @@ Run `resume.md` Stage B's reads — *Read stable references + active phase* thro
 
 ## 1. Load the principles
 
+Apply the entry's [workflow capabilities](capabilities.md) before any automatic action below. `local-pilot` skips placement, claims, PR lookup/push and every later push/launch/PR gate; it retains the local work loop and reports those unavailable actions honestly. This applies on both direct and resume entry.
+
 **Place the session in its tree first**, since the claim records the tree it's taken in: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts trees place <spec> <phase>` (*Tools* → Trees). Run it as a command of its own, never chained with `claim take`: its answer decides whether to claim at all.
 - `Tree: <path> · … · existing`, where `<path>` is the session's working directory: stay here.
 - Any other `Tree: <path> …`: switch with `EnterWorktree` and `{ path: "<path>" }`, then carry on with §1 there. Pass on, in one line each, a `Trees:` line (the tree root it just detected for this person) and a `Setup failed:` line.
