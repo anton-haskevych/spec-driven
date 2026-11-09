@@ -9,7 +9,7 @@
 
 ## Phases
 
-- [ ] Phase 1 — Runtime contracts and Claude compatibility baseline → `phases/phase-1-runtime-contracts.md`
+- [x] Phase 1 — Runtime contracts and Claude compatibility baseline → `phases/phase-1-runtime-contracts.md`
 - [ ] Phase 2 — Codex identity and shared session visibility → `phases/phase-2-session-ownership.md`
 - [ ] Phase 3 — Native launches and background worker lifecycle → `phases/phase-3-session-lifecycle.md`
 - [ ] Phase 4 — Skill bootstrap, reviewer binding and scoped hooks → `phases/phase-4-native-workflow.md`

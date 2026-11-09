@@ -22,8 +22,12 @@ The shared policy can accept a normalized runtime without changing Claude behavi
 - [x] Add controlled scratch-worker probe coverage for client disconnect, reconnect, native attention states and subprocess-tree interruption; convert observations into executable lifecycle contract fixtures. If guarantees fail, park the design decision before enabling background work. — owned-lifecycle-observations.md and runtime-codex-lifecycle fixtures: actual configured 0.167.0 disconnect/reconnect, blocking user input, foreground/yielded descendant cleanup and verified archive; approval-enabled environments remain unverified
 - [x] Add typed capability outcomes and refusal-before-side-effects contract tests; no host feature is enabled by a mere method-name check. — runtime-codex probe/transport/decode tests; all managed features remain unverified and production wiring stays Claude-only
 
-- [ ] Prove managed old-version cutover: actual 2.51.0 claim/prune reader fixtures plus native CLI/desktop resume/installation routes. If old reentry cannot be fenced, block mixed-runtime activation and return the design fork to Anton.
-- [ ] Probe native plugin activation, version reporting and hook trust; document native old-path invalidation with fresh-session recovery. Reuse the scoped plugin-publish flow; seamless old-session updates and custom retention are deferred.
+## Acceptance carried to implementation phases
+
+Anton approved incremental delivery (`ledger/decision-deliver-value-incrementally.md`). These previously open proofs move to their implementation phases; they are not passed results:
+
+- Phase 2: prove old-writer/managed-entry compatibility before enabling mixed mutations. Preserve the actual historical-reader hazard fixtures.
+- Phase 4: prove native installed-plugin loading, hook trust and execution when native hook wiring exists. Current metadata observations remain partial evidence.
 
 ## Implementation guidance
 
@@ -41,4 +45,4 @@ Session 2's isolated actual historical-package → fixture-candidate install pro
 
 Session 3 demonstrated direct native user-shell failure of the same historical script paths after selected install, and fresh candidate-path success. Active-model loaded-release behavior remains unverified; no model turn ran in the isolated profile. Both threads were archived and all owned servers stopped. See [resource execution observations](../research/phase-1/2026-11-08-resource-execution-observations.md).
 
-**Current scope:** Anton stopped the proposed retention investigation as an edge case. `ledger/decision-use-native-updates.md` supersedes the earlier mandatory coexistence requirement and pending bundle proposal. Use native updates and fresh-session recovery; no more across-update authenticated-model or custom-retention probes are required. The earlier scope described in historical notes above is not the current gate. Keep the two remaining deliverables unchecked: native incompatible-writer reentry safety and core activation/version/trust evidence still need completion.
+**Current scope:** Phase 1's foundations are complete under the approved incremental plan. Prior paragraphs retain historical proof limits. Ownership compatibility and native hook execution remain unproved activation gates in Phases 2 and 4. Custom retention is deferred. Closing this phase enables adapter development, not production Codex capabilities.

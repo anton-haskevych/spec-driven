@@ -16,7 +16,7 @@ related:
 
 One spec workflow, two properly integrated execution runtimes. Claude Code remains the compatibility baseline. Codex becomes a supported runtime for the complete prep → review → execute → handoff loop, including the session ownership, hooks and crew machinery that makes the loop reliable.
 
-**Phase 1 authorized.** After the written spec and independent reviews, Anton approved a new Codex session to execute Phase 1 on 2026-11-08. Its design Gate is recorded in the phase plan. Later phases, mixed-runtime enablement and public release remain gated.
+**Incremental adapter development authorized.** Anton approved Phase 1 proof work, then accepted the value-first council re-plan to build a usable Codex workflow next. Phase 1's completed foundations are closed; native cutover and hook proofs remain gates on their feature activation in Phases 2 and 4. Mixed-runtime enablement, live installation and public release remain separately gated.
 
 | File | Purpose |
 |---|---|
@@ -41,4 +41,4 @@ Five independent reviews are synthesized in [dual-runtime boundaries](reviews/20
 
 ## Current handoff
 
-Phase 1 remains open at 5/7. Anton stopped custom update-retention work as an edge case. Current scope is native updates with fresh-session recovery; uninterrupted old-session updates are deferred. Read `ledger/decision-use-native-updates.md` and `in-flight/phase-1.md`. Preserve the historical evidence without reopening its retention proposal. Core ownership, native activation/version reporting and hook trust remain the remaining Phase 1 work; no later capability is enabled by this scope reduction.
+Phase 1 is complete under the approved incremental scope. Read `ledger/decision-deliver-value-incrementally.md`: next is Phase 2 identity/session adapters toward a useful execute → handoff flow. Ownership cutover and positive native hook execution remain unproved activation gates, not completed tests. Custom retention and further isolated-login experiments are deferred. All owned scratch processes are stopped; no live installation changed. Use this branch's reviewed plan and preserve historical evidence.

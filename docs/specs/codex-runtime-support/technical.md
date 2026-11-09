@@ -56,7 +56,7 @@ interface CompletionReader {
 }
 ```
 
-Do not force asynchronous native reads through nested `spawnSync` helper programs. Existing synchronous consumers needing live data become asynchronous at their I/O orchestration boundary; pure consumers remain synchronous. Reuse one planning snapshot per command, passed through related claim/board/tree reads. This snapshot never authorizes a later mutation: see the coordination contract below. Phase 1 must inventory and test propagated async signatures rather than hide repeated network calls inside a property getter. A provider that can do only local sync work can still satisfy the async port.
+Do not force asynchronous native reads through nested `spawnSync` helper programs. Existing synchronous consumers needing live data become asynchronous at their I/O orchestration boundary; pure consumers remain synchronous. Reuse one planning snapshot per command, passed through related claim/board/tree reads. This snapshot never authorizes a later mutation: see the coordination contract below. Phase 2 must inventory and test propagated async signatures rather than hide repeated network calls inside a property getter. A provider that can do only local sync work can still satisfy the async port.
 
 Split interface files if they become unrelated concepts. No omnibus provider with launch, files, updates, policy and logging methods. `WorkerHandle` includes source-qualified session reference, the exact owned turn/generation, stable run/target/slot reservation key, repository/workspace, and pinned release. A normal terminal launch returns its plan/terminal acknowledgement only; it never fabricates a session or owned worker handle. Its native implementation data remains in the adapter's owned record, not in board rows.
 
@@ -64,7 +64,7 @@ Split interface files if they become unrelated concepts. No omnibus provider wit
 
 Resolve from an explicit validated host binding first, then verified runtime environment. Codex currently exports `CODEX_THREAD_ID`; Claude uses `CLAUDE_CODE_SESSION_ID`. `CODEX_SESSION_ID` is not an assumed interchangeable fallback. Conflicting evidence is an error, not a guessed default. Legacy API callers/tests that explicitly choose the Claude adapter preserve current behavior.
 
-Host bootstrap records the selected release and runtime/session ID. Hook `session_id` mapping to the shell identity, parent/subagent behavior and alternate homes must be proved in phase 1. Missing identity refuses claim ownership rather than creating a synthetic ID. One identity resolver supplies all claim, board, tree and overseer callers.
+Host bootstrap records the selected release and runtime/session ID. Hook `session_id` mapping to the shell identity, parent/subagent behavior and supported environments must be proved before Phase 4 hook activation; this does not block implementing the adapter. Missing identity refuses claim ownership rather than creating a synthetic ID. One identity resolver supplies all claim, board, tree and overseer callers.
 
 ## Execution-source identity
 
@@ -151,7 +151,7 @@ Review host binding resolves project overrides before plugin personas. When nati
 
 Use current `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, marketplace metadata and `scripts/version.py` as the version authority. Build host-specific artifacts deterministically from canonical sources only where needed, with a CI freshness check. A packed plugin contains every required runtime asset/dependency; no link to another runtime's cache/node_modules or development checkout.
 
-Reuse the existing agent-operated plugin-publish scoped refresh/install/verification flow. Phase 1 records native activation, version reporting, trust and known limitations. Add a bounded freshness helper only for a demonstrated gap in the core flow. Custom old-session retention, external retention bootstraps and immutable per-session resource bundles are deferred. Native installation remains the release selector; no competing activation pointer or invented autoUpdate setting. Bound network/subprocess work and never refresh unrelated marketplaces/plugins.
+Reuse the existing agent-operated plugin-publish scoped refresh/install/verification flow. Phase 1 records native install/version metadata and known limitations; positive native hook trust/execution belongs to Phase 4 activation acceptance. Add a bounded freshness helper only for a demonstrated gap in the core flow. Custom old-session retention, external retention bootstraps and immutable per-session resource bundles are deferred. Native installation remains the release selector; no competing activation pointer or invented autoUpdate setting. Bound network/subprocess work and never refresh unrelated marketplaces/plugins.
 
 Supported operations are scoped native marketplace upgrade, selected plugin install/reconcile, version/revision/content verification and fresh-session skill/hook discovery. Report native install failure and required hook review honestly. Native updates can remove an older session's helper paths; recover by starting a fresh session. Seamless execution of an old release through an update is not a Phase 1 or release gate. Hook trust and unsafe writer-contract downgrade remain separate requirements; do not bypass them.
 

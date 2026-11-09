@@ -89,6 +89,6 @@ Check freshness automatically at entry and at most once per configured check int
 
 ## Compatibility and concurrency boundaries
 
-Mixed incompatible writer-contract versions are not supported; compatible plugin release versions may coexist. A managed-route cutover must prevent old installed/cached tools from resuming through supported entry paths before Codex writes are enabled; a marker alone cannot do this. Arbitrary historical tools invoked manually outside those paths remain explicitly outside the guarantee. Prove the fence in phase 1; otherwise park mixed activation for a design decision.
+Mixed incompatible writer-contract versions are not supported; compatible plugin release versions may coexist. A managed-route cutover must prevent old installed/cached tools from resuming through supported entry paths before Codex writes are enabled; a marker alone cannot do this. Arbitrary historical tools invoked manually outside those paths remain explicitly outside the guarantee. Prove the fence at Phase 2 mixed-write activation; otherwise park that capability for a design decision. Adapter development and fixture tests can proceed before activation proof.
 
 Read-only planning snapshots are reused, but mutation uses fresh evidence under workspace/run coordination. Concurrent ticks reserve one stable target and numbered slot. A stop/archive failure retains ownership and capacity until acknowledged. User activity on a later unowned turn prevents automatic control of that continuation. These safety contracts are shared by both runtimes.
