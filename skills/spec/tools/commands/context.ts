@@ -1,11 +1,9 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { samePhase } from "../core/phase-title";
 import { findSpecs } from "../core/spec-folders";
-import { loadSpecState, type SpecState } from "../core/spec-state";
+import { diskReader, loadSpecState } from "../core/spec-state";
 import { babysitPack } from "../context/babysit-pack";
 import { executePack, resumePack, type PackInput } from "../context/packs";
-import { renderReadySet } from "../ready/render";
 import { neighborhoodReport } from "./graph";
 import { loadNodes } from "../graph/nodes";
 import { readySet } from "../ready/ready-set";
@@ -13,13 +11,15 @@ import { loadProjectLessons } from "../lessons/project-ledger";
 import { doctorReport } from "./doctor";
 import { playbooksForSpec } from "../playbook/playbooks";
 import { describeSettings, loadSettings } from "../playbook/settings";
-import { normalizePhaseHint, type ContextRequest } from "../context/request";
+import type { ContextRequest } from "../context/request";
 import { specsInPlay } from "../context/infer-spec";
 import { systemRunner, type Runner } from "../core/run";
 import { heldByOthers, type HeldPhases } from "../claims/live";
-import { firstUnheld, specsInFlight } from "../context/held-phases";
+import { specsInFlight } from "../context/held-phases";
 import { defaultClaudeHome } from "../sessions/live";
 import { systemClaimsHere, type ClaimsHereReader } from "../context/claims-here";
+import { loadPackReferences } from "../context/references";
+import { selectExecutePhase } from "../context/select-phase";
 
 const DOCTOR_LINES = 6;
 const PACK_MODES = new Set(["resume", "status", "execute", "route", "babysit"]);
@@ -30,38 +30,49 @@ const NOTHING_HERE = "No spec named, and nothing in this tree points at one (no 
 const APPLY_TOP_READY =
   "If this conversation already resumed or executed a spec, use that one. Otherwise run `spec.ts board ready --for me --json --local` (your work and unowned work), take its top row (focus specs rank first) and run its `next` sub-command for that spec (with the phase for execute) in this session. Say so in one line, `<next> <spec> [<phase>] — <title>`, under `Say if wrong:`.";
 
-export type HeldReader = (projectDir: string) => HeldPhases;
+export type HeldReader = (projectDir: string) => HeldPhases | Promise<HeldPhases>;
 
-const systemHeldReader: HeldReader = (projectDir) => heldByOthers(projectDir, { runner: systemRunner, claudeHome: defaultClaudeHome(), env: process.env });
+export interface ContextDeps {
+  runner: Runner;
+  readHeld: HeldReader;
+  readClaimsHere: ClaimsHereReader;
+}
+
+export function systemContextDeps(): ContextDeps {
+  return {
+    runner: systemRunner,
+    readHeld: (projectDir) => heldByOthers(projectDir, { runner: systemRunner, claudeHome: defaultClaudeHome(), env: process.env }),
+    readClaimsHere: systemClaimsHere,
+  };
+}
 
 // With no spec named: the conversation first (the session's call), then this tree's claim, then its
 // changed spec files, and only then the board's top ready row (execute).
-export function contextPack(
+export async function contextPack(
   projectDir: string,
   request: ContextRequest,
-  runner: Runner = systemRunner,
-  readHeld: HeldReader = systemHeldReader,
-  readClaimsHere: ClaimsHereReader = systemClaimsHere,
-): string {
+  deps: ContextDeps = systemContextDeps(),
+): Promise<string> {
   if (!PACK_MODES.has(request.mode)) return "";
-  if (request.name) return specPack(projectDir, request, request.name, undefined, readHeld);
+  if (request.name) return specPack(projectDir, request, { name: request.name }, deps);
   if (!INFERRING_MODES.has(request.mode)) return "";
 
-  const [claim, ...otherClaims] = readClaimsHere(projectDir);
+  const [claim, ...otherClaims] = deps.readClaimsHere(projectDir);
   if (claim && otherClaims.every(({ spec }) => spec === claim.spec)) {
     const hinted = { ...request, hint: request.hint ?? claim.phase };
-    return specPack(projectDir, hinted, claim.spec, `this tree's claim on phase ${claim.phase}`, readHeld);
+    return specPack(projectDir, hinted, { name: claim.spec, inferredFrom: `this tree's claim on phase ${claim.phase}` }, deps);
   }
 
-  const candidates = specsInPlay(projectDir, runner);
+  const candidates = specsInPlay(projectDir, deps.runner);
   if (candidates === undefined) return "";
   const [only] = candidates;
-  if (only !== undefined && candidates.length === 1) return specPack(projectDir, request, only, "changed files", readHeld);
+  if (only !== undefined && candidates.length === 1) return specPack(projectDir, request, { name: only, inferredFrom: "changed files" }, deps);
   if (candidates.length === 0) return request.mode === "execute" ? `${NOTHING_HERE} ${APPLY_TOP_READY}` : `${NOTHING_HERE} Infer it from the conversation.`;
   return `No spec named; the changed files belong to ${candidates.join(", ")}. Ask which one.`;
 }
 
-function specPack(projectDir: string, request: ContextRequest, name: string, inferredFrom: string | undefined, readHeld: HeldReader): string {
+async function specPack(projectDir: string, request: ContextRequest, target: { name: string; inferredFrom?: string }, deps: ContextDeps): Promise<string> {
+  const { name, inferredFrom } = target;
   const specs = findSpecs(projectDir, name);
   if (specs.length !== 1 || !specs[0]) return "";
 
@@ -73,7 +84,7 @@ function specPack(projectDir: string, request: ContextRequest, name: string, inf
   const mode = request.mode === "route" ? "resume" : request.mode;
   if (mode === "babysit") return packBlock(state.spec.name, mode, inferredFrom, babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
   const nodes = loadNodes(projectDir);
-  const held = readHeld(projectDir);
+  const held = await deps.readHeld(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir, specsInFlight(held, state.spec.name));
   const ready = readySet(state, nodes);
   const playbooks = playbooksForSpec(projectDir, state.spec);
@@ -92,31 +103,15 @@ function packBlock(spec: string, mode: string, inferredFrom: string | undefined,
 }
 
 function executeBody(projectDir: string, input: PackInput, hint: string | undefined): string {
-  const { state } = input;
-  const hinted = hint ? phaseForHint(state, hint) : undefined;
-  const unheld = firstUnheld(state.spec.name, input.ready.ready, input.held);
-  const phase = hinted ?? unheld.phase;
-  if (!phase && unheld.skipped.length > 0) return `Every ready phase is in flight in another session: ${unheld.skipped.join(", ")}. Tell the user and stop.`;
-  if (!phase) return noPhaseReady(input);
-  const others = input.ready.ready.length - unheld.skipped.length > 1 ? "first ready phase; others are ready too" : "first ready phase";
-  const fallback = unheld.skipped.length > 0 ? `${others}; skipped ${unheld.skipped.join(", ")}` : others;
-  const note = hinted ? `from your hint "${hint}"` : hint ? `hint "${hint}" matched no phase; ${fallback}` : fallback;
-  const playbooks = phase.playbook ? playbooksForSpec(projectDir, state.spec, phase.playbook) : input.playbooks;
-  return executePack({ ...input, playbooks }, phase, note);
+  const selected = selectExecutePhase(input, hint);
+  if (!selected.ok) return selected.reason;
+  const { phase, note } = selected.value;
+  const playbooks = phase.playbook ? playbooksForSpec(projectDir, input.state.spec, phase.playbook) : input.playbooks;
+  const references = loadPackReferences(diskReader(input.state.spec.dir));
+  return executePack({ ...input, playbooks }, phase, note, references);
 }
 
 function settingsLine(projectDir: string): string | undefined {
   const settings = loadSettings(projectDir);
   return settings.file ? `Settings: ${describeSettings(settings)}` : undefined;
-}
-
-function noPhaseReady(input: PackInput): string {
-  if (input.ready.waiting.length === 0) return "All phases complete — see pr-opening.md for the PR gate.";
-  return `No phase is ready to start.\n${renderReadySet(input.ready)}\nTell the user what blocks the spec and stop.`;
-}
-
-function phaseForHint(state: SpecState, hint: string) {
-  const id = normalizePhaseHint(hint);
-  if (id.toLowerCase() === "next") return undefined;
-  return state.phases.find((phase) => samePhase(phase.id, id));
 }

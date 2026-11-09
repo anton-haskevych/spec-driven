@@ -1,5 +1,3 @@
-import { join } from "node:path";
-import { readTextIfExists } from "../core/files";
 import { outlineMarkdown } from "../core/markdown";
 import { notesForPhase, type InFlightNote } from "../core/in-flight";
 import { lastPark } from "../core/park";
@@ -16,6 +14,7 @@ import { renderStatusTable } from "./status-table";
 import { clip, kilobytes } from "./text";
 import type { HeldPhases } from "../claims/live";
 import { firstUnheld } from "./held-phases";
+import type { PackReferences } from "./references";
 
 export interface PackInput {
   state: SpecState;
@@ -26,7 +25,6 @@ export interface PackInput {
   held: HeldPhases;
   playbooks: readonly Playbook[];
   settings?: string;
-  // The spec's `stale:` text.
   stale?: string;
 }
 
@@ -37,7 +35,6 @@ const LEDGER_LIMIT = 6000;
 const PROJECT_LESSONS_LIMIT = 3000;
 const PLAYBOOKS_LIMIT = 3000;
 const PATH_LIKE = /^[\w@.{}-]+(\/[\w@.{}*-]+)+$/;
-const STABLE_REFERENCES = ["design.md", "technical.md"];
 const TASK_PHASE_NOTE = "Task phase (code: false): follow execute.md → Task phases. No recon, preflight or TDD; tick each item with its evidence.";
 
 export function resumePack({ state, doctor, relations, ready, held, playbooks, settings, stale }: PackInput): string {
@@ -60,9 +57,8 @@ export function resumePack({ state, doctor, relations, ready, held, playbooks, s
   ].join("\n\n");
 }
 
-export function executePack(input: PackInput, phase: PhaseState, pickNote: string): string {
+export function executePack(input: PackInput, phase: PhaseState, pickNote: string, references: PackReferences): string {
   const { state, doctor, lessons, relations } = input;
-  const read = (name: string) => readTextIfExists(join(state.spec.dir, name));
   return [
     "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and its in-flight notes. Do not re-read those files.",
     `Picked: Phase ${phase.id} — ${phase.name} (${pickNote})`,
@@ -72,12 +68,12 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
     ...(phase.code ? [] : [TASK_PHASE_NOTE]),
     `### Ready set\n${renderReadySet(input.ready)}`,
     `### Phase entry (${phase.pointer})\n${clip(phase.entry ?? "(missing)", PHASE_ENTRY_LIMIT, phase.pointer)}`,
-    ledgerBlock(read("ledger/INDEX.md"), phase.id),
-    codeMapBlock(read("code-map.md"), phase.entry ?? ""),
+    ledgerBlock(references.ledgerIndex, phase.id),
+    codeMapBlock(references.codeMap, phase.entry ?? ""),
     projectLessonsBlock(lessons, phase.entry ?? ""),
-    `### CLAUDE.md\n${clip(read("CLAUDE.md") ?? "(missing)", SMALL_FILE_LIMIT, "CLAUDE.md")}`,
+    `### CLAUDE.md\n${clip(references.instructions ?? "(missing)", SMALL_FILE_LIMIT, "CLAUDE.md")}`,
     ...playbooksBlock(input.playbooks),
-    stableReferencesBlock(read),
+    stableReferencesBlock(references.stable),
     `### Related specs\n${relations}`,
     inFlightBlock(notesForPhase(state.inFlight ?? [], phase.id)),
     `### Doctor\n${doctor}`,
@@ -89,7 +85,6 @@ function nextChunkAbsent(ready: ReadySet, skipped: readonly string[]): string {
   return ready.waiting.length > 0 ? "No phase is ready; see the ready set." : "All phases complete — see pr-opening.md for the PR gate.";
 }
 
-// A parked phase's question (execute.md → Crew worker), or the answer the next session builds on.
 function parkLine(state: SpecState, phaseId: string): string[] {
   const park = lastPark(state.inFlight ?? [], phaseId);
   if (!park) return [];
@@ -98,7 +93,6 @@ function parkLine(state: SpecState, phaseId: string): string[] {
   return [`Parked: Phase ${phaseId} asks "${park.question}"${advice}. Unanswered: ask the user; a crew worker hands off.`];
 }
 
-// execute.md → Stale spec: propose a re-planning review before building on this plan.
 function staleLine(stale: string | undefined): string[] {
   return stale ? [`Stale: ${stale} (propose \`/spec review\` to re-plan before building on it)`] : [];
 }
@@ -150,11 +144,8 @@ function codeMapBlock(codeMap: string | undefined, phaseEntry: string): string {
   return `### Code map (${label})\n${clip(slice.rows.join("\n") || "(empty)", SMALL_FILE_LIMIT, "code-map.md")}`;
 }
 
-function stableReferencesBlock(read: (name: string) => string | undefined): string {
-  const present = STABLE_REFERENCES.flatMap((name) => {
-    const text = read(name);
-    return text === undefined ? [] : [`- ${name} (${kilobytes(text)})`];
-  });
+function stableReferencesBlock(references: PackReferences["stable"]): string {
+  const present = references.map(({ name, text }) => `- ${name} (${kilobytes(text)})`);
   return `### Read now (not inlined)\n${present.length > 0 ? present.join("\n") : "(none)"}`;
 }
 
