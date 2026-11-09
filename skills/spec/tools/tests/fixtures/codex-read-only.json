@@ -1,0 +1,11 @@
+{
+  "daemon": { "status": "running", "cliVersion": "0.167.0", "appServerVersion": "0.167.0", "socketPath": "/fixture/control.sock" },
+  "pages": [
+    { "data": ["other"], "nextCursor": "page-2" },
+    { "data": ["own"], "nextCursor": null }
+  ],
+  "threads": {
+    "other": { "thread": { "id": "other", "cwd": "/work/other", "updatedAt": 1794196800, "name": "other task", "status": { "type": "idle" } } },
+    "own": { "thread": { "id": "own", "cwd": "/work/assigned", "updatedAt": 1794196800, "name": "Phase 1", "status": { "type": "active", "activeFlags": ["waitingOnApproval"] } } }
+  }
+}

@@ -18,9 +18,9 @@ The shared policy can accept a normalized runtime without changing Claude behavi
 
 - [x] Gate: Anton approves the reviewed design before implementation begins. — Anton approved the reviewed design and explicitly requested a new implementation session for Phase 1 in this conversation on 2026-11-08.
 - [x] Add characterization fixtures for Claude normal/background launch, identity, parked sessions, claims, hook output and current CLI results; extract only the normalized value boundary needed by two adapters.
-- [ ] Build a read-only, dependency-reviewed Codex capability probe with transport fixtures: supported endpoint discovery/auth, pagination, identity correlation and complete environment coverage. Record supported versions and explicit unsupported hosts.
+- [x] Build a read-only, dependency-reviewed Codex capability probe with transport fixtures: supported endpoint discovery/auth, pagination, identity correlation and complete environment coverage. Record supported versions and explicit unsupported hosts. — read-only-probe.md: default configured Unix source on CLI/app-server 0.167.0 and Bun 1.4.4; other host modes explicitly unsupported
 - [ ] Add controlled scratch-worker probe coverage for client disconnect, reconnect, native attention states and subprocess-tree interruption; convert observations into executable lifecycle contract fixtures. If guarantees fail, park the design decision before enabling background work.
-- [ ] Add typed capability outcomes and refusal-before-side-effects contract tests; no host feature is enabled by a mere method-name check.
+- [x] Add typed capability outcomes and refusal-before-side-effects contract tests; no host feature is enabled by a mere method-name check. — runtime-codex probe/transport/decode tests; all managed features remain unverified and production wiring stays Claude-only
 
 - [ ] Prove managed old-version cutover: actual 2.51.0 claim/prune reader fixtures plus native CLI/desktop resume/installation routes. If old reentry cannot be fenced, block mixed-runtime activation and return the design fork to Anton.
 - [ ] Probe native plugin activation, retention, loaded-version reporting and hook trust before selecting update machinery; compare the existing scoped plugin-publish flow before proposing a new coordinator.
