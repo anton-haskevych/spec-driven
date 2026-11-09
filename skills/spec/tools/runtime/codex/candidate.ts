@@ -11,7 +11,7 @@ export interface CandidateAssets {
 
 const REQUIRED = [
   ".codex-plugin/plugin.json", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json", "scripts/version.py",
-  "skills/spec/SKILL.md", "skills/spec/native-entry.md", "skills/spec/capabilities.md", "skills/spec/taxonomy.md",
+  "skills/spec/SKILL.md", "skills/spec/native-entry.md", "skills/spec/installed-local-cycle.md", "skills/spec/capabilities.md", "skills/spec/taxonomy.md",
   "skills/spec/execute.md", "skills/spec/resume.md", "skills/spec/update.md", "skills/spec/handoff.md", "skills/spec/status.md",
   "skills/spec/scripts/spec-bump.sh",
   "skills/spec/tools/codex.ts", "skills/spec/tools/spec.ts", "skills/spec/tools/runtime/codex/entry.ts",
