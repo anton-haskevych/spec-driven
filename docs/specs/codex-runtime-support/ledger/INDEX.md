@@ -14,6 +14,8 @@
 
 ## Principles
 
+- `principle-claim-projection-is-not-a-write-model.md` — [phase 2, phase 6] — retain raw claim documents separately; policy projections cannot preserve unknown fields when written
+
 - `principle-unknown-never-means-free.md` — [general] — Unknown evidence cannot release work
 
 ## Decisions
