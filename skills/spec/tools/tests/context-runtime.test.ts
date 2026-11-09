@@ -14,16 +14,16 @@ const codex = { runtime: "codex", key: "configured-daemon" } as const;
 function dependencies() {
   const calls = { claude: 0, codex: 0, claims: 0, now: 0 };
   const deps: RuntimeContextDeps = {
-    env: { CODEX_THREAD_ID: "same" }, runner: stubRunner([]), readClaimsHere: () => [],
+    env: { CODEX_THREAD_ID: "same" }, runner: stubRunner([]),
     now: () => { calls.now++; return "2026-11-09T10:00:00Z"; },
     readers: [
       claudeSessionReader(claude, () => { calls.claude++; return { ok: true, value: [liveSession({ sessionId: "same" })] }; }),
       codexSessionReader(codex, async () => { calls.codex++; return { ok: false, reason: "fixture daemon offline" }; }),
     ],
-    readClaims: () => { calls.claims++; return { ok: true, value: [
+    readClaims: () => { calls.claims++; return { ok: true, value: { here: [], claims: [
       { spec: "checkout", phase: "2", ref: { source: claude, id: "same" }, sessionName: "Claude worker" },
       { spec: "checkout", phase: "3", ref: { source: codex, id: "unknown" }, sessionName: "Codex worker" },
-    ] }; },
+    ] } }; },
   };
   return { deps, calls };
 }
@@ -50,10 +50,10 @@ test("conflicting or ambiguous identity refuses before reading sessions or claim
 
 test("qualified self-exclusion and complete absence make a phase selectable", async () => {
   const { deps, calls } = dependencies();
-  deps.readClaims = () => ({ ok: true, value: [
+  deps.readClaims = () => ({ ok: true, value: { here: [], claims: [
     { spec: "checkout", phase: "2", ref: { source: codex, id: "same" } },
     { spec: "checkout", phase: "3", ref: { source: claude, id: "gone" } },
-  ] });
+  ] } });
   const result = await runtimeContextPack(fixture.project, { mode: "execute", name: "checkout" }, deps);
   expect(result.ok && result.value).toContain("Picked: Phase 2");
   expect(result.ok && result.value).not.toContain("skipped 2");

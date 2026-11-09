@@ -28,6 +28,10 @@ export interface Command {
   run(projectDir: string, args: readonly string[]): string | Promise<string>;
 }
 
+export interface CommandDeps {
+  context?: Pick<Command, "run">;
+}
+
 export const COMMANDS: Record<string, Command> = {
   doctor: { usage: "doctor [<spec-name>]", run: (dir, args) => doctorReport(dir, args[0]) },
   context: {
@@ -59,13 +63,13 @@ export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)
   .map((command) => command.usage)
   .join(" | ")}`;
 
-export async function run(argv: readonly string[], projectDir: string): Promise<string> {
+export async function run(argv: readonly string[], projectDir: string, deps: CommandDeps = {}): Promise<string> {
   const [name, ...args] = argv;
+  if (name === "context" && deps.context) return deps.context.run(projectDir, args);
   const command = name !== undefined && Object.hasOwn(COMMANDS, name) ? COMMANDS[name] : undefined;
   return command ? command.run(projectDir, args) : USAGE;
 }
 
-// `context -` reads its arguments from stdin, so SKILL.md can pass raw user text without shell quoting.
 async function withStdinArgs(argv: readonly string[]): Promise<readonly string[]> {
   if (argv[0] !== "context" || argv[1] !== "-") return argv;
   return ["context", await Bun.stdin.text()];

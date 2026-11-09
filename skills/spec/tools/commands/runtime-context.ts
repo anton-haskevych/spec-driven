@@ -2,16 +2,22 @@ import type { Env } from "../core/env";
 import type { Result } from "../core/result";
 import { heldPhasesFromSnapshot, type SessionPhaseClaim } from "../claims/snapshot-held";
 import type { ContextRequest } from "../context/request";
+import type { ClaimHere } from "../context/claims-here";
 import { readSessionSnapshot, type SessionReader } from "../runtime/read-sessions";
 import { resolveIdentity } from "../runtime/resolve-identity";
 import type { SessionRef } from "../runtime/sessions";
 import { contextPack, type ContextDeps } from "./context";
 
-export interface RuntimeContextDeps extends Pick<ContextDeps, "runner" | "readClaimsHere"> {
+export interface RuntimeContextClaims {
+  claims: readonly SessionPhaseClaim[];
+  here: ClaimHere[];
+}
+
+export interface RuntimeContextDeps extends Pick<ContextDeps, "runner"> {
   env: Env;
   binding?: SessionRef;
   readers: readonly SessionReader[];
-  readClaims(projectDir: string): Result<readonly SessionPhaseClaim[]> | Promise<Result<readonly SessionPhaseClaim[]>>;
+  readClaims(projectDir: string): Result<RuntimeContextClaims> | Promise<Result<RuntimeContextClaims>>;
   now(): string;
 }
 
@@ -22,9 +28,9 @@ export async function runtimeContextPack(projectDir: string, request: ContextReq
   if (!claims.ok) return claims;
   const snapshot = await readSessionSnapshot(deps.readers, deps.now());
   if (!snapshot.ok) return snapshot;
-  const held = heldPhasesFromSnapshot(claims.value, { own: own.value, snapshot: snapshot.value });
+  const held = heldPhasesFromSnapshot(claims.value.claims, { own: own.value, snapshot: snapshot.value });
   const pack = await contextPack(projectDir, request, {
-    runner: deps.runner, readClaimsHere: deps.readClaimsHere, readHeld: () => held,
+    runner: deps.runner, readClaimsHere: () => claims.value.here, readHeld: () => held,
   });
   return { ok: true, value: pack };
 }
