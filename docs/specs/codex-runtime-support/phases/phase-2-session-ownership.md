@@ -17,6 +17,7 @@ Both runtimes participate in the same ownership and worktree decisions with expl
 
 - [x] Add explicit initiating-runtime resolution and qualified identity, preserving legacy Claude decoding and refusing conflicting or unavailable identity evidence.
 - [x] Implement injected, paginated Codex loaded-session reading and per-source coverage composition.
+- [x] Add an opt-in read-only context entry using qualified claim inputs, one resolved identity and one configured snapshot, preserving exact-source unknown coverage in phase selection.
 - [ ] Propagate async only through command I/O orchestration and reuse one snapshot per command.
 - [ ] Update take/release/takeover, remote claim serialization and overseer/worker records to qualified identities, preserving unknown fields and legacy Claude records.
 - [ ] Add writer-contract compatibility and activation/rollback guards; prove supported managed entry/cutover before enabling mixed writes so old readers cannot steal Codex claims. If native reentry cannot be fenced, return the specific activation choice; a marker alone is insufficient. This gate does not block building/fixture-testing adapters.
