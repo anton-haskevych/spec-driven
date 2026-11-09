@@ -20,7 +20,7 @@ hooks:
 
 # /spec — Feature Spec (Resume, Update, Review, Handoff, or Create)
 
-All hosts observe [capabilities.md](capabilities.md) before routing or running tools. An entry refusal stops the mode. Claude's existing interpolation and full managed workflow remain unchanged.
+**Native entry first:** In Codex, read [native-entry.md](native-entry.md) and complete its explicit bootstrap before routing or running any tool below. Do not execute the Claude interpolation blocks manually. All hosts observe [capabilities.md](capabilities.md); an entry refusal stops the mode. Claude's existing interpolation and full managed workflow remain unchanged.
 
 !`cat ${CLAUDE_SKILL_DIR}/taxonomy.md`
 

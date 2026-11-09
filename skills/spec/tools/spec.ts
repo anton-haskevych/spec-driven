@@ -69,6 +69,7 @@ export async function run(argv: readonly string[], projectDir: string, deps: Com
   const refusal = deps.workflow && pilotCommandRefusal(argv, deps.workflow);
   if (refusal) return `spec: ${refusal}`;
   const [name, ...args] = argv;
+  if (name === "context" && deps.workflow && !deps.context) return "spec: context binding unavailable in local-pilot; legacy context is disabled";
   if (name === "context" && deps.context) return deps.context.run(projectDir, args);
   const command = name !== undefined && Object.hasOwn(COMMANDS, name) ? COMMANDS[name] : undefined;
   return command ? command.run(projectDir, args) : USAGE;

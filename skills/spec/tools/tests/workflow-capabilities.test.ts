@@ -39,6 +39,8 @@ test("pilot mode contract is explicit and Claude dispatch keeps its default beha
   expect(await run(["context", "anything"], "/missing", { context: { run: () => "legacy override" } })).toBe("legacy override");
   expect(await run(["settings"], "/missing")).toContain("plugin defaults");
   expect(await run(["unknown"], "/missing")).toStartWith("usage:");
+  expect(await run(["context", "execute", "checkout", "2"], "/missing", { workflow: pilot }))
+    .toContain("context binding unavailable in local-pilot");
 });
 
 test("raw spec executable refuses Codex before invoking legacy commands", () => {
