@@ -1,19 +1,19 @@
 # Code map
 
-Existing seam inventory began at 22e7ec7 on 2026-11-08; introduced/touched rows below include subsequent Phase 1/2 work through 6eeb4e1. Historical source line references can drift. `T` = `skills/spec/tools/`.
+Existing seam inventory began at 22e7ec7 on 2026-11-08; introduced/touched rows below include subsequent Phase 1/2 work through 13a61f9. Historical source line references can drift. `T` = `skills/spec/tools/`.
 
 ## Remaining work by delivery
 
 | Phase | Integration owner |
 |---|---|
-| 2 | Reuse T/commands/stored-runtime-context.ts, runtime-context.ts, identity/readers and dispatcher; minimum native entry/assets, explicit pilot guards and validation |
+| 2 | Entry/assets and guards are composed; finish historical prune-isolation proof, explicit validation and installed-candidate/local-cycle acceptance |
 | 2b | Claim codecs/mutations/remote joins, board/list, tree placement/prune and their shared system composition |
 | 4 | All interactive mode/persona/project-override binding, complete managed handoff and native hook/manifest assets |
 | 3 | Normal launch planning/terminal binding, next sessions, spin-offs and interactive babysitter launches |
 | 3b | Background/control/evidence adapters, overseer and worker/run identity, crew lifecycle/reconciliation |
 | 6 | Existing feature-owned suites consolidated into full parity/CI/release evidence |
 
-The six existing Phase 2 foundations stay implemented; do not rebuild their abstractions. Pilot commands must not fall through the default Claude registry merely because context is correctly injected. workflow-parity.md owns the full feature inventory. Tests/native evidence accompany their feature; final consolidation is not deferred basic verification.
+The six Phase 2 foundations and connected-entry chunk stay implemented; do not rebuild their abstractions. Pilot commands are guarded before the context override/default registry, and raw Codex executable use refuses. workflow-parity.md owns the full feature inventory. Tests/native evidence accompany their feature; final consolidation is not deferred basic verification.
 
 ## Existing seams
 
@@ -83,9 +83,13 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 | `T/claims/snapshot-held.ts` | Pure qualified claim-to-held-phase policy; exact-source unknown coverage remains held | phase 2 |
 | `T/commands/runtime-context.ts` | Opt-in read-only shared context composition: explicit identity/configured readers and one claim/inference input; no default CLI/native config wiring | phase 2 |
 | `T/claims/document.ts`, `T/claims/read-documents.ts` | Read-only schema-1/explicitly bound legacy claim documents; raw unknown-field retention, conservative directory/record failures; no writer activation | phase 2 |
-| `T/commands/stored-runtime-context.ts` | Configured context command backed by the common claims directory; same disk rows feed held phases and linked-worktree inference | phase 2 |
+| `T/commands/stored-runtime-context.ts` | Configured context backed by common claims storage; same rows feed inference/held phases and an optional read-only caller check (pilot refuses stored claims) | phase 2 |
 | `T/tests/claims-document.test.ts`, `claims-read-documents.test.ts`, `context-stored-runtime.test.ts` | Decoder, filesystem refusal/byte preservation and opt-in dispatcher integration using disposable Git/worktree/source fixtures | phase 2 |
 | `T/tests/context-runtime.test.ts`, `claims-snapshot-held.test.ts`, `context-async.test.ts`, `context-rendering.test.ts`, `trees-placement-ports.test.ts` | Fixture evidence for qualified phase picking, read-once snapshots, pure rendering and narrow placement ports | phase 2 |
+| `T/runtime/workflow-capabilities.ts`, `skills/spec/capabilities.md` | One pilot command/sub-action policy and canonical automatic mode limits; no Claude default restriction | phase 2 |
+| `T/codex.ts`, `runtime/codex/entry.ts`, `skills/spec/native-entry.md` | Source-packaged explicit request/candidate/identity/cwd bootstrap to existing stored context; one native snapshot, local restricted reporting | phase 2 |
+| `T/runtime/codex/candidate.ts`, `runtime/pilot-workspace.ts` | Actual asset content fingerprint without installed Git; read-only common-directory/exclusive-checkout checks, not full isolation acceptance | phase 2 |
+| `T/tests/{workflow-capabilities,pilot-workspace,codex-entry,codex-candidate,codex-packaged-entry}.test.ts` | Guard/refusal tests and copied-package CLI execution through a disposable daemon fixture; no live install or model acceptance | phase 2 |
 
 ## Existing files touched
 
@@ -96,5 +100,6 @@ Prior art outside this repo: `../plugin-publish/SKILL.md` has the scoped native 
 | `T/runtime/claude/sessions.ts`, `runtime/sessions.ts` | Injected Claude reader wraps unchanged normalization; narrow Claude/Codex source types | `ledger/decision-runtime-boundaries.md` |
 | `T/runtime/codex/scan.ts`, `decode.ts` | Codex source type prevents a Claude label at the native boundary | `ledger/decision-runtime-boundaries.md` |
 | `T/commands/context.ts`, `context/packs.ts` | Async ContextDeps boundary and pure pack rendering; default system path remains Claude-only | `ledger/decision-runtime-boundaries.md` |
-| `T/spec.ts` | Narrow optional context command dependency permits configured qualified composition; executable/default registry stays Claude-only | `ledger/decision-runtime-boundaries.md` |
+| `T/spec.ts`, `skills/spec/{SKILL,execute,handoff,update}.md` | Context override plus pre-dispatch pilot guards and shared automatic-action contract; raw Codex executable refuses, Claude path unchanged | `ledger/decision-runtime-boundaries.md` |
+| `.codex-plugin/plugin.json`, `T/runtime/capabilities.ts` | Explicit relative skills packaging; native-installation evidence replaces obsolete updater/retention capability wording | `ledger/decision-source-based-immutable-releases.md` |
 | `T/trees/place.ts`, `commands/trees.ts`, `commands/launch.ts`, `commands/crew/{launch,tick}.ts` | Request + narrow PlacementDeps; legacy PlaceDeps type retained for prune/historical fixture compatibility | `ledger/decision-runtime-boundaries.md` |

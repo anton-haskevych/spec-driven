@@ -35,13 +35,13 @@ Port Anton's complete daily Claude workflow to Codex. Preserve every existing Cl
 
 Read the authored repository's parent guide at ~/IdeaProjects/claude-plugins/CLAUDE.md; external worktree parents differ. Runtime policy is in skills/spec/, especially tools/{sessions,claims,launch,crew,board,trees}. The spec is a plan, not a claim that proposed interfaces exist.
 
-Phase 1 is complete. Phase 2 has qualified identity/source readers, raw claim decoding, configured disk-backed read-only context and pure input/render/placement seams. Default executable/production ownership remains Claude-only. Native bootstrap, shared writer activation and native hook execution are not completed by those fixtures. Reuse the existing composition; do not rebuild it.
+Phase 1 is complete. Phase 2 has qualified identity/source readers, raw claim decoding, configured disk-backed context and pure input/render/placement seams, plus a source-packaged restricted native entry with candidate-content/ID/cwd checks and pre-dispatch guards. Copied-candidate/socket fixtures exercise that entry; installed model-driven acceptance, shared writer activation and native hook execution remain pending. Default managed ownership remains Claude-only. Reuse the existing composition; do not rebuild it.
 
 ## Current plan and handoff
 
 Read in-flight/phase-2.md for exact implementation state. The assigned source tree remains ~/claude-worktrees/spec-driven/codex-runtime-support-pr-a on feat/codex-runtime-support-pr-a. This replan does not move it, create the pilot clone or change a live installation.
 
-The next chunk connects the native entry to the existing configured context command and enforces explicit pilot capabilities. A pilot using unready shared ownership must have a separate Git common directory and no remote claim/cleanup/launch fallthrough. Same-repository daily use remains required in Phase 2b.
+The entry connection chunk is implemented. The next chunk proves the isolated local cycle: actual historical prune enumeration, explicit recall/invalid-edit correction and the installed-candidate acceptance driver. A pilot using unready shared ownership must have a separate Git common directory and no remote claim/cleanup/launch fallthrough. Same-repository daily use remains required in Phase 2b.
 
 PR grouping changes are branch-local until published through the existing authorized process. Do not auto-launch a regrouped phase using old origin/default metadata. Native acceptance must identify the actual candidate assets/revision; the installed cached release is not this branch.
 

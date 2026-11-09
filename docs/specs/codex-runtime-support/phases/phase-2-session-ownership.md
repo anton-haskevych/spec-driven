@@ -22,11 +22,11 @@ Existing runtime identity/readers and configured context commands; minimal nativ
 - [x] Add SourceRef binding and a single source-qualified identity equality/key helper.
 - [x] Extract narrow dependency objects for contextPack and placeTree before adding native ports; separate async context input loading from pure pack/phase rendering.
 
-## Next chunk — connect the entry
+## Connected entry
 
-- [ ] Bind a native Codex entry to createStoredRuntimeContextCommand and the existing dispatcher using one explicitly supported local source; verify actual initiating ID/cwd and candidate asset revision before work.
-- [ ] Enforce the pilot's allowed operations before command dispatch; update the shared mode capability contract so automatic execute/handoff actions cannot fall through to Claude defaults or report skipped ownership as success.
-- [ ] Package the minimum entry/assets in source using existing manifests/version tooling; add fixture coverage for entry, identity refusal and unsupported actions, keeping Claude dispatch behavior unchanged.
+- [x] Bind a native Codex entry to createStoredRuntimeContextCommand and the existing dispatcher using one explicitly supported local source; verify actual initiating ID/cwd and candidate asset revision before work.
+- [x] Enforce the pilot's allowed operations before command dispatch; update the shared mode capability contract so automatic execute/handoff actions cannot fall through to Claude defaults or report skipped ownership as success.
+- [x] Package the minimum entry/assets in source using existing manifests/version tooling; add fixture coverage for entry, identity refusal and unsupported actions, keeping Claude dispatch behavior unchanged.
 
 ## Complete the local cycle
 
@@ -45,7 +45,9 @@ Remaining shared claims, board, placement, pruning and remote identity work is i
 
 ## Phase-local notes
 
-The six completed items above are the original fixture-tested foundations, not installed acceptance. commands/runtime-context.ts and commands/stored-runtime-context.ts are opt-in; default executable ownership remains Claude-only. Read ../in-flight/phase-2.md for current implementation details and the assigned tree.
+The six completed foundations and three connected-entry items are fixture-tested implementation, not installed acceptance. `tools/codex.ts` binds actual candidate content, qualified identity and the existing native probe/snapshot to `createStoredRuntimeContextCommand`. Its read-only checks refuse missing target/revision/identity, unsupported source/home, shared common directories, linked pilot checkouts and other observed Codex occupation. Every command also refuses existing stored claims using the same context disk rows: a phase hint cannot bypass missing managed ownership. `runtime/workflow-capabilities.ts` guards before dispatch; canonical modes follow `skills/spec/capabilities.md`. Raw `spec.ts` from Codex refuses; Claude dispatch stays unchanged. The entry reports no acquired ownership. Read ../in-flight/phase-2.md for exact state and the assigned tree.
+
+The copied candidate fixture runs the actual packaged CLI with a disposable Unix socket/CLI response fixture and no `.git` or `node_modules`. It is not a native install, model-driven execute/handoff cycle or fresh pickup. Basic common-directory checks do not replace the remaining historical-prune isolation proof. No source claim is written or remote action enabled.
 
 Installed evidence must identify the candidate files actually executed. Do not infer candidate use from a catalog version or the already installed cached skill. Preserve all existing proof fixtures and do not repeat platform/login/retention research.
 
