@@ -54,3 +54,11 @@ The copied candidate fixture runs the actual packaged CLI with a disposable Unix
 Installed evidence must identify the candidate files actually executed. Do not infer candidate use from a catalog version or the already installed cached skill. Preserve all existing proof fixtures and do not repeat platform/login/retention research.
 
 Running the real self-use scenario is a Phase 2 PR gate in ../pr-opening.md; building its entry/driver belongs here. Approval for a live personal installation/publication is separate from this planning change.
+
+## Real installed run — 2026-11-09
+
+The scoped native candidate was installed under Anton's authorization, exercised by two actual model sessions in the separate pilot, then removed through native operations. Useful code work, local handoff, exact committed-HEAD fresh resume, Stage A halt and separately confirmed Stage B were observed. See `../research/phase-2/2026-11-09-native-acceptance-results.md` for exact IDs/revision/commits and restored install state.
+
+The canonical first attempt failed: execute spawned its own recon subagents, then the blanket occupation guard refused recall. The completed local cycle required a controller-authorized serial-recon override. This does not pass default execute acceptance; the open local-cycle item, Phase 2 and PR gates remain open. Subagent spawning itself worked and remains critical to full parity. Resolve the parent/child classification gap with existing workflow semantics before retrying canonical acceptance; do not make serial recon a permanent restriction or introduce another ownership system.
+
+Pilot-only code/handoff/evidence commits end at `6931a26`; they are not integrated into this assigned implementation tree. Both model-written reports and learnings remain in that clone. The frozen installed candidate did not contain the source fix tested there. Source fixture checks, actual installed model work and unresolved default-flow acceptance remain distinct.
