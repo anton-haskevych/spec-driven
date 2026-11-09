@@ -100,14 +100,16 @@ describe("findProjectDir", () => {
   });
 });
 
-describe("spec.ts from a subfolder", () => {
+describe("Claude spec.ts from a subfolder", () => {
   test("finds the spec the way it does from the project root", () => {
     tree = createTree();
     tree.write(".git/HEAD", "");
     tree.spec("alpha", { "progress.md": "- [ ] Phase 1 — Start → `phases/phase-1.md`\n", "phases/phase-1.md": "- [ ] go\n" });
     tree.write("skills/spec/SKILL.md", "");
     const specTs = join(import.meta.dir, "..", "spec.ts");
-    const output = Bun.spawnSync(["bun", specTs, "ready", "alpha"], { cwd: join(tree.root, "skills/spec") }).stdout.toString();
+    const output = Bun.spawnSync(["bun", specTs, "ready", "alpha"], {
+      cwd: join(tree.root, "skills/spec"), env: { ...process.env, CODEX_THREAD_ID: "", CLAUDE_CODE_SESSION_ID: "fixture-claude" },
+    }).stdout.toString();
     expect(output).not.toContain("no spec named alpha");
     expect(output).toContain("Ready now: 1 Start");
   });

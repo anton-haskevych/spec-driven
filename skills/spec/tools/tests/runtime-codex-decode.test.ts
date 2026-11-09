@@ -38,7 +38,7 @@ describe("native session values", () => {
 
   test("read-only observations cannot enable any managed capability", () => {
     expect(unverifiedManagedCapabilities(source).map((c) => [c.capability, c.state])).toEqual([
-      ["managed-ownership", "unverified"], ["background-workers", "unverified"], ["mixed-writers", "unverified"], ["automatic-updates", "unverified"],
+      ["managed-ownership", "unverified"], ["background-workers", "unverified"], ["mixed-writers", "unverified"], ["native-installation", "unverified"],
     ]);
   });
 });

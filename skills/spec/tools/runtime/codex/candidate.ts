@@ -20,7 +20,7 @@ export function inspectCandidate(path: string): Result<CandidateAssets> {
   try {
     const root = realpathSync(path);
     const manifest: unknown = JSON.parse(readFileSync(join(root, ".codex-plugin/plugin.json"), "utf8"));
-    if (!isRecord(manifest) || manifest.name !== "spec-driven" || typeof manifest.version !== "string" || !manifest.version) {
+    if (!isRecord(manifest) || manifest.name !== "spec-driven" || manifest.skills !== "./skills/" || typeof manifest.version !== "string" || !manifest.version) {
       return { ok: false, reason: "invalid native candidate manifest" };
     }
     const paths = new Set(REQUIRED);
