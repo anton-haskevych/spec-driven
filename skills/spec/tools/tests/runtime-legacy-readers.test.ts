@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, realpathSync } from "node:fs";
 import { join } from "node:path";
+import { gitAt, gitCommonDir } from "../core/git";
+import { verifyPilotWorkspace } from "../runtime/pilot-workspace";
+import { loadWorkspaces } from "../workspaces/list";
 import { claimStatus, isStale, type ClaimContext } from "./fixtures/runtime-2.51.0/claims/rules";
 import { loadClaims, releaseClaims, takeClaim } from "./fixtures/runtime-2.51.0/claims/store";
 import { findPrunable } from "./fixtures/runtime-2.51.0/trees/prune";
@@ -66,5 +69,36 @@ describe("actual 2.51.0 reader compatibility evidence", () => {
     repo.write(file, JSON.stringify({ schemaVersion: 2, ref: { runtime: "codex", id: "codex-thread" }, workspace }));
     const unreadableClaim = await findPrunable(repo.dir, deps);
     expect(unreadableClaim.ok && unreadableClaim.value.candidates.map((c) => c.path)).toContain(workspace);
+  });
+
+  test("actual historical enumeration can nominate a linked tree but cannot nominate a separate pilot clone", async () => {
+    repo = repoWithOrigin("legacy-clone-isolation-");
+    tree = createTree("legacy-empty-sessions-");
+    mkdirSync(join(tree.root, "sessions"));
+    const linked = repo.addWorktree("unsafe-linked", "feat/unsafe-linked");
+    const pilot = repo.clone("exclusive-pilot");
+    const legacyGit = gitAt(repo.dir, isolatedRunner);
+    const pilotGit = gitAt(pilot.dir, isolatedRunner);
+    const legacyCommon = gitCommonDir(legacyGit);
+    const pilotCommon = gitCommonDir(pilotGit);
+    expect(legacyCommon.ok && pilotCommon.ok && realpathSync(legacyCommon.value) !== realpathSync(pilotCommon.value)).toBe(true);
+    expect(pilot.git("rev-parse", "HEAD")).toBe(linked.git("rev-parse", "HEAD"));
+    expect(pilot.git("remote", "get-url", "origin")).toBe(repo.origin);
+    expect(verifyPilotWorkspace(pilot.dir, repo.dir, isolatedRunner)).toEqual({ ok: true, value: realpathSync(pilot.dir) });
+    expect(verifyPilotWorkspace(linked.dir, repo.dir, isolatedRunner).ok).toBe(false);
+    const workspaces = loadWorkspaces(legacyGit);
+    expect(workspaces.ok && workspaces.value.map(({ path }) => path)).toEqual([realpathSync(repo.dir), realpathSync(linked.dir)]);
+    const report = await findPrunable(repo.dir, {
+      runner: isolatedRunner, asyncRunner: cannedGh(isolatedAsyncRunner, [[["gh", "pr", "list"], { stdout: "[]" }]]),
+      claudeHome: tree.root, env: {},
+    });
+    expect(report.ok).toBe(true);
+    if (!report.ok) throw new Error(report.reason);
+    expect(report.value.sessionsUnread).toBeUndefined();
+    expect(report.value.prsUnchecked).toBeUndefined();
+    expect(report.value.candidates.map(({ path }) => path)).toEqual([realpathSync(linked.dir)]);
+    expect(report.value.candidates.map(({ path }) => path)).not.toContain(realpathSync(pilot.dir));
+    expect(pilot.git("status", "--porcelain")).toBe("");
+    expect(linked.git("rev-parse", "HEAD")).toBe(pilot.git("rev-parse", "HEAD"));
   });
 });
