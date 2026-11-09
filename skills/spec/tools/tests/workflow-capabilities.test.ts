@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { pilotCommandRefusal, pilotModeRefusal, type LocalPilot } from "../runtime/workflow-capabilities";
 import { run } from "../spec";
+import { createContextFixture } from "./context-fixture";
 
 const pilot: LocalPilot = { kind: "local-pilot", spec: "checkout", phase: "2" };
 
@@ -50,4 +51,16 @@ test("raw spec executable refuses Codex before invoking legacy commands", () => 
   expect(child.exitCode).toBe(1);
   expect(child.stdout.toString()).toContain("Codex requires the packaged native entry");
   expect(child.stdout.toString()).not.toContain("claim:");
+});
+
+test("park advice follows declared workflow while Claude keeps its push instruction", async () => {
+  const fixture = createContextFixture();
+  try {
+    const args = ["phase", "park", "checkout", "2", "Which option?"];
+    expect(await run(args, fixture.project)).toContain("Commit and push the note, then hand off.");
+    await run(["phase", "unpark", "checkout", "2", "Local"], fixture.project);
+    const result = await run(args, fixture.project, { workflow: pilot });
+    expect(result).toContain("Commit the note locally, then hand off.");
+    expect(result).not.toContain("push the note");
+  } finally { fixture.cleanup(); }
 });

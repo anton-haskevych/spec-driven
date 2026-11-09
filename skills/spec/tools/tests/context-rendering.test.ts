@@ -3,6 +3,7 @@ import { loadPackReferences } from "../context/references";
 import { executePack, type PackInput } from "../context/packs";
 import { selectExecutePhase } from "../context/select-phase";
 import { phaseState } from "./factories";
+import { parseLesson } from "../lessons/project-ledger";
 
 const phase = phaseState({ id: "2", entry: "- [ ] edit `src/one.ts`" });
 const input: PackInput = {
@@ -44,4 +45,18 @@ test("phase selection preserves held-phase skipping and explicit hints without I
   expect(selectExecutePhase(selection)).toEqual({ ok: true, value: { phase: next, note: "first ready phase; skipped 2 (in flight: other)" } });
   expect(selectExecutePhase(selection, "phase2")).toEqual({ ok: true, value: { phase, note: 'from your hint "phase2"' } });
   expect(selectExecutePhase({ ...input, held: selection.held })).toEqual({ ok: false, reason: "Every ready phase is in flight in another session: 2 (in flight: other). Tell the user and stop." });
+});
+
+test("pilot lesson advice requires explicit entry recall and preserves Claude hook advice", () => {
+  const lesson = parseLesson("/lesson.md", "lesson.md", "---\nkind: gotcha\npaths: [src/**]\n---\n# Remember this\n");
+  if (!lesson) throw new Error("lesson fixture invalid");
+  const references = loadPackReferences(() => undefined);
+  const withLesson = { ...input, lessons: [lesson] };
+  expect(executePack(withLesson, phase, "chosen", references)).toContain("the edit hook shows its rule");
+  for (const lessons of [[lesson], Array.from({ length: 50 }, (_, i) => ({ ...lesson, name: `lesson-${i}.md`, title: "Remember this ".repeat(20) }))]) {
+    const local = executePack({ ...withLesson, lessons, workflow: { kind: "local-pilot", spec: "one", phase: "2" } }, phase, "chosen", references);
+    expect(local).toContain("run `lessons recall <file…>` through the verified entry before edits");
+    expect(local).not.toContain("the edit hook");
+    expect(local).not.toContain("spec.ts lessons recall");
+  }
 });

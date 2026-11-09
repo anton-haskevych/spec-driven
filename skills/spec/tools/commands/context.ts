@@ -20,10 +20,10 @@ import { defaultClaudeHome } from "../sessions/live";
 import { systemClaimsHere, type ClaimsHereReader } from "../context/claims-here";
 import { loadPackReferences } from "../context/references";
 import { selectExecutePhase } from "../context/select-phase";
+import type { LocalPilot } from "../runtime/workflow-capabilities";
 
 const DOCTOR_LINES = 6;
 const PACK_MODES = new Set(["resume", "status", "execute", "route", "babysit"]);
-// babysit never infers: `launch babysit` always names the spec and its PR group.
 const INFERRING_MODES = new Set(["resume", "status", "execute"]);
 const CONVERSATION_FIRST = "If this conversation already resumed or executed another spec, use that one instead (re-run `spec.ts context <mode> <that spec>`).";
 const NOTHING_HERE = "No spec named, and nothing in this tree points at one (no claim here, no changed spec files).";
@@ -36,6 +36,7 @@ export interface ContextDeps {
   runner: Runner;
   readHeld: HeldReader;
   readClaimsHere: ClaimsHereReader;
+  workflow?: LocalPilot;
 }
 
 export function systemContextDeps(): ContextDeps {
@@ -46,8 +47,6 @@ export function systemContextDeps(): ContextDeps {
   };
 }
 
-// With no spec named: the conversation first (the session's call), then this tree's claim, then its
-// changed spec files, and only then the board's top ready row (execute).
 export async function contextPack(
   projectDir: string,
   request: ContextRequest,
@@ -91,7 +90,7 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   const settings = settingsLine(projectDir);
   const stale = nodes.get(state.spec.name)?.meta.stale;
   const body = mode === "execute"
-    ? executeBody(projectDir, { state, doctor, relations, ready, held, playbooks, settings, stale, lessons: loadProjectLessons(projectDir) }, request.hint)
+    ? executeBody(projectDir, { state, doctor, relations, ready, held, playbooks, settings, stale, workflow: deps.workflow, lessons: loadProjectLessons(projectDir) }, request.hint)
     : resumePack({ state, doctor, relations, ready, held, playbooks, settings, stale, lessons: [] });
   return packBlock(state.spec.name, mode, inferredFrom, body);
 }

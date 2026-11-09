@@ -92,7 +92,7 @@ interface BoundPilot {
 async function dispatchPilot(bound: BoundPilot, deps: CodexEntryDeps): Promise<Result<string>> {
   const { request, target, own } = bound;
   const context = createStoredRuntimeContextCommand({
-    env: deps.env, binding: own, runner: deps.runner, now: deps.now,
+    env: deps.env, binding: own, runner: deps.runner, now: deps.now, workflow: target,
     readers: [{ source: SOURCE, read: async () => bound.native.snapshot }],
     checkClaims: ({ claims }) => claims.length
       ? { ok: false, reason: "local-pilot requires no stored claims; shared ownership is unavailable, leave existing state untouched" }

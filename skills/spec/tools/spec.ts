@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { contextPack } from "./commands/context";
 import { parseContextRequest } from "./context/request";
-import { doctorReport } from "./commands/doctor";
+import { doctorCommand, DOCTOR_USAGE } from "./commands/doctor";
 import { GATES_USAGE, gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
 import { LAUNCH_USAGE, launchCommand } from "./commands/launch";
@@ -26,7 +26,7 @@ import { pilotCommandRefusal, type LocalPilot } from "./runtime/workflow-capabil
 
 export interface Command {
   usage: string;
-  run(projectDir: string, args: readonly string[]): string | Promise<string>;
+  run(projectDir: string, args: readonly string[], workflow?: LocalPilot): string | Promise<string>;
 }
 
 export interface CommandDeps {
@@ -35,7 +35,7 @@ export interface CommandDeps {
 }
 
 export const COMMANDS: Record<string, Command> = {
-  doctor: { usage: "doctor [<spec-name>]", run: (dir, args) => doctorReport(dir, args[0]) },
+  doctor: { usage: DOCTOR_USAGE, run: doctorCommand },
   context: {
     usage: "context <sub-command> <spec-name> [hint]",
     run: (dir, args) => contextPack(dir, parseContextRequest(args, (name) => findSpecs(dir, name).length > 0)),
@@ -72,7 +72,7 @@ export async function run(argv: readonly string[], projectDir: string, deps: Com
   if (name === "context" && deps.workflow && !deps.context) return "spec: context binding unavailable in local-pilot; legacy context is disabled";
   if (name === "context" && deps.context) return deps.context.run(projectDir, args);
   const command = name !== undefined && Object.hasOwn(COMMANDS, name) ? COMMANDS[name] : undefined;
-  return command ? command.run(projectDir, args) : USAGE;
+  return command ? command.run(projectDir, args, deps.workflow) : USAGE;
 }
 
 async function withStdinArgs(argv: readonly string[]): Promise<readonly string[]> {

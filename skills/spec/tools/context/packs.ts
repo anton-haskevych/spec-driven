@@ -15,6 +15,7 @@ import { clip, kilobytes } from "./text";
 import type { HeldPhases } from "../claims/live";
 import { firstUnheld } from "./held-phases";
 import type { PackReferences } from "./references";
+import type { LocalPilot } from "../runtime/workflow-capabilities";
 
 export interface PackInput {
   state: SpecState;
@@ -26,6 +27,7 @@ export interface PackInput {
   playbooks: readonly Playbook[];
   settings?: string;
   stale?: string;
+  workflow?: LocalPilot;
 }
 
 const PHASE_ENTRY_LIMIT = 8000;
@@ -70,7 +72,7 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
     `### Phase entry (${phase.pointer})\n${clip(phase.entry ?? "(missing)", PHASE_ENTRY_LIMIT, phase.pointer)}`,
     ledgerBlock(references.ledgerIndex, phase.id),
     codeMapBlock(references.codeMap, phase.entry ?? ""),
-    projectLessonsBlock(lessons, phase.entry ?? ""),
+    projectLessonsBlock(lessons, phase.entry ?? "", input.workflow),
     `### CLAUDE.md\n${clip(references.instructions ?? "(missing)", SMALL_FILE_LIMIT, "CLAUDE.md")}`,
     ...playbooksBlock(input.playbooks),
     stableReferencesBlock(references.stable),
@@ -149,14 +151,17 @@ function stableReferencesBlock(references: PackReferences["stable"]): string {
   return `### Read now (not inlined)\n${present.length > 0 ? present.join("\n") : "(none)"}`;
 }
 
-function projectLessonsBlock(lessons: readonly Lesson[], phaseEntry: string): string {
+function projectLessonsBlock(lessons: readonly Lesson[], phaseEntry: string, workflow?: LocalPilot): string {
   const paths = outlineMarkdown(phaseEntry).codeSpans.map((span) => span.code).filter((code) => PATH_LIKE.test(code));
   const matching = lessonsForFiles(lessons, paths);
   if (matching.length === 0) return "### Project lessons for this phase's files (docs/specs/_ledger)\n(none match the files this phase names)";
   const shown = withinBudget(matching.map(pointToLesson), PROJECT_LESSONS_LIMIT);
+  const recall = workflow
+    ? "run `lessons recall <file…>` through the verified entry before edits; native recall hooks are pending"
+    : "the edit hook shows its rule before you change a matching file";
   const hiddenNote = shown.length < matching.length
-    ? `\n${matching.length - shown.length} more lessons match; the edit hook shows each before its file changes, or run \`spec.ts lessons recall <file…>\`.`
+    ? `\n${matching.length - shown.length} more lessons match; ${workflow ? recall : "the edit hook shows each before its file changes, or run `spec.ts lessons recall <file…>`"}.`
     : "";
   const heading = `### Project lessons for this phase's files (${matching.length} match, most-seen first)`;
-  return `${heading}\nEach is docs/specs/_ledger/<file>; the edit hook shows its rule before you change a matching file.\n${shown.join("\n")}${hiddenNote}`;
+  return `${heading}\nEach is docs/specs/_ledger/<file>; ${recall}.\n${shown.join("\n")}${hiddenNote}`;
 }

@@ -13,7 +13,7 @@ export interface RuntimeContextClaims {
   here: ClaimHere[];
 }
 
-export interface RuntimeContextDeps extends Pick<ContextDeps, "runner"> {
+export interface RuntimeContextDeps extends Pick<ContextDeps, "runner" | "workflow"> {
   env: Env;
   binding?: SessionRef;
   readers: readonly SessionReader[];
@@ -30,7 +30,7 @@ export async function runtimeContextPack(projectDir: string, request: ContextReq
   if (!snapshot.ok) return snapshot;
   const held = heldPhasesFromSnapshot(claims.value.claims, { own: own.value, snapshot: snapshot.value });
   const pack = await contextPack(projectDir, request, {
-    runner: deps.runner, readClaimsHere: () => claims.value.here, readHeld: () => held,
+    runner: deps.runner, workflow: deps.workflow, readClaimsHere: () => claims.value.here, readHeld: () => held,
   });
   return { ok: true, value: pack };
 }

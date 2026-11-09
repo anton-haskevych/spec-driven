@@ -26,6 +26,7 @@ export function pilotCommandRefusal(argv: readonly string[], pilot: LocalPilot):
   }
   if (name === "settings" && args.length === 0) return undefined;
   if (name === "gates") return undefined;
+  if (name === "doctor" && args[0] === pilot.spec && args.length === 3 && args[1] === "--file" && args[2]) return undefined;
   if (name && LOCAL_REPORTS.has(name) && args[0] === pilot.spec && args.length === 1) return undefined;
   if (name === "lessons" && args[0] && LOCAL_LESSONS.has(args[0])) {
     if (args[0] !== "add" || args[2] === pilot.spec) return undefined;
