@@ -13,7 +13,7 @@
 Phase IDs preserve history; list order is delivery order. Later features remain required, not cut.
 
 - [x] Phase 1 — Runtime contracts and Claude compatibility baseline → `phases/phase-1-runtime-contracts.md`
-- [ ] Phase 2 — First usable local Codex execute and handoff → `phases/phase-2-session-ownership.md`
+- [x] Phase 2 — First usable local Codex execute and handoff → `phases/phase-2-session-ownership.md`
 - [ ] Phase 2b — Shared ownership, board and worktree coordination → `phases/phase-2b-shared-coordination.md`
 - [ ] Phase 4 — Complete interactive workflow, reviewers and native hooks → `phases/phase-4-native-workflow.md`
 - [ ] Phase 3 — Normal launches, next sessions and spin-offs → `phases/phase-3-session-lifecycle.md`

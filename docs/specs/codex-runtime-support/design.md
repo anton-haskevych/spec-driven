@@ -34,6 +34,8 @@ Native entry resolves the actual request, packaged asset root/revision and initi
 
 The early pilot runs one exclusive checkout in a separate clone with its own Git common directory, outside the original clone's linked-worktree/prune domain. Verify that boundary with existing Git primitives and a legacy-reader fixture. Do not build a clone/profile manager. A marker or explicitly assigned sibling worktree cannot protect against older Claude cleanup.
 
+The initiating session may use native recon descendants whose source-qualified parent chain is observed in the same snapshot. Independent roots and unverified ancestry still compete; canonicalize competitor cwd before containment. This reuses runtime identity values, not another ownership system.
+
 The pilot names its spec, phase and cwd explicitly. Allowed work is local context, implementation/spec edits, validation, progress/ledger/in-flight updates and local commits. It uses existing recall and per-file/doctor checks explicitly until trusted native hooks are active.
 
 Shared capability handling must refuse unready claims/takeover/remote mirroring, automatic board-based target allocation, placement/prune, push/publication, next-session launch and crew before dispatch. Canonical execute/handoff instructions must recognize that declared restricted result instead of retrying through Claude defaults or reporting successful skipped actions. The pilot finishes a local handoff, not full managed handoff parity. No restriction changes Claude's default workflow.

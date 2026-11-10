@@ -2,6 +2,8 @@
 
 ## Gotchas
 
+- `gotcha-pilot-cwd-aliases.md` — [phase 2, phase 2b] — resolve competitor cwd before judging occupation
+
 - `gotcha-native-install-evicts-previous-cache.md` — [phase 1, phase 2, phase 4, phase 6] — native old paths can disappear; use fresh-session recovery
 - `gotcha-native-interrupt-needs-terminal-cleanup.md` — [phase 1, phase 3b, phase 6] — interrupt acknowledgement does not prove descendant cleanup
 - `gotcha-bun-docs-exceed-installed-api.md` — [general] — verify installed Bun APIs and bound socket cleanup

@@ -66,6 +66,7 @@ interface RuntimeSession {
   cwd: string;
   status: "busy" | "idle" | "shell";
   observedAt: string;
+  parent?: SessionRef;
   attention?: "approval" | "input" | "error";
 }
 interface SessionSnapshot {

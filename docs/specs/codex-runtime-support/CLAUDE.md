@@ -1,6 +1,6 @@
 ---
 created: 2026-11-08T19:10:00-08:00
-updated: 2026-11-09T02:17:51-08:00
+updated: 2026-11-09T16:38:52-08:00
 status: active
 area: [agent-tooling]
 domain: [runtime-integration]
@@ -35,13 +35,15 @@ Port Anton's complete daily Claude workflow to Codex. Preserve every existing Cl
 
 Read the authored repository's parent guide at ~/IdeaProjects/claude-plugins/CLAUDE.md; external worktree parents differ. Runtime policy is in skills/spec/, especially tools/{sessions,claims,launch,crew,board,trees}. The spec is a plan, not a claim that proposed interfaces exist.
 
-Phase 1 is complete. Phase 2 has qualified identity/source readers, raw claim decoding, configured disk-backed context and pure input/render/placement seams, plus a source-packaged restricted native entry with candidate-content/ID/cwd checks and pre-dispatch guards. Copied-candidate/socket fixtures exercise that entry; installed model-driven acceptance, shared writer activation and native hook execution remain pending. Default managed ownership remains Claude-only. Reuse the existing composition; do not rebuild it.
+Phases 1 and 2 are complete. The isolated native Codex pilot has source-qualified readers, preserved raw claims, configured context, source-packaged candidate/ID/cwd bootstrap, canonical competitor paths and verified native recon descendants. One combined installed candidate passed real execute/update/handoff and independent fresh resume without a serial workaround. Shared writer activation and trusted native hooks remain pending; default managed ownership stays Claude-only. Reuse existing composition.
 
 ## Current plan and handoff
 
-Read in-flight/phase-2.md for exact implementation state. The assigned source tree remains ~/claude-worktrees/spec-driven/codex-runtime-support-pr-a on feat/codex-runtime-support-pr-a. This replan does not move it, create the pilot clone or change a live installation.
+The assigned source remains ~/claude-worktrees/spec-driven/codex-runtime-support-pr-a on feat/codex-runtime-support-pr-a. Final acceptance is `research/phase-2/2026-11-09-final-combined-acceptance.md`; PR A's local review draft is `pr-a-review.md`, with pending review state in `in-flight/pr-a.md`. No remote PR, push, merge or release has occurred.
 
-The local-cycle source implementation has historical clone-exclusion, recall/doctor correction and copied-candidate bookkeeping/commit/fresh-process evidence. The real installed two-model run now also observed useful code work, restricted handoff and fresh pickup, but only after a serial-recon override: canonical recon's own subagents triggered the blanket occupation refusal. That subagent rejection is now fixed in fc10395: a newly installed candidate passed recall/doctor with both real recon children loaded, retained independent-root refusal and recovered after the root closed. See `research/phase-2/2026-11-09-subagent-parentage-native-results.md`; no serial override is required by the corrected entry. Consolidated local-cycle/PR acceptance and Phase 2 remain open. Subagent support remains critical and full Claude parity required. The scoped temporary install was removed and existing installed-plugin metadata restored. Pilot-only work stays in its separate clone pending integration. A pilot using unready shared ownership must retain a separate Git common directory and no remote claim/cleanup/launch fallthrough. Same-repository daily use remains required in Phase 2b.
+Integration commit 90bd6cf combines the retained pilot cwd/symlink fix with fc10395 qualified native parentage. The final candidate revision was `sha256:cfe500538196bc655f614ebacd62e1b210364a10c50fa2fd41de044e8507c889` in both real sessions and the reconciled pilot source. Canonical parallel recon, explicit recall/invalid-file correction, local source/spec commits and confirmed Stage A/B fresh pickup passed. The temporary native installation was removed and all existing installed-plugin metadata restored. Historical failed/serial-only reports remain unchanged; the new acceptance supersedes their pending local-cycle disposition.
+
+The pilot must still use a separate exclusive clone/common directory with no unready claim/publication/cleanup/launch fallthrough. Native source qualification recognizes delegated descendants; independent sessions still compete. Same-repository daily use belongs to Phase 2b, followed by full interactive/persona/hook binding in Phase 4. Full Claude parity and every existing feature remain required.
 
 PR grouping changes are branch-local until published through the existing authorized process. Do not auto-launch a regrouped phase using old origin/default metadata. Native acceptance must identify the actual candidate assets/revision; the installed cached release is not this branch.
 

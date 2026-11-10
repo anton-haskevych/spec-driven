@@ -58,3 +58,8 @@ Runtime-neutral tools keep their implementations; native invocation and regressi
 ## Completion rule
 
 Phase 2's isolated pilot is useful early adoption, not completion of execute/handoff parity. All missing capabilities above stay required in this spec. Full parity requires real native scenarios as well as deterministic contracts, with Claude regression evidence at every delivery. Unsupported additional environments can remain honestly documented; a missing required feature in a supported environment cannot be relabelled unsupported to close the port.
+
+
+## Accepted isolated-pilot evidence
+
+Phase 2 acceptance is `research/phase-2/2026-11-09-final-combined-acceptance.md`: one exact combined installed candidate, two actual model sessions, canonical concurrent recon, useful code integration, explicit feedback/correction/update/local handoff and confirmed fresh Stage A/B pickup. This closes only the Phase 2 pilot portions above. Shared ownership/inference, full interactive modes/personas/hooks, publication/cleanup, normal launches and managed workers remain required in their owning phases. The temporary native installation was removed after acceptance; this is source readiness, not permanent personal activation or release.
