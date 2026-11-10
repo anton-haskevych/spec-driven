@@ -1,5 +1,7 @@
 # Review Mode
 
+**A session that prepped or created this spec doesn't review it.** The panel's verdict is synthesized in this thread, and a thread that wrote the spec reads it through its own reasoning. Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch review <spec>` instead, pass on its last line and stop. The review request, or a picked review row, is the go-ahead: don't ask again. When launch can't open a session, give the user the line it printed and stop; never run the panel here as a fallback. A session that did neither continues below.
+
 Launch a collegium review panel to evaluate the spec from five independent lenses, **synthesize the findings yourself in this thread**, write the full synthesis to `reviews/`, apply the findings to the spec and ledger, and record everything as a single review commit.
 
 **Synthesis is your job, not an agent's.** There is no synthesizer agent. You read every report, verify the load-bearing claims against real code, deduplicate, weigh, and write the verdict as your own reading — not a merge of theirs. A hand-off loses findings to output-budget compression and loses the reasoning to a context you can't see.
