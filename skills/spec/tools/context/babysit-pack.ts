@@ -1,5 +1,6 @@
 import type { SpecState } from "../core/spec-state";
 import { treeName } from "../trees/naming";
+import { inFlightBlock } from "./in-flight";
 
 export interface BabysitPackInput {
   state: SpecState;
@@ -26,6 +27,7 @@ export function babysitPack({ state, doctor, settings }: BabysitPackInput, hint:
     ...(settings ? [settings] : []),
     `### PR group ${known} · branch ${treeName(spec, known).branch}\n${phases.map((phase) => `- [${phase.done ? "x" : " "}] ${phase.id} — ${phase.name}`).join("\n")}`,
     ...(open.length > 0 ? [`Open phases in group ${known}: ${open.join(", ")}. The PR isn't ready: tell the user and stop.`] : []),
+    inFlightBlock(state.inFlight ?? [], state.spec.dir),
     `### Doctor\n${doctor}`,
   ].join("\n\n");
 }

@@ -374,6 +374,8 @@ Do not pre-create empty instances of these.
 
 Once the spec files are created, end with SKILL.md → *Next sessions*, with this spec's review at 1: `<spec> review — <title> · current checkout`, launched as `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch review <spec>`. The review is always the next step after create; put an execute row first only when the user says to go ahead without it. Don't ask whether the user is happy with the spec or whether to update project docs: list project docs the feature touches under `Say if wrong:` above the block.
 
+Wait for the user's selection before launching. A direct request to review follows review.md's fresh-session entry; never run the panel in this prep/create conversation.
+
 ## Style guide
 
 - Wireframes should be detailed enough to implement from

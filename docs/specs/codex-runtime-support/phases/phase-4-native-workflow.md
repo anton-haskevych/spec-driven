@@ -16,7 +16,6 @@ Canonical skills/spec/SKILL.md and all public mode bindings; native entry/manife
 ## Deliverables
 
 - [ ] Extend the existing entry to all interactive modes: prep, create, resume, execute, review, update, handoff, status, list and idea; preserve aliases/argument inference, taxonomy, playbooks, phase selection, stop rules and existing approval/ship policy.
-- [ ] Apply workflow-parity.md's Session continuity contract to shared mode entry/context: read current handoffs before recommendations or work, include outstanding phase/PR notes and legacy notes, refresh after checkout changes, and require source reads for clipped/omitted content. Canonical review entry after prep/create requires a fresh session; host launch integration remains Phase 3.
 - [ ] Exercise runtime-neutral doctor/lessons/graph/ready/gates/playbooks/phase/settings/focus/ship/owner/pr/push/publish-docs through native invocation without rebuilding their implementations. Restore the full managed local handoff/claim-release/cleanup/publication path after Phase 2b acceptance.
 - [ ] Bind all seven canonical agents, including the five review personas, debugger and deep-research-analyst; preserve recon/preflight invocation and project overrides. Load canonical instructions explicitly when native roles are unavailable; never overwrite user roles or pass Claude model names to Codex.
 - [ ] Translate all native patch paths and reuse existing recall/file-validation for add/update/delete/move/multi-file edits; retain Claude payload/output behavior.

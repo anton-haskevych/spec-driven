@@ -26,16 +26,22 @@ describe("contextPack", () => {
     expect(pack).toContain("### Next chunk: Phase 2 — Aggregate\n- model src/Checkout.java");
   });
 
-  test("execute pack shows only the picked phase's in-flight file and the legacy one; resume shows them all", async () => {
+  test("execute and resume retain outstanding phase, PR-group and legacy handoffs", async () => {
+    write("phases/phase-2.md", "---\npr: A\n---\n**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
     write("in-flight/phase-1.md", "deploy pending for phase 1");
     write("in-flight/phase-2.md", "half-wired aggregate");
+    write("in-flight/pr-A.md", "PR gate needs the deployment evidence");
     write("in-flight.md", "legacy note");
-    const execute = await contextPack(project, { mode: "execute", name: "checkout" }, contextDeps());
-    expect(execute).toContain("### In-flight (raw)\n#### in-flight/phase-2.md\nhalf-wired aggregate\n\n#### in-flight.md\nlegacy note");
-    expect(execute).not.toContain("deploy pending for phase 1");
-    expect((await contextPack(project, { mode: "resume", name: "checkout" }, contextDeps()))).toContain("#### in-flight/phase-1.md\ndeploy pending for phase 1");
+    for (const mode of ["execute", "resume"] as const) {
+      const pack = await contextPack(project, { mode, name: "checkout" }, contextDeps());
+      expect(pack).toContain("#### in-flight/phase-1.md\ndeploy pending for phase 1");
+      expect(pack).toContain("#### in-flight/phase-2.md\nhalf-wired aggregate");
+      expect(pack).toContain("#### in-flight/pr-A.md\nPR gate needs the deployment evidence");
+      expect(pack).toContain("#### in-flight.md\nlegacy note");
+    }
     rmSync(join(spec(), "in-flight"), { recursive: true });
     rmSync(join(spec(), "in-flight.md"));
+    write("phases/phase-2.md", "**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
     expect((await contextPack(project, { mode: "execute", name: "checkout" }, contextDeps()))).toContain("### In-flight (raw)\n(none)");
   });
 

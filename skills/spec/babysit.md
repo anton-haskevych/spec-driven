@@ -36,6 +36,8 @@ printed, pinned for the whole babysit (a spec with two groups has two PRs).
 
 ## 1. Start
 
+Read the spec's current handoffs in this PR's checkout first, following [session-continuity.md](session-continuity.md). Complete inlined notes count; follow every read-now pointer before claiming/opening the PR or making fixes. A launch brief supplements persisted notes.
+
 1. **Claim the PR**: `claim take <spec> pr-<group>`. `claim refused:` → print who holds it, where and
    since when, and end. Never `--take-over` unless the user says so.
 2. **Open it**: `pr open <spec> <group>` (ready, never draft). Pin `<n>` from `PR: #<n> …`.

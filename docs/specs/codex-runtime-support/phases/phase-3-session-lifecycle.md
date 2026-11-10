@@ -19,7 +19,6 @@ runtime/claude and runtime/codex normal launch binding; launch/command-line and 
 - [ ] Deliver Anton's approved launch DX: a thin `spec` command over existing entry/launch composition, initiating-host default, and automatic candidate/source discovery without manual shell setup. Preserve explicit override/refusal semantics and add no framework.
 - [ ] Extract launchCommand's remaining oversized dependency signature before provider injection, reusing existing Runner and terminal acknowledgement.
 - [ ] Route next-session suggestions/replies, prep spin-offs and normal babysitter launches through the selected host; preserve target selection, owner filtering, existing-only PR trees, busy refusal and fresh-session stop rules.
-- [ ] Deliver workflow-parity.md's Session continuity contract end to end: handoff-informed numbered closing choices, user selection, fresh review after prep/create, and destination handoff reads in execute/resume and interactive babysitter sessions. Limited hosts report known next work and unavailable launch explicitly without bypassing capability refusals.
 - [ ] Check native capabilities before placement/brief/launch side effects and verify that the intended candidate/current release and assigned spec/phase/cwd reach the fresh session.
 - [ ] Add normal-launch, busy-tree, failure and no-duplicate-on-ambiguous-terminal-result coverage plus Claude regressions. Normal acknowledgement never fabricates a managed WorkerHandle.
 

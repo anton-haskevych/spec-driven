@@ -1,5 +1,9 @@
 # Review Mode
 
+## Entry — fresh session after prep/create
+
+Resolve the target spec before loading review references or launching reviewers. Read [session-continuity.md](session-continuity.md). If this conversation prepped or created that spec, launch `review <spec>` in a fresh top-level session through the supported host entry, report the result and stop here. A direct review request or selected review row is the authorization; do not ask again. If launch is unavailable/refused, report it and stop without an inline panel. A fresh review session continues below from persisted spec files and handoffs.
+
 Launch a collegium review panel to evaluate the spec from five independent lenses, **synthesize the findings yourself in this thread**, write the full synthesis to `reviews/`, apply the findings to the spec and ledger, and record everything as a single review commit.
 
 **Synthesis is your job, not an agent's.** There is no synthesizer agent. You read every report, verify the load-bearing claims against real code, deduplicate, weigh, and write the verdict as your own reading — not a merge of theirs. A hand-off loses findings to output-budget compression and loses the reasoning to a context you can't see.

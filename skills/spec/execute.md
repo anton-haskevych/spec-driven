@@ -15,7 +15,9 @@ Run SKILL.md → *Preconditions*. A prep-stage spec has nothing to execute — i
 
 ### 0.2. Pick the chunk
 
-**If a `<spec-pack mode="execute">` for this spec is present** (SKILL.md → *Tools*), it already picked the phase (its `Picked:` line) and holds §0.3's context except `design.md` and `technical.md`. Announce the pick, read those two files plus the ledger entries the chunk needs, and continue at §1. Otherwise:
+**Read the handoff first.** Once the spec is resolved, follow [session-continuity.md](session-continuity.md) before settling the next action, including current phase/PR notes outside the selected phase and legacy notes. Complete inlined handoffs count; read every `In-flight (read now)` source in full.
+
+**If a `<spec-pack mode="execute">` for this spec is present** (SKILL.md → *Tools*), its `Picked:` line selects the phase by readiness/hint and holds §0.3's context except `design.md` and `technical.md`. Reconcile the handoffs, apply the parked/stale checks below, then load only §0.3's missing context. Do not skip those checks on pack entry. Otherwise:
 
 - **Chunk hint given** (`phase 3a`, `3a`, `next`, or a phase named in the conversation) → that is the chunk.
 - **No hint** → apply SKILL.md → *Next-chunk rule*: the first phase in the ready set. If other phases are ready too, name them in the announcement line so the user can start them in parallel sessions.
@@ -23,9 +25,9 @@ Run SKILL.md → *Preconditions*. A prep-stage spec has nothing to execute — i
 - **Nothing ready** → print the waiting phases with their reasons and stop.
 - **No unchecked phase left** → print `All phases complete — see pr-opening.md for the PR gate.` and stop.
 
-Announce the pick in one line before loading anything: `Executing Phase <N> — <name>: <chunk>`. Do not print the Stage A status table, the `**Last session:**` block, or a confirmation prompt — the user already committed.
+Announce the resolved pick in one line: `Executing Phase <N> — <name>: <chunk>`. Do not print the Stage A status table, the `**Last session:**` block, or a confirmation prompt — the user already committed.
 
-Read the picked phase's `in-flight/phase-<id>.md` (and a legacy `in-flight.md`) only if it exists and has substantive content, and only to avoid redoing half-finished work; the pack already holds both. Do not summarize it back to the user.
+Use the handoffs to preserve decisions, pending setup, blockers and the first pickup action as well as half-finished work. Do not repeat them back unless they change the action or require the user's decision.
 
 **A parked phase** waits on the user: the pack prints `Parked: Phase <id> asks "<question>" · recommend <answer>` (without a pack, an unanswered `- Parked …` line under `## Needs you` in its in-flight file). Interactive: ask the question now, recommendation first, and run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase unpark <spec> <phase> "<their answer>"` when they answer. Crew worker: when the launch brief carries the answer (`<name> answered …`, from the person running the crew), record it with `phase unpark` in their words and commit before anything else; without one, hand off untouched. An `Answered …` line is the decision: build on it, don't ask again.
 
@@ -41,7 +43,7 @@ Apply the entry's [workflow capabilities](capabilities.md) before any automatic 
 
 **Place the session in its tree first**, since the claim records the tree it's taken in: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts trees place <spec> <phase>` (*Tools* → Trees). Run it as a command of its own, never chained with `claim take`: its answer decides whether to claim at all.
 - `Tree: <path> · … · existing`, where `<path>` is the session's working directory: stay here.
-- Any other `Tree: <path> …`: switch with `EnterWorktree` and `{ path: "<path>" }`, then carry on with §1 there. Pass on, in one line each, a `Trees:` line (the tree root it just detected for this person) and a `Setup failed:` line.
+- Any other `Tree: <path> …`: switch with `EnterWorktree` and `{ path: "<path>" }`, refresh the destination's handoffs and Stage B context before claiming or working, then carry on with §1 there. Pass on, in one line each, a `Trees:` line (the tree root it just detected for this person) and a `Setup failed:` line.
 - `EnterWorktree` refuses (a session already inside another worktree can only switch into `.claude/worktrees/`): run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch execute <spec> <phase>`, which opens a session in that tree. Pass on its last line and stop here.
 - `trees: <path> is busy, <reason>`: another session is working there: it holds a claim (`after <spec> <phase> (<session>)`), is mid-task, or sits idle with uncommitted changes. Never share a tree, and don't claim. Tell the user which session and why, and stop. A session left open after its handoff, idle in a clean tree, doesn't hold it, so the tab you launched from never blocks you.
 - Any other `trees:` refusal (no origin, no default branch): work where the session is, and say so in one line.

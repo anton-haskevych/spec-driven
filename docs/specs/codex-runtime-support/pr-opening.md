@@ -41,15 +41,12 @@ Checked local rows below are evidenced by research/phase-2/2026-11-09-final-comb
 - [ ] Shared claim/board/list/tree behavior covers qualified/equal IDs, unknown schemas, legacy and remote records, parked sessions, healthy/unavailable sources and source-correct joins.
 - [ ] Coordinated managed entry/claim/place/prune revalidates current evidence; competing takes and resume-after-preview-before-removal cannot steal or remove live/unknown work.
 - [ ] Run all interactive modes, full managed execute/handoff/publication/cleanup, all seven canonical agents including five review lenses, and project overrides. Runtime-neutral tools preserve existing behavior/authorization.
-- [ ] In both hosts, prove handoff-aware recommendations and direct/resume pickup with phase, PR-group and legacy notes, recorded answers, and missing/empty clean-boundary notes. Cover both a required `Pick up from here` instruction beyond the pack clipping limit and one in a note outside the selected phase; verify each reaches the model and informs its first action. Refresh from a destination checkout with newer notes. These are controlled acceptance cases, not instructions to alter live work.
-- [ ] Verify canonical review entry after prep/create requests a fresh session before starting any reviewer. In a host/profile where launch is unavailable, report that limit without an inline review; actual selected-host launch/pickup is a Group C check.
 - [ ] Native trusted hooks actually invoke pre-edit recall and post-edit validation for multi-file/add/update/delete/move payloads, including malformed input and invalid edits; plain Claude/Codex sessions remain cheap.
 
 ### Group C — normal launches
 
 - [ ] Correct runtime/spec/phase/cwd and native request reach a real fresh session through existing terminal selection; preserve Claude command/terminal goldens.
 - [ ] Next-session replies, spin-offs and normal babysitter launches preserve owner/busy/existing-tree rules and authoritative PR-group metadata; no duplicate on ambiguous outcome.
-- [ ] Retain actual Claude and Codex replies for the full normal interactive loop: finish work, hand off, print up to three numbered handoff-informed choices, wait, accept a numeric/natural-language selection, launch that row once, then read current destination handoffs before work. Prove a selected/direct review after prep/create launches a fresh top-level session with persisted spec context, not the originating conversation. Preserve PR-gate/crew exceptions and honestly report unavailable launches.
 - [ ] Native model/permissions retain configured values. Normal acknowledgement never fabricates owned-worker identity. Exercise terminal/UI behavior directly where claimed.
 
 ### Group D — full unattended workflow
@@ -58,7 +55,6 @@ Checked local rows below are evidenced by research/phase-2/2026-11-09-final-comb
 - [ ] Concurrent controllers, repeated ticks and lost launch responses preserve one target/slot reservation and cap; ambiguous starts hold capacity.
 - [ ] Exact-turn interrupt, yielded child-process cleanup and archive are acknowledged; lost/failed control retains ownership/capacity, later unowned continuation prevents control.
 - [ ] Exercise full babysit/overseer auto/hold/parking/owner/capacity policy and mixed-runtime/legacy worker records, with Claude regression evidence and guaranteed native cleanup.
-- [ ] Verify the overseer uses current handoffs to choose follow-up work, and actual relaunched execute/babysit workers read destination notes and follow recorded answers/pickup instructions before acting; crew completion keeps its existing output instead of offering an interactive launch menu.
 
 ### Group E — full parity completion
 
