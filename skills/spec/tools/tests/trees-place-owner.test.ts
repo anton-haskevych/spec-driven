@@ -3,6 +3,7 @@ import { existsSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import type { RunOptions } from "../core/run";
 import { placeTree, type PlaceDeps } from "../trees/place";
+import { placeDepsFor } from "../trees/place-system";
 import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { createTree, type Tree } from "./tree";
 
@@ -38,7 +39,7 @@ describe("trees place onlyFor: the crew's owner gate (real git)", () => {
   });
 
   test("a spec owned by someone else is refused before any tree is cut", async () => {
-    expect(await placeTree(repo.dir, "theirs", "1", deps(), { onlyFor: "Anton Haskevych" })).toEqual({
+    expect(await placeTree({ spec: "theirs", phase: "1", onlyFor: "Anton Haskevych" }, placeDepsFor(repo.dir, deps()))).toEqual({
       ok: false,
       reason: "theirs is taras's; this crew is Anton Haskevych's. Open it in your own session instead",
     });
@@ -46,27 +47,27 @@ describe("trees place onlyFor: the crew's owner gate (real git)", () => {
   });
 
   test("the runner's own spec and a spec nobody owns are placed", async () => {
-    expect(await placeTree(repo.dir, "mine", "1", deps(), { onlyFor: "Anton Haskevych" })).toMatchObject({ ok: true, value: { kind: "added", path: treePath("mine") } });
-    expect(await placeTree(repo.dir, "shared", "1", deps(), { onlyFor: "Anton Haskevych" })).toMatchObject({ ok: true, value: { kind: "added", path: treePath("shared") } });
+    expect(await placeTree({ spec: "mine", phase: "1", onlyFor: "Anton Haskevych" }, placeDepsFor(repo.dir, deps()))).toMatchObject({ ok: true, value: { kind: "added", path: treePath("mine") } });
+    expect(await placeTree({ spec: "shared", phase: "1", onlyFor: "Anton Haskevych" }, placeDepsFor(repo.dir, deps()))).toMatchObject({ ok: true, value: { kind: "added", path: treePath("shared") } });
   });
 
   test("a malformed owner is offered to no one", async () => {
-    expect(await placeTree(repo.dir, "broken", "1", deps(), { onlyFor: "taras" })).toEqual({
+    expect(await placeTree({ spec: "broken", phase: "1", onlyFor: "taras" }, placeDepsFor(repo.dir, deps()))).toEqual({
       ok: false,
       reason: "broken's owner: is malformed; this crew is taras's. Open it in your own session instead",
     });
   });
 
   test("a spec only on this branch is gated by the checkout's copy", async () => {
-    expect(await placeTree(repo.dir, "branchy", "1", deps(), { onlyFor: "anton" })).toEqual({
+    expect(await placeTree({ spec: "branchy", phase: "1", onlyFor: "anton" }, placeDepsFor(repo.dir, deps()))).toEqual({
       ok: false,
       reason: "branchy is taras's; this crew is anton's. Open it in your own session instead",
     });
   });
 
   test("when the group's tree exists, the refusal names its branch and path", async () => {
-    expect(await placeTree(repo.dir, "theirs", "1", deps())).toMatchObject({ ok: true, value: { kind: "added", path: treePath("theirs") } });
-    expect(await placeTree(repo.dir, "theirs", "1", deps(), { onlyFor: "anton" })).toEqual({
+    expect(await placeTree({ spec: "theirs", phase: "1" }, placeDepsFor(repo.dir, deps()))).toMatchObject({ ok: true, value: { kind: "added", path: treePath("theirs") } });
+    expect(await placeTree({ spec: "theirs", phase: "1", onlyFor: "anton" }, placeDepsFor(repo.dir, deps()))).toEqual({
       ok: false,
       reason: `theirs is taras's; this crew is anton's. Open it in your own session instead; its work so far is on feat/theirs-pr-a in ${treePath("theirs")}. Push it or hand it to taras`,
     });

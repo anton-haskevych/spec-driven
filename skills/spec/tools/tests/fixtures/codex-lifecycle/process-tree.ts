@@ -1,0 +1,10 @@
+import { writeFileSync } from "node:fs";
+const root = "/tmp/codex-runtime-phase1-session2";
+const key = process.argv[2];
+const depth = Number(process.argv[3] ?? "0");
+if (!key || !Number.isInteger(depth) || depth < 0 || depth > 2) throw Error("invalid owned fixture");
+writeFileSync(`${root}/pid-${depth}.json`, JSON.stringify({ key, depth, pid: process.pid, ppid: process.ppid, at: new Date().toISOString() }));
+if (depth < 2) Bun.spawn([process.execPath, import.meta.path, key, String(depth + 1)], { stdin: "ignore", stdout: "inherit", stderr: "inherit" });
+console.log(`owned fixture ready depth=${depth} pid=${process.pid}`);
+setInterval(() => {}, 1000);
+setTimeout(() => process.exit(0), 120000);

@@ -10,6 +10,8 @@ See `SKILL.md` for the full layout and the brain-dump redirection rules.
 
 ## 0. Preconditions
 
+Apply the entry's [workflow capabilities](capabilities.md) throughout this mode. `local-pilot` follows the local restricted handoff path there: no publication, claim release, prune, PR/babysitter decisions or board/launch-based Next sessions, and no managed-success claim.
+
 Run SKILL.md → *Preconditions*. A legacy spec without `ledger/` follows `legacy-layout.md` → `create`, `prep`, `review`, `handoff` (offer to create the ledger before writing entries).
 
 ## 1. Run the update flow

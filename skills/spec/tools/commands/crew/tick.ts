@@ -17,6 +17,7 @@ import { loadAgents, type Agent } from "../../sessions/agents";
 import type { LiveSession } from "../../sessions/live";
 import { ownSessionId } from "../../sessions/own";
 import { placeTree } from "../../trees/place";
+import { placeDepsFor } from "../../trees/place-system";
 import { systemPlaceDeps } from "../trees";
 import { launchCrewSession, type CrewLaunchRequest, type CrewLaunchResult } from "./launch-session";
 
@@ -147,6 +148,6 @@ function systemTickPorts(projectDir: string, store: RunFileStore, deps: CrewDeps
       deps.runner.run(["claude", "stop", id]);
       deps.runner.run(["claude", "rm", id]);
     },
-    launch: (request) => launchCrewSession(request, store, deps, (spec, phase, options) => placeTree(projectDir, spec, phase, systemPlaceDeps(), options)),
+    launch: (request) => launchCrewSession(request, store, deps, (spec, phase, options) => placeTree({ spec, phase, ...options }, placeDepsFor(projectDir, systemPlaceDeps()))),
   };
 }

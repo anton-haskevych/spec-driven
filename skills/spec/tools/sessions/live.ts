@@ -5,10 +5,9 @@ import { isRecord, numberField, stringField } from "../core/frontmatter";
 import type { Result } from "../core/result";
 import { parseJson } from "../pr/gh-records";
 import { canonicalPath } from "../workspaces/list";
+import type { NameSource, SessionStatus } from "../runtime/sessions";
 
-export type SessionStatus = "busy" | "idle" | "shell";
-// "user": named with `claude -n` (launch's `<spec> <sub> [<phase>]`, or free text); "derived": Claude Code's `<repo>-<2hex>`.
-export type NameSource = "user" | "derived";
+export type { SessionStatus, NameSource } from "../runtime/sessions";
 
 // The only reader of `<claudeHome>/sessions/*.json`, an undocumented Claude Code internal (ledger).
 export interface LiveSession {

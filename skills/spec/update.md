@@ -1,5 +1,7 @@
 # Update Mode
 
+Apply the entry's [workflow capabilities](capabilities.md). In `local-pilot`, use the entry's explicit phase instead of claim lookup; keep progress/ledger/code-map updates and local commits, with publication and launches unavailable.
+
 Capture implementation progress and route new knowledge into the right artifacts. Unlike the old model, update.md does **not** append session logs to `progress.md`. Instead, it routes content into focused files: sub-checkboxes go into the phase entry, durable learnings become ledger entries, load-bearing files are recorded in code-map.md, and ephemeral state is staged for handoff (which writes the phase's `in-flight/phase-<id>.md`).
 
 See `SKILL.md` for the layout rules this mode relies on.

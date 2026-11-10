@@ -20,6 +20,8 @@ hooks:
 
 # /spec — Feature Spec (Resume, Update, Review, Handoff, or Create)
 
+**Native entry first:** In Codex, read [native-entry.md](native-entry.md) and complete its explicit bootstrap before routing or running any tool below. Do not execute the Claude interpolation blocks manually. All hosts observe [capabilities.md](capabilities.md); an entry refusal stops the mode. Claude's existing interpolation and full managed workflow remain unchanged.
+
 !`cat ${CLAUDE_SKILL_DIR}/taxonomy.md`
 
 !`cat .claude/taxonomy.md 2>/dev/null || echo "No project taxonomy found — use free-form area/domain values."`

@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { contextPack } from "./commands/context";
 import { parseContextRequest } from "./context/request";
-import { doctorReport } from "./commands/doctor";
+import { doctorCommand, DOCTOR_USAGE } from "./commands/doctor";
 import { GATES_USAGE, gatesReport } from "./commands/gates";
 import { graphCommand } from "./commands/graph";
 import { LAUNCH_USAGE, launchCommand } from "./commands/launch";
@@ -22,14 +22,20 @@ import { settingsReport } from "./commands/settings";
 import { SHIP_USAGE, shipCommand } from "./commands/ship";
 import { TREES_USAGE, treesCommand } from "./commands/trees";
 import { findProjectDir, findSpecs } from "./core/spec-folders";
+import { pilotCommandRefusal, type LocalPilot } from "./runtime/workflow-capabilities";
 
 export interface Command {
   usage: string;
-  run(projectDir: string, args: readonly string[]): string | Promise<string>;
+  run(projectDir: string, args: readonly string[], workflow?: LocalPilot): string | Promise<string>;
+}
+
+export interface CommandDeps {
+  context?: Pick<Command, "run">;
+  workflow?: LocalPilot;
 }
 
 export const COMMANDS: Record<string, Command> = {
-  doctor: { usage: "doctor [<spec-name>]", run: (dir, args) => doctorReport(dir, args[0]) },
+  doctor: { usage: DOCTOR_USAGE, run: doctorCommand },
   context: {
     usage: "context <sub-command> <spec-name> [hint]",
     run: (dir, args) => contextPack(dir, parseContextRequest(args, (name) => findSpecs(dir, name).length > 0)),
@@ -59,13 +65,16 @@ export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)
   .map((command) => command.usage)
   .join(" | ")}`;
 
-export async function run(argv: readonly string[], projectDir: string): Promise<string> {
+export async function run(argv: readonly string[], projectDir: string, deps: CommandDeps = {}): Promise<string> {
+  const refusal = deps.workflow && pilotCommandRefusal(argv, deps.workflow);
+  if (refusal) return `spec: ${refusal}`;
   const [name, ...args] = argv;
+  if (name === "context" && deps.workflow && !deps.context) return "spec: context binding unavailable in local-pilot; legacy context is disabled";
+  if (name === "context" && deps.context) return deps.context.run(projectDir, args);
   const command = name !== undefined && Object.hasOwn(COMMANDS, name) ? COMMANDS[name] : undefined;
-  return command ? command.run(projectDir, args) : USAGE;
+  return command ? command.run(projectDir, args, deps.workflow) : USAGE;
 }
 
-// `context -` reads its arguments from stdin, so SKILL.md can pass raw user text without shell quoting.
 async function withStdinArgs(argv: readonly string[]): Promise<readonly string[]> {
   if (argv[0] !== "context" || argv[1] !== "-") return argv;
   return ["context", await Bun.stdin.text()];
@@ -73,7 +82,12 @@ async function withStdinArgs(argv: readonly string[]): Promise<readonly string[]
 
 if (import.meta.main) {
   try {
-    console.log(await run(await withStdinArgs(Bun.argv.slice(2)), findProjectDir(process.cwd())));
+    if (process.env.CODEX_THREAD_ID) {
+      console.log("spec: Codex requires the packaged native entry; legacy dispatch is unavailable");
+      process.exitCode = 1;
+    } else {
+      console.log(await run(await withStdinArgs(Bun.argv.slice(2)), findProjectDir(process.cwd())));
+    }
   } catch (cause) {
     console.log(`spec tools failed: ${cause instanceof Error ? cause.message : String(cause)}`);
   }

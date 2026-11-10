@@ -1,0 +1,147 @@
+import { readFileSync, writeFileSync, existsSync, realpathSync } from "node:fs";
+import { createInterface } from "node:readline";
+import { connectProbeRpc } from "<worktree>/skills/spec/tools/runtime/codex/probe-rpc";
+import { isRecord } from "<worktree>/skills/spec/tools/core/frontmatter";
+
+interface OwnedThread { id: string; cwd: string; turns: string[] }
+interface Journal {
+  createdAt: string; root: string; cwd: string;
+  threads: Record<string, OwnedThread>; attempted: string[];
+  observations: Record<string, unknown>; events: Record<string, unknown>[];
+}
+function record(value: unknown): Record<string, unknown> {
+  if (!isRecord(value)) throw Error("invalid native object");
+  return value;
+}
+function records(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value) || !value.every(isRecord)) throw Error("invalid native array");
+  return value;
+}
+function text(value: unknown): string {
+  if (typeof value !== "string") throw Error("invalid native text");
+  return value;
+}
+const location = record(JSON.parse(readFileSync("<controller-scratch>/location.json", "utf8")));
+const root = text(location.root);
+const cwd = text(location.workspace);
+const journalPath = `${root}/execution-journal.json`;
+if (existsSync(journalPath) && process.argv[2] !== "resume-owned") throw Error("refuse duplicate driver/journal");
+const initialJournal: Journal = { createdAt: new Date().toISOString(), root, cwd, threads: {}, attempted: [], observations: {}, events: [] };
+const journal: Journal = existsSync(journalPath) ? JSON.parse(readFileSync(journalPath, "utf8")) : initialJournal;
+if (journal.root !== root || journal.cwd !== cwd) throw Error("journal ownership root changed");
+const save = () => writeFileSync(journalPath, JSON.stringify(journal, null, 2) + "\n");
+const connection = await connectProbeRpc({ url: `ws+unix://${text(location.socket)}`, timeoutMs: 5000, experimentalApi: true }, (frame) => {
+  if (journal.events.length >= 500) throw Error("event bound exceeded");
+  journal.events.push({ at: new Date().toISOString(), ...frame });
+  save();
+});
+if (!connection.ok) throw Error(connection.reason);
+const rpc = connection.value;
+save();
+async function call(method: string, params: Record<string, unknown>) {
+  const response = await rpc.request(method, params);
+  if (!response.ok) throw Error(`${method}: ${response.reason}`);
+  return record(response.value);
+}
+function owned(label: string) {
+  const thread = journal.threads[label];
+  if (!thread || thread.cwd !== cwd) throw Error("not an owned isolated thread");
+  return thread;
+}
+async function create(label: string) {
+  if (journal.attempted.includes(label)) throw Error("creation already attempted");
+  journal.attempted.push(label); save();
+  const response = await call("thread/start", { cwd, ephemeral: false });
+  const thread = record(response.thread);
+  if (thread.cwd !== cwd || typeof thread.id !== "string") throw Error("native identity/cwd mismatch");
+  journal.threads[label] = { id: thread.id, cwd, turns: [] }; save();
+  journal.observations[`${label}-effective`] = { model: response.model, reasoningEffort: response.reasoningEffort, approvalPolicy: response.approvalPolicy, sandbox: response.sandbox };
+  await call("thread/name/set", { threadId: thread.id, name: `Owned isolated resource execution ${label}` });
+  return journal.threads[label];
+}
+async function inspect(label: string) {
+  const thread = owned(label);
+  const response = await call("thread/read", { threadId: thread.id, includeTurns: true });
+  const current = record(response.thread);
+  if (current.id !== thread.id || typeof current.cwd !== "string" || realpathSync(current.cwd) !== realpathSync(cwd)) throw Error("native identity/cwd changed");
+  const turns = records(current.turns);
+  if (turns.some((turn) => !thread.turns.includes(text(turn.id)) || turn.status === "inProgress")) throw Error("unowned or active continuation");
+  return current;
+}
+async function snapshot(label: string) {
+  const installed = await call("plugin/installed", { cwds: [cwd] });
+  const skills = await call("skills/list", { cwds: [cwd], forceReload: true });
+  const market = records(installed.marketplaces).find((row) => row.name === "phase1-execution-proof");
+  const entries = records(skills.data).flatMap((row) => records(row.skills)).filter((row) => text(row.path).includes("phase1-execution-proof/spec-driven/"));
+  const result = { at: new Date().toISOString(), marketplace: market, skills: entries };
+  journal.observations[label] = result; save();
+  return result;
+}
+async function shell(label: string, observation: string, command: string) {
+  const thread = owned(label);
+  if (thread.turns.length) await inspect(label);
+  const eventOffset = journal.events.length;
+  journal.observations[`${observation}-intent`] = { threadId: thread.id, command, at: new Date().toISOString() }; save();
+  await call("thread/shellCommand", { threadId: thread.id, command, timeoutMs: 10000 });
+  const deadline = Date.now() + 12000;
+  while (Date.now() < deadline) {
+    const events = journal.events.slice(eventOffset);
+    const completed = events.find((frame) => frame.method === "turn/completed" && isRecord(frame.params) && frame.params.threadId === thread.id);
+    if (completed && isRecord(completed.params)) {
+      const turn = record(completed.params.turn);
+      thread.turns.push(text(turn.id));
+      const result = { at: new Date().toISOString(), threadId: thread.id, command, events, turn };
+      journal.observations[observation] = result; save();
+      return result;
+    }
+    await Bun.sleep(50);
+  }
+  throw Error(`native shell completion not observed: ${observation}`);
+}
+async function account() {
+  const response = await call("account/read", { refreshToken: false });
+  const result = { at: new Date().toISOString(), accountPresent: response.account !== null, requiresOpenaiAuth: response.requiresOpenaiAuth };
+  journal.observations.account = result; save();
+  return result;
+}
+async function finish() {
+  const archived: string[] = [];
+  for (const [label, thread] of Object.entries(journal.threads)) {
+    await inspect(label);
+    const terminals = await call("thread/backgroundTerminals/list", { threadId: thread.id, limit: 20 });
+    if (records(terminals.data).length || terminals.nextCursor) throw Error("native terminal remains; no archive");
+    await call("thread/archive", { threadId: thread.id });
+    archived.push(thread.id);
+  }
+  const result = { at: new Date().toISOString(), archivedThreadIds: archived, remainingTerminals: 0 };
+  journal.observations.cleanup = result; save();
+  return result;
+}
+if (process.argv[2] === "resume-owned") {
+  for (const thread of Object.values(journal.threads)) await call("thread/resume", { threadId: thread.id, excludeTurns: true });
+}
+const input = createInterface({ input: process.stdin });
+const expires = setTimeout(() => { rpc.close(); input.close(); }, 12 * 60000);
+console.log(JSON.stringify({ ready: true, journalPath }));
+try {
+  for await (const line of input) {
+    try {
+      const request = record(JSON.parse(line));
+      const action = text(request.action);
+      let result: unknown;
+      if (action === "create") result = await create(text(request.label));
+      else if (action === "snapshot") result = await snapshot(text(request.label));
+      else if (action === "account") result = await account();
+      else if (action === "shell") result = await shell(text(request.label), text(request.observation), text(request.command));
+      else if (action === "inspect") result = await inspect(text(request.label));
+      else if (action === "finish") result = await finish();
+      else throw Error("unknown controlled action");
+      save();
+      console.log(JSON.stringify({ action, result: action === "snapshot" ? { saved: true } : action === "shell" ? { saved: true, observation: request.observation } : result }));
+      if (action === "finish") break;
+    } catch (cause) {
+      journal.observations.lastError = { at: new Date().toISOString(), reason: String(cause) }; save();
+      console.log(JSON.stringify({ error: String(cause) }));
+    }
+  }
+} finally { clearTimeout(expires); rpc.close(); input.close(); }

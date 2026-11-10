@@ -12,10 +12,11 @@ import { refsToPhase } from "../phases/review-refs";
 import { planSplit } from "../phases/split";
 import { loadSpecState } from "../core/spec-state";
 import { planTick } from "../phases/tick";
+import type { LocalPilot } from "../runtime/workflow-capabilities";
 
 interface PhaseAction {
   usage: string;
-  run(projectDir: string, args: string[]): string | Promise<string>;
+  run(projectDir: string, args: string[], workflow?: LocalPilot): string | Promise<string>;
 }
 
 const ACTIONS: Record<string, PhaseAction> = {
@@ -37,10 +38,10 @@ export const PHASE_USAGE = Object.values(ACTIONS)
   .map((action) => action.usage)
   .join(" | ");
 
-export function phaseCommand(projectDir: string, args: readonly string[]): string | Promise<string> {
+export function phaseCommand(projectDir: string, args: readonly string[], workflow?: LocalPilot): string | Promise<string> {
   const [name, ...rest] = args;
   const action = name !== undefined && Object.hasOwn(ACTIONS, name) ? ACTIONS[name] : undefined;
-  return action ? action.run(projectDir, rest) : `usage: ${PHASE_USAGE}`;
+  return action ? action.run(projectDir, rest, workflow) : `usage: ${PHASE_USAGE}`;
 }
 
 function tick(projectDir: string, args: string[]): string {
@@ -59,7 +60,7 @@ function tick(projectDir: string, args: string[]): string {
   return result.phaseComplete ? `${ticked}\nPhase ${result.phaseId} complete — run update.md → Close the phase` : ticked;
 }
 
-function park(projectDir: string, args: string[]): string {
+function park(projectDir: string, args: string[], workflow?: LocalPilot): string {
   const usage = `usage: ${ACTIONS.park?.usage}`;
   const parsed = parseFlags(args, { recommend: { type: "string" } });
   const [specName, phase, question] = parsed?.positionals ?? [];
@@ -72,7 +73,8 @@ function park(projectDir: string, args: string[]): string {
   if (result.plan.kind !== "ok") return `phase park: ${result.plan.reason}`;
   applyEdits(result.plan);
   const advice = recommend?.trim() ? ` · recommend: ${recommend.trim()}` : "";
-  return `parked Phase ${result.phaseId} in ${result.file}: "${question.trim()}"${advice}\nCommit and push the note, then hand off.`;
+  const followup = workflow ? "Commit the note locally, then hand off." : "Commit and push the note, then hand off.";
+  return `parked Phase ${result.phaseId} in ${result.file}: "${question.trim()}"${advice}\n${followup}`;
 }
 
 function unpark(projectDir: string, args: string[]): string {
