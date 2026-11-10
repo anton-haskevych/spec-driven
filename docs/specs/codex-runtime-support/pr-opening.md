@@ -13,6 +13,7 @@ Full Claude-to-Codex parity remains required. Group A's isolated local cycle has
 | E | 6 | Complete parity closure and release enforcement |
 
 Groups land in order. Each enables only accepted capabilities; missing later rows remain pending, not failed gates on an earlier delivery. Full-parity claims require the entire inventory. Existing settings require ready PRs and squash merge. Use scripts/version.py from current main at merge, never a guessed version. No direct implementation commits to main. The scoped temporary native test installation/removal was authorized and completed. Anton authorized PR publication and merge on green for 2.52.0. Permanent personal installation/rollout remains separate.
+PR #33 merged 2026-11-09 as f55dfbd (squash).
 
 ## Pre-PR checks
 
