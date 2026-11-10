@@ -22,6 +22,7 @@ runtime worker/control/evidence adapters; launch/background; sessions/agents/tra
 - [ ] Reconcile starting/outcome-unknown/running workers across lost responses, disconnect and controller restart; unknown starts retain their reservation instead of being blindly retried.
 - [ ] Implement exact-owned-turn interrupt, yielded descendant cleanup and archive with acknowledged stopping/archive-pending/unknown states. Failed control retains ownership/slots; later unowned user continuation prevents automatic control.
 - [ ] Bind babysit and oversee-crew fully, including execute/babysit worker roles, auto/hold modes, parking, capacity/owner filters, stop/wait/check, continuation and authorized launch of next work.
+- [ ] Extend workflow-parity.md's Session continuity contract to unattended launches/relaunches: the overseer reads current handoffs before selecting follow-up work and each receiving execute/babysit worker reads destination handoffs before acting. Launch briefs supplement persisted notes; preserve crew-specific completion output and parking/approval rules.
 - [ ] Add shared Claude/Codex lifecycle, attention, race, restart, failed control and user-continuation fixtures plus controlled native acceptance drivers with guaranteed cleanup.
 
 ## Implementation guidance
