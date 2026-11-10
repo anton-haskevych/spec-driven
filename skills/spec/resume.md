@@ -14,7 +14,7 @@ Run SKILL.md → *Preconditions*. A prep-stage spec routes to [prep.md](prep.md)
 
 ### A.2. Render the status table
 
-**If a `<spec-pack mode="resume">` for this spec is present** (SKILL.md → *Tools*), print its status table exactly as given, then take A.3's in-flight text and A.4's next-chunk items from the pack. Skip source reads only for complete inlined content; follow every `In-flight (read now)` pointer in full before suggesting work. Otherwise:
+**If a `<spec-pack mode="resume">` for this spec is present** (SKILL.md → *Tools*), print its status table exactly as given, then take A.3's in-flight text and A.4's next-chunk items from the pack. Do not read `progress.md`, the phase entries or the in-flight files, except a note the pack lists under `Too large to show here`: read that one in full first. Otherwise:
 
 Follow `status.md` → *Read phases*, *Compute status per phase*, and *Render* to produce the same 4-column table the user would see from `/spec <name> status`.
 
@@ -22,7 +22,7 @@ Read **only** what `status.md` requires: `progress.md` plus per-phase Goal / Imp
 
 ### A.3. Read in-flight (only if it has substantive content)
 
-Follow [session-continuity.md](session-continuity.md): read every file in `docs/specs/<name>/in-flight/` (one per phase, `phase-<id>.md`, or `pr-<group>.md`) and a legacy `docs/specs/<name>/in-flight.md`, when they exist, unless complete current content is already inlined. Then:
+Read every file in `docs/specs/<name>/in-flight/` (one per phase, `phase-<id>.md`, or `pr-<group>.md`) and a legacy `docs/specs/<name>/in-flight.md`, when they exist. Then:
 
 - **Skip the block entirely** if the file is empty, missing, or contains only filler ("No pending work", "Clean boundary reached", a date stamp, a reassurance that the previous session ended cleanly). Absence is itself the signal — never state it.
 - **Otherwise**, summarize the substantive contents as bulletpoints under a `**Last session:**` heading.
@@ -47,7 +47,7 @@ Concrete shape (compare against the verbose paragraph form this replaces):
 
 ### A.4. Suggest the next chunk
 
-Apply SKILL.md → *Next-chunk rule* with A.3's handoff context. Reconcile pending instructions and recorded answers before making the suggestion; keep readiness, claims and explicit user scope.
+Apply SKILL.md → *Next-chunk rule*. No extra context required.
 
 Output, immediately after the status table (and the `**Last session:**` block if rendered):
 

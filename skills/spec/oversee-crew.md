@@ -84,8 +84,6 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
 
 ## 2. Fill a slot
 
-Before recommending or explicitly selecting follow-up execute work, read the target spec's current handoffs under [session-continuity.md](session-continuity.md). Every receiving execute worker, including automatic `crew tick` launches, reads its destination handoffs before acting; a relaunch note supplements them. Keep the board's readiness, ownership and parking rules.
-
 `crew tick` fills free worker slots itself (§3): the first ready rows with `next: execute`, no busy
 tree, not worktree- or branch-only, not a `code: false` task phase, no other launched worker on the
 spec, no unanswered question in `## Questions`, not owned by someone else (its spec's `owner:` is the

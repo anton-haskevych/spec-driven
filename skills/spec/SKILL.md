@@ -75,8 +75,6 @@ After dispatching, **stop**. Do not also evaluate the routing section below.
 
 ## Session lifecycle
 
-For execute/resume pickup and their next-work recommendations, read and follow [session-continuity.md](session-continuity.md). It also owns required interactive closing choices and the fresh-session boundary between prep/create and review.
-
 One session works one spec, and usually one chunk:
 
 1. A fresh session starts with `/spec resume <name>` or `/spec execute <name>`. That invocation ties the session to the spec: by the name it gives or, when it gives none, by the conversation, then by this tree's claim or the one spec its changed files belong to (the pack says `inferred="true"`). Never by the branch name.
@@ -160,7 +158,7 @@ Deterministic. Used by `resume` (to suggest) and `execute` (to pick when no chun
 
 ## Next sessions
 
-Handoff, review and create end with this block, and so does any answer to "what's next". This is required closing output, not an optional suggestion after a completion summary. The user never types a `/spec` line. The PR question (execute.md §10) and these rows never share a message: when a handoff asks it, the rows wait until the answer is handled. Follow [session-continuity.md](session-continuity.md) for handoff reads and host/crew exceptions.
+Handoff, review and create end with this block, and so does any answer to "what's next". The user never types a `/spec` line. The PR question (execute.md §10) and these rows never share a message: when a handoff asks it, the rows wait until the answer is handled.
 
 1. **Read the board:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts board ready --for me --keep <this session's spec> --json` (handoff runs it after *Commit*, so its fetch never races the push). Its ready lane holds only your specs, unowned ones and this session's own spec (*Priority, due dates and owners*); `who.unknown` means git has no user.name and the lane is everyone's. Don't re-derive lanes. Each ready row carries `spec`, `phase` (execute rows only), `title`, `next` (`prep`, `create`, `review` or `execute`), `target` (`{ workspace }` or `{ newWorktree }`), and `treeBusy` when another session works in its tree.
 2. **Print up to 3 numbered rows** from the ready lane, then the board's `Needs you:` items, one line each, then the reply line:
@@ -174,7 +172,7 @@ Handoff, review and create end with this block, and so does any answer to "what'
    On `who.unknown`, print `Can't tell who you are (no git user.name): showing everyone's work, owners marked.` above the rows. The rows this session itself recommends come first: create puts its own spec's `review` row at 1, a review of spec X puts X's first ready phase at 1, and a handoff puts its own spec's next ready phase at 1. A spec with phases that nobody has reviewed or started comes as one `review` row; its execute rows come first only when the user says to skip the review. Mark a row whose tree is busy with its `treeBusy` text, not as startable.
 3. **The reply.** Row numbers (`1`, `1 3`), `start 1 and 2`, `go` or `yes` (= row 1), or a pasted row launch those rows: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch <row.next> <spec> [<phase>]` each, with the phase only for `execute` (launch places the tree first, *Tools* → Trees). A number answers the most recent numbered list this session printed, and it launches only when that list is *Next sessions*: after the PR question, "1" means babysit. With no *Next sessions* block in view, print it again and wait; never launch straight from the board. Rows that share a tree launch once; the others wait and come back in that session's handoff. Report a refusal (busy tree, held claim) as is; don't retry it. Pass on each `Launched:` line, and a `launch: run this in a new terminal:` line unchanged.
 
-Without Bun, name known next work from the handoffs/spec files and explain that launch is unavailable; do not offer row numbers that cannot launch.
+Without Bun, skip the block.
 
 ## Reports
 
@@ -474,7 +472,7 @@ Lessons reach a session in three ways. None of them needs anyone to ask.
 - **Ephemeral pending state only.** Half-wired code, open session questions, "pick up from here" notes, environment state.
 - **Overwritten on each handoff.** Not appended to.
 - **Deleted at clean boundaries.** Clean boundary = all current-phase sub-checkboxes done AND no staged-but-uncommitted spec changes AND no open questions flagged this session. No file means nothing pending. A note that outlives its phase (a deploy still to do) keeps the file; the doctor warns only once every phase is done.
-- **Readers.** Execute and resume packs retain current phase, PR-group and legacy handoffs. Small notes are inlined completely; larger notes become required full-source reads. The doctor checks every one.
+- **Readers.** The execute pack shows the picked phase's file, its PR group's and a legacy one, and names other phases' files by path; resume shows them all; the doctor checks every one. A pack never cuts a note: one too large to show is named by path, to be read in full before acting.
 - **Legacy `in-flight.md`** (one file for the whole spec, from before the split) stays readable everywhere. A handoff moves its own phase's part into its file and deletes the legacy file once nothing pending is left in it.
 - **Git is the archive.** Past contents are recoverable from `git log -p -- in-flight/`.
 

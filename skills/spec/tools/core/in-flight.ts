@@ -33,8 +33,8 @@ export function readInFlight(read: (pathInSpec: string) => string | undefined, p
   });
 }
 
-export function notesForPhase(notes: readonly InFlightNote[], phaseId: string): InFlightNote[] {
-  const wanted = new Set([phaseInFlightFile(phaseId), LEGACY_IN_FLIGHT]);
+export function notesForPhase(notes: readonly InFlightNote[], phaseId: string, group?: string): InFlightNote[] {
+  const wanted = new Set([phaseInFlightFile(phaseId), ...(group ? [groupInFlightFile(group)] : []), LEGACY_IN_FLIGHT]);
   return notes.filter((note) => wanted.has(note.file));
 }
 

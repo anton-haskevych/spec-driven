@@ -39,6 +39,11 @@ describe("notesForPhase", () => {
     ];
     expect(notesForPhase(notes, "2").map((note) => note.file)).toEqual(["in-flight/phase-2.md", "in-flight.md"]);
   });
+
+  test("with the phase's PR group, keeps that group's file too, never another group's", () => {
+    const notes = ["in-flight/phase-2.md", "in-flight/pr-A.md", "in-flight/pr-B.md", "in-flight.md"].map((file) => ({ file, text: "pending" }));
+    expect(notesForPhase(notes, "2", "A").map((note) => note.file)).toEqual(["in-flight/phase-2.md", "in-flight/pr-A.md", "in-flight.md"]);
+  });
 });
 
 describe("inFlightFilesIn", () => {

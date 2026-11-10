@@ -1,4 +1,5 @@
 import { outlineMarkdown } from "../core/markdown";
+import { notesForPhase } from "../core/in-flight";
 import { lastPark } from "../core/park";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { ReadySet } from "../ready/ready-set";
@@ -45,12 +46,12 @@ export function resumePack({ state, doctor, relations, ready, held, playbooks, s
     ? `### Next chunk: Phase ${next.id} — ${next.name}\n${[...parkLine(state, next.id), ...(next.summary?.nextRun ?? []).map((item) => `- ${item}`)].join("\n")}${skippedLine}`
     : `### Next chunk\n${nextChunkAbsent(ready, skipped)}`;
   return [
-    "Covers Stage A orientation. Use complete inlined content without rereading; follow every read-now pointer and read any omitted content before recommending next work.",
+    "Covers the Stage A reads (progress.md, phase entries, in-flight notes). Do not re-read those files, except an in-flight note listed by path instead of shown.",
     ...staleLine(stale),
     ...optionalLine(settings),
     `### Status table\n${renderStatusTable(state)}`,
     `### Ready set\n${renderReadySet(ready)}`,
-    inFlightBlock(state.inFlight ?? [], state.spec.dir),
+    inFlightBlock(state.spec.dir, state.inFlight ?? []),
     nextBlock,
     ...playbooksBlock(playbooks),
     `### Related specs\n${relations}`,
@@ -60,8 +61,10 @@ export function resumePack({ state, doctor, relations, ready, held, playbooks, s
 
 export function executePack(input: PackInput, phase: PhaseState, pickNote: string, references: PackReferences): string {
   const { state, doctor, lessons, relations } = input;
+  const notes = state.inFlight ?? [];
+  const own = notesForPhase(notes, phase.id, phase.edges.pr);
   return [
-    "Covers execute §0.2–§0.3. Read the current handoffs before acting on the pick, including parked/stale checks. Use complete inlined content without rereading; follow every read-now pointer and read any omitted content.",
+    "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and its in-flight notes. Do not re-read those files, except an in-flight note listed by path instead of shown.",
     `Picked: Phase ${phase.id} — ${phase.name} (${pickNote})`,
     ...parkLine(state, phase.id),
     ...staleLine(input.stale),
@@ -76,7 +79,7 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
     ...playbooksBlock(input.playbooks),
     stableReferencesBlock(references.stable),
     `### Related specs\n${relations}`,
-    inFlightBlock(state.inFlight ?? [], state.spec.dir),
+    inFlightBlock(state.spec.dir, own, notes.filter((note) => !own.includes(note))),
     `### Doctor\n${doctor}`,
   ].join("\n\n");
 }
