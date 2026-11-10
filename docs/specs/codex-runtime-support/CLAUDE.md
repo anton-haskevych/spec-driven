@@ -39,7 +39,7 @@ Phases 1 and 2 are complete. The isolated native Codex pilot has source-qualifie
 
 ## Current plan and handoff
 
-The assigned source remains ~/claude-worktrees/spec-driven/codex-runtime-support-pr-a on feat/codex-runtime-support-pr-a. Final acceptance is `research/phase-2/2026-11-09-final-combined-acceptance.md`; PR A's local review draft is `pr-a-review.md`, with pending review state in `in-flight/pr-a.md`. No remote PR, push, merge or release has occurred.
+The assigned source remains ~/claude-worktrees/spec-driven/codex-runtime-support-pr-a on feat/codex-runtime-support-pr-a. Final acceptance is `research/phase-2/2026-11-09-final-combined-acceptance.md`; PR A's local review draft is `pr-a-review.md`, with publication and merge state tracked in `pr-opening.md`. Anton authorized opening PR A non-draft and squash merging it once CI is green, targeting 2.52.0. Track its outcome in pr-opening.md.
 
 Integration commit 90bd6cf combines the retained pilot cwd/symlink fix with fc10395 qualified native parentage. The final candidate revision was `sha256:cfe500538196bc655f614ebacd62e1b210364a10c50fa2fd41de044e8507c889` in both real sessions and the reconciled pilot source. Canonical parallel recon, explicit recall/invalid-file correction, local source/spec commits and confirmed Stage A/B fresh pickup passed. The temporary native installation was removed and all existing installed-plugin metadata restored. Historical failed/serial-only reports remain unchanged; the new acceptance supersedes their pending local-cycle disposition.
 

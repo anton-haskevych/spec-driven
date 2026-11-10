@@ -1,6 +1,6 @@
 # Add isolated native Codex execute and handoff
 
-Local review draft for `feat/codex-runtime-support-pr-a`; base `origin/main` is `22e7ec7`. No remote PR has been opened. Open it ready under the existing project settings only when publication is authorized; use the canonical version helper from current main at merge.
+Release 2.52.0 review content for `feat/codex-runtime-support-pr-a`; base `origin/main` is `22e7ec7`. Anton authorized a non-draft PR and squash merge once CI is green. The canonical version helper from current main sets all three release declarations.
 
 ## Proposed PR description
 
@@ -10,7 +10,7 @@ Native parentage distinguishes the coordinator's recon descendants from competin
 
 Validation:
 
-- 1,506 Bun tests across 204 files passed, plus typecheck, frozen install without changes and version consistency at 2.51.0. Final packaged-CLI diagnostics checks also passed.
+- 1,506 Bun tests across 204 files passed, plus typecheck, frozen install without changes and version consistency at 2.52.0 (release metadata bump after code acceptance). Final packaged-CLI diagnostics checks also passed.
 - Two real model sessions used the same installed asset revision `cfe50053`: execute with concurrent native recon, useful code integration, explicit invalid-file feedback/correction, actual update/local handoff and independent resume with Stage A halt and separately confirmed Stage B.
 - Historical-reader tests retain actual source hashes, an unsafe linked-worktree positive control and separate-clone exclusion. Capability/identity/source/claim refusals and Claude compatibility regressions pass.
 - Temporary native install/marketplace removed; 30 preexisting plugins' installed/enabled/version/source metadata restored. Final source doctor/graph/whitespace checks are recorded with gate closure.

@@ -2,7 +2,7 @@
 
 ## Spec state
 
-Full Claude-to-Codex parity remains required. Group A's isolated local cycle has passed on one combined installed candidate; shared writes, full native bindings/hooks and worker activation remain pending. See progress.md and workflow-parity.md for authoritative scope/status. Local PR A review material is in pr-a-review.md; no remote PR has been opened.
+Full Claude-to-Codex parity remains required. Group A's isolated local cycle has passed on one combined installed candidate; shared writes, full native bindings/hooks and worker activation remain pending. See progress.md and workflow-parity.md for authoritative scope/status. PR A publication as non-draft and squash merge on green were authorized by Anton; release target 2.52.0. Review material is in pr-a-review.md.
 
 | Group | Phases | Enabled value |
 |---|---|---|
@@ -12,7 +12,7 @@ Full Claude-to-Codex parity remains required. Group A's isolated local cycle has
 | D | 3b | Managed workers, unattended babysitting and overseer |
 | E | 6 | Complete parity closure and release enforcement |
 
-Groups land in order. Each enables only accepted capabilities; missing later rows remain pending, not failed gates on an earlier delivery. Full-parity claims require the entire inventory. Existing settings require ready PRs and squash merge. Use scripts/version.py from current main at merge, never a guessed version. No direct implementation commits to main. The scoped temporary native test installation/removal was authorized and completed. Publication and permanent rollout retain their existing separate authorization; this branch is prepared locally for review.
+Groups land in order. Each enables only accepted capabilities; missing later rows remain pending, not failed gates on an earlier delivery. Full-parity claims require the entire inventory. Existing settings require ready PRs and squash merge. Use scripts/version.py from current main at merge, never a guessed version. No direct implementation commits to main. The scoped temporary native test installation/removal was authorized and completed. Anton authorized PR publication and merge on green for 2.52.0. Permanent personal installation/rollout remains separate.
 
 ## Pre-PR checks
 
