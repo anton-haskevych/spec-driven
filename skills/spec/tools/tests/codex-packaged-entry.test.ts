@@ -73,7 +73,7 @@ function fixtureDaemon(threadId = "package-own") {
 test("actual copied candidate CLI reaches stored context through a disposable read-only daemon fixture", async () => {
   const native = fixtureDaemon();
   const result = await cli(options(), native.env);
-  expect(result.code).toBe(0);
+  expect(result.code, JSON.stringify(result, null, 2)).toBe(0);
   expect(result.stderr).toBe("");
   expect(result.stdout).toContain(`Candidate: ${root}`);
   expect(result.stdout).toContain(revision);
