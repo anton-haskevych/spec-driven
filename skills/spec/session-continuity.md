@@ -4,9 +4,9 @@ Apply the active host's capability limits throughout. These instructions do not 
 
 ## Read the handoff first
 
-Before recommending next work or starting work on an existing spec, read its current `in-flight/` phase and PR-group notes and legacy `in-flight.md`, when present. Read the handoffs of other specs shortlisted for next-session suggestions too. Use pending work, recorded answers, blockers and `Pick up from here` to inform the next action; keep the board's readiness/claim rules and the user's explicit scope.
+Before resuming/starting an execute chunk or recommending follow-up execute work, read the spec's current `in-flight/` phase and PR-group notes and legacy `in-flight.md`, when present. Read the handoffs of other specs shortlisted for next execute sessions too. Use pending work, recorded answers, blockers and `Pick up from here` to inform the next action; keep the board's readiness/claim rules and the user's explicit scope.
 
-A receiving execute/resume session or babysitter reads these notes in its actual destination checkout. A launch brief or controller summary supplements that read. After switching checkout, refresh the handoffs there before acting. A managed worker follows the same rule on every launch or relaunch.
+A receiving execute/resume session reads these notes in its actual destination checkout. A launch brief or controller summary supplements that read. After switching checkout, refresh the handoffs there before acting. A managed execute worker follows the same rule on every launch or relaunch.
 
 Complete, current handoffs already inlined in a context pack count as read. Follow every `In-flight (read now)` pointer in full before recommending or acting. If a pack omits or clips content, read the source; a summary or excerpt cannot satisfy pickup. Missing, empty or deleted clean-boundary notes need no placeholder and do not block work.
 

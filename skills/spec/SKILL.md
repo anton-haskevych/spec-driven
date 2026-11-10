@@ -75,7 +75,7 @@ After dispatching, **stop**. Do not also evaluate the routing section below.
 
 ## Session lifecycle
 
-Before recommending next work or starting work on an existing spec, read and follow [session-continuity.md](session-continuity.md). It owns handoff pickup, required closing choices and the fresh-session boundary between prep/create and review.
+For execute/resume pickup and their next-work recommendations, read and follow [session-continuity.md](session-continuity.md). It also owns required interactive closing choices and the fresh-session boundary between prep/create and review.
 
 One session works one spec, and usually one chunk:
 
@@ -474,7 +474,7 @@ Lessons reach a session in three ways. None of them needs anyone to ask.
 - **Ephemeral pending state only.** Half-wired code, open session questions, "pick up from here" notes, environment state.
 - **Overwritten on each handoff.** Not appended to.
 - **Deleted at clean boundaries.** Clean boundary = all current-phase sub-checkboxes done AND no staged-but-uncommitted spec changes AND no open questions flagged this session. No file means nothing pending. A note that outlives its phase (a deploy still to do) keeps the file; the doctor warns only once every phase is done.
-- **Readers.** Execute, resume and babysit packs retain current phase, PR-group and legacy handoffs. Small notes are inlined completely; larger notes become required full-source reads. The doctor checks every one.
+- **Readers.** Execute and resume packs retain current phase, PR-group and legacy handoffs. Small notes are inlined completely; larger notes become required full-source reads. The doctor checks every one.
 - **Legacy `in-flight.md`** (one file for the whole spec, from before the split) stays readable everywhere. A handoff moves its own phase's part into its file and deletes the legacy file once nothing pending is left in it.
 - **Git is the archive.** Past contents are recoverable from `git log -p -- in-flight/`.
 
