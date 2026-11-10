@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { cpSync, mkdirSync, realpathSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { runCodexEntry, type CodexEntryDeps, type CodexEntryRequest } from "../runtime/codex/entry";
 import { inspectCandidate } from "../runtime/codex/candidate";
 import { probeCodex } from "../runtime/codex/probe";
 import type { ReadOnlyRpc } from "../runtime/codex/transport";
+import type { SessionRef } from "../runtime/sessions";
 import { createContextFixture } from "./context-fixture";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { asyncStubRunner } from "./stub-runner";
@@ -62,6 +63,62 @@ test("native recon descendants remain loaded through bootstrap and recall", asyn
   expect(output(await runCodexEntry({ ...request, command: ["lessons", "recall", "code.ts"] }, deps))).toContain("Workflow: local-pilot");
   threads.independent = nativeThread("independent");
   expect(await runCodexEntry(request, deps)).toMatchObject({ ok: false, reason: "another native session occupies the exclusive pilot checkout" });
+});
+
+function withOtherSession(cwd: string, ref?: SessionRef): CodexEntryDeps {
+  const observe = deps.observe;
+  return { ...deps, observe: async (input) => {
+    const report = await observe(input);
+    const own = report.snapshot.sessions[0]!;
+    const other = { ...own, cwd, ref: ref ?? { ...own.ref, id: "native-other" } };
+    return { ...report, snapshot: { ...report.snapshot, sessions: [own, other] } };
+  } };
+}
+
+test("exclusive pilot refuses direct, nested and filesystem-aliased occupation", async () => {
+  const nested = join(request.cwd, "nested");
+  mkdirSync(nested);
+  const alias = join(legacy.root, "pilot-alias");
+  symlinkSync(request.cwd, alias, "dir");
+  const childAlias = join(legacy.root, "child-alias");
+  symlinkSync(nested, childAlias, "dir");
+  for (const cwd of [request.cwd, nested, alias, join(alias, "nested"), childAlias]) {
+    expect(realpathSync(cwd).startsWith(request.cwd)).toBe(true);
+    expect(await runCodexEntry(request, withOtherSession(cwd))).toMatchObject({
+      ok: false, reason: "another native session occupies the exclusive pilot checkout",
+    });
+  }
+});
+
+test("unrelated and prefix-neighbor directories do not occupy the pilot", async () => {
+  const neighbor = `${request.cwd}-neighbor`;
+  mkdirSync(neighbor);
+  const alias = join(legacy.root, "unrelated-alias");
+  symlinkSync(legacy.dir, alias, "dir");
+  for (const cwd of [legacy.dir, neighbor, alias]) {
+    expect(output(await runCodexEntry(request, withOtherSession(cwd)))).toContain("Workflow: local-pilot");
+  }
+});
+
+test("unresolvable or relative other-session cwd evidence refuses conservatively", async () => {
+  const missing = join(legacy.root, "missing");
+  const dangling = join(legacy.root, "dangling");
+  const cycle = join(legacy.root, "cycle");
+  symlinkSync(missing, dangling, "dir");
+  symlinkSync(cycle, cycle, "dir");
+  for (const cwd of [missing, dangling, cycle, "relative", ""]) {
+    expect(await runCodexEntry(request, withOtherSession(cwd))).toMatchObject({
+      ok: false, reason: "native session cwd evidence unavailable; exclusive pilot use cannot be verified",
+    });
+  }
+});
+
+test("equal native IDs on another source or runtime are not excluded as self", async () => {
+  for (const source of [{ runtime: "codex", key: "other-source" }, { runtime: "claude", key: "configured-local-daemon" }] as const) {
+    expect(await runCodexEntry(request, withOtherSession(request.cwd, { source, id: "native-own" }))).toMatchObject({
+      ok: false, reason: "another native session occupies the exclusive pilot checkout",
+    });
+  }
 });
 
 test("native entry binds candidate bytes, actual ID/cwd and one scan to stored context", async () => {

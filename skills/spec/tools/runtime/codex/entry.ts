@@ -1,5 +1,5 @@
-import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, realpathSync } from "node:fs";
+import { isAbsolute, join, relative, sep } from "node:path";
 import { createStoredRuntimeContextCommand } from "../../commands/stored-runtime-context";
 import { isPhaseId, normalizePhaseHint, type ContextRequest } from "../../context/request";
 import type { Env } from "../../core/env";
@@ -13,7 +13,7 @@ import { sameSession } from "../identity";
 import { isSessionDescendant } from "../is-session-descendant";
 import { verifyPilotWorkspace } from "../pilot-workspace";
 import { resolveIdentity } from "../resolve-identity";
-import type { CodexSource, SessionRef } from "../sessions";
+import type { CodexSource, RuntimeSession, SessionRef } from "../sessions";
 import { pilotCommandRefusal, pilotModeRefusal, type LocalPilot } from "../workflow-capabilities";
 import type { CandidateAssets } from "./candidate";
 import type { ProbeReport, ProbeRequest } from "./probe";
@@ -58,12 +58,26 @@ export async function runCodexEntry(request: CodexEntryRequest, deps: CodexEntry
   if (observed?.cwd !== workspace.value || native.snapshot.coverage.length !== 1 || native.snapshot.coverage[0]?.state !== "complete") {
     return { ok: false, reason: "initiating native ID/cwd and complete source coverage required" };
   }
-  if (native.snapshot.sessions.some((session) => !sameSession(session.ref, own.value)
-    && !isSessionDescendant(session, own.value, native.snapshot.sessions)
-    && (session.cwd === workspace.value || session.cwd.startsWith(`${workspace.value}/`)))) {
-    return { ok: false, reason: "another native session occupies the exclusive pilot checkout" };
-  }
+  const exclusive = verifyExclusivePilot(workspace.value, native.snapshot.sessions, own.value);
+  if (!exclusive.ok) return exclusive;
   return dispatchPilot({ request, argv, target: target.value, own: own.value, native }, deps);
+}
+
+function verifyExclusivePilot(workspace: string, sessions: readonly RuntimeSession[], own: SessionRef): Result<true> {
+  const unavailable = { ok: false, reason: "native session cwd evidence unavailable; exclusive pilot use cannot be verified" } as const;
+  try {
+    for (const session of sessions) {
+      if (sameSession(session.ref, own) || isSessionDescendant(session, own, sessions)) continue;
+      if (!isAbsolute(session.cwd)) return unavailable;
+      const local = relative(workspace, realpathSync(session.cwd));
+      if (local !== ".." && !local.startsWith(`..${sep}`) && !isAbsolute(local)) {
+        return { ok: false, reason: "another native session occupies the exclusive pilot checkout" };
+      }
+    }
+    return { ok: true, value: true };
+  } catch {
+    return unavailable;
+  }
 }
 
 function pilotTarget(request: ContextRequest): Result<LocalPilot> {
