@@ -6,6 +6,7 @@ import { sessionsByWorkspace } from "../sessions/by-workspace";
 import { sessionLabel } from "../sessions/label";
 import type { LiveSession } from "../sessions/live";
 import type { Workspace } from "../workspaces/list";
+import { ownerOf } from "../workspaces/owner";
 import type { TreeName } from "./naming";
 
 export interface GroupPhases {
@@ -78,7 +79,15 @@ export function treeOccupant(tree: string, view: TreeView): string | undefined {
   if (claimed) return describeHolder({ kind: "claim", spec: claimed.claim.spec, phase: claimed.claim.phase, who: holderName(claimed.claim) });
   if (!view.sessions.ok) return "sessions can't be read";
   const inside = sessionsIn(tree, view)[0];
-  return inside && `${sessionLabel(inside.name, inside.sessionId)} is open there`;
+  if (inside) return `${sessionLabel(inside.name, inside.sessionId)} is open there`;
+  const started = sessionsStartedIn(tree, view)[0];
+  return started && `${sessionLabel(started.name, started.sessionId)} started there`;
+}
+
+// The caller's own session counts too: removing its start tree switches off its own hooks.
+function sessionsStartedIn(tree: string, view: TreeView): LiveSession[] {
+  if (!view.sessions.ok) return [];
+  return view.sessions.value.filter((session) => session.startDir !== undefined && ownerOf(session.startDir, view.worktreePaths) === tree);
 }
 
 function blockingClaim(tree: string, view: TreeView): HeldClaim | undefined {

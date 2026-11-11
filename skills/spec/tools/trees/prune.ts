@@ -10,6 +10,7 @@ import { originTip, pinDefault } from "../publish/snapshot";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
 import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
+import { procStartDirs } from "../sessions/procfs";
 import { canonicalPath, loadWorkspaces, type Workspace } from "../workspaces/list";
 import { ownerOf } from "../workspaces/owner";
 import { treeOccupant } from "./find";
@@ -44,7 +45,7 @@ export async function findPrunable(projectDir: string, deps: PruneDeps): Promise
   if (!base.ok || !base.value) return { ok: false, reason: `no origin/${branch} ref` };
 
   const merged = mergedHeads(projectDir, deps.asyncRunner);
-  const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
+  const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner), procStartDirs());
   const facts = await treeFacts(git, worktrees.value, base.value, projectDir, { sessions, deps });
   const prs = await merged;
   const candidates = pruneCandidates(facts, prs.ok ? prs.value : undefined, branch);

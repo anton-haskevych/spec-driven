@@ -96,6 +96,23 @@ describe("loadLiveSessions", () => {
     expect(loaded.ok && loaded.value.map((live) => [live.pid, live.status])).toEqual([[222, "idle"]]);
   });
 
+  test("a Linux start time in clock ticks matches the /proc form of the running pid", () => {
+    tree = createTree();
+    tree.write("sessions/25603.json", session({ procStart: "6610043" }));
+    const loaded = loadLiveSessions(tree.root, () => new Map([[25603, [PROC_START, "6610043"]]]));
+    expect(loaded.ok && loaded.value).toHaveLength(1);
+  });
+
+  test("a live session carries the folder it started in when it is known", () => {
+    tree = createTree();
+    mkdirSync(join(tree.root, "start"));
+    tree.write("sessions/25603.json", BUSY);
+    const loaded = loadLiveSessions(tree.root, alive, () => new Map([[25603, join(tree.root, "start")]]));
+    expect(loaded.ok && loaded.value[0]?.startDir).toBe(realpathSync(join(tree.root, "start")));
+    const unknown = loadLiveSessions(tree.root, alive);
+    expect(unknown.ok && unknown.value[0]).not.toHaveProperty("startDir");
+  });
+
   test("a cwd that exists is resolved like worktree paths", () => {
     tree = createTree();
     mkdirSync(join(tree.root, "checkout"));
@@ -138,13 +155,13 @@ describe("ps start times", () => {
     const seen: { argv: readonly string[]; tz?: string }[] = [];
     const runner = stubRunner([[["ps"], { stdout: "25603 Thu Oct  1 22:53:33 2026\n" }]]);
     const spy = { run: (argv: readonly string[], options: { env?: Record<string, string> } = {}) => (seen.push({ argv, tz: options.env?.TZ }), runner.run(argv)) };
-    expect(psProcStarts(spy)([25603, 901])).toEqual(new Map([[25603, "Thu Oct  1 22:53:33 2026"]]));
+    expect(psProcStarts(spy, undefined)([25603, 901])).toEqual(new Map([[25603, ["Thu Oct  1 22:53:33 2026"]]]));
     expect(seen).toEqual([{ argv: ["ps", "-o", "pid=,lstart=", "-p", "25603,901"], tz: "UTC" }]);
   });
 
   test("no pids, no ps call", () => {
     const runner = stubRunner([]);
-    expect(psProcStarts(runner)([])).toEqual(new Map());
+    expect(psProcStarts(runner, undefined)([])).toEqual(new Map());
     expect(runner.calls).toEqual([]);
   });
 });
