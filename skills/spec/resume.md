@@ -14,7 +14,7 @@ Run SKILL.md → *Preconditions*. A prep-stage spec routes to [prep.md](prep.md)
 
 ### A.2. Render the status table
 
-**If a `<spec-pack mode="resume">` for this spec is present** (SKILL.md → *Tools*), print its status table exactly as given, then take A.3's in-flight text and A.4's next-chunk items from the pack. Do not read `progress.md`, the phase entries or the in-flight files. Otherwise:
+**If a `<spec-pack mode="resume">` for this spec is present** (SKILL.md → *Tools*), print its status table exactly as given, then take A.3's in-flight text and A.4's next-chunk items from the pack. Do not read `progress.md`, the phase entries or the in-flight files, except a note the pack lists under `Too large to show here`: read that one in full first. Otherwise:
 
 Follow `status.md` → *Read phases*, *Compute status per phase*, and *Render* to produce the same 4-column table the user would see from `/spec <name> status`.
 

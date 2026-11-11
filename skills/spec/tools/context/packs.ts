@@ -1,5 +1,5 @@
 import { outlineMarkdown } from "../core/markdown";
-import { notesForPhase, type InFlightNote } from "../core/in-flight";
+import { notesForPhase } from "../core/in-flight";
 import { lastPark } from "../core/park";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { ReadySet } from "../ready/ready-set";
@@ -16,6 +16,7 @@ import type { HeldPhases } from "../claims/live";
 import { firstUnheld } from "./held-phases";
 import type { PackReferences } from "./references";
 import type { LocalPilot } from "../runtime/workflow-capabilities";
+import { inFlightBlock } from "./in-flight";
 
 export interface PackInput {
   state: SpecState;
@@ -32,7 +33,6 @@ export interface PackInput {
 
 const PHASE_ENTRY_LIMIT = 8000;
 const SMALL_FILE_LIMIT = 3000;
-const IN_FLIGHT_LIMIT = 2000;
 const LEDGER_LIMIT = 6000;
 const PROJECT_LESSONS_LIMIT = 3000;
 const PLAYBOOKS_LIMIT = 3000;
@@ -46,12 +46,12 @@ export function resumePack({ state, doctor, relations, ready, held, playbooks, s
     ? `### Next chunk: Phase ${next.id} — ${next.name}\n${[...parkLine(state, next.id), ...(next.summary?.nextRun ?? []).map((item) => `- ${item}`)].join("\n")}${skippedLine}`
     : `### Next chunk\n${nextChunkAbsent(ready, skipped)}`;
   return [
-    "Covers the Stage A reads (progress.md, phase entries, in-flight notes). Do not re-read those files.",
+    "Covers the Stage A reads (progress.md, phase entries, in-flight notes). Do not re-read those files, except an in-flight note listed by path instead of shown.",
     ...staleLine(stale),
     ...optionalLine(settings),
     `### Status table\n${renderStatusTable(state)}`,
     `### Ready set\n${renderReadySet(ready)}`,
-    inFlightBlock(state.inFlight ?? []),
+    inFlightBlock(state.spec.dir, state.inFlight ?? []),
     nextBlock,
     ...playbooksBlock(playbooks),
     `### Related specs\n${relations}`,
@@ -61,8 +61,10 @@ export function resumePack({ state, doctor, relations, ready, held, playbooks, s
 
 export function executePack(input: PackInput, phase: PhaseState, pickNote: string, references: PackReferences): string {
   const { state, doctor, lessons, relations } = input;
+  const notes = state.inFlight ?? [];
+  const own = notesForPhase(notes, phase.id, phase.edges.pr);
   return [
-    "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and its in-flight notes. Do not re-read those files.",
+    "Covers execute §0.2–§0.3: the picked phase, its ledger rows, its code-map rows, CLAUDE.md and its in-flight notes. Do not re-read those files, except an in-flight note listed by path instead of shown.",
     `Picked: Phase ${phase.id} — ${phase.name} (${pickNote})`,
     ...parkLine(state, phase.id),
     ...staleLine(input.stale),
@@ -77,7 +79,7 @@ export function executePack(input: PackInput, phase: PhaseState, pickNote: strin
     ...playbooksBlock(input.playbooks),
     stableReferencesBlock(references.stable),
     `### Related specs\n${relations}`,
-    inFlightBlock(notesForPhase(state.inFlight ?? [], phase.id)),
+    inFlightBlock(state.spec.dir, own, notes.filter((note) => !own.includes(note))),
     `### Doctor\n${doctor}`,
   ].join("\n\n");
 }
@@ -105,13 +107,6 @@ function optionalLine(line: string | undefined): string[] {
 
 function playbooksBlock(playbooks: readonly Playbook[]): string[] {
   return playbooks.length > 0 ? [clip(renderPlaybooks(playbooks), PLAYBOOKS_LIMIT, "docs/specs/_playbook/")] : [];
-}
-
-function inFlightBlock(notes: readonly InFlightNote[]): string {
-  const shown = notes.filter((note) => note.text.trim() !== "");
-  if (shown.length === 0) return "### In-flight (raw)\n(none)";
-  const text = shown.map((note) => `#### ${note.file}\n${note.text.trim()}`).join("\n\n");
-  return `### In-flight (raw)\n${clip(text, IN_FLIGHT_LIMIT, shown.map((note) => note.file).join(", "))}`;
 }
 
 function ledgerBlock(index: string | undefined, phaseId: string): string {

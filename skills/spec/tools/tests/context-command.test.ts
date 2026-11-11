@@ -26,16 +26,29 @@ describe("contextPack", () => {
     expect(pack).toContain("### Next chunk: Phase 2 — Aggregate\n- model src/Checkout.java");
   });
 
-  test("execute pack shows only the picked phase's in-flight file and the legacy one; resume shows them all", async () => {
+  test("execute shows its phase's, its PR group's and the legacy note whole and names other phases' by path; resume shows them all", async () => {
+    write("phases/phase-2.md", "---\npr: A\n---\n**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
     write("in-flight/phase-1.md", "deploy pending for phase 1");
     write("in-flight/phase-2.md", "half-wired aggregate");
+    write("in-flight/pr-A.md", "PR gate needs the deployment evidence");
     write("in-flight.md", "legacy note");
     const execute = await contextPack(project, { mode: "execute", name: "checkout" }, contextDeps());
-    expect(execute).toContain("### In-flight (raw)\n#### in-flight/phase-2.md\nhalf-wired aggregate\n\n#### in-flight.md\nlegacy note");
+    expect(execute).toContain(
+      [
+        "### In-flight (raw)\n#### in-flight/phase-2.md\nhalf-wired aggregate",
+        "#### in-flight/pr-A.md\nPR gate needs the deployment evidence",
+        "#### in-flight.md\nlegacy note",
+        `Other phases' pending notes, not this chunk's. Read one only when the work touches that phase:\n- ${join(spec(), "in-flight/phase-1.md")}`,
+      ].join("\n\n"),
+    );
     expect(execute).not.toContain("deploy pending for phase 1");
-    expect((await contextPack(project, { mode: "resume", name: "checkout" }, contextDeps()))).toContain("#### in-flight/phase-1.md\ndeploy pending for phase 1");
+    const resume = await contextPack(project, { mode: "resume", name: "checkout" }, contextDeps());
+    for (const note of ["#### in-flight/phase-1.md\ndeploy pending for phase 1", "#### in-flight/phase-2.md\nhalf-wired aggregate", "#### in-flight/pr-A.md\nPR gate needs the deployment evidence", "#### in-flight.md\nlegacy note"]) {
+      expect(resume).toContain(note);
+    }
     rmSync(join(spec(), "in-flight"), { recursive: true });
     rmSync(join(spec(), "in-flight.md"));
+    write("phases/phase-2.md", "**Goal:** Aggregate.\n## Deliverables\n- [ ] model `src/Checkout.java`\n");
     expect((await contextPack(project, { mode: "execute", name: "checkout" }, contextDeps()))).toContain("### In-flight (raw)\n(none)");
   });
 

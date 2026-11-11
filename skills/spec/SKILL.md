@@ -472,7 +472,7 @@ Lessons reach a session in three ways. None of them needs anyone to ask.
 - **Ephemeral pending state only.** Half-wired code, open session questions, "pick up from here" notes, environment state.
 - **Overwritten on each handoff.** Not appended to.
 - **Deleted at clean boundaries.** Clean boundary = all current-phase sub-checkboxes done AND no staged-but-uncommitted spec changes AND no open questions flagged this session. No file means nothing pending. A note that outlives its phase (a deploy still to do) keeps the file; the doctor warns only once every phase is done.
-- **Readers.** The execute pack shows the picked phase's file; resume shows them all; the doctor checks every one.
+- **Readers.** The execute pack shows the picked phase's file, its PR group's and a legacy one, and names other phases' files by path; resume shows them all; the doctor checks every one. A pack never cuts a note: one too large to show is named by path, to be read in full before acting.
 - **Legacy `in-flight.md`** (one file for the whole spec, from before the split) stays readable everywhere. A handoff moves its own phase's part into its file and deletes the legacy file once nothing pending is left in it.
 - **Git is the archive.** Past contents are recoverable from `git log -p -- in-flight/`.
 
