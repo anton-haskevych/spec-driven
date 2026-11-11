@@ -155,13 +155,13 @@ describe("ps start times", () => {
     const seen: { argv: readonly string[]; tz?: string }[] = [];
     const runner = stubRunner([[["ps"], { stdout: "25603 Thu Oct  1 22:53:33 2026\n" }]]);
     const spy = { run: (argv: readonly string[], options: { env?: Record<string, string> } = {}) => (seen.push({ argv, tz: options.env?.TZ }), runner.run(argv)) };
-    expect(psProcStarts(spy, undefined)([25603, 901])).toEqual(new Map([[25603, ["Thu Oct  1 22:53:33 2026"]]]));
+    expect(psProcStarts(spy, null)([25603, 901])).toEqual(new Map([[25603, ["Thu Oct  1 22:53:33 2026"]]]));
     expect(seen).toEqual([{ argv: ["ps", "-o", "pid=,lstart=", "-p", "25603,901"], tz: "UTC" }]);
   });
 
   test("no pids, no ps call", () => {
     const runner = stubRunner([]);
-    expect(psProcStarts(runner, undefined)([])).toEqual(new Map());
+    expect(psProcStarts(runner, null)([])).toEqual(new Map());
     expect(runner.calls).toEqual([]);
   });
 });

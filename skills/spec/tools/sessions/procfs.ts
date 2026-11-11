@@ -11,8 +11,8 @@ export interface Procfs {
 
 const START_TIME_AFTER_COMMAND = 19;
 
-export function systemProcfs(platform: string = process.platform): Procfs | undefined {
-  if (platform !== "linux") return undefined;
+export function systemProcfs(platform: string = process.platform): Procfs | null {
+  if (platform !== "linux") return null;
   return { stat: (pid) => readProc(pid, "stat"), environ: (pid) => readProc(pid, "environ") };
 }
 
@@ -26,7 +26,7 @@ export function environPwd(environ: string): string | undefined {
   return pwd || undefined;
 }
 
-export function procStartDirs(procfs: Procfs | undefined = systemProcfs()): StartDirs {
+export function procStartDirs(procfs: Procfs | null = systemProcfs()): StartDirs {
   return (pids) => {
     const dirs = new Map<number, string>();
     if (!procfs) return dirs;

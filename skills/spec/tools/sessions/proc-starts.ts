@@ -6,7 +6,7 @@ const PS_ROW = /^\s*(\d+)\s+(.+?)\s*$/;
 
 // Session files record procStart in UTC, while ps prints lstart in the local zone. On Linux the
 // file holds clock ticks instead, so each pid answers in both forms.
-export function psProcStarts(runner: Runner, procfs: Procfs | undefined = systemProcfs()): ProcStarts {
+export function psProcStarts(runner: Runner, procfs: Procfs | null = systemProcfs()): ProcStarts {
   return (pids) => {
     if (pids.length === 0) return new Map();
     const listed = parseProcStarts(runner.run(["ps", "-o", "pid=,lstart=", "-p", pids.join(",")], { env: { TZ: "UTC" } }).stdout);

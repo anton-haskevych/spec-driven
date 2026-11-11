@@ -25,7 +25,7 @@ describe("/proc start time", () => {
 
   test("without /proc it is ps alone, as before", () => {
     const runner = stubRunner([[["ps"], { stdout: "25603 Thu Oct  1 22:53:33 2026\n" }]]);
-    expect(psProcStarts(runner, undefined)([25603])).toEqual(new Map([[25603, ["Thu Oct  1 22:53:33 2026"]]]));
+    expect(psProcStarts(runner, null)([25603])).toEqual(new Map([[25603, ["Thu Oct  1 22:53:33 2026"]]]));
   });
 
   test("a pid ps doesn't list is still matched by /proc", () => {
@@ -45,11 +45,11 @@ describe("start folders", () => {
   });
 
   test("without /proc nothing is known, so nothing changes", () => {
-    expect(procStartDirs(undefined)([1])).toEqual(new Map());
+    expect(procStartDirs(null)([1])).toEqual(new Map());
   });
 
   test("/proc is read on Linux only", () => {
-    expect(systemProcfs("darwin")).toBeUndefined();
+    expect(systemProcfs("darwin")).toBeNull();
     expect(systemProcfs("linux")).toBeDefined();
   });
 });
