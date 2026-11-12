@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { loadNodes } from "../graph/nodes";
-import { loadSpecState, specStateFrom } from "../core/spec-state";
+import { loadSpecStateFromFiles, specStateFrom } from "../core/spec-state";
 import { createTree } from "./tree";
 
 const tree = createTree("spec-title-review-");
@@ -24,8 +24,8 @@ describe("spec title", () => {
 
 describe("reviewed", () => {
   test("a state loaded from disk says whether the spec has a reviews/ folder", () => {
-    expect(loadSpecState(reviewed).reviewed).toBe(true);
-    expect(loadSpecState(fresh).reviewed).toBe(false);
+    expect(loadSpecStateFromFiles(reviewed).reviewed).toBe(true);
+    expect(loadSpecStateFromFiles(fresh).reviewed).toBe(false);
   });
 
   test("a state built from a file reader leaves it unknown", () => {

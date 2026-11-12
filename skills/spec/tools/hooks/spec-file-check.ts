@@ -11,7 +11,7 @@ import { checkProjectLesson } from "../doctor/project-lesson";
 import { checkSpecMeta } from "../doctor/spec-meta";
 import { linkIssues } from "../graph/checks";
 import { loadNodes } from "../graph/nodes";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
 import { phaseGateIssues } from "../doctor/phase-gates";
 import { phaseScheduleIssues } from "../doctor/schedule";
@@ -62,7 +62,7 @@ function specFileIssues(location: SpecFileLocation, filePath: string, text: stri
 }
 
 function phaseFileIssues(location: SpecFileLocation, projectDir: string): Issue[] {
-  const state = loadSpecState(location.spec);
+  const state = loadSpecStateFromFiles(location.spec);
   const pointer = location.pathInSpec;
   const playbooks = new Set(loadPlaybooks(projectDir).map((playbook) => playbook.name));
   return [

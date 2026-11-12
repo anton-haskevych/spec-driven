@@ -7,7 +7,7 @@ import { readTextIfExists } from "../../core/files";
 import type { Result } from "../../core/result";
 import type { Runner } from "../../core/run";
 import { findSpecs } from "../../core/spec-folders";
-import { loadSpecState } from "../../core/spec-state";
+import { loadSpecStateFromFiles } from "../../core/spec-state";
 import { run } from "../../spec";
 import { sameSession } from "../identity";
 import { isSessionDescendant } from "../is-session-descendant";
@@ -91,7 +91,7 @@ function existingTarget(cwd: string, target: LocalPilot): Result<true> {
   const specs = findSpecs(cwd, target.spec);
   const spec = specs.length === 1 ? specs[0] : undefined;
   if (!spec) return { ok: false, reason: "local-pilot requires one existing named spec" };
-  const state = loadSpecState(spec);
+  const state = loadSpecStateFromFiles(spec);
   if (!state.hasProgress || !existsSync(join(spec.dir, "ledger/INDEX.md")) || !state.phases.some((phase) => phase.id === target.phase)) {
     return { ok: false, reason: "local-pilot requires current spec layout and an existing exact phase; no fallback phase was selected" };
   }

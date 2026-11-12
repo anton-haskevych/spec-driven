@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { findSpecs } from "../core/spec-folders";
-import { diskReader, loadSpecState } from "../core/spec-state";
+import { diskReader, loadSpecStateFromFiles } from "../core/spec-state";
 import { babysitPack } from "../context/babysit-pack";
 import { executePack, resumePack, type PackInput } from "../context/packs";
 import { neighborhoodReport } from "./graph";
@@ -75,7 +75,7 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   const specs = findSpecs(projectDir, name);
   if (specs.length !== 1 || !specs[0]) return "";
 
-  const state = loadSpecState(specs[0]);
+  const state = loadSpecStateFromFiles(specs[0]);
   const hasLedger = existsSync(join(state.spec.dir, "ledger", "INDEX.md"));
   if (!state.hasProgress || !hasLedger) return "";
 

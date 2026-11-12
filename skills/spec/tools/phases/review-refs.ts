@@ -1,4 +1,4 @@
-import { loadSpecState, type PhaseState, type SpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles, type PhaseState, type SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 import { parseRef, phasesInRef } from "../graph/relations";
 
@@ -34,7 +34,7 @@ function relationRefs(node: SpecNode, matches: (ref: string) => boolean): string
 }
 
 function otherSpecEdgeRefs(node: SpecNode, matches: (ref: string) => boolean): string[] {
-  return loadSpecState(node.spec).phases.flatMap((phase) => edgeRefs(`${node.spec.name} Phase ${phase.id}`, phase, matches));
+  return loadSpecStateFromFiles(node.spec).phases.flatMap((phase) => edgeRefs(`${node.spec.name} Phase ${phase.id}`, phase, matches));
 }
 
 function covers(ref: string, phaseId: string): boolean {

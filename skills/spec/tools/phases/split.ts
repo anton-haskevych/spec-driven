@@ -2,7 +2,7 @@ import { join } from "node:path";
 import type { EditPlan, FileEdit } from "../core/apply-edits";
 import { allTasksDone, entryTaskCount } from "../core/phase-entry";
 import type { SpecFolder } from "../core/spec-folders";
-import { diskReader, loadSpecState, type PhaseState } from "../core/spec-state";
+import { diskReader, loadSpecStateFromFiles, type PhaseState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 import { findPhase } from "./find-phase";
 import { familyOf, nextLetterIds } from "./ids";
@@ -30,7 +30,7 @@ export type Split =
 const FOLDER_PLAN = /\/plan\.md$/;
 
 export function planSplit(spec: SpecFolder, request: SplitRequest, nodes: ReadonlyMap<string, SpecNode>): Split {
-  const state = loadSpecState(spec);
+  const state = loadSpecStateFromFiles(spec);
   const phase = findPhase(state, request.id);
   if (typeof phase === "string") return invalid(phase);
   const refusal = splitRefusal(phase);

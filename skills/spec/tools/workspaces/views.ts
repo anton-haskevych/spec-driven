@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import type { WorkspaceView } from "../board/inputs";
 import { listSpecs } from "../core/spec-folders";
-import { loadSpecState, type SpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles, type SpecState } from "../core/spec-state";
 import { loadNodes, type SpecNode } from "../graph/nodes";
 import type { WorkspaceScan } from "./scan";
 
@@ -12,7 +12,7 @@ export function loadWorkspaceViews(scans: readonly WorkspaceScan[], baseNodes: R
     const changed = new Set(specs);
     const folders = existsSync(workspace.path) ? listSpecs(workspace.path).filter((folder) => changed.has(folder.name)) : [];
     const states = new Map<string, SpecState>();
-    for (const folder of folders) if (!states.has(folder.name)) states.set(folder.name, loadSpecState(folder));
+    for (const folder of folders) if (!states.has(folder.name)) states.set(folder.name, loadSpecStateFromFiles(folder));
     const missingFromBase = [...states.keys()].filter((name) => !baseNodes.has(name));
     return {
       path: workspace.path,

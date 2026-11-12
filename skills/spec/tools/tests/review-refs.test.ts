@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { phaseCommand } from "../commands/phase";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { loadNodes } from "../graph/nodes";
 import { refsToPhase } from "../phases/review-refs";
 import { createTree, type Tree } from "./tree";
@@ -32,7 +32,7 @@ function project() {
 describe("refsToPhase", () => {
   test("lists sibling edges, other specs' relations and other specs' phase edges that point at the phase", () => {
     const spec = project();
-    expect(refsToPhase(loadSpecState(spec), "7", loadNodes(tree.root))).toEqual([
+    expect(refsToPhase(loadSpecStateFromFiles(spec), "7", loadNodes(tree.root))).toEqual([
       "Phase 8 needs 7",
       "Phase 8 same-files-as 7",
       "billing CLAUDE.md needs checkout#6-8",

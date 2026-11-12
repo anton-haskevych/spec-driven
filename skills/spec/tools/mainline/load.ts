@@ -5,7 +5,7 @@ import type { BaseRef, SpecStage } from "../board/inputs";
 import { gitCommonDir, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { listSpecs, type SpecFolder } from "../core/spec-folders";
-import { loadSpecState, type SpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles, type SpecState } from "../core/spec-state";
 import { loadNodes, type SpecNode } from "../graph/nodes";
 import { loadSettings, type ProjectSettings } from "../playbook/settings";
 import { originTip, pinDefault } from "../publish/snapshot";
@@ -67,7 +67,7 @@ function pinBase(git: Git, branch: string, options: MainlineOptions): Result<{ s
 function loadSpecDocs(projectDir: string): Omit<Mainline, "base" | "commonDir"> {
   const specs = listSpecs(projectDir);
   const states = new Map<string, SpecState>();
-  for (const spec of specs) if (!states.has(spec.name)) states.set(spec.name, loadSpecState(spec));
+  for (const spec of specs) if (!states.has(spec.name)) states.set(spec.name, loadSpecStateFromFiles(spec));
   const stages = new Map<string, SpecStage>();
   for (const [name, state] of states) if (!state.hasProgress) stages.set(name, stageOf(state.spec));
   return {

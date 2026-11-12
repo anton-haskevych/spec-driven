@@ -1,7 +1,7 @@
 import { relative } from "node:path";
 import { gitAt, type Git } from "../../core/git";
 import { resolveSpec } from "../../core/spec-folders";
-import { loadSpecState } from "../../core/spec-state";
+import { loadSpecStateFromFiles } from "../../core/spec-state";
 import { defaultBranch, type Runner } from "../../core/run";
 import type { Result } from "../../core/result";
 import { pushBranch } from "../../publish/push";
@@ -32,7 +32,7 @@ const SHORT_SHA = 7;
 export async function openPr(projectDir: string, request: OpenRequest, deps: OpenDeps): Promise<string> {
   const spec = resolveSpec(projectDir, request.spec);
   if (typeof spec === "string") return `pr open: ${spec}`;
-  const group = pickGroup(loadSpecState(spec), request.group);
+  const group = pickGroup(loadSpecStateFromFiles(spec), request.group);
   if (!group.ok) return `pr open: ${group.reason}`;
 
   const branch = treeName(spec.name, group.value.name).branch;

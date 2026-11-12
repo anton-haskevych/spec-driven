@@ -4,7 +4,7 @@ import { formatTickedItem, hasEvidence } from "../core/checkbox";
 import { isGateItem } from "../core/gate";
 import { allTasksDone, entryTaskCount } from "../core/phase-entry";
 import type { SpecFolder } from "../core/spec-folders";
-import { diskReader, loadSpecState, type PhaseState } from "../core/spec-state";
+import { diskReader, loadSpecStateFromFiles, type PhaseState } from "../core/spec-state";
 import { findPhase } from "./find-phase";
 import { locateOpenItem } from "./locate";
 import { tickPhaseLine } from "./progress-lines";
@@ -24,7 +24,7 @@ export interface Tick {
 }
 
 export function planTick(spec: SpecFolder, request: TickRequest): Tick {
-  const state = loadSpecState(spec);
+  const state = loadSpecStateFromFiles(spec);
   const phase = findPhase(state, request.phase);
   if (typeof phase === "string") return invalid(phase);
   if (phase.entry === undefined) return invalid(`Phase ${phase.id} points at ${phase.pointer}, which does not exist`);

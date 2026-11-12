@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import type { EditPlan } from "../core/apply-edits";
 import type { SpecFolder } from "../core/spec-folders";
-import { diskReader, loadSpecState, type PhaseState, type SpecState } from "../core/spec-state";
+import { diskReader, loadSpecStateFromFiles, type PhaseState, type SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 import { findPhase } from "./find-phase";
 import { familyOf, nextIntegerId, nextLetterIds } from "./ids";
@@ -27,7 +27,7 @@ interface Placement {
 }
 
 export function planAdd(spec: SpecFolder, request: AddRequest, nodes: ReadonlyMap<string, SpecNode>): Added {
-  const state = loadSpecState(spec);
+  const state = loadSpecStateFromFiles(spec);
   const placement = request.after === undefined ? atEnd(state.phases) : afterFamily(state, request.after);
   if (typeof placement === "string") return invalid(placement);
 

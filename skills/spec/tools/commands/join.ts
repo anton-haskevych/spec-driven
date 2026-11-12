@@ -5,7 +5,7 @@ import { defaultBranch, systemAsyncRunner, systemRunner, type AsyncRunner, type 
 import type { Result } from "../core/result";
 import { isoTimestamp } from "../core/schedule";
 import { findSpecs } from "../core/spec-folders";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { baseProject } from "../mainline/load";
 import { isPlainObject } from "../record/document";
 import { gitRecordPort, type RecordPort } from "../record/ref";
@@ -70,7 +70,7 @@ async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<{ ba
   const [folder] = folders;
   if (!folder) return { ok: false, reason: `No spec named ${spec} on origin/${branch}; land the spec first.` };
   if (folders.length > 1) return { ok: false, reason: `${folders.length} specs are named ${spec} on origin/${branch}.` };
-  const state = loadSpecState(folder);
+  const state = loadSpecStateFromFiles(folder);
   if (!state.hasProgress) return { ok: false, reason: `${spec} is still in prep; it has no phases to put on the board.` };
   const trees = await readTreeCopies(git, deps.asyncRunner, tip.value, spec);
   if (!trees.ok) return trees;

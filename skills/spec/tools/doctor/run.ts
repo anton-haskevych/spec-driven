@@ -4,7 +4,7 @@ import { markdownFilesIn, readTextIfExists } from "../core/files";
 import { inFlightFilesIn } from "../core/in-flight";
 import { parsePhaseLines } from "../core/progress";
 import type { SpecFolder } from "../core/spec-folders";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { graphIssues } from "../graph/checks";
 import type { SpecNode } from "../graph/nodes";
 import type { Issue } from "./issue";
@@ -31,7 +31,7 @@ const LEDGER_INDEX = "INDEX.md";
 
 export function runDoctor(spec: SpecFolder, context: DoctorContext): Issue[] {
   const graph = graphIssues(context.nodes, spec.name, join(spec.dir, "CLAUDE.md"));
-  const state = loadSpecState(spec);
+  const state = loadSpecStateFromFiles(spec);
   const edges = phaseEdgeIssues(state, context.nodes);
   const schedule = [
     ...specOverdueIssues(join(spec.dir, "CLAUDE.md"), context.nodes.get(spec.name), context.today),

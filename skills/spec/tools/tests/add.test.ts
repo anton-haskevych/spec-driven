@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { phaseCommand } from "../commands/phase";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { createTree, type Tree } from "./tree";
 
 const PROGRESS = [
@@ -32,7 +32,7 @@ function checkout() {
 }
 
 const read = (dir: string, path: string) => readFileSync(join(dir, path), "utf8");
-const ids = (dir: string) => loadSpecState({ name: "checkout", dir }).phases.map((phase) => phase.id);
+const ids = (dir: string) => loadSpecStateFromFiles({ name: "checkout", dir }).phases.map((phase) => phase.id);
 
 describe("phase add", () => {
   test("without --after: next integer, line after the last phase, file from the template", () => {
@@ -46,7 +46,7 @@ describe("phase add", () => {
     expect(entry).toStartWith("---\nneeds: [2, 3]\npr: C\n---\n");
     expect(entry).toContain("**Outcome:**");
 
-    const added = loadSpecState(spec).phases.at(-1);
+    const added = loadSpecStateFromFiles(spec).phases.at(-1);
     expect(added).toMatchObject({ id: "4", name: "Export CSV", done: false, code: true });
     expect(added?.edges.needs).toEqual(["2", "3"]);
   });
@@ -62,7 +62,7 @@ describe("phase add", () => {
   test("--code false writes a task phase", () => {
     const spec = checkout();
     phaseCommand(tree.root, ["add", "checkout", "Record demo", "--code", "false"]);
-    expect(loadSpecState(spec).phases.at(-1)?.code).toBe(false);
+    expect(loadSpecStateFromFiles(spec).phases.at(-1)?.code).toBe(false);
   });
 
   test("refuses a needs ref that resolves nowhere, an unknown --after, and a bad --code, writing nothing", () => {

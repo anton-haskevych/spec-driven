@@ -39,7 +39,7 @@ export interface SpecState {
 
 export type ReadSpecFile = (pathInSpec: string) => string | undefined;
 
-export function loadSpecState(spec: SpecFolder): SpecState {
+export function loadSpecStateFromFiles(spec: SpecFolder): SpecState {
   return { ...specStateFrom(spec, diskReader(spec.dir)), reviewed: existsSync(join(spec.dir, "reviews")) };
 }
 

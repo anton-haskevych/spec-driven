@@ -10,7 +10,7 @@ import { deployedOnMain } from "../phases/deployed-land";
 import { parseItemAssignments } from "../phases/move-items";
 import { refsToPhase } from "../phases/review-refs";
 import { planSplit } from "../phases/split";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { planTick } from "../phases/tick";
 import type { LocalPilot } from "../runtime/workflow-capabilities";
 
@@ -146,7 +146,7 @@ function split(projectDir: string, args: string[]): string {
   applyEdits(result.plan);
   const kept = result.original.id;
   const added = result.parts.map((part) => `${part.id} — ${part.title} → ${part.pointer}`).join(", ");
-  const refs = refsToPhase(loadSpecState(spec), kept, nodes);
+  const refs = refsToPhase(loadSpecStateFromFiles(spec), kept, nodes);
   const review = refs.length === 0 ? "" : `\nThese still point at Phase ${kept}; keep them, or retarget to a new part:\n${refs.map((ref) => `- ${ref}`).join("\n")}`;
   return `split Phase ${kept}: kept ${kept}, added ${added}${review}`;
 }

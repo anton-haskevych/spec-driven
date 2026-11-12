@@ -56,7 +56,7 @@ edited by five phases) only calls it.
 
 ## Deliverables
 
-- [ ] One task-count rule in `core/phase-entry.ts` that takes tasks, used by tick, the doctor and the packs
+- [x] One task-count rule in `core/phase-entry.ts` that takes tasks, used by tick, the doctor and the packs
 - [ ] `stateSourceFor(projectDir, view)`: a joined spec as today's `SpecState` with `hasProgress`, summary from task documents, `entry` without the frozen Deliverables section; every listed caller uses it; file specs unchanged
 - [ ] One `RecordView` per command; a test that `board` over 40 specs fetches once, and that the spec-file hook and the doctor never fetch
 - [ ] `loadNodes` takes a joined spec's done and deployed marks from the view: a spec that needs a joined, finished spec is unblocked; a joined spec with a stub `progress.md` still gets a pack, a stage and `isFinished`

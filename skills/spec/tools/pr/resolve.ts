@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { resolveSpec, type SpecFolder } from "../core/spec-folders";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import type { Result } from "../core/result";
 import { treeName } from "../trees/naming";
 import type { GhClient } from "./gh";
@@ -43,7 +43,7 @@ export function resolvePr(gh: GhClient, projectDir: string, target: readonly str
 // By branch, so a command aimed at group A never lands on group B's PR. Spec-state links are the
 // fallback only for a single-group spec, where the newest-open rule can't pick another group's PR.
 function resolveGroupPr(gh: GhClient, spec: SpecFolder, requested: string | undefined): Result<ResolvedPr> {
-  const state = loadSpecState(spec);
+  const state = loadSpecStateFromFiles(spec);
   const group = pickGroup(state, requested);
   if (!group.ok) return group;
   const linked = specPrNumbers(readTextIfExists(join(spec.dir, "pr-opening.md")) ?? "");

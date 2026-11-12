@@ -3,7 +3,7 @@ import type { EditPlan } from "../core/apply-edits";
 import { phaseInFlightFile } from "../core/in-flight";
 import { openPark, withAnswer, withPark } from "../core/park";
 import type { SpecFolder } from "../core/spec-folders";
-import { diskReader, loadSpecState } from "../core/spec-state";
+import { diskReader, loadSpecStateFromFiles } from "../core/spec-state";
 import { findPhase } from "./find-phase";
 
 export interface ParkRequest {
@@ -45,7 +45,7 @@ export function planUnpark(spec: SpecFolder, request: UnparkRequest): Park {
 }
 
 function located(spec: SpecFolder, rawPhase: string) {
-  const phase = findPhase(loadSpecState(spec), rawPhase);
+  const phase = findPhase(loadSpecStateFromFiles(spec), rawPhase);
   if (typeof phase === "string") return { kind: "invalid" as const, reason: phase };
   return { kind: "found" as const, phase, text: diskReader(spec.dir)(phaseInFlightFile(phase.id)) };
 }
