@@ -98,12 +98,12 @@ describe("joinedSpecState", () => {
       { parkedAt: "2026-11-12T12:00:00-08:00", question: "Ship today?" },
     ];
     const plan = { spec: specDoc({ phases: ["1", "2"] }), phases: [phaseDoc({ id: "1", parks }), phaseDoc({ id: "2", parks: [{ parkedAt: "2026-11-12T09:00:00-08:00", question: "Why?" }] })] };
-    const state = joinedSpecState(SPEC, read({ "in-flight/phase-2.md": "# In-flight — phase 2\n\nhalf-wired\n" }), plan);
-    expect(parkOf(state.inFlight, "1")).toEqual({ parkedAt: "2026-11-12T12:00:00-08:00", question: "Ship today?" });
-    expect(parkEntries(state.inFlight.find((note) => note.file === "in-flight/phase-1.md")?.text ?? "")[0]).toEqual(parks[0]);
-    const second = state.inFlight.find((note) => note.file === "in-flight/phase-2.md")?.text ?? "";
+    const notes = joinedSpecState(SPEC, read({ "in-flight/phase-2.md": "# In-flight — phase 2\n\nhalf-wired\n" }), plan).inFlight ?? [];
+    expect(parkOf(notes, "1")).toEqual({ parkedAt: "2026-11-12T12:00:00-08:00", question: "Ship today?" });
+    expect(parkEntries(notes.find((note) => note.file === "in-flight/phase-1.md")?.text ?? "")[0]).toEqual(parks[0]);
+    const second = notes.find((note) => note.file === "in-flight/phase-2.md")?.text ?? "";
     expect(second).toContain("half-wired");
-    expect(parkOf(state.inFlight, "2")?.question).toBe("Why?");
+    expect(parkOf(notes, "2")?.question).toBe("Why?");
   });
 
   test("a phase with no tasks is open unless it was deployed", () => {
