@@ -28,6 +28,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/plan/state-source.ts` | `stateSourceFor(view)`, `joinedSpecState`, `withLiveTasks`, `joinedPhaseMarks` | 2a |
 | `skills/spec/tools/plan/read-plans.ts` | `PlanSource { state, marks, isJoined, joined, record }`; `readPlansAt` (checkout settings), `readLocalPlans` (never fetches), `specStatesAt` (lazy, for `pr` commands) | 2a |
 | `skills/spec/tools/board/joined-activity.ts` | A joined phase in progress in the tree whose branch its task evidence names | 2a |
+| `skills/spec/tools/hooks/frozen-plan-edits.ts` | Which plan parts (boxes, edges, phase lines) a hand edit to a joined spec changed | 2a |
 | `skills/spec/tools/context/board-lines.ts` | The pack's `Board:` line and the tree-ahead line; every record-sourced pack line goes here | 2a |
 
 ## Existing files touched
