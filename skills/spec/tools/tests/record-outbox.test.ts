@@ -84,8 +84,9 @@ describe("the outbox of intents", () => {
     expect(existsSync(lock)).toBe(false);
   });
 
-  test("an intent with no runner is refused, not lost", async () => {
-    queueIntent(dir, { session: "s1", command: "unknown", args: {} }, NOW);
-    expect(await flushOutbox(record, dir, runners, options)).toMatchObject({ refused: [{ refused: "no runner for unknown intents in this plugin version" }] });
+  test("an intent this plugin version has no runner for waits for one that has", async () => {
+    queueIntent(dir, { session: "s1", command: "from-a-newer-plugin", args: {} }, NOW);
+    expect(await flushOutbox(record, dir, runners, options)).toEqual({ kind: "flushed", sent: 0, refused: [], pending: 1 });
+    expect(listOutbox(dir)[0]?.refused).toBeUndefined();
   });
 });

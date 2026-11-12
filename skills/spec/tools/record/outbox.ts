@@ -87,15 +87,16 @@ async function flushUnderLock(port: RecordPort, dir: string, waiting: readonly O
   const refused: OutboxEntry[] = [];
   for (const entry of waiting) {
     const runner = runners[entry.command];
-    const written = runner ? await writeRecord(port, runner(entry.args), options) : undefined;
-    if (written?.kind === "offline") return { kind: "offline", pending: listOutbox(dir).length };
-    if (written?.kind === "failed") break;
-    if (written?.kind === "landed" || written?.kind === "unchanged") {
+    if (!runner) continue;
+    const written = await writeRecord(port, runner(entry.args), options);
+    if (written.kind === "offline") return { kind: "offline", pending: listOutbox(dir).length };
+    if (written.kind === "failed") break;
+    if (written.kind === "landed" || written.kind === "unchanged") {
       rmSync(entryFile(dir, entry.n), { force: true });
       sent += 1;
       continue;
     }
-    const marked = { ...entry, refused: written ? refusalOf(written) : `no runner for ${entry.command} intents in this plugin version` };
+    const marked = { ...entry, refused: refusalOf(written) };
     rewriteEntry(dir, marked);
     refused.push(marked);
   }

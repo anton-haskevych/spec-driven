@@ -18,6 +18,7 @@ import { PR_USAGE, prCommand } from "./commands/pr";
 import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
 import { PUSH_USAGE, pushReport } from "./commands/push";
 import { readyReport } from "./commands/ready";
+import { RECORD_USAGE, recordCommand } from "./commands/record";
 import { settingsReport } from "./commands/settings";
 import { SHIP_USAGE, shipCommand } from "./commands/ship";
 import { TREES_USAGE, treesCommand } from "./commands/trees";
@@ -59,6 +60,7 @@ export const COMMANDS: Record<string, Command> = {
   owner: { usage: OWNER_USAGE, run: (dir, args) => ownerCommand(dir, args) },
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },
   trees: { usage: TREES_USAGE, run: (dir, args) => treesCommand(dir, args) },
+  record: { usage: RECORD_USAGE, run: (dir, args) => recordCommand(dir, args) },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)
