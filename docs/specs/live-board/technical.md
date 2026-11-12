@@ -16,7 +16,7 @@ specs/<spec>/spec.json
 specs/<spec>/phases/<id>.json
 specs/<spec>/prs/<group>.json             phase 6
 specs/<spec>/questions/<id>.json          phase 7
-cards/<shard>/<id>.json                   phase 8
+cards/<n div 100>/c<n>.json              phase 8 (c1234 → cards/12/c1234.json)
 sources/<card-id>/<letter>.json           phase 8
 tags/<slug>.json                          phase 8
 sessions/<session-slug>.json              phase 9
@@ -26,8 +26,9 @@ sessions/<session-slug>.json              phase 9
 release that moves data onto the record (PR C, D, E: *Releases*). A tool that reads a higher layout than its own
 reads nothing from the record and refuses every write with
 `record: this plugin is older than the board's layout; update it`, so an older install can never write to a
-home the newer one has stopped reading. Phase 1 measures tree growth and fixes the shard rule for `cards/` (no
-folder above about 500 entries).
+home the newer one has stopped reading. Phase 1 measured growth (about 0.7 KiB per write once packed) and set
+the shard rule for `cards/`: folders of 100 by card number, so a card write pushes a 3.5 KB folder, not the
+whole card list (`research/phase-1/2026-11-11-growth-measurement.md`).
 
 ## Documents
 

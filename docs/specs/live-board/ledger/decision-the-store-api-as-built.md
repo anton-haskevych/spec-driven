@@ -24,3 +24,6 @@ Later phases call these; the shapes differ a little from `technical.md` → *Wri
   `tests/fake-ref.ts`. Phase 6 makes `landOnMain` a caller through a branch port: `fetchTip` = `pinDefault`,
   `commit` = blobs + `commitOnto`, `push` = `leasePush` on `refs/heads/<branch>`.
 - Tests: `fakeRecord()` and `viewOf(docs)` in `tests/fake-record.ts`.
+- A save is about a dozen git spawns plus one fetch and one push (0.5–0.9 s on a loaded Mac against a local
+  origin). Cutting the spawns (one `mktree`, `cat-file --batch`) would roughly halve the local part; Anton,
+  2026-11-11: "no optimizations are needed at a moment". Don't take it up unless a phase measures a problem.

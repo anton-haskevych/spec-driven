@@ -70,7 +70,7 @@ against a real remote.
 - [x] Local copy: one folder per tip under `<git-common-dir>/spec-board/record/`, moved into place by rename, two kept; a failed fetch leaves it and reports its age; a reader during a refresh sees one tip
 - [x] Outbox of intents: an unreachable origin returns `queued`; entries created exclusively and flushed under the lock, oldest first, each re-planned; two queued intents on one document both land; a refused one stays and is reported to its own session only
 - [x] `spec.ts record status | sync | drop <n>` registered, refused under Codex local-pilot, documented in `SKILL.md` → *Tools*
-- [ ] Growth measurement against a bare origin: 1,000 changes across a 3,000-document record; pack size, tree size and seconds per write, plus the fetch cost of 3,000 separate refs for comparison, recorded in `research/phase-1/`; the `cards/` shard rule set from it
+- [x] Growth measurement against a bare origin: 1,000 changes across a 3,000-document record; pack size, tree size and seconds per write, plus the fetch cost of 3,000 separate refs for comparison, recorded in `research/phase-1/`; the `cards/` shard rule set from it
 
 ## Phase-local notes
 

@@ -18,6 +18,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-one-phase-writer-port-for-both-homes.md` — [phase 3+] — one PhaseWriter port; mode files never branch on joined
 - `decision-codex-reads-the-board-refuses-writes.md` — [phase 3+] — Codex pilot reads a joined spec, phase writes refuse (Anton)
 - `decision-data-moving-releases-raise-the-layout.md` — [phase 6, 7, 8] — PR C/D/E raise RECORD_LAYOUT and upgrade specs on touch
+- `decision-cards-shard-by-hundreds.md` — [phase 8+] — cards/<n div 100>/c<n>.json; flat folder pushes the whole list per write
 - `decision-the-store-api-as-built.md` — [phase 2+] — writeRecord(port, plan, {validate}); only sendIntent queues; RefPort
 
 ## Workarounds
