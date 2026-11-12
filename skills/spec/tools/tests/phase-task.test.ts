@@ -87,6 +87,7 @@ describe("phase task on the record", () => {
   test("add gives fresh ids past any used with the phase's prefix, and raises the plan version", () => {
     const { phases, seen } = run({ spec: SPEC, phase: "3", action: "add", texts: ["write path", "Gate: design agreed"] });
     expect(phases?.[0]?.tasks.map((each) => each.id)).toEqual(["3.1", "3.2", "3.4", "3.5"]);
+    expect(phases?.[0]?.tasks[3]?.gate).toBe(true);
     expect(seen[0]?.line).toBe("task: phase 3 · added 3.4 and 3.5 (plan v3)");
   });
 

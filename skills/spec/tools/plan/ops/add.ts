@@ -1,3 +1,4 @@
+import { isGateItem } from "../../core/gate";
 import { withoutUndefined } from "../../core/read-fields";
 import { familyOf, nextIntegerId, nextLetterIds } from "../../phases/ids";
 import { phasePointer, type PhaseFileEdges } from "../../phases/template";
@@ -49,7 +50,7 @@ export function newTasks(phases: readonly PhaseDoc[], phaseId: string, texts: re
   const prefix = `${phaseId}.`;
   const used = phases.flatMap((phase) => phase.tasks.map((task) => task.id)).filter((id) => id.startsWith(prefix));
   const last = Math.max(0, ...used.map((id) => Number(id.slice(prefix.length))).filter(Number.isInteger));
-  return texts.map((text, index) => ({ id: `${prefix}${last + index + 1}`, text, done: false }));
+  return texts.map((text, index) => ({ id: `${prefix}${last + index + 1}`, text, done: false, ...(isGateItem(text) ? { gate: true } : {}) }));
 }
 
 function placement(plan: JoinedPlan, after: string | undefined): { id: string; family: string[] } | string {

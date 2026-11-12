@@ -59,7 +59,7 @@ function readDraft(path: string): { ok: true; value: unknown } | { ok: false; re
 }
 
 function writtenRefusal(spec: string, written: Exclude<StoreWrite, { kind: "landed" }>): string {
-  if (written.kind === "unchanged") return refused(`${spec} is already on the board; change its plan with phase add / split / move / set.`);
+  if (written.kind === "unchanged") return refused(`${spec} is already on the board; change its plan with phase add / split / move / set / task.`);
   if (written.kind === "offline") return refused(`Can't reach origin (${written.reason}); a new plan is never queued.`);
   if (written.kind === "invalid") return refused(written.problems.join("; "));
   if (written.kind === "conflict") return refused(`${written.path} is already on the record.`);
