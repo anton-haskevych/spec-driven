@@ -16,6 +16,14 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/record/mirror.ts` | The local copy, one folder per tip | 1 |
 | `skills/spec/tools/commands/record.ts` | `record status \| sync \| drop` | 1 |
 | `skills/spec/tools/tests/fake-record.ts` | `fakeRecord()`, `viewOf(docs)`: the in-memory record later phases test on | 1 |
+| `skills/spec/tools/plan/docs/phase-doc.ts`, `spec-doc.ts` | `PhaseDoc`, `Task`, `SpecDoc` and their readers (collect problems) | 2 |
+| `skills/spec/tools/plan/docs/spec-plan.ts` | `specPlanProblems`: checks the store's per-document validator can't (phase list, local edges, task ids) | 2 |
+| `skills/spec/tools/plan/kinds.ts` | `validateRecordDoc` path → reader registry, `specDocPath`, `phaseDocPath` | 2 |
+| `skills/spec/tools/plan/join.ts`, `join-tasks.ts` | `planJoin` (pure): copies → documents; task matching by text | 2 |
+| `skills/spec/tools/plan/entry-tasks.ts` | A phase entry's deliverables as written (`entryTasks`), `taskKey` for matching | 2 |
+| `skills/spec/tools/commands/join.ts` | `join <spec>`: base + trees → one record write → banner on main | 2 |
+| `skills/spec/tools/core/read-fields.ts` | Field readers shared by settings and record documents | 2 |
+| `skills/spec/tools/tests/record-factories.ts`, `join-fixtures.ts` | `specDoc`, `phaseDoc`, `task`; spec copies incl. the Nov 11 fixture | 2 |
 
 ## Existing files touched
 
