@@ -29,4 +29,15 @@ describe("commitOnto (real git)", () => {
     expect(repo.git("rev-parse", "HEAD")).toBe(base);
     expect(repo.git("status", "--porcelain")).toBe("");
   });
+
+  test("with no base, the commit has no parent and holds only the given entries", () => {
+    const git = gitAt(repo.dir, isolatedRunner);
+    const written = git.out(["hash-object", "-w", "--stdin"], { stdin: "{}\n" });
+    if (!written.ok) throw new Error(written.reason);
+
+    const commit = commitOnto(git, undefined, `100644 blob ${written.value}\tmeta.json\0`, "first");
+    if (!commit.ok) throw new Error(commit.reason);
+    expect(repo.git("rev-list", "--parents", "-n", "1", commit.value)).toBe(commit.value);
+    expect(repo.git("ls-tree", "-r", "--name-only", commit.value)).toBe("meta.json");
+  });
 });
