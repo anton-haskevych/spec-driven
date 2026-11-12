@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { specStateFrom } from "../core/spec-state";
+import { specStateFrom, type SpecState } from "../core/spec-state";
+import { FILES_ONLY } from "../plan/read-plans";
 import { ghClient } from "../pr/gh";
 import { pickGroup, prGroups } from "../pr/groups";
 import { resolvePr } from "../pr/resolve";
@@ -56,10 +57,18 @@ describe("resolvePr", () => {
   afterEach(() => tree?.cleanup());
 
   const view = (number: number, state = "OPEN") => ({ stdout: JSON.stringify(prView({ number, state })) });
-  const resolve = (args: string[], canned: CannedRuns) => {
+  const resolve = (args: string[], canned: CannedRuns, states = FILES_ONLY.state) => {
     const runner = stubRunner(canned);
-    return { result: resolvePr(ghClient(tree.root, runner), tree.root, args), calls: runner.calls };
+    return { result: resolvePr(ghClient(tree.root, runner), tree.root, args, states), calls: runner.calls };
   };
+
+  test("the PR group comes from the spec source, so a joined spec's record decides it", () => {
+    tree = createTree();
+    tree.spec("billing", phasedSpecFiles(TWO_GROUPS));
+    const recordSaysB = (): SpecState => stateOf([{ id: "1", title: "Schema", pr: "B" }]);
+    const { result } = resolve(["billing"], [[["gh", "pr", "view", "feat/billing-pr-b"], view(903)]], recordSaysB);
+    expect(result).toMatchObject({ ok: true, value: { view: { number: 903 } } });
+  });
 
   test("<spec> <group> finds the PR by the group's branch, even with two groups open", () => {
     tree = createTree();

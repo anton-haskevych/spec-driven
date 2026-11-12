@@ -1,7 +1,6 @@
 import { relative } from "node:path";
 import { gitAt, type Git } from "../../core/git";
 import { resolveSpec } from "../../core/spec-folders";
-import { loadSpecStateFromFiles } from "../../core/spec-state";
 import { defaultBranch, type Runner } from "../../core/run";
 import type { Result } from "../../core/result";
 import { pushBranch } from "../../publish/push";
@@ -14,6 +13,7 @@ import { pickGroup, type PrGroup } from "../groups";
 import { ghWrites } from "./gh-writes";
 import { prBody, prTitle } from "./pr-text";
 import { markReadySafely, type ReadyOutcome } from "./ready-race";
+import { readPlansAt } from "../../plan/read-plans";
 
 export interface OpenRequest {
   spec: string;
@@ -32,7 +32,7 @@ const SHORT_SHA = 7;
 export async function openPr(projectDir: string, request: OpenRequest, deps: OpenDeps): Promise<string> {
   const spec = resolveSpec(projectDir, request.spec);
   if (typeof spec === "string") return `pr open: ${spec}`;
-  const group = pickGroup(loadSpecStateFromFiles(spec), request.group);
+  const group = pickGroup(readPlansAt(projectDir, deps.runner, deps.now()).state(spec), request.group);
   if (!group.ok) return `pr open: ${group.reason}`;
 
   const branch = treeName(spec.name, group.value.name).branch;

@@ -5,7 +5,9 @@ import { doctorReport } from "../commands/doctor";
 import { readyReport } from "../commands/ready";
 import { gitAt } from "../core/git";
 import type { Runner } from "../core/run";
+import { resolveSpec } from "../core/spec-folders";
 import { issuesForWrittenFile } from "../hooks/spec-file-check";
+import { specStatesAt } from "../plan/read-plans";
 import { phaseDocPath, specDocPath } from "../plan/kinds";
 import { serializeDoc } from "../record/document";
 import { RECORD_REF } from "../record/layout";
@@ -75,5 +77,16 @@ describe("one-spec readers of a joined spec (real git)", () => {
     expect(issuesForWrittenFile(spec("phases/phase-2.md"), repo.dir, runner)).toEqual([]);
     expect(runner.recordFetches).toBe(0);
     expect(report).not.toContain("progress.md");
+  });
+
+  test("a lazy spec source reads the record on the first spec asked for, never before", () => {
+    const runner = counting();
+    const states = specStatesAt(repo.dir, runner, NOW);
+    expect(runner.recordFetches).toBe(0);
+    const alpha = resolveSpec(repo.dir, "alpha");
+    if (typeof alpha === "string") throw new Error(alpha);
+    expect(states(alpha).phases[1]?.entry).toContain("- [ ] 2.1 second");
+    states(alpha);
+    expect(runner.recordFetches).toBe(1);
   });
 });

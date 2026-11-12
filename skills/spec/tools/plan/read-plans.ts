@@ -38,6 +38,12 @@ export function readPlansAt(projectDir: string, runner: Runner, now: Date): Plan
   return readPlans(gitAt(projectDir, runner), { fetch: loadSettings(projectDir).board.record, now });
 }
 
+// Opens the record on the first spec asked for: a command aimed at a PR number never reads it.
+export function specStatesAt(projectDir: string, runner: Runner, now: Date): SpecSource {
+  let plans: PlanSource | undefined;
+  return (spec) => (plans ??= readPlansAt(projectDir, runner, now)).state(spec);
+}
+
 // Hooks and the doctor never fetch: they read what the last fetch left.
 export function readLocalPlans(projectDir: string, runner: Runner, now: Date): PlanSource {
   return readPlans(gitAt(projectDir, runner), { fetch: false, now });
