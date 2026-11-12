@@ -21,5 +21,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-cards-shard-by-hundreds.md` — [phase 8+] — cards/<n div 100>/c<n>.json; flat folder pushes the whole list per write
 - `decision-the-store-api-as-built.md` — [phase 2+] — writeRecord(port, plan, {validate}); only sendIntent queues; RefPort
 - `decision-join-as-built.md` — [phase 2a+] — readers, specPlanProblems, task text and evidence, zero-task phases
+- `decision-readers-read-a-snapshot-not-the-folder-copy.md` — [phase 2a+] — readRecord: snapshot of git objects; fetch only with board on
 
 ## Workarounds
