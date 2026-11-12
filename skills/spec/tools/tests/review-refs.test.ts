@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { phaseCommand } from "../commands/phase";
-import { loadSpecStateFromFiles } from "../core/spec-state";
+import { loadSpecStateFromFiles, type SpecState } from "../core/spec-state";
+import type { SpecFolder } from "../core/spec-folders";
+import { phaseEdges, phaseState } from "./factories";
 import { loadNodes } from "../graph/nodes";
 import { refsToPhase } from "../phases/review-refs";
 import { createTree, type Tree } from "./tree";
@@ -32,12 +34,23 @@ function project() {
 describe("refsToPhase", () => {
   test("lists sibling edges, other specs' relations and other specs' phase edges that point at the phase", () => {
     const spec = project();
-    expect(refsToPhase(loadSpecStateFromFiles(spec), "7", loadNodes(tree.root))).toEqual([
+    expect(refsToPhase(loadSpecStateFromFiles(spec), "7", loadNodes(tree.root), loadSpecStateFromFiles)).toEqual([
       "Phase 8 needs 7",
       "Phase 8 same-files-as 7",
       "billing CLAUDE.md needs checkout#6-8",
       "billing Phase 1 needs checkout#7",
     ]);
+  });
+
+  test("another spec's phase edges come from the source, so a joined spec's record decides them", () => {
+    const spec = project();
+    const recordSaysNeeds7 = (folder: SpecFolder): SpecState => ({
+      spec: folder,
+      hasProgress: true,
+      phases: [phaseState({ id: "2", edges: phaseEdges({ declared: true, needs: ["checkout#7"] }) })],
+      inFlight: [],
+    });
+    expect(refsToPhase(loadSpecStateFromFiles(spec), "7", loadNodes(tree.root), recordSaysNeeds7)).toContain("billing Phase 2 needs checkout#7");
   });
 
   test("split prints them for review after the summary", () => {
