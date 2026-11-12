@@ -10,8 +10,9 @@ import { gitRecordPort } from "../record/ref";
 import { ownSessionId } from "../sessions/own";
 import { intentRunners } from "../plan/intents";
 import { validateRecordDoc } from "../plan/kinds";
+import { EXPORT_USAGE, recordExport } from "./record-export";
 
-export const RECORD_USAGE = "record status | sync | drop <n>";
+export const RECORD_USAGE = `record status | sync | drop <n> | ${EXPORT_USAGE.replace("record ", "")}`;
 
 export interface RecordDeps {
   runner: Runner;
@@ -35,6 +36,7 @@ export function systemRecordDeps(): RecordDeps {
 export async function recordCommand(projectDir: string, args: readonly string[], deps: RecordDeps = systemRecordDeps()): Promise<string> {
   const [action, n, ...extra] = args;
   const usage = `usage: ${RECORD_USAGE}`;
+  if (action === "export" && n !== undefined && (extra.length === 0 || (extra.length === 1 && extra[0] === "--unjoin"))) return recordExport(projectDir, n, extra.length === 1, deps);
   if (extra.length > 0 || (action !== "drop" && n !== undefined)) return usage;
   const git = gitAt(projectDir, deps.runner);
   const commonDir = gitCommonDir(git);
