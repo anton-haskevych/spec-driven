@@ -70,6 +70,10 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/claims/remote.ts` | Lease push, timeout and no-prompt rules; moved to `core/remote-push.ts` and imported back | |
 | `skills/spec/tools/playbook/settings.ts` | Where the `board.record` switch is read | |
 | `skills/spec/tools/hooks/spec-file-check.ts` | Blocking feedback after a hand edit to state in a joined spec | |
+| `skills/spec/tools/plan/plan-diff.ts` | `PlanShape` and the one-line "Plan changed …" summary between two versions | 3b |
+| `skills/spec/tools/plan/plan-version.ts` | Per-session memory in tmpdir: plan shape shown per spec, last fetch attempt | 3b |
+| `skills/spec/tools/plan/write-notice.ts` | Puts the plan-changed notice on every record write's outcome | 3b |
+| `skills/spec/tools/hooks/plan-changed.ts` | Before-edit check: throttled fetch, notice once per version | 3b |
 | `skills/spec/SKILL.md` | Layout rules and the *Tools* section | |
 
 ## External references
