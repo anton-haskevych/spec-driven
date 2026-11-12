@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { count, oneOf, stringArray } from "../core/read-fields";
+import { count, flag, oneOf, optionalText, requiredText, stringArray, wholeNumber, withoutUndefined } from "../core/read-fields";
 
 describe("field readers shared by settings and record documents", () => {
   test("oneOf keeps an allowed value and names the choices otherwise", () => {
@@ -25,5 +25,31 @@ describe("field readers shared by settings and record documents", () => {
     expect(count(undefined, "crew.workers", problems)).toBeUndefined();
     expect(count(-1, "crew.workers", problems)).toBeUndefined();
     expect(problems).toEqual(["crew.workers must be a whole number, 0 or more"]);
+  });
+});
+
+describe("readers for record documents", () => {
+  test("requiredText and optionalText", () => {
+    const problems: string[] = [];
+    expect(requiredText(" a ", "id", problems)).toBe("a");
+    expect(requiredText("", "id", problems)).toBeUndefined();
+    expect(optionalText(undefined, "pr", problems)).toBeUndefined();
+    expect(optionalText(3, "pr", problems)).toBeUndefined();
+    expect(problems).toEqual(["id must be text", "pr must be text"]);
+  });
+
+  test("flag and wholeNumber", () => {
+    const problems: string[] = [];
+    expect(flag(false, "code", problems)).toBe(false);
+    expect(flag(undefined, "code", problems)).toBeUndefined();
+    expect(wholeNumber(2, "planVersion", problems, 1)).toBe(2);
+    expect(wholeNumber(0, "planVersion", problems, 1)).toBeUndefined();
+    expect(wholeNumber(undefined, "layout", problems)).toBeUndefined();
+    expect(problems).toEqual(["code must be true or false", "planVersion must be a whole number, 1 or more", "layout must be a whole number, 0 or more"]);
+  });
+
+  test("withoutUndefined drops absent optional fields", () => {
+    expect(withoutUndefined<Record<string, unknown>>({ a: 1, b: undefined })).toEqual({ a: 1 });
+    expect(Object.keys(withoutUndefined({ a: 1, b: undefined }))).toEqual(["a"]);
   });
 });

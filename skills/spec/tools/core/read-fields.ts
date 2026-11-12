@@ -16,8 +16,32 @@ export function stringArray(value: unknown, key: string, problems: string[]): st
 }
 
 export function count(value: unknown, key: string, problems: string[]): number | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value === "number" && Number.isInteger(value) && value >= 0) return value;
-  problems.push(`${key} must be a whole number, 0 or more`);
+  return value === undefined ? undefined : wholeNumber(value, key, problems);
+}
+
+export function wholeNumber(value: unknown, key: string, problems: string[], min = 0): number | undefined {
+  if (typeof value === "number" && Number.isInteger(value) && value >= min) return value;
+  problems.push(`${key} must be a whole number, ${min} or more`);
   return undefined;
+}
+
+export function requiredText(value: unknown, key: string, problems: string[]): string | undefined {
+  if (typeof value === "string" && value.trim() !== "") return value.trim();
+  problems.push(`${key} must be text`);
+  return undefined;
+}
+
+export function optionalText(value: unknown, key: string, problems: string[]): string | undefined {
+  return value === undefined ? undefined : requiredText(value, key, problems);
+}
+
+export function flag(value: unknown, key: string, problems: string[]): boolean | undefined {
+  if (typeof value === "boolean") return value;
+  problems.push(`${key} must be true or false`);
+  return undefined;
+}
+
+// A document read back keeps only the fields it has, so it serializes the way it was written.
+export function withoutUndefined<T extends Record<string, unknown>>(fields: T): T {
+  return Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined)) as T;
 }
