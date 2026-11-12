@@ -63,13 +63,13 @@ semantics*) describe both homes: "for a spec on the board, this lives in the rec
 ## Deliverables
 
 - [x] `spec.ts plan apply <spec> --file <draft.json>`: a new spec's documents in one batch; explicit edges, cycles and task ids validated; refuses a spec that is already joined
-- [ ] `create.md`: with the board on, the plan goes through `plan apply`; a stub `progress.md`; phase files hold goal, guidance and notes
-- [ ] `review.md`, `update.md`, `execute.md`, `handoff.md`, `resume.md`, `status.md`, `list.md`: one instruction per plan change (the command), join at entry, tick by task id, report lines taken from the record; hand-edit text only under "Without Bun"
-- [ ] `SKILL.md`: layout sections and *Tools* describe both homes; routing and *Preconditions* unchanged in rule (a joined spec has `progress.md`); the manual read path for a joined spec; `skill-wiring` and `commands-table` tests updated
-- [ ] `join --tidy`: leaves the stub, removes the frozen lines; only when no local tree and no remote `feat/<spec>*` branch differs in those files; handoff calls it and names the blocker otherwise
+- [x] `create.md`: with the board on, the plan goes through `plan apply`; a stub `progress.md`; phase files hold goal, guidance and notes
+- [x] `review.md`, `update.md`, `execute.md`, `handoff.md`, `resume.md`, `status.md`, `list.md`: one instruction per plan change (the command), join at entry, tick by task id, report lines taken from the record; hand-edit text only under "Without Bun"
+- [x] `SKILL.md`: layout sections and *Tools* describe both homes; routing and *Preconditions* unchanged in rule (a joined spec has `progress.md`); the manual read path for a joined spec; `skill-wiring` and `commands-table` tests updated
+- [x] `join --tidy`: leaves the stub, removes the frozen lines; only when no local tree and no remote `feat/<spec>*` branch differs in those files; handoff calls it and names the blocker otherwise
 - [x] `record export <spec> [--unjoin]`: after it, the file-based ready set equals the record's (round-trip test: join → tick → export → same `SpecState`)
 - [x] Doctor checks for a joined spec: leftover checkboxes after tidy, a phase document whose prose file is missing in this tree, a task without an id
-- [ ] ROADMAP row and version bump for PR B
+- [x] ROADMAP row and version bump for PR B
 
 ## Phase-local notes
 
