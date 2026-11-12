@@ -7,6 +7,15 @@ needs to know exist to navigate the code — not every file that's touched.
 
 | File | Role | Phase |
 |------|------|-------|
+| `skills/spec/tools/core/land-on-ref.ts` | The fetch → plan → commit → lease-push → retry loop over a `RefPort` | 1 |
+| `skills/spec/tools/core/remote-push.ts` | Lease push, 10 s timeout, no prompt, `--no-verify`; shared by claims and the record | 1 |
+| `skills/spec/tools/record/write.ts` | `writeRecord(port, plan, { validate })`: every record write goes through it | 1 |
+| `skills/spec/tools/record/plan-writes.ts` | Pure op planner: versions, conflicts, validation | 1 |
+| `skills/spec/tools/record/ref.ts` | `RecordPort` + `gitRecordPort`: fetch (absent, offline, busy), commit, push | 1 |
+| `skills/spec/tools/record/outbox.ts` | Queued intents; `sendIntent` is the write that may run offline | 1 |
+| `skills/spec/tools/record/mirror.ts` | The local copy, one folder per tip | 1 |
+| `skills/spec/tools/commands/record.ts` | `record status \| sync \| drop` | 1 |
+| `skills/spec/tools/tests/fake-record.ts` | `fakeRecord()`, `viewOf(docs)`: the in-memory record later phases test on | 1 |
 
 ## Existing files touched
 

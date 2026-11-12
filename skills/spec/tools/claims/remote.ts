@@ -1,8 +1,8 @@
 import { authorName, type Git } from "../core/git";
 import { UNKNOWN } from "../core/people";
 import type { Result } from "../core/result";
-import type { RunOptions } from "../core/run";
-import { CLAIM_REFS, claimRef, decodeRemotePayload, encodeRemotePayload, pushOutcome, type Holder, type PushOutcome, type RemotePayload } from "./remote-payload";
+import { leasePush, NETWORK, type PushOutcome } from "../core/remote-push";
+import { CLAIM_REFS, claimRef, decodeRemotePayload, encodeRemotePayload, type Holder, type RemotePayload } from "./remote-payload";
 
 export interface RemoteClaim extends RemotePayload {
   sha: string;
@@ -12,11 +12,8 @@ export type Lease = { kind: "absent" } | { kind: "at"; sha: string };
 
 export type PushedClaim = { kind: "pushed"; sha: string } | Exclude<PushOutcome, { kind: "pushed" }>;
 
-export const REMOTE_TIMEOUT_MS = 10_000;
 const FETCHED_REFS = "refs/spec-claims-remote";
 const LS_REMOTE_NO_MATCH = 2;
-
-const NETWORK: Omit<RunOptions, "cwd"> = { timeoutMs: REMOTE_TIMEOUT_MS, env: { GIT_TERMINAL_PROMPT: "0" } };
 
 export function readHolder(git: Git, host: string): Holder {
   return { user: authorName(git) ?? UNKNOWN, host };
@@ -26,13 +23,13 @@ export function pushClaim(git: Git, payload: RemotePayload, lease: Lease): Pushe
   const commit = payloadCommit(git, encodeRemotePayload(payload.claim, payload.holder));
   if (!commit.ok) return { kind: "offline", reason: commit.reason };
   const ref = claimRef(payload.claim.spec, payload.claim.phase);
-  const outcome = push(git, ref, lease.kind === "absent" ? "" : lease.sha, `${commit.value}:${ref}`);
+  const outcome = leasePush(git, ref, lease.kind === "absent" ? "" : lease.sha, `${commit.value}:${ref}`);
   return outcome.kind === "pushed" ? { kind: "pushed", sha: commit.value } : outcome;
 }
 
 export function deleteClaim(git: Git, spec: string, phase: string, ownSha: string): PushOutcome {
   const ref = claimRef(spec, phase);
-  return push(git, ref, ownSha, `:${ref}`);
+  return leasePush(git, ref, ownSha, `:${ref}`);
 }
 
 export function fetchClaims(git: Git): Result<RemoteClaim[]> {
@@ -51,12 +48,6 @@ export function branchOnOrigin(git: Git, branch: string): boolean | undefined {
 
 export function remoteClaimOf(claims: readonly RemoteClaim[], spec: string, phase: string): RemoteClaim | undefined {
   return claims.find((remote) => remote.claim.spec === spec && remote.claim.phase === phase);
-}
-
-// A claim must never wait on a credential prompt or run the repo's pre-push hooks (some run the test suite).
-function push(git: Git, ref: string, expected: string, refspec: string): PushOutcome {
-  const result = git.run(["push", "--porcelain", "--no-verify", `--force-with-lease=${ref}:${expected}`, "origin", refspec], NETWORK);
-  return pushOutcome(result, ref);
 }
 
 function payloadCommit(git: Git, message: string): Result<string> {

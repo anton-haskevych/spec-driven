@@ -35,7 +35,7 @@ export function removeIfUnchanged(file: string, judgedText: string): boolean {
   }
 }
 
-function tryLock(lock: string): boolean {
+export function tryLock(lock: string): boolean {
   try {
     mkdirSync(lock);
     return true;

@@ -1,8 +1,8 @@
-import { gitFailureReason } from "../core/git";
 import { isRecord, stringField } from "../core/frontmatter";
-import type { RunResult } from "../core/run";
 import { parseJson } from "../pr/gh-records";
 import { claimFromRecord, type Claim } from "./store";
+
+export { pushOutcome, type PushOutcome } from "../core/remote-push";
 
 export interface Holder {
   user: string;
@@ -13,8 +13,6 @@ export interface RemotePayload {
   claim: Claim;
   holder: Holder;
 }
-
-export type PushOutcome = { kind: "pushed" } | { kind: "refused" } | { kind: "offline"; reason: string };
 
 export const CLAIM_REFS = "refs/spec-claims";
 
@@ -42,12 +40,4 @@ function toHolder(data: Record<string, unknown>): Holder | undefined {
   const user = stringField(data, "user");
   const host = stringField(data, "host");
   return user && host ? { user, host } : undefined;
-}
-
-// `git push --porcelain` prints one `<flag>\t<from>:<to>\t<summary>` line per ref it got an answer for;
-// `!` is a refusal, whether from the client's lease check or the server's old-value check.
-export function pushOutcome(result: RunResult, ref: string): PushOutcome {
-  const line = result.stdout.split("\n").find((candidate) => candidate.split("\t")[1]?.endsWith(`:${ref}`));
-  if (!line) return { kind: "offline", reason: gitFailureReason(result.stderr) || `exit ${result.code}` };
-  return line.startsWith("!") ? { kind: "refused" } : { kind: "pushed" };
 }
