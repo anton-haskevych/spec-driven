@@ -21,8 +21,8 @@ export interface PlanSource {
 
 export const FILES_ONLY: PlanSource = planSourceOf({ kind: "none" });
 
-export function readPlans(git: Git, options: RecordReadOptions): PlanSource {
-  const port = gitRecordReadPort(git);
+export function readPlans(git: Git, options: RecordReadOptions & { fetchTimeoutMs?: number }): PlanSource {
+  const port = gitRecordReadPort(git, options.fetchTimeoutMs);
   const read: RecordRead = port ? readRecord(port, options) : { kind: "none" };
   if (read.kind !== "read") return planSourceOf(read);
   const queued = queuedIntents(git);

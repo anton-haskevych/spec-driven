@@ -32,8 +32,12 @@ function collectCommands(value: unknown): string[] {
 }
 
 describe("SKILL.md hook wiring", () => {
-  test("declares the PreToolUse and PostToolUse hooks", () => {
-    expect(hookCommands()).toHaveLength(2);
+  test("declares the PreToolUse hooks (lesson recall, plan changed) and the PostToolUse spec-file check", () => {
+    expect(hookCommands().map((command) => SCRIPT_PATH.exec(command)?.[2])).toEqual([
+      "skills/spec/tools/hooks/lesson-recall.ts",
+      "skills/spec/tools/hooks/plan-changed.ts",
+      "skills/spec/tools/hooks/spec-file-check.ts",
+    ]);
   });
 
   test("hook commands use CLAUDE_PLUGIN_ROOT, because CLAUDE_SKILL_DIR is empty inside hooks", () => {

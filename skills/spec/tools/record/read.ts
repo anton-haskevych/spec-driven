@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { gitCommonDir, stateDirIn, type Git } from "../core/git";
 import type { TipRead } from "../core/land-on-ref";
 import { RECORD_LAYOUT, RECORD_TRACKING_REF } from "./layout";
-import { gitRecordPort, type RecordPort } from "./ref";
+import { fetchRecordTip, gitRecordPort, type RecordPort } from "./ref";
 import { readRecordSnapshot, recordLayout, type RecordView } from "./view";
 
 export interface RecordReadPort extends Pick<RecordPort, "blobIdsByPath" | "readBlobs"> {
@@ -53,7 +53,7 @@ function snapshot(port: RecordReadPort, tip: string, how: { live: boolean; ageMs
 }
 
 // The common dir is asked for only once a record exists, so a repo without one pays no extra git call.
-export function gitRecordReadPort(git: Git): RecordReadPort | undefined {
+export function gitRecordReadPort(git: Git, fetchTimeoutMs?: number): RecordReadPort | undefined {
   const port = gitRecordPort(git);
   if (!port) return undefined;
   let stamp: string | undefined;
@@ -65,7 +65,7 @@ export function gitRecordReadPort(git: Git): RecordReadPort | undefined {
     return stamp;
   };
   return {
-    fetchTip: port.fetchTip,
+    fetchTip: () => fetchRecordTip(git, fetchTimeoutMs),
     blobIdsByPath: port.blobIdsByPath,
     readBlobs: port.readBlobs,
     trackingTip() {
