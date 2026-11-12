@@ -11,6 +11,16 @@ describe("readPhaseDoc", () => {
     expect(readPhaseDoc(doc)).toEqual({ doc, problems: [] });
   });
 
+  test("reads parked questions, answered or not", () => {
+    const parks = [{ parkedAt: "2026-11-12T10:00:00-08:00", question: "Reset?", recommend: "no", answer: { at: "2026-11-12T11:00:00-08:00", text: "no" } }, { parkedAt: "2026-11-12T12:00:00-08:00", question: "Ship?" }];
+    expect(readPhaseDoc(phaseDoc({ parks })).doc?.parks).toEqual(parks);
+    expect(readPhaseDoc({ ...phaseDoc(), parks: [{ question: "" }, { parkedAt: "x", question: "q", answer: { text: "a" } }] }).problems).toEqual([
+      "park #1: parkedAt must be text",
+      "park #1: question must be text",
+      "park #2: answer must have at and text",
+    ]);
+  });
+
   test("collects every problem instead of stopping at the first", () => {
     const read = readPhaseDoc({ ...phaseDoc(), id: "", needs: "1", code: "yes", due: "soon", gate: "legal", deployed: "today" });
     expect(read.doc).toBeUndefined();

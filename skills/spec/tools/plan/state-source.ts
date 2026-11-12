@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { parseFrontmatter } from "../core/frontmatter";
-import { readInFlight } from "../core/in-flight";
+import { phaseInFlightFile, readInFlight, type InFlightNote } from "../core/in-flight";
+import { withAnswer, withPark } from "../core/park";
 import { allTasksDone, countTasks, summarizePhaseEntry, type PhaseEntrySummary } from "../core/phase-entry";
 import type { SpecFolder } from "../core/spec-folders";
 import { diskReader, loadSpecStateFromFiles, type PhaseState, type ReadSpecFile, type SpecState } from "../core/spec-state";
@@ -45,7 +46,7 @@ export function readJoinedPlan(view: RecordView, name: string): JoinedPlan | und
 
 export function joinedSpecState(spec: SpecFolder, read: ReadSpecFile, plan: JoinedPlan): SpecState {
   const phases = plan.phases.map((doc) => joinedPhase(read, doc));
-  return { spec, hasProgress: true, phases, inFlight: readInFlight(read, phases) };
+  return { spec, hasProgress: true, phases, inFlight: withRecordParks(readInFlight(read, phases), plan.phases) };
 }
 
 export function joinedPhaseMarks(plan: JoinedPlan): PhaseMark[] {
@@ -124,4 +125,26 @@ function firstOpenRun(tasks: readonly Task[]): string[] {
 function bodyOf(prose: string): string {
   const parsed = parseFrontmatter(prose);
   return parsed.kind === "invalid" ? prose : parsed.body;
+}
+
+// Parks on the record read as the phase's in-flight note, after any the file already holds, so every park
+// reader (board, packs, crew) sees them unchanged.
+function withRecordParks(notes: readonly InFlightNote[], phases: readonly PhaseDoc[]): InFlightNote[] {
+  const merged = [...notes];
+  for (const phase of phases) {
+    if (!phase.parks?.length) continue;
+    const file = phaseInFlightFile(phase.id);
+    const at = merged.findIndex((note) => note.file === file);
+    const text = phase.parks.reduce((note: string | undefined, park) => parkText(note, phase.id, park), merged[at]?.text);
+    if (text === undefined) continue;
+    if (at === -1) merged.push({ file, text });
+    else merged[at] = { file, text };
+  }
+  return merged;
+}
+
+function parkText(note: string | undefined, phaseId: string, park: NonNullable<PhaseDoc["parks"]>[number]): string {
+  const { answer, ...asked } = park;
+  const parked = withPark(note, phaseId, asked);
+  return answer ? (withAnswer(parked, answer.text, answer.at) ?? parked) : parked;
 }

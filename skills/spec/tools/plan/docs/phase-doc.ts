@@ -2,6 +2,8 @@ import type { FrontmatterData } from "../../core/frontmatter";
 import { GATE_KINDS, type GateKind } from "../../core/gate";
 import { flag, oneOf, optionalText, requiredText, stringArray, withoutUndefined } from "../../core/read-fields";
 import { isCalendarDay, readSchedule } from "../../core/schedule";
+import type { ParkEntry } from "../../core/park";
+import { readParks } from "./parks";
 import { readObject, type DocRead } from "./read";
 
 export interface Task {
@@ -35,6 +37,8 @@ export interface PhaseDoc {
   shape?: string;
   deployed?: string;
   tasks: Task[];
+  // Questions a session parked the phase on; phase 7 moves them to question documents.
+  parks?: ParkEntry[];
 }
 
 export function readPhaseDoc(value: unknown): DocRead<PhaseDoc> {
@@ -58,6 +62,7 @@ function readPhaseFields(fields: FrontmatterData, problems: string[]): PhaseDoc 
     shape: optionalText(fields.shape, "shape", problems),
     deployed: deployedDay(fields.deployed, problems),
     tasks: readTasks(fields.tasks, problems),
+    parks: readParks(fields.parks, problems),
   });
 }
 
