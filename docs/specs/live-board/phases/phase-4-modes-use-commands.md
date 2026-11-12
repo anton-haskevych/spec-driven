@@ -62,7 +62,7 @@ semantics*) describe both homes: "for a spec on the board, this lives in the rec
 
 ## Deliverables
 
-- [ ] `spec.ts plan apply <spec> --file <draft.json>`: a new spec's documents in one batch; explicit edges, cycles and task ids validated; refuses a spec that is already joined
+- [x] `spec.ts plan apply <spec> --file <draft.json>`: a new spec's documents in one batch; explicit edges, cycles and task ids validated; refuses a spec that is already joined
 - [ ] `create.md`: with the board on, the plan goes through `plan apply`; a stub `progress.md`; phase files hold goal, guidance and notes
 - [ ] `review.md`, `update.md`, `execute.md`, `handoff.md`, `resume.md`, `status.md`, `list.md`: one instruction per plan change (the command), join at entry, tick by task id, report lines taken from the record; hand-edit text only under "Without Bun"
 - [ ] `SKILL.md`: layout sections and *Tools* describe both homes; routing and *Preconditions* unchanged in rule (a joined spec has `progress.md`); the manual read path for a joined spec; `skill-wiring` and `commands-table` tests updated

@@ -74,6 +74,11 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/plan/plan-version.ts` | Per-session memory in tmpdir: plan shape shown per spec, last fetch attempt | 3b |
 | `skills/spec/tools/plan/write-notice.ts` | Puts the plan-changed notice on every record write's outcome | 3b |
 | `skills/spec/tools/hooks/plan-changed.ts` | Before-edit check: throttled fetch, notice once per version | 3b |
+| `skills/spec/tools/commands/plan.ts`, `plan/apply.ts` | `plan apply`: a new spec's plan from a JSON draft, stub progress.md | 4 |
+| `skills/spec/tools/commands/join-tidy.ts`, `plan/tidy.ts`, `plan/tidy-holders.ts` | `join --tidy`: stub + no boxes/edges on main, per file, unless a tree or `feat/<spec>*` branch holds it | 4 |
+| `skills/spec/tools/commands/record-export.ts`, `plan/export.ts` | `record export [--unjoin]`: the way back to files | 4 |
+| `skills/spec/tools/plan/deliverables.ts`, `plan/banner.ts` | Deliverables section helpers; banner, stub and manual read line | 4 |
+| `skills/spec/tools/doctor/joined.ts` | Doctor checks for a joined spec | 4 |
 | `skills/spec/SKILL.md` | Layout rules and the *Tools* section | |
 
 ## External references
