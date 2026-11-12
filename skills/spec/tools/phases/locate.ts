@@ -23,6 +23,13 @@ export function locateOpenItem(entry: string, selector: string): ItemLocation {
   return byPrefix(items, normalized(plainText(selector)));
 }
 
+// The selected item's position among the open ones (`#N`), for the movers that take positions.
+export function openItemNumber(entry: string, selector: string): { kind: "found"; number: number } | { kind: "invalid"; reason: string } {
+  const location = locateOpenItem(entry, selector);
+  if (location.kind === "invalid") return location;
+  return { kind: "found", number: openItems(entry).findIndex((item) => item.line === location.line) + 1 };
+}
+
 function byPosition(items: readonly OpenItem[], position: number): ItemLocation {
   const item = items[position - 1];
   if (position >= 1 && item) return { kind: "found", ...item };

@@ -13,6 +13,8 @@ export interface AddRequest {
   title: string;
   after?: string;
   edges: PhaseFileEdges;
+  // Deliverables, one per entry: items in a file, tasks with fresh ids on the record.
+  tasks?: readonly string[];
 }
 
 export interface Added {
@@ -37,7 +39,7 @@ export function planAdd(spec: SpecFolder, request: AddRequest, nodes: ReadonlyMa
 
   const progress = insertAfterPhases(read("progress.md") ?? "", placement.anchors, [progressLine(placement.id, request.title, pointer)]);
   const edits = [
-    { file: join(spec.dir, pointer), text: phaseFileText({ id: placement.id, title: request.title, edges: request.edges }) },
+    { file: join(spec.dir, pointer), text: phaseFileText({ id: placement.id, title: request.title, edges: request.edges, items: (request.tasks ?? []).map((task) => `- [ ] ${task}`) }) },
     { file: join(spec.dir, "progress.md"), text: progress },
   ];
   const introduced = issuesIntroducedBy(spec, edits, nodes);

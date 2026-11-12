@@ -10,6 +10,8 @@ interface Block {
   end: number;
 }
 
+const DELIVERABLES = /^##\s+deliverables\b/i;
+const SECTION = /^##\s+/;
 const ASSIGNMENT = /^([b-z]):(\d+(?:,\d+)*)$/;
 const FIRST_LABEL_CODE = "b".charCodeAt(0);
 
@@ -44,6 +46,17 @@ export function takeOpenItems(entry: string, items: readonly number[]): TakenIte
   const moved = new Map(blocks.map((block) => [block.item, dedent(lines.slice(block.start, block.end))]));
   const removed = new Set(blocks.flatMap((block) => range(block.start, block.end)));
   return { kind: "ok", remaining: lines.filter((_, index) => !removed.has(index)).join("\n"), moved };
+}
+
+// After the last line of the Deliverables section, or in a new one at the end.
+export function appendItems(entry: string, items: readonly string[]): string {
+  const lines = entry.split("\n");
+  const start = lines.findIndex((line) => DELIVERABLES.test(line));
+  if (start === -1) return `${entry.replace(/\n+$/, "")}\n\n## Deliverables\n\n${items.join("\n")}\n`;
+  const next = lines.findIndex((line, index) => index > start && SECTION.test(line));
+  let last = (next === -1 ? lines.length : next) - 1;
+  while (last > start && !(lines[last] ?? "").trim()) last--;
+  return [...lines.slice(0, last + 1), ...items, ...lines.slice(last + 1)].join("\n");
 }
 
 function blockEnd(lines: readonly string[], start: number): number {

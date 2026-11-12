@@ -1,56 +1,20 @@
-import { basename } from "node:path";
-import { gitAt, gitCommonDir, type Git } from "../core/git";
 import { isGateItem } from "../core/gate";
-import { defaultBranch } from "../core/run";
 import { checkEvidence, type TickRequest } from "../phases/tick";
 import { pushBranch, SAVE, unsavedCodePaths } from "../publish/push";
-import { listOutbox, outboxDir, queueIntent, sendIntent, type IntentRunners, type RecordWrite } from "../record/outbox";
-import { gitRecordPort, type RecordPort } from "../record/ref";
-import { ownSessionId } from "../sessions/own";
+import { listOutbox, queueIntent, type RecordWrite } from "../record/outbox";
 import type { PhaseDoc, Task } from "./docs/phase-doc";
-import { intentRunners } from "./intents";
-import { validateRecordDoc } from "./kinds";
 import { closedBySameSession, closedLine, findTask, tickPlan, type TickIntent, type TickSeen } from "./ops/tick";
 import type { PhaseDeps, PhaseOutcome } from "./phase-writer";
+import { NO_ORIGIN, sendRecordIntent, storeRefusal, type RecordWorld } from "./record-send";
 import type { JoinedPlan } from "./state-source";
-
-export interface TickWorld {
-  git: Git;
-  defaultBranch?: string;
-  port?: RecordPort;
-  outbox?: string;
-  session?: string;
-  tree: string;
-  now: Date;
-  runners: IntentRunners;
-}
 
 type TickBase = Omit<TickIntent, "evidence">;
 
 const SHA = /^([0-9a-f]{7})[0-9a-f]{33}\b/;
 
-export function tickWorld(projectDir: string, deps: PhaseDeps): TickWorld {
-  const git = gitAt(projectDir, deps.runner);
-  const common = gitCommonDir(git);
-  const top = git.out(["rev-parse", "--show-toplevel"]);
-  const branch = defaultBranch(projectDir, deps.runner);
-  const port = gitRecordPort(git);
-  const session = ownSessionId(deps.env);
-  return {
-    git,
-    ...(branch ? { defaultBranch: branch } : {}),
-    ...(port ? { port } : {}),
-    ...(common.ok ? { outbox: outboxDir(common.value) } : {}),
-    ...(session ? { session } : {}),
-    tree: basename(top.ok ? top.value : projectDir),
-    now: deps.now(),
-    runners: intentRunners(git),
-  };
-}
-
 // A code task is saved before it is recorded: push, then mark it done with the pushed commit. A task phase's
 // item or a Gate: item carries the evidence it was given instead.
-export async function recordTick(world: TickWorld, spec: string, joined: JoinedPlan, request: TickRequest): Promise<PhaseOutcome> {
+export async function recordTick(world: RecordWorld, spec: string, joined: JoinedPlan, request: TickRequest): Promise<PhaseOutcome> {
   const found = findTask(joined, request.phase, request.selector);
   if (!found) return { kind: "invalid", reason: unknownTask(spec, joined, request) };
   const { phase, task } = found;
@@ -64,7 +28,7 @@ export async function recordTick(world: TickWorld, spec: string, joined: JoinedP
   return saveThenSend(world, base, request.evidence);
 }
 
-async function saveThenSend(world: TickWorld, base: TickBase, note: string | undefined): Promise<PhaseOutcome> {
+async function saveThenSend(world: RecordWorld, base: TickBase, note: string | undefined): Promise<PhaseOutcome> {
   if (!world.defaultBranch) return { kind: "refused", reason: "Can't tell the default branch (no origin/HEAD, no gh), so the branch wasn't pushed." };
   const pushed = pushBranch(world.git, world.defaultBranch, SAVE);
   if (pushed.kind === "refused") return { kind: "refused", reason: `Couldn't push: ${pushed.reason}. Push it, then tick again.` };
@@ -77,15 +41,13 @@ async function saveThenSend(world: TickWorld, base: TickBase, note: string | und
   return send(world, intent, unsaved === 0 ? "" : ` · ${unsaved} edited ${unsaved === 1 ? "file is" : "files are"} not in this commit`);
 }
 
-async function send(world: TickWorld, intent: TickIntent, tail: string): Promise<PhaseOutcome> {
-  if (!world.port || !world.outbox) return { kind: "refused", reason: "This repo has no origin; the board's record lives there." };
+async function send(world: RecordWorld, intent: TickIntent, tail: string): Promise<PhaseOutcome> {
   let seen: TickSeen | undefined;
-  const plan = tickPlan(intent, (each) => (seen = each));
-  const written = await sendIntent(world.port, world.outbox, { session: world.session, command: "tick", args: intent }, world.runners, { validate: validateRecordDoc }, world.now, plan);
-  return outcomeOf(written, seen, intent, tail);
+  const written = await sendRecordIntent(world, "tick", intent, tickPlan(intent, (each) => (seen = each)));
+  return written ? outcomeOf(written, seen, intent, tail) : NO_ORIGIN;
 }
 
-function queue(world: TickWorld, intent: TickIntent): PhaseOutcome {
+function queue(world: RecordWorld, intent: TickIntent): PhaseOutcome {
   if (!world.outbox) return { kind: "refused", reason: "Can't find this clone's git folder to keep the tick in." };
   queueIntent(world.outbox, { session: world.session, command: "tick", args: intent }, world.now);
   return { kind: "queued", pending: listOutbox(world.outbox).length };
@@ -99,13 +61,8 @@ function outcomeOf(written: RecordWrite, seen: TickSeen | undefined, intent: Tic
       return { kind: "unchanged", line: `tick: ${intent.task} is already done (${evidenceLabel(seen?.kind === "already" ? seen.task.evidence : intent.evidence)})` };
     case "queued":
       return { kind: "queued", pending: written.pending };
-    case "refused":
-    case "failed":
-      return { kind: "refused", reason: written.reason };
-    case "invalid":
-      return { kind: "refused", reason: written.problems.join("; ") };
-    case "conflict":
-      return { kind: "refused", reason: `${written.path} changed while it was written; tick again.` };
+    default:
+      return storeRefusal(written, "tick again");
   }
 }
 

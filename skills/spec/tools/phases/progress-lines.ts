@@ -19,9 +19,17 @@ function lastNonBlankLine(lines: readonly string[]): number {
 }
 
 export function tickPhaseLine(progress: string, pointer: string): string {
+  return replaceInPhaseLine(progress, pointer, (line) => line.replace(OPEN_BOX, TICKED_BOX));
+}
+
+export function untickPhaseLine(progress: string, pointer: string): string {
+  return replaceInPhaseLine(progress, pointer, (line) => line.replace(TICKED_BOX, OPEN_BOX));
+}
+
+export function replaceInPhaseLine(progress: string, pointer: string, edit: (line: string) => string): string {
   const index = locatePhaseLine(progress, pointer);
   if (index === undefined) return progress;
   const lines = progress.split("\n");
-  lines[index] = (lines[index] ?? "").replace(OPEN_BOX, TICKED_BOX);
+  lines[index] = edit(lines[index] ?? "");
   return lines.join("\n");
 }

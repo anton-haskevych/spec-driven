@@ -4,6 +4,8 @@ import { loadSpecStateFromFiles } from "../core/spec-state";
 import { loadNodes } from "../graph/nodes";
 import { planAdd } from "../phases/add";
 import { planDeployed } from "../phases/deployed";
+import { planMove } from "../phases/move";
+import { planSet } from "../phases/set";
 import { planPark, planUnpark } from "../phases/park";
 import { refsToPhase } from "../phases/review-refs";
 import { planSplit, type Split } from "../phases/split";
@@ -56,6 +58,19 @@ export function fileWriter(projectDir: string, spec: SpecFolder, deps: PhaseDeps
       applyEdits(result.plan);
       const refs = refsToPhase(loadSpecStateFromFiles(spec), result.original.id, nodes, specStatesAt(projectDir, deps.runner, deps.now()));
       return landed(splitLine(result, refs));
+    },
+    move(request) {
+      const result = planMove(spec, request, loadNodes(projectDir));
+      if (result.kind === "invalid") return { kind: "invalid", reason: result.reason };
+      applyEdits(result.plan);
+      return landed(`move: ${result.count} ${result.count === 1 ? "item" : "items"} from Phase ${result.from} → Phase ${result.to}`);
+    },
+    set(request) {
+      const result = planSet(spec, request, loadNodes(projectDir));
+      if (result.kind === "invalid") return { kind: "invalid", reason: result.reason };
+      if (result.kind === "unchanged") return { kind: "unchanged", line: result.reason };
+      applyEdits(result.plan);
+      return landed(`set: phase ${result.phaseId} · ${result.said.join(" · ")}`);
     },
   };
 }

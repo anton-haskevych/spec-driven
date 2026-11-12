@@ -19,7 +19,7 @@ export function changedPlanParts(pathInSpec: string, before: string, after: stri
 
 export function joinedEditProblem(spec: string, parts: readonly PlanPart[]): string {
   const verb = parts.length === 1 && parts[0] === "phase list" ? "lives" : "live";
-  return `${spec} is on the board: its ${parts.join(" and ")} ${verb} in the record, so this edit changes nothing there. Undo it. Ticks go through \`spec.ts phase tick <spec> <phase> <task-id>\`; phase changes go through \`phase add\` / \`phase split\`, which can't write a joined spec yet.`;
+  return `${spec} is on the board: its ${parts.join(" and ")} ${verb} in the record, so this edit changes nothing there. Undo it. Ticks go through \`spec.ts phase tick <spec> <phase> <task-id>\`; phase changes go through \`phase add\` / \`split\` / \`move\` / \`set\`.`;
 }
 
 function phaseList(text: string): string[] {

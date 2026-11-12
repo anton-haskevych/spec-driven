@@ -4,6 +4,8 @@ import type { SpecFolder } from "../core/spec-folders";
 import type { AddRequest } from "../phases/add";
 import type { DeployedRequest } from "../phases/deployed";
 import type { ParkRequest, UnparkRequest } from "../phases/park";
+import type { MoveRequest } from "../phases/move";
+import type { SetRequest } from "../phases/set";
 import type { SplitRequest } from "../phases/split";
 import type { TickRequest } from "../phases/tick";
 import { pilotJoinedRefusal, type LocalPilot } from "../runtime/workflow-capabilities";
@@ -20,13 +22,18 @@ export type PhaseOutcome =
   | { kind: "refused"; reason: string }
   | { kind: "queued"; pending: number };
 
+// A spec in files answers at once; a joined spec waits on its record write.
+type Written = PhaseOutcome | Promise<PhaseOutcome>;
+
 export interface PhaseWriter {
-  tick(request: TickRequest): PhaseOutcome | Promise<PhaseOutcome>;
-  park(request: ParkRequest): PhaseOutcome;
-  unpark(request: UnparkRequest): PhaseOutcome;
-  deployed(request: DeployedRequest): PhaseOutcome;
-  add(request: AddRequest): PhaseOutcome;
-  split(request: SplitRequest): PhaseOutcome;
+  tick(request: TickRequest): Written;
+  park(request: ParkRequest): Written;
+  unpark(request: UnparkRequest): Written;
+  deployed(request: DeployedRequest): Written;
+  add(request: AddRequest): Written;
+  split(request: SplitRequest): Written;
+  move(request: MoveRequest): Written;
+  set(request: SetRequest): Written;
 }
 
 export interface PhaseDeps {
@@ -41,12 +48,17 @@ export function phaseWriterFor(projectDir: string, spec: SpecFolder, plans: Plan
   const joined = plans.joined(spec.name);
   if (!joined) return files;
   if (workflow) return refusingWriter(pilotJoinedRefusal(spec.name));
-  return recordWriter(projectDir, spec.name, joined, files, deps);
+  return recordWriter(projectDir, spec, joined, files, deps);
 }
 
 export function refusingWriter(reason: string): PhaseWriter {
   const refuse = (): PhaseOutcome => ({ kind: "invalid", reason });
-  return { tick: refuse, park: refuse, unpark: refuse, deployed: refuse, add: refuse, split: refuse };
+  return { tick: refuse, park: refuse, unpark: refuse, deployed: refuse, add: refuse, split: refuse, move: refuse, set: refuse };
+}
+
+// Keeps a file spec's answer synchronous; only a record write is awaited.
+export function renderWritten(action: string, written: Written): string | Promise<string> {
+  return written instanceof Promise ? written.then((outcome) => renderPhaseOutcome(action, outcome)) : renderPhaseOutcome(action, written);
 }
 
 export function renderPhaseOutcome(action: string, outcome: PhaseOutcome): string {

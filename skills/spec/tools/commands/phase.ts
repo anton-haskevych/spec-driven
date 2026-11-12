@@ -4,6 +4,8 @@ import { ADD_USAGE, phaseAdd } from "./phase/add";
 import { phaseContext, systemPhaseDeps, type PhaseContext } from "./phase/context";
 import { DEPLOYED_USAGE, phaseDeployed } from "./phase/deployed";
 import { PARK_USAGE, phasePark, phaseUnpark, UNPARK_USAGE } from "./phase/park";
+import { MOVE_USAGE, phaseMove } from "./phase/move";
+import { phaseSet, SET_USAGE } from "./phase/set";
 import { phaseSplit, SPLIT_USAGE } from "./phase/split";
 import { phaseTick, TICK_USAGE } from "./phase/tick";
 
@@ -19,6 +21,8 @@ const ACTIONS: Record<string, PhaseAction> = {
   park: { usage: PARK_USAGE, run: phasePark },
   unpark: { usage: UNPARK_USAGE, run: phaseUnpark },
   split: { usage: SPLIT_USAGE, run: phaseSplit },
+  move: { usage: MOVE_USAGE, run: phaseMove },
+  set: { usage: SET_USAGE, run: phaseSet },
 };
 
 export const PHASE_USAGE = Object.values(ACTIONS)

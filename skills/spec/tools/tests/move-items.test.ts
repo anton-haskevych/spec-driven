@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { parseItemAssignments, takeOpenItems } from "../phases/move-items";
+import { appendItems, parseItemAssignments, takeOpenItems } from "../phases/move-items";
 
 const entry = [
   "## Deliverables",
@@ -50,5 +50,15 @@ describe("takeOpenItems with nesting", () => {
       kind: "invalid",
       reason: "open item 2 is nested under another moved item; it moves with it",
     });
+  });
+});
+
+describe("appendItems", () => {
+  test("adds after the Deliverables section's last line, before the next section", () => {
+    expect(appendItems("# P\n\n## Deliverables\n\n- [x] a\n\n## Notes\n", ["- [ ] b"])).toBe("# P\n\n## Deliverables\n\n- [x] a\n- [ ] b\n\n## Notes\n");
+  });
+
+  test("starts a Deliverables section when there is none", () => {
+    expect(appendItems("# P\n\nProse.\n", ["- [ ] b"])).toBe("# P\n\nProse.\n\n## Deliverables\n\n- [ ] b\n");
   });
 });
