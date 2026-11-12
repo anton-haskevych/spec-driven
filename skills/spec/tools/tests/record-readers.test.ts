@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { join } from "node:path";
+import { readFileSync, writeFileSync } from "node:fs";
 import { contextPack } from "../commands/context";
+import { phaseCommand } from "../commands/phase";
 import { doctorReport } from "../commands/doctor";
 import { readyReport } from "../commands/ready";
 import { gitAt } from "../core/git";
@@ -109,5 +111,32 @@ describe("one-spec readers of a joined spec (real git)", () => {
     expect(nodes.get("gamma")?.phases).toEqual([{ id: "1", done: true, deployed: false }]);
     expect(isFinished(nodes.get("gamma")!)).toBe(true);
     expect(isFinished(loadNodes(repo.dir).get("gamma")!)).toBe(false);
+  });
+
+  test("phase writers refuse a joined spec and leave its files alone", async () => {
+    const before = readFileSync(spec("phases/phase-2.md"), "utf8");
+    expect(await phaseCommand(repo.dir, ["tick", "alpha", "2", "#1"])).toBe("phase tick: alpha is on the board; this version can't write it yet");
+    expect(await phaseCommand(repo.dir, ["add", "alpha", "Three"])).toBe("phase add: alpha is on the board; this version can't write it yet");
+    expect(readFileSync(spec("phases/phase-2.md"), "utf8")).toBe(before);
+  });
+
+  test("the spec-file hook blocks a hand tick in a joined spec, not a prose edit", () => {
+    const path = spec("phases/phase-2.md");
+    const before = readFileSync(path, "utf8");
+    try {
+      writeFileSync(path, before.replace("**Goal:** two.", "**Goal:** two, reworded."));
+      expect(issuesForWrittenFile(path, repo.dir, isolatedRunner)).toEqual([]);
+      writeFileSync(path, before.replace("- [ ] frozen two", "- [x] frozen two"));
+      expect(issuesForWrittenFile(path, repo.dir, isolatedRunner)).toEqual([
+        expect.objectContaining({ severity: "error", problem: expect.stringContaining("alpha is on the board: its checkboxes live in the record") }),
+      ]);
+      writeFileSync(spec("progress.md"), `${STUB}- [x] Phase 1 — One → \`phases/phase-1.md\`\n`);
+      expect(issuesForWrittenFile(spec("progress.md"), repo.dir, isolatedRunner)).toEqual([
+        expect.objectContaining({ problem: expect.stringContaining("its phase list lives") }),
+      ]);
+    } finally {
+      writeFileSync(path, before);
+      writeFileSync(spec("progress.md"), STUB);
+    }
   });
 });

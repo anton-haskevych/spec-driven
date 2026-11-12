@@ -12,7 +12,7 @@ import { refsToPhase } from "../phases/review-refs";
 import { planSplit } from "../phases/split";
 import { loadSpecStateFromFiles } from "../core/spec-state";
 import { systemRunner } from "../core/run";
-import { specStatesAt } from "../plan/read-plans";
+import { readLocalPlans, specStatesAt } from "../plan/read-plans";
 import { planTick } from "../phases/tick";
 import type { LocalPilot } from "../runtime/workflow-capabilities";
 
@@ -41,9 +41,20 @@ export const PHASE_USAGE = Object.values(ACTIONS)
   .join(" | ");
 
 export function phaseCommand(projectDir: string, args: readonly string[], workflow?: LocalPilot): string | Promise<string> {
-  const [name, ...rest] = args;
-  const action = name !== undefined && Object.hasOwn(ACTIONS, name) ? ACTIONS[name] : undefined;
-  return action ? action.run(projectDir, rest, workflow) : `usage: ${PHASE_USAGE}`;
+  const [name = "", ...rest] = args;
+  const action = Object.hasOwn(ACTIONS, name) ? ACTIONS[name] : undefined;
+  if (!action) return `usage: ${PHASE_USAGE}`;
+  return (PLAN_WRITERS.has(name) ? joinedRefusal(projectDir, name, rest[0], workflow) : undefined) ?? action.run(projectDir, rest, workflow);
+}
+
+// Park and unpark write only in-flight notes, which stay files.
+const PLAN_WRITERS = new Set(["tick", "deployed", "add", "split"]);
+
+// Until phase 3 gives the planners a record path, a write to a joined spec's frozen files would be lost.
+function joinedRefusal(projectDir: string, action: string, spec: string | undefined, workflow: LocalPilot | undefined): string | undefined {
+  if (spec === undefined || spec.startsWith("-")) return undefined;
+  if (!readLocalPlans(projectDir, systemRunner, new Date()).isJoined(spec)) return undefined;
+  return `phase ${action}: ${spec} is on the board; ${workflow ? "a Codex pilot" : "this version"} can't write it yet`;
 }
 
 function tick(projectDir: string, args: string[]): string {
