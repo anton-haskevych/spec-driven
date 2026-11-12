@@ -153,6 +153,16 @@ work plus shared work, and be able to ask what the other is doing.
 |---|---|---|
 | 2.50.0 | **Owners, assigned and read everywhere.** `spec.ts owner <spec> <name \| me \| none>` writes `owner:` on a spec's `CLAUDE.md` on main, only on someone's word; no owner means shared. "Me" is the git `user.name` (`runnerName`), fail-closed when unset. `crew launch` and `crew tick` start only the runner's or shared specs, and a launch of someone else's spec is refused naming the branch that holds its unmerged work. *Next sessions* and execute's top ready row read `board ready --for me`; plain `board` marks owned rows `(owner)` and hides nothing. `board --who <name\|me>` opens with that person's section: specs they own, what they have claimed or opened, and their PRs | in PR |
 
+## Live board (2.53)
+
+One shared record (`refs/spec-board/record` on origin) holds each joined spec's phases, tasks, edges and
+ticks, so sessions on any tree or machine see the same plan. Off until a project's `settings.md` says
+`board.record: on` (spec `live-board`, phase 5 turns it on for CRM).
+
+| Version | Change | Status |
+|---|---|---|
+| 2.53.0 | **The modes use the commands.** Every plan change in every mode is one `spec.ts phase …` command that writes a spec's files or, once it joined, the record (SKILL.md → *Plan changes*); new `phase task` (add, reword, drop a task) and `phase set --needs-deployed / --same-files-as`. Execute, review and update join a spec at entry when the board is on; create writes a new spec's plan with `plan apply`; handoff runs `join --tidy`, which cuts a joined spec's files to the stub once no tree or `feat/<spec>*` branch still edits them; `record export [--unjoin]` is the way back; the doctor checks a joined spec against its record | in PR |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through
