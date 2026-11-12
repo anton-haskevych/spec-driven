@@ -3,12 +3,13 @@ import type { Runner } from "../core/run";
 import { loadSettings } from "../playbook/settings";
 import type { MarksSource } from "../graph/nodes";
 import { gitRecordReadPort, readRecord, recordViewOf, type RecordRead, type RecordReadOptions } from "../record/read";
-import { joinedPhaseMarks, readJoinedPlan, stateSourceFor, type SpecSource } from "./state-source";
+import { joinedPhaseMarks, readJoinedPlan, stateSourceFor, type JoinedPlan, type SpecSource } from "./state-source";
 
 export interface PlanSource {
   state: SpecSource;
   marks: MarksSource;
   isJoined(spec: string): boolean;
+  joined(spec: string): JoinedPlan | undefined;
   record: RecordRead;
 }
 
@@ -29,6 +30,7 @@ export function planSourceOf(record: RecordRead): PlanSource {
       return joined ? joinedPhaseMarks(joined) : undefined;
     },
     isJoined: (spec) => plan(spec) !== undefined,
+    joined: plan,
     record,
   };
 }

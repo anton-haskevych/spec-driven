@@ -8,8 +8,9 @@ export interface PhaseActivity {
 }
 
 // Workspace states are compared with base and never merged into it: readySet and isFinished see base only.
-export function phaseActivity(baseStates: ReadonlyMap<string, SpecState>, workspaces: readonly WorkspaceView[]): Map<string, PhaseActivity> {
-  const activity = new Map<string, PhaseActivity>();
+// A joined spec has no workspace states (the overlay skips it); its activity comes in as `joined`.
+export function phaseActivity(baseStates: ReadonlyMap<string, SpecState>, workspaces: readonly WorkspaceView[], joined: ReadonlyMap<string, PhaseActivity> = new Map()): Map<string, PhaseActivity> {
+  const activity = new Map<string, PhaseActivity>(joined);
   const record = (key: string, kind: keyof PhaseActivity, path: string) => {
     const entry = activity.get(key) ?? { tickedIn: [], wipIn: [] };
     entry[kind].push(path);

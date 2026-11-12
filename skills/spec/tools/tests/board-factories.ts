@@ -57,6 +57,7 @@ export function boardInputs(specs: readonly SpecFixture[], overrides: Partial<Bo
     states: new Map(specs.map((fixture) => [fixture.node.spec.name, fixture.state])),
     stages: new Map(specs.flatMap((fixture) => (fixture.stage ? [[fixture.node.spec.name, fixture.stage] as const] : []))),
     plans: FILES_ONLY,
+    joinedActivity: new Map(),
     workspaces: [],
     worktreePaths: [],
     counts: { merged: 0, unknownBase: 0, unreadable: 0, duplicates: [] },

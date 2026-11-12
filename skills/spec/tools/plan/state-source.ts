@@ -52,7 +52,7 @@ export function joinedPhaseMarks(plan: JoinedPlan): PhaseMark[] {
   return plan.phases.map((doc) => ({ id: doc.id, done: phaseDocDone(doc), deployed: doc.deployed !== undefined }));
 }
 
-function phaseDocDone(doc: PhaseDoc): boolean {
+export function phaseDocDone(doc: PhaseDoc): boolean {
   return doc.deployed !== undefined || allTasksDone(countTasks(doc.tasks));
 }
 

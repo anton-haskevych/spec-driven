@@ -15,6 +15,7 @@ import { scanWorkspaces, type WorkspaceScanResult } from "../workspaces/scan";
 import { canonicalPath, loadWorkspaces } from "../workspaces/list";
 import { loadWorkspaceViews } from "../workspaces/views";
 import type { BoardInputs, WorkspaceView } from "./inputs";
+import { joinedActivity } from "./joined-activity";
 import { buildBoard } from "./lanes";
 import type { Board } from "./model";
 
@@ -61,6 +62,8 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
   const scanned = await scanWorkspaces(git, runners.asyncRunner, base.sha, new Set(local.map((held) => held.claim.workspace)));
   const { scans, counts } = scanned.ok ? scanned.value : NO_SCAN;
   const workspaces = loadWorkspaceViews(scans, nodes, plans.isJoined);
+  // An unreadable worktree list falls back to the live ones, as claimContext falls back to claimed ones.
+  const trees = loadWorkspaces(git);
   return {
     ok: true,
     value: {
@@ -71,8 +74,9 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       states,
       stages,
       plans,
+      joinedActivity: joinedActivity([...states.keys()].flatMap((name) => plans.joined(name) ?? []), trees.ok ? trees.value : []),
       workspaces,
-      worktreePaths: worktreePaths(git, workspaces),
+      worktreePaths: trees.ok ? trees.value.map((worktree) => worktree.path) : workspaces.map((workspace) => workspace.path),
       counts: { ...counts, duplicates },
       backlogCount: backlog.length,
       sessions,
@@ -98,12 +102,6 @@ function prLinks(states: ReadonlyMap<string, SpecState>, workspaces: readonly Wo
     }
   }
   return links;
-}
-
-// An unreadable worktree list falls back to the live ones, as claimContext falls back to claimed ones.
-function worktreePaths(git: Git, workspaces: readonly WorkspaceView[]): string[] {
-  const listed = loadWorkspaces(git);
-  return listed.ok ? listed.value.map((worktree) => worktree.path) : workspaces.map((workspace) => workspace.path);
 }
 
 // Resolved like worktree paths, so the board can match it against them.

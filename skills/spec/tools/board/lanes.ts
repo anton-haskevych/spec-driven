@@ -43,7 +43,7 @@ export function buildBoard(inputs: BoardInputs, now: Date, me?: string): Board {
   const today = isoDay(now);
   const open = [...inputs.nodes.values()].filter((node) => !isFinished(node));
   const active = open.filter((node) => node.status !== "paused");
-  const activity = phaseActivity(inputs.states, inputs.workspaces);
+  const activity = phaseActivity(inputs.states, inputs.workspaces, inputs.joinedActivity);
   const inFlight = joinFlightRows(flightRows(activity, inputs), inputs);
   const parked = parkedPhases(inputs);
   const placement: Placement = { inputs, today, unblocks: unblockCounts(inputs.states, inputs.nodes), activity, inFlight: new Set(inFlight.map(rowKey)), parked: new Set(parked.keys()) };

@@ -67,14 +67,14 @@ async function loadClaimWorld(projectDir: string, deps: ClaimDeps): Promise<Resu
   if (!worktrees.ok) return worktrees;
   const inputs = await loadBoardInputs(projectDir, { local: true }, deps);
   if (!inputs.ok) return inputs;
-  const { states, workspaces, currentPath } = inputs.value;
+  const { states, workspaces, currentPath, joinedActivity } = inputs.value;
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   return {
     ok: true,
     value: {
       dir: dir.value,
       context: claimContext(git, sessions, states, loadClaims(dir.value).claims),
-      activity: phaseActivity(states, workspaces),
+      activity: phaseActivity(states, workspaces, joinedActivity),
       currentPath,
       ownStates: workspaces.find((workspace) => workspace.path === currentPath)?.states,
       branch: worktrees.value.find((worktree) => worktree.path === currentPath)?.branch,
