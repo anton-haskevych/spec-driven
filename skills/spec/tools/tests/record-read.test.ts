@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { gitAt, gitCommonDir } from "../core/git";
+import { gitAt } from "../core/git";
 import type { TipRead } from "../core/land-on-ref";
 import { serializeDoc } from "../record/document";
 import { RECORD_LAYOUT } from "../record/layout";
@@ -106,9 +106,7 @@ describe("gitRecordReadPort (real git)", () => {
     if (!commit.ok) throw new Error(commit.reason);
     writer.push(commit.value, { kind: "absent" });
 
-    const commonDir = gitCommonDir(git);
-    if (!commonDir.ok) throw new Error(commonDir.reason);
-    const port = gitRecordReadPort(git, commonDir.value);
+    const port = gitRecordReadPort(git);
     if (!port) throw new Error("no origin");
     const read = readRecord(port, { fetch: true, now: NOW });
     expect(read.kind === "read" ? read.view.doc(PHASE) : read).toEqual({ id: "1", text: "Café — día ✓" });

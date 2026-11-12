@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { findSpecs } from "../core/spec-folders";
-import { diskReader, loadSpecStateFromFiles } from "../core/spec-state";
+import { diskReader } from "../core/spec-state";
+import { readPlansAt } from "../plan/read-plans";
 import { babysitPack } from "../context/babysit-pack";
 import { executePack, resumePack, type PackInput } from "../context/packs";
 import { neighborhoodReport } from "./graph";
@@ -37,6 +38,7 @@ export interface ContextDeps {
   readHeld: HeldReader;
   readClaimsHere: ClaimsHereReader;
   workflow?: LocalPilot;
+  now?: () => Date;
 }
 
 export function systemContextDeps(): ContextDeps {
@@ -75,14 +77,15 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   const specs = findSpecs(projectDir, name);
   if (specs.length !== 1 || !specs[0]) return "";
 
-  const state = loadSpecStateFromFiles(specs[0]);
+  const plans = readPlansAt(projectDir, deps.runner, deps.now?.() ?? new Date());
+  const state = plans.state(specs[0]);
   const hasLedger = existsSync(join(state.spec.dir, "ledger", "INDEX.md"));
   if (!state.hasProgress || !hasLedger) return "";
 
-  const doctor = doctorReport(projectDir, name).split("\n").slice(0, DOCTOR_LINES).join("\n");
+  const doctor = doctorReport(projectDir, name, deps.runner, plans).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
   if (mode === "babysit") return packBlock(state.spec.name, mode, inferredFrom, babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
-  const nodes = loadNodes(projectDir);
+  const nodes = loadNodes(projectDir, plans.marks);
   const held = await deps.readHeld(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir, specsInFlight(held, state.spec.name));
   const ready = readySet(state, nodes);

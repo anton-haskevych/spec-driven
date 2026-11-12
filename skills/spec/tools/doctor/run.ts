@@ -4,9 +4,9 @@ import { markdownFilesIn, readTextIfExists } from "../core/files";
 import { inFlightFilesIn } from "../core/in-flight";
 import { parsePhaseLines } from "../core/progress";
 import type { SpecFolder } from "../core/spec-folders";
-import { loadSpecStateFromFiles } from "../core/spec-state";
 import { graphIssues } from "../graph/checks";
 import type { SpecNode } from "../graph/nodes";
+import type { PlanSource } from "../plan/read-plans";
 import type { Issue } from "./issue";
 import { checkLedgerEntry, checkLedgerIndex } from "./ledger";
 import { gateIssues } from "./gates";
@@ -25,13 +25,14 @@ export interface DoctorContext {
   gates?: ReadonlyMap<string, string[]>;
   today: string;
   playbooks: ReadonlySet<string>;
+  plans: PlanSource;
 }
 
 const LEDGER_INDEX = "INDEX.md";
 
 export function runDoctor(spec: SpecFolder, context: DoctorContext): Issue[] {
   const graph = graphIssues(context.nodes, spec.name, join(spec.dir, "CLAUDE.md"));
-  const state = loadSpecStateFromFiles(spec);
+  const state = context.plans.state(spec);
   const edges = phaseEdgeIssues(state, context.nodes);
   const schedule = [
     ...specOverdueIssues(join(spec.dir, "CLAUDE.md"), context.nodes.get(spec.name), context.today),
@@ -40,7 +41,7 @@ export function runDoctor(spec: SpecFolder, context: DoctorContext): Issue[] {
   const tasks = [...taskPhaseIssues(state), ...phaseGateIssues(state), ...phasePlaybookIssues(state, context.playbooks)];
   const prOpeningFile = join(spec.dir, "pr-opening.md");
   const gates = gateIssues(prOpeningFile, readTextIfExists(prOpeningFile) ?? "", context.gates);
-  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec, context.projectDir), ...progressIssues(spec), ...edges, ...schedule, ...tasks, ...gates];
+  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec, context.projectDir), ...(context.plans.isJoined(spec.name) ? [] : progressIssues(spec)), ...edges, ...schedule, ...tasks, ...gates];
 }
 
 function metaIssues(spec: SpecFolder, context: DoctorContext): Issue[] {

@@ -11,7 +11,8 @@ import { checkProjectLesson } from "../doctor/project-lesson";
 import { checkSpecMeta } from "../doctor/spec-meta";
 import { linkIssues } from "../graph/checks";
 import { loadNodes } from "../graph/nodes";
-import { loadSpecStateFromFiles } from "../core/spec-state";
+import { systemRunner, type Runner } from "../core/run";
+import { readLocalPlans } from "../plan/read-plans";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
 import { phaseGateIssues } from "../doctor/phase-gates";
 import { phaseScheduleIssues } from "../doctor/schedule";
@@ -31,13 +32,13 @@ const SETTINGS = /\/docs\/specs\/_playbook\/settings\.md$/;
 const PLAYBOOK = /\/docs\/specs\/_playbook\/[^/]+\.md$/;
 const PROJECT_FILES = [PROJECT_LESSON, BACKLOG_ITEM, PLAYBOOK];
 
-export function issuesForWrittenFile(filePath: string, projectDir: string): Issue[] {
+export function issuesForWrittenFile(filePath: string, projectDir: string, runner: Runner = systemRunner): Issue[] {
   const location = locateSpecFile(filePath);
   const projectFile = PROJECT_FILES.some((pattern) => pattern.test(filePath));
   const text = location || projectFile ? readTextIfExists(filePath) : undefined;
   if (text === undefined) return [];
   if (projectFile) return projectFileIssues(filePath, text, projectDir);
-  return location ? specFileIssues(location, filePath, text, projectDir) : [];
+  return location ? specFileIssues(location, filePath, text, projectDir, runner) : [];
 }
 
 function projectFileIssues(filePath: string, text: string, projectDir: string): Issue[] {
@@ -48,12 +49,12 @@ function projectFileIssues(filePath: string, text: string, projectDir: string): 
   return backlog ? checkBacklogItem(filePath, text, backlog[1] !== undefined) : [];
 }
 
-function specFileIssues(location: SpecFileLocation, filePath: string, text: string, projectDir: string): Issue[] {
+function specFileIssues(location: SpecFileLocation, filePath: string, text: string, projectDir: string, runner: Runner): Issue[] {
   if (location.pathInSpec === "CLAUDE.md") {
     const links = linkIssues(loadNodes(projectDir), location.spec.name, filePath);
     return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links];
   }
-  if (location.pathInSpec.startsWith("phases/")) return phaseFileIssues(location, projectDir);
+  if (location.pathInSpec.startsWith("phases/")) return phaseFileIssues(location, projectDir, runner);
   if (isLedgerEntry(location.pathInSpec)) {
     const ledgerDir = dirname(filePath);
     return checkLedgerEntry(filePath, text, (name) => existsSync(join(ledgerDir, name)));
@@ -61,12 +62,13 @@ function specFileIssues(location: SpecFileLocation, filePath: string, text: stri
   return [];
 }
 
-function phaseFileIssues(location: SpecFileLocation, projectDir: string): Issue[] {
-  const state = loadSpecStateFromFiles(location.spec);
+function phaseFileIssues(location: SpecFileLocation, projectDir: string, runner: Runner): Issue[] {
+  const plans = readLocalPlans(projectDir, runner, new Date());
+  const state = plans.state(location.spec);
   const pointer = location.pathInSpec;
   const playbooks = new Set(loadPlaybooks(projectDir).map((playbook) => playbook.name));
   return [
-    ...phaseEdgeIssues(state, loadNodes(projectDir), pointer),
+    ...phaseEdgeIssues(state, loadNodes(projectDir, plans.marks), pointer),
     ...phaseScheduleIssues(state, isoDay(new Date()), pointer),
     ...taskPhaseIssues(state, pointer),
     ...phaseGateIssues(state, pointer),

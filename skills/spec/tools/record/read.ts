@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, statSync, utimesSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { stateDirIn, type Git } from "../core/git";
+import { gitCommonDir, stateDirIn, type Git } from "../core/git";
 import type { TipRead } from "../core/land-on-ref";
 import { RECORD_LAYOUT, RECORD_TRACKING_REF } from "./layout";
 import { gitRecordPort, type RecordPort } from "./ref";
@@ -52,10 +52,18 @@ function snapshot(port: RecordReadPort, tip: string, how: { live: boolean; ageMs
   return { kind: "read", view: view.value, ...how };
 }
 
-export function gitRecordReadPort(git: Git, commonDir: string): RecordReadPort | undefined {
+// The common dir is asked for only once a record exists, so a repo without one pays no extra git call.
+export function gitRecordReadPort(git: Git): RecordReadPort | undefined {
   const port = gitRecordPort(git);
   if (!port) return undefined;
-  const stamp = stateDirIn(commonDir, "record-fetched");
+  let stamp: string | undefined;
+  const stampPath = () => {
+    if (stamp === undefined) {
+      const commonDir = gitCommonDir(git);
+      stamp = commonDir.ok ? stateDirIn(commonDir.value, "record-fetched") : "";
+    }
+    return stamp;
+  };
   return {
     fetchTip: port.fetchTip,
     blobIdsByPath: port.blobIdsByPath,
@@ -64,11 +72,16 @@ export function gitRecordReadPort(git: Git, commonDir: string): RecordReadPort |
       const tip = git.out(["rev-parse", "--verify", "-q", RECORD_TRACKING_REF]);
       return tip.ok && tip.value ? tip.value : undefined;
     },
-    lastFetched: () => (existsSync(stamp) ? statSync(stamp).mtime : undefined),
+    lastFetched: () => {
+      const path = stampPath();
+      return path && existsSync(path) ? statSync(path).mtime : undefined;
+    },
     markFetched(at) {
-      mkdirSync(dirname(stamp), { recursive: true });
-      if (!existsSync(stamp)) writeFileSync(stamp, "");
-      utimesSync(stamp, at, at);
+      const path = stampPath();
+      if (!path) return;
+      mkdirSync(dirname(path), { recursive: true });
+      if (!existsSync(path)) writeFileSync(path, "");
+      utimesSync(path, at, at);
     },
   };
 }

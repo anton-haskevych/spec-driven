@@ -7,6 +7,7 @@ import { checkIndentedPhaseLines, checkInFlight, checkPhases } from "../doctor/p
 import { runDoctor } from "../doctor/run";
 import { checkSpecMeta } from "../doctor/spec-meta";
 import { phaseLine } from "./factories";
+import { FILES_ONLY } from "../plan/read-plans";
 
 const STATUSES = ["active", "done", "good-enough"];
 const noEntries = () => false;
@@ -148,7 +149,7 @@ describe("checkInFlight", () => {
     write("phases/phase-1.md", "- [x] a\n");
     write("in-flight/phase-1.md", "# In flight\n\nawaiting deploy\n");
     write("in-flight.md", "# In flight\n\nold note\n");
-    const context = { projectDir: dir, statuses: STATUSES, nodes: new Map(), today: "2026-10-12", playbooks: new Set<string>() };
+    const context = { projectDir: dir, statuses: STATUSES, nodes: new Map(), today: "2026-10-12", playbooks: new Set<string>(), plans: FILES_ONLY };
     const flagged = runDoctor({ name: "one", dir }, context).filter((issue) => issue.problem.includes("pending notes"));
     expect(flagged.map((issue) => issue.file)).toEqual([join(dir, "in-flight/phase-1.md"), join(dir, "in-flight.md")]);
     rmSync(dir, { recursive: true, force: true });
