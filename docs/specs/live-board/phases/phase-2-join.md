@@ -52,7 +52,7 @@ switch must agree with one cut after.
 
 ## Deliverables
 
-- [ ] `spec-doc` and `phase-doc` readers that collect problems (unknown phase in `phases`, a `needs` that doesn't resolve, duplicate task ids) and reuse the existing field readers; `core/read-fields.ts`; factories in `tests/record-factories.ts`
+- [x] `spec-doc` and `phase-doc` readers that collect problems (unknown phase in `phases`, a `needs` that doesn't resolve, duplicate task ids) and reuse the existing field readers; `core/read-fields.ts`; factories in `tests/record-factories.ts`
 - [ ] Settings key `board.record: on | off`, default off, read from the default branch; in `describeSettings`; the doctor warns when it is on without `docs: main`
 - [ ] `planJoin`: base + worktree views → documents; tasks matched by text; done anywhere is done with evidence; unmatched tasks and tree-only phases returned as disagreements (Nov 11 fixture; a fixture with a task inserted above a ticked one)
 - [ ] `planJoin` writes implied edges; golden test: a linear spec and a partly-edged spec have the same ready set computed from their documents as from their files

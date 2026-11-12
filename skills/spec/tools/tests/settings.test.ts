@@ -30,6 +30,7 @@ describe("parseSettings", () => {
         checks: { external: ["Vercel*"] },
         gates: { afterMergeMain: "merge-main", bootstrap: "bootstrap", perCommit: "quick", ciTriage: "ci-triage" },
         crew: DEFAULT_SETTINGS.crew,
+        board: { record: false },
       },
       problems: [],
     });
@@ -37,7 +38,7 @@ describe("parseSettings", () => {
 
   test("missing keys take the defaults", () => {
     expect(parseSettings("---\ndocs: branch\n---\n")).toEqual({ settings: DEFAULT_SETTINGS, problems: [] });
-    expect(DEFAULT_SETTINGS).toEqual({ docs: "branch", pr: { draft: true }, checks: { external: [] }, gates: {}, crew: { workers: 3, babysitters: 2, selfApprove: [] } });
+    expect(DEFAULT_SETTINGS).toEqual({ docs: "branch", pr: { draft: true }, checks: { external: [] }, gates: {}, crew: { workers: 3, babysitters: 2, selfApprove: [] }, board: { record: false } });
   });
 
   test("wrong types and unknown keys become problems and fall back to defaults", () => {
@@ -140,5 +141,22 @@ describe("standing go: pr.ship and crew", () => {
       "crew has an unknown key: approve-all",
     ].toSorted());
     expect(parseSettings("---\ncrew:\n  self-approve: design\n---\n").problems).toEqual(['crew.self-approve must be a list of strings, e.g. crew.self-approve: ["Vercel*"]']);
+  });
+});
+
+describe("board.record", () => {
+  test("off by default, on when the project says so, and named on the line only when on", () => {
+    expect(DEFAULT_SETTINGS.board.record).toBe(false);
+    const on = parseSettings("---\ndocs: main\nboard:\n  record: on\n---\n");
+    expect(on).toEqual({ settings: { ...DEFAULT_SETTINGS, docs: "main", board: { record: true } }, problems: [] });
+    expect(describeSettings(on.settings)).toBe("docs on main · PRs draft · merge: ask the user · board record on");
+    expect(parseSettings("---\nboard: { record: off }\n---\n").settings.board.record).toBe(false);
+  });
+
+  test("a wrong value or key is a problem and leaves the board off", () => {
+    expect(parseSettings("---\nboard: { record: yes, people: [Anton] }\n---\n")).toEqual({
+      settings: DEFAULT_SETTINGS,
+      problems: ["board has an unknown key: people", 'board.record must be on or off, not "yes"'],
+    });
   });
 });
