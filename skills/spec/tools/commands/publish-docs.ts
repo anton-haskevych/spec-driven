@@ -2,7 +2,7 @@ import { gitAt } from "../core/git";
 import { defaultBranch, systemRunner, type Runner } from "../core/run";
 import { loadSettings } from "../playbook/settings";
 import { publishDocs } from "../publish/publish";
-import { pushBranch } from "../publish/push";
+import { pushBranch, pushResult } from "../publish/push";
 import { publishLines, remoteLine } from "../publish/render";
 import { NO_DEFAULT_BRANCH } from "./push";
 
@@ -14,7 +14,7 @@ export function publishDocsReport(projectDir: string, args: readonly string[], r
   if (!branch) return `publish-docs: ${NO_DEFAULT_BRANCH}`;
 
   const git = gitAt(projectDir, runner);
-  const pushed = pushBranch(git, branch);
+  const pushed = pushResult(pushBranch(git, branch));
   if (!pushed.ok) return `publish-docs: ${pushed.reason}`;
   if (pushed.value.branch === branch) return `${remoteLine(pushed.value, branch)}\npublish-docs: on ${branch} — the push published the docs`;
 
@@ -22,7 +22,7 @@ export function publishDocsReport(projectDir: string, args: readonly string[], r
   if (!published.ok) return `${remoteLine(pushed.value, branch)}\npublish-docs: ${published.reason}`;
   if (published.value.kind === "nothing") return [remoteLine(pushed.value, branch), ...publishLines(published.value, branch)].join("\n");
 
-  const mergeBackPushed = pushBranch(git, branch);
+  const mergeBackPushed = pushResult(pushBranch(git, branch));
   const commits = pushed.value.commits + (mergeBackPushed.ok ? mergeBackPushed.value.commits : 0);
   return [
     remoteLine({ ...pushed.value, commits }, branch, published.value.sha),

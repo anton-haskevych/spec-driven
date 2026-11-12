@@ -3,7 +3,7 @@ import { gitAt, type Git } from "../../core/git";
 import { resolveSpec } from "../../core/spec-folders";
 import { defaultBranch, type Runner } from "../../core/run";
 import type { Result } from "../../core/result";
-import { pushBranch } from "../../publish/push";
+import { pushBranch, pushResult } from "../../publish/push";
 import { treeName } from "../../trees/naming";
 import { babysitLogger, type BabysitLogger } from "../babysit/log";
 import type { PollClock } from "../babysit/poll";
@@ -83,7 +83,7 @@ function createPr(projectDir: string, git: Git, branch: string, spec: SpecForPr,
   if (current.ok && current.value !== branch) return { ok: false, reason: `this tree is on ${current.value}, not ${branch} — run it in that branch's tree` };
   const base = defaultBranch(projectDir, runner);
   if (!base) return { ok: false, reason: "no default branch (origin/HEAD unset and gh repo view failed)" };
-  const pushed = pushBranch(git, base);
+  const pushed = pushResult(pushBranch(git, base));
   if (!pushed.ok) return { ok: false, reason: `push failed — ${pushed.reason}` };
   const sha = git.out(["rev-parse", `--short=${SHORT_SHA}`, "HEAD"]);
   const created = ghWrites(projectDir, runner).create({ base, head: branch, title: prTitle(spec.name, spec.group), body: prBody(spec.path, spec.group), draft });
