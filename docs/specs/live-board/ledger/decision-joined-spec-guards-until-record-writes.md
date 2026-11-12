@@ -17,3 +17,6 @@ Phase 2a put two guards in place. Phases 3 and 3a lift them as each write gets a
   the record, so a frozen file lagging the record is never flagged. Prose edits pass: prose stays a file.
   Its message names `phase tick` / `phase add` / `phase split`; drop "this version can't write a joined spec
   yet" once they can.
+
+**Phase 3 lifted the tick:** `recordWriter` ticks on the record; add, split and deployed still refuse there
+(`notYet` in `plan/record-writer.ts`), and the hook's message says only those can't write a joined spec yet.

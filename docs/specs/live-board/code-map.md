@@ -30,6 +30,17 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/board/joined-activity.ts` | A joined phase in progress in the tree whose branch its task evidence names | 2a |
 | `skills/spec/tools/hooks/frozen-plan-edits.ts` | Which plan parts (boxes, edges, phase lines) a hand edit to a joined spec changed | 2a |
 | `skills/spec/tools/context/board-lines.ts` | The pack's `Board:` line and the tree-ahead line; every record-sourced pack line goes here | 2a |
+| `skills/spec/tools/plan/phase-writer.ts` | `PhaseWriter` port, `phaseWriterFor` (picked once), `PhaseOutcome`, `renderPhaseOutcome` | 3 |
+| `skills/spec/tools/plan/file-writer.ts`, `record-writer.ts` | The two homes: today's planners + `applyEdits`; the record (tick now, the rest in 3a) | 3 |
+| `skills/spec/tools/plan/record-tick.ts` | Push with `SAVE`, then `sendIntent` the tick; offline queues; the result line | 3 |
+| `skills/spec/tools/plan/ops/tick.ts` | `tickPlan` (pure), `findTask`, `closedLine`, `readTickIntent` | 3 |
+| `skills/spec/tools/plan/intents.ts` | `INTENT_PLANNERS` (reads) and `intentRunners(git)` (flushes push a queued commit first) | 3 |
+| `skills/spec/tools/record/overlay.ts` | Lays queued intents over a view: reads show a queued tick done | 3 |
+| `skills/spec/tools/plan/join-from-tree.ts`, `commands/join-from-tree.ts` | `join <spec> --from-tree` | 3 |
+| `skills/spec/tools/commands/phase/` | One file per phase action; `context.ts` gives each its writer | 3 |
+| `skills/spec/tools/publish/push-commit.ts` | Pushes one queued commit; `gone` when the branch moved on without it | 3 |
+| `skills/spec/tools/commands/claim-push.ts` | Push the branch after a held claim | 3 |
+| `skills/spec/tools/tests/joined-repo.ts` | A real-git repo with `alpha` joined and the board on; `recordPhase` | 3 |
 
 ## Existing files touched
 

@@ -35,7 +35,7 @@ describe("changedPlanParts", () => {
 describe("joinedEditProblem", () => {
   test("names what changed and the command that will write it", () => {
     expect(joinedEditProblem("alpha", ["checkboxes", "edges"])).toBe(
-      "alpha is on the board: its checkboxes and edges live in the record, so this edit changes nothing there. Undo it. Ticks go through `spec.ts phase tick`, phase changes through `phase add` / `phase split`; this version can't write a joined spec yet.",
+      "alpha is on the board: its checkboxes and edges live in the record, so this edit changes nothing there. Undo it. Ticks go through `spec.ts phase tick <spec> <phase> <task-id>`; phase changes go through `phase add` / `phase split`, which can't write a joined spec yet.",
     );
   });
 });
