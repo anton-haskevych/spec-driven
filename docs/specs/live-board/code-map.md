@@ -24,6 +24,9 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/join.ts` | `join <spec>`: base + trees → one record write → banner on main | 2 |
 | `skills/spec/tools/core/read-fields.ts` | Field readers shared by settings and record documents | 2 |
 | `skills/spec/tools/tests/record-factories.ts`, `join-fixtures.ts` | `specDoc`, `phaseDoc`, `task`; spec copies incl. the Nov 11 fixture | 2 |
+| `skills/spec/tools/record/read.ts` | `readRecord(port, { fetch, now })`: the one read per command; `gitRecordReadPort` | 2a |
+| `skills/spec/tools/plan/state-source.ts` | `stateSourceFor(view)`, `joinedSpecState`, `withLiveTasks`, `joinedPhaseMarks` | 2a |
+| `skills/spec/tools/plan/read-plans.ts` | `PlanSource { state, marks, isJoined, record }`; `readPlansAt` (checkout settings), `readLocalPlans` (never fetches) | 2a |
 
 ## Existing files touched
 
