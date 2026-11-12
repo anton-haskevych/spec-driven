@@ -1,5 +1,6 @@
 import type { Git } from "../core/git";
 import { gitFailureReason } from "../core/git";
+import { parsePorcelainZ } from "../core/git-status";
 import { NETWORK, pushOutcome } from "../core/remote-push";
 import type { Result } from "../core/result";
 import type { RunOptions, RunResult } from "../core/run";
@@ -32,6 +33,12 @@ const FATAL = /^fatal:/m;
 
 export function pathsOutsideSpecDocs(paths: readonly string[]): string[] {
   return [...new Set(paths.filter((path) => path && !isSpecDocPath(path)))];
+}
+
+// Code edits a commit doesn't hold yet, tracked or not; spec docs don't count.
+export function unsavedCodePaths(git: Git): string[] {
+  const status = git.run(["status", "--porcelain", "-z"]);
+  return status.code === 0 ? pathsOutsideSpecDocs(parsePorcelainZ(status.stdout)) : [];
 }
 
 // An explicit refspec: a bare `git push` from a worktree branch created off origin/main pushes to main.

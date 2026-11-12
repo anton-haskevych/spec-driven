@@ -8,6 +8,8 @@ import { dropEntry, flushOutbox, listOutbox, outboxDir, refusedFor, type IntentR
 import type { Validate } from "../record/plan-writes";
 import { gitRecordPort } from "../record/ref";
 import { ownSessionId } from "../sessions/own";
+import { intentRunners } from "../plan/intents";
+import { validateRecordDoc } from "../plan/kinds";
 
 export const RECORD_USAGE = "record status | sync | drop <n>";
 
@@ -15,7 +17,7 @@ export interface RecordDeps {
   runner: Runner;
   env: Env;
   now: () => Date;
-  runners: IntentRunners;
+  runners(git: Git): IntentRunners;
   validate: Validate;
 }
 
@@ -27,7 +29,7 @@ interface RecordWorld {
 }
 
 export function systemRecordDeps(): RecordDeps {
-  return { runner: systemRunner, env: process.env, now: () => new Date(), runners: {}, validate: () => [] };
+  return { runner: systemRunner, env: process.env, now: () => new Date(), runners: intentRunners, validate: validateRecordDoc };
 }
 
 export async function recordCommand(projectDir: string, args: readonly string[], deps: RecordDeps = systemRecordDeps()): Promise<string> {
@@ -53,7 +55,7 @@ function statusLine(world: RecordWorld): string {
 async function syncLine(world: RecordWorld): Promise<string> {
   const port = gitRecordPort(world.git);
   if (!port) return "this repo has no origin; the board's record lives there";
-  const flushed = await flushOutbox(port, world.outbox, world.deps.runners, { validate: world.deps.validate });
+  const flushed = await flushOutbox(port, world.outbox, world.deps.runners(world.git), { validate: world.deps.validate });
   if (flushed.kind === "offline") return offlineLine(world);
   const tip = port.fetchTip();
   if (tip.kind === "offline") return offlineLine(world);

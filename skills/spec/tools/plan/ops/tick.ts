@@ -62,9 +62,10 @@ export function shortEvidence(evidence: string | undefined): string | undefined 
   return evidence && FULL_SHA.test(evidence) ? evidence.slice(0, 7) : evidence;
 }
 
-function closedBySameSession(task: Task, intent: TickIntent): boolean {
-  if (intent.session !== undefined) return task.doneBy === intent.session;
-  return task.doneIn === intent.tree && task.evidence === intent.evidence;
+// Without a session id, the same tree and the same commit stand in for "this session".
+export function closedBySameSession(task: Task, by: { session?: string; tree: string; evidence?: string }): boolean {
+  if (by.session !== undefined) return task.doneBy === by.session;
+  return task.doneIn === by.tree && (by.evidence === undefined || task.evidence === by.evidence);
 }
 
 function closed(task: Task, intent: TickIntent): Task {

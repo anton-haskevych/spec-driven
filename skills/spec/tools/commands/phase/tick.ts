@@ -1,21 +1,16 @@
-import { applyEdits } from "../../core/apply-edits";
-import { resolveSpec } from "../../core/spec-folders";
-import { planTick } from "../../phases/tick";
+import { renderPhaseOutcome } from "../../plan/phase-writer";
 import { parseFlags } from "./args";
+import type { PhaseContext } from "./context";
 
-export const TICK_USAGE = 'phase tick <spec> <phase> "<item prefix>"|#N [--evidence <text>]';
+export const TICK_USAGE = 'phase tick <spec> <phase> "<item prefix>"|#N|<task-id> [--evidence <text>]';
 
-export function phaseTick(projectDir: string, args: readonly string[]): string {
+// A tick on files stays synchronous; only the record's save and write wait.
+export function phaseTick(context: PhaseContext, args: readonly string[]): string | Promise<string> {
   const parsed = parseFlags(args, { evidence: { type: "string" } });
   const [specName, phase, selector] = parsed?.positionals ?? [];
   if (!parsed || !specName || !phase || !selector) return `usage: ${TICK_USAGE}`;
-
-  const spec = resolveSpec(projectDir, specName);
-  if (typeof spec === "string") return `phase tick: ${spec}`;
-
-  const result = planTick(spec, { phase, selector, evidence: parsed.values.evidence });
-  if (result.plan.kind !== "ok") return `phase tick: ${result.plan.reason}`;
-  applyEdits(result.plan);
-  const ticked = `ticked "${result.item}" in Phase ${result.phaseId}`;
-  return result.phaseComplete ? `${ticked}\nPhase ${result.phaseId} complete — run update.md → Close the phase` : ticked;
+  const writer = context.writerFor(specName);
+  if (typeof writer === "string") return `phase tick: ${writer}`;
+  const outcome = writer.tick({ phase, selector, evidence: parsed.values.evidence });
+  return outcome instanceof Promise ? outcome.then((settled) => renderPhaseOutcome("tick", settled)) : renderPhaseOutcome("tick", outcome);
 }

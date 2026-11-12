@@ -23,7 +23,7 @@ describe("spec.ts record (real git)", () => {
       runner: isolatedRunner,
       env: { CLAUDE_CODE_SESSION_ID: "s1" },
       now: () => new Date(),
-      runners: { refuse: (args) => () => ({ refused: `${String(args)} was already closed` }), add: (args) => () => ({ ops: [{ op: "replace", path: LIST, doc: { items: [args] } }] }) },
+      runners: () => ({ refuse: (args) => () => ({ refused: `${String(args)} was already closed` }), add: (args) => () => ({ ops: [{ op: "replace", path: LIST, doc: { items: [args] } }] }) }),
       validate: () => [],
     };
     const common = gitCommonDir(gitAt(repo.dir, isolatedRunner));

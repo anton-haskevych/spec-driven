@@ -49,7 +49,7 @@ export function planTick(spec: SpecFolder, request: TickRequest): Tick {
 }
 
 // A task phase's items and any Gate: item are ticked with evidence: an approval box can't be ticked by a prefix match.
-function checkEvidence(phase: PhaseState, item: string, evidence: string | undefined): string | undefined {
+export function checkEvidence(phase: Pick<PhaseState, "id" | "code">, item: string, evidence: string | undefined): string | undefined {
   const gate = isGateItem(item);
   if (phase.code && !gate) return undefined;
   if (evidence === undefined && gate) return `"${item}" records an approval; tick it with --evidence "<who approved, when>"`;

@@ -34,3 +34,9 @@ export function pilotCommandRefusal(argv: readonly string[], pilot: LocalPilot):
   if (name === "phase" && args[0] && LOCAL_PHASE_ACTIONS.has(args[0]) && args[1] === pilot.spec && args[2] === pilot.phase) return undefined;
   return `${name || "command"} unavailable in local-pilot; ownership, allocation, deployment, publication, launches and cleanup remain disabled`;
 }
+
+// A joined spec's phases are shared writes with a branch push, which the pilot's isolation rule forbids,
+// until codex-runtime-support adds board writes.
+export function pilotJoinedRefusal(spec: string): string {
+  return `${spec} is on the board; a Codex pilot can't write it yet`;
+}

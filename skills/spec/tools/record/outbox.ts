@@ -18,7 +18,10 @@ export interface OutboxEntry extends Intent {
   refused?: string;
 }
 
-export type IntentRunners = Readonly<Record<string, (args: unknown) => RecordPlan>>;
+// A runner may do its own network step before it plans (a queued tick pushes its commit first); when that
+// can't reach origin the entry stays queued.
+export type IntentRun = RecordPlan | { offline: string };
+export type IntentRunners = Readonly<Record<string, (args: unknown) => IntentRun>>;
 
 export type RecordWrite = Exclude<StoreWrite, { kind: "offline" }> | { kind: "queued"; pending: number };
 
@@ -33,11 +36,12 @@ export function outboxDir(commonDir: string): string {
   return stateDirIn(commonDir, "outbox");
 }
 
-export async function sendIntent(port: RecordPort, dir: string, intent: Intent, runners: IntentRunners, options: WriteOptions, now: Date): Promise<RecordWrite> {
+// `plan` stands in for the intent's runner when the caller wants to watch what its own plan saw.
+export async function sendIntent(port: RecordPort, dir: string, intent: Intent, runners: IntentRunners, options: WriteOptions, now: Date, plan?: RecordPlan): Promise<RecordWrite> {
   const flushed = await flushOutbox(port, dir, runners, options);
-  const runner = runners[intent.command];
-  if (!runner) return { kind: "invalid", problems: [`no runner for ${intent.command} intents`] };
-  const written = flushed.kind === "offline" ? { kind: "offline" as const } : await writeRecord(port, runner(intent.args), options);
+  const run = plan ?? runners[intent.command]?.(intent.args);
+  if (!run) return { kind: "invalid", problems: [`no runner for ${intent.command} intents`] };
+  const written = flushed.kind === "offline" || typeof run !== "function" ? { kind: "offline" as const } : await writeRecord(port, run, options);
   if (written.kind !== "offline") return written;
   queueIntent(dir, intent, now);
   return { kind: "queued", pending: listOutbox(dir).length };
@@ -88,7 +92,8 @@ async function flushUnderLock(port: RecordPort, dir: string, waiting: readonly O
   for (const entry of waiting) {
     const runner = runners[entry.command];
     if (!runner) continue;
-    const written = await writeRecord(port, runner(entry.args), options);
+    const run = runner(entry.args);
+    const written = typeof run === "function" ? await writeRecord(port, run, options) : ({ kind: "offline" } as const);
     if (written.kind === "offline") return { kind: "offline", pending: listOutbox(dir).length };
     if (written.kind === "failed") break;
     if (written.kind === "landed" || written.kind === "unchanged") {

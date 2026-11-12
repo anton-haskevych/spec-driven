@@ -113,9 +113,9 @@ describe("one-spec readers of a joined spec (real git)", () => {
     expect(isFinished(loadNodes(repo.dir).get("gamma")!)).toBe(false);
   });
 
-  test("phase writers refuse a joined spec and leave its files alone", async () => {
+  test("plan writers refuse a joined spec, a tick names tasks by id, and the files stay alone", async () => {
     const before = readFileSync(spec("phases/phase-2.md"), "utf8");
-    expect(await phaseCommand(repo.dir, ["tick", "alpha", "2", "#1"])).toBe("phase tick: alpha is on the board; this version can't write it yet");
+    expect(await phaseCommand(repo.dir, ["tick", "alpha", "2", "#1"])).toBe('phase tick: no task "#1" in phase 2; alpha is on the board, where a task is named by its id. Open tasks:\n2.1 second');
     expect(await phaseCommand(repo.dir, ["add", "alpha", "Three"])).toBe("phase add: alpha is on the board; this version can't write it yet");
     expect(readFileSync(spec("phases/phase-2.md"), "utf8")).toBe(before);
   });
