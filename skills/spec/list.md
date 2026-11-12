@@ -61,7 +61,7 @@ Print the tool's line. A refusal (`focus add: …`, `focus: push to main refused
 
 ## 2. Without Bun
 
-There is no board without Bun; print the table. Glob `docs/specs/*/CLAUDE.md` and `*/docs/specs/*/CLAUDE.md`, skipping folders that start with `_`. Read each file's frontmatter and its `progress.md` phase lines, then read `docs/specs/_backlog/*.md`. Render the same two tables:
+There is no board without Bun; print the table. Glob `docs/specs/*/CLAUDE.md` and `*/docs/specs/*/CLAUDE.md`, skipping folders that start with `_`. Read each file's frontmatter and its `progress.md` phase lines (a spec on the board shows `on the board` as its progress: its stub holds no phase lines), then read `docs/specs/_backlog/*.md`. Render the same two tables:
 
 ```
 ## Open specs (N)

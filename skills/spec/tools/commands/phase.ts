@@ -27,6 +27,8 @@ const ACTIONS: Record<string, PhaseAction> = {
   task: { usage: TASK_USAGE, run: phaseTask },
 };
 
+export const PHASE_ACTIONS = Object.keys(ACTIONS);
+
 export const PHASE_USAGE = Object.values(ACTIONS)
   .map((action) => action.usage)
   .join(" | ");

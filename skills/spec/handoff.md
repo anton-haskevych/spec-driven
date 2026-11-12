@@ -4,7 +4,7 @@ The session is ending. A fresh agent will start from zero context — the spec i
 
 This mode runs when the session is actually ending: explicitly (`/spec handoff`) or from execute mode's stopping rule. A phase completing does **not** trigger it — that is `update.md` → *Close the phase*, which reuses this file's *Reflect and redirect* and *Commit* but keeps the session going.
 
-**Key rule:** the handoff brain dump is not removed — it is **redirected**. The same reflection that used to produce a `### Handoff — YYYY-MM-DD` block in `progress.md` now routes its output into focused artifacts: durable learnings become ledger entries, ephemeral state becomes this phase's in-flight file. Progress.md is never touched by handoff.
+**Key rule:** the handoff brain dump is not removed — it is **redirected**. The same reflection that used to produce a `### Handoff — YYYY-MM-DD` block in `progress.md` now routes its output into focused artifacts: durable learnings become ledger entries, ephemeral state becomes this phase's in-flight file. Handoff never edits `progress.md` by hand; for a spec on the board, §3's `join --tidy` cuts it to its stub.
 
 See `SKILL.md` for the full layout and the brain-dump redirection rules.
 
@@ -18,8 +18,8 @@ Run SKILL.md → *Preconditions*. A legacy spec without `ledger/` follows `legac
 
 If there is any implementation work to record (commits since last session, unchecked items that are now done, uncommitted changes):
 
-- Follow `update.md` from *Load current state* through *Report and nudge* fully: load state, cross-reference git, apply sub-checkbox changes to the phase entry, capture durable learnings into the ledger, update `code-map.md`.
-- Leave `pr-opening.md` alone: phases done / left live in `progress.md`, status and the board. Do **not** tick the pre-PR checkboxes here; those are ticked only when the PR is about to open.
+- Follow `update.md` from *Load current state* through *Report and nudge* fully: load state, cross-reference git, tick and change tasks through the commands (SKILL.md → *Plan changes*), capture durable learnings into the ledger, update `code-map.md`.
+- Leave `pr-opening.md` alone: phases done / left live in the phase state, status and the board. Do **not** tick the pre-PR checkboxes here; those are ticked only when the PR is about to open.
 
 If there is NO implementation work (e.g., you only added spec details, did research, or had a design conversation):
 
@@ -104,6 +104,7 @@ When at a clean boundary, `git rm` this phase's file (or `in-flight/pr-<group>.m
 Handoff **must not**:
 
 - **Append anything to `progress.md`.** No handoff blocks, no session logs, no "Implementation Notes" entries. Progress.md stays a thin index.
+- **Tick, edit or add a plan line by hand.** Ticks and plan changes found while reflecting go through `spec.ts phase …` (SKILL.md → *Plan changes*); §1's update flow runs them.
 - **Forward-cite ledger entries for phase N+1.** Do not decide which ledger entries will be relevant for the next phase. That's `resume.md`'s job at pickup time — it filters INDEX by the active phase.
 - **Read or prepare the next phase's context.** Handoff's sole responsibility is closing out the current phase. Preparing the next phase is the resume agent's responsibility, with a hot cache at pickup time and the filtered ledger as the glue.
 
@@ -145,6 +146,8 @@ bun ${CLAUDE_SKILL_DIR}/tools/spec.ts push                       # docs: branch
 ```
 
 Pushing is confined: the branch goes to its own name, and only committed spec docs go to the default branch. Keep the output for *Signal completion*. A line starting `push:` or `publish-docs:` is a refusal; print it as is and don't retry, force or work around it. `diverged on main` means main changed the same spec lines: the next session merges main, then publishes. Without Bun, run `git push -u origin "HEAD:refs/heads/$(git branch --show-current)"` and say that the docs were not published; the next publish covers everything since the last snapshot.
+
+Then take the frozen lines out of a spec on the board: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts join <spec-name> --tidy` (SKILL.md → *Tools* → Join). It commits on the default branch only the files no tree or `feat/<spec>*` branch still changes, and names the tree or branch holding the rest (`left …`); a spec not on the board, or one already tidy, says so. Keep its line as is for *Signal completion*: a later handoff, once that work has merged, finishes the tidy. Without Bun, skip it.
 
 Then release this session's claims on the spec, so another session can pick the phase up: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim release <spec-name>`. Keep its `claim:` lines for *Signal completion*. `phase <id> was taken over by <holder> <age> ago; your work is on <branch>` means another session took the phase with `--take-over`. Print it as is: the user needs to know their commits on that branch are now someone else's starting point. Releasing a half-done phase is safe: `claim take` refuses it in any other worktree while the work sits in this one. Without Bun, skip it.
 

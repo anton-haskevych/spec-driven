@@ -20,10 +20,10 @@ Determine which spec to review from conversation context. If ambiguous, ask the 
 
 - `design.md` — problem, decisions, UX flows
 - `technical.md` — API contracts, data models, architecture
-- `progress.md` — phase index, what's done vs. planned
+- The phase table: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context status <name>` — what's done vs. planned, wherever the spec lives (SKILL.md → *Plan changes*); without Bun, `progress.md`. Paste it into every reviewer's prompt as `[phase-table]`: a spec on the board keeps only a stub `progress.md`.
 - `ledger/INDEX.md` (if it exists) — existing learnings already captured
 - `code-map.md` (if it exists) — load-bearing files this spec touches
-- The current phase entry (follow the pointer in `progress.md` to the first unchecked phase — either `phases/phase-<N>-<slug>.md` or `phases/phase-<N>-<slug>/plan.md`)
+- The current phase entry (the first open phase in that table — either `phases/phase-<N>-<slug>.md` or `phases/phase-<N>-<slug>/plan.md`)
 
 Then run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts graph <name>` (skip without Bun). Pass its output to every reviewer, together with the `ledger/INDEX.md` paths of the `part-of` parent and every `needs` target. Decisions already made in a parent or dependency are settled context, not findings; flag a spec that contradicts one. Undeclared overlaps in the output are integration-architect material.
 
@@ -81,11 +81,11 @@ No findings? Say so and give the overall assessment. Never pad.
 ### Agent 1: principal-engineer
 
 ```
-Review the spec at [spec-path]. Read:
+Review the spec at [spec-path]. The phase table ([phase-table]) is pasted at the end. Read:
 - design.md — problem, decisions, UX
 - technical.md — contracts, architecture
-- progress.md — phase index
-- The current phase entry (follow the pointer in progress.md to the first unchecked phase)
+- The phase table below — phase index
+- The current phase entry (the first open phase in that table)
 - ledger/INDEX.md if it exists; open any ledger entries relevant to the active phase
 - code-map.md if it exists
 
@@ -101,8 +101,8 @@ Return findings in the reviewer output contract appended below.
 ### Agent 2: integration-architect
 
 ```
-Review the spec at [spec-path]. Read:
-- design.md, technical.md, progress.md
+Review the spec at [spec-path]. The phase table ([phase-table]) is pasted at the end. Read:
+- design.md, technical.md, the phase table below
 - The current phase entry
 - ledger/INDEX.md and relevant ledger entries
 - code-map.md
@@ -120,8 +120,8 @@ Return findings in the reviewer output contract appended below.
 ### Agent 3: adversarial-tester
 
 ```
-Review the spec at [spec-path]. Read:
-- design.md, technical.md, progress.md
+Review the spec at [spec-path]. The phase table ([phase-table]) is pasted at the end. Read:
+- design.md, technical.md, the phase table below
 - The current phase entry
 - ledger/INDEX.md and relevant ledger entries (especially gotchas and workarounds)
 - code-map.md
@@ -158,8 +158,8 @@ Return findings in the reviewer output contract appended below.
 ### Agent 5: prior-art-reviewer
 
 ```
-Review the spec at [spec-path]. Read:
-- design.md, technical.md, progress.md
+Review the spec at [spec-path]. The phase table ([phase-table]) is pasted at the end. Read:
+- design.md, technical.md, the phase table below
 - The current phase entry
 - ledger/INDEX.md and relevant ledger entries
 - code-map.md
@@ -290,9 +290,11 @@ The forks were answered in §3; nothing else waits for confirmation. No per-find
 
 ### Spec corrections → edit the spec files directly
 
-Concrete changes to `design.md`, `technical.md`, a phase entry, or `code-map.md`: apply them. Wrong endpoint shapes, missing files in a phase's touch list, incorrect claims about existing code, decisions-table rows the review invalidated, deliverables that changed — edit the file.
+Concrete changes to `design.md`, `technical.md`, a phase entry's prose, or `code-map.md`: apply them. Wrong endpoint shapes, missing files in a phase's touch list, incorrect claims about existing code, decisions-table rows the review invalidated — edit the file.
 
-A task phase (`code: false`) that only checks our own work — QA, verification, opening a PR — is a spec correction too: move its content into `pr-opening.md` and delete the phase.
+Changes to the plan itself go through the commands (SKILL.md → *Plan changes*), after `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts join <spec>` (pass on its line when it joins): a deliverable reworded, dropped or added is `phase task`; an edge, PR group, gate, title or Outcome is `phase set`; a new phase is `phase add`, a phase with two jobs `phase split`, tasks that belong elsewhere `phase move`. Report each command's line.
+
+A task phase (`code: false`) that only checks our own work — QA, verification, opening a PR — is a spec correction too: move its content into `pr-opening.md` and delete the phase. On the board no command removes a phase yet: drop its open tasks with `phase task --drop` and retitle it with `phase set --title "Dropped: <why>"`.
 
 Respect supersession annotations: when a substitution finding replaces or deletes a component, apply the substitution and skip the mitigation findings marked `superseded-if-accepted` for that component (they stay preserved in the review file).
 

@@ -18,7 +18,7 @@ Run SKILL.md → *Preconditions*. A prep-stage spec routes to [prep.md](prep.md)
 
 Follow `status.md` → *Read phases*, *Compute status per phase*, and *Render* to produce the same 4-column table the user would see from `/spec <name> status`.
 
-Read **only** what `status.md` requires: `progress.md` plus per-phase Goal / Implementation guidance lines from each phase entry. Do **not** read `CLAUDE.md`, `design.md`, `technical.md`, `code-map.md`, or any ledger entry files in this stage.
+Read **only** what `status.md` requires: `progress.md` plus per-phase Goal / Implementation guidance lines from each phase entry. A spec on the board keeps only a stub there (it starts `> On the board since`): read its `spec.json` and phase documents instead (SKILL.md → *Plan changes* → *Reading a joined spec without Bun*); a phase is done when every task in it is `done`. Do **not** read `CLAUDE.md`, `design.md`, `technical.md`, `code-map.md`, or any ledger entry files in this stage.
 
 ### A.3. Read in-flight (only if it has substantive content)
 
@@ -108,7 +108,7 @@ In parallel:
 - `CLAUDE.md`
 - `design.md`
 - `technical.md`
-- The active phase entry via the pointer in `progress.md` (flat file or folder's `plan.md`)
+- The active phase entry via its pointer in the status table (flat file or folder's `plan.md`); for a spec on the board its tasks are in the pack, not the file
 
 If the user named a different phase or chunk in their confirmation, follow that pointer instead.
 

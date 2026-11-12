@@ -47,6 +47,8 @@ Apply the entry's [workflow capabilities](capabilities.md) before any automatic 
 - Any other `trees:` refusal (no origin, no default branch): work where the session is, and say so in one line.
 - Without Bun, skip this step.
 
+**Join the board**, before the claim, so every write this session makes lands where the others read: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts join <spec>` (SKILL.md → *Plan changes*). A `join:` line that put the spec on the board: pass it on in one line. `already on the board` or `The board is off here`: nothing to say. Any other refusal: the spec stays in files this session; say so in one line. Without Bun, skip this step.
+
 **Claim the phase**, so two sessions never start the same one: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim take <spec> <phase>`.
 - A `claim:` line means this session holds it. `took over <spec> phase <id> from <holder> (closed)` took a claim its session left behind; say so in one line.
 - `claim: their work is on <branch>` follows any take-over: build on that branch (merge or check it out) instead of starting the phase over.
@@ -130,7 +132,7 @@ For each unit:
 3. **Green.** Run the unit test → green. Then run the project's per-commit gate: when settings name `gates.per-commit` (the pack's `Settings:` line says `each commit: gate <name>`), run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts gates --name <name>` and do its lines for the subprojects you touched. For a subproject the gate doesn't list, or with no such setting, run the tests your change affects (the affected slice). Never the full suite per commit: it belongs to the PR gate (§10) or CI. Without Bun, read `gates.per-commit` in `docs/specs/_playbook/settings.md` and that section of `gates.md`.
 4. **Refactor (if warranted).** Improve names, split functions that grew too large, eliminate duplication that just appeared. Tests stay green throughout.
 5. **Commit.** One logical change per commit. Commit message states the *why*, not just the *what*. Body explains anything non-obvious about the approach. Then push when §1's decision says so.
-6. **Update progress.** Tick the matching sub-checkbox with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"` (or `#N` for the Nth open item, which keeps backticks out of the shell). When it ticks the last open item it also flips the `progress.md` box and says `Phase N complete`. Don't touch `pr-opening.md`: status and the board show phases done / left. Without Bun, edit the boxes by hand: the entry's sub-checkbox, and the `progress.md` box only when every sub-checkbox is ticked.
+6. **Update progress.** Tick the matching task with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> <task>`, naming it as the pack shows it: its id (`4.2`) on the board, where the tick also pushes the branch and records the commit; its text prefix or `#N` (which keeps backticks out of the shell) in files. A deliverable that turned out different is reworded, dropped or added with `phase task` first (SKILL.md → *Plan changes*). When it ticks the last open item it says `Phase N complete` (in files it also flips the `progress.md` box). Don't touch `pr-opening.md`: status and the board show phases done / left. Without Bun, edit the boxes by hand: the entry's sub-checkbox, and the `progress.md` box only when every sub-checkbox is ticked.
 
 ## 7. Capture durable learnings as you go
 
@@ -228,7 +230,7 @@ A task phase (`code: false`) delivers work outside the repo. No recon waves, no 
 2. **Split the open items by who can do them.**
    - **Items you can do here** (draft the copy, write the brief, prepare the run of show, build a shareable page): do them, save the result where the project keeps it, and tick each with that file or link.
    - **Items a person must do** (record, meet, send, publish from their account): tell the user what each needs from them, in one short list. Tick an item only when they report it done, with the evidence they give.
-3. **Tick with evidence**, always: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>" --evidence "<link, date or file>"` writes `- [x] <item> — <evidence>` and refuses anything that isn't evidence. Without Bun, write that line by hand. The doctor warns about ticks with nothing after them.
+3. **Tick with evidence**, always: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> <task> --evidence "<link, date or file>"` records the task done with that evidence and refuses anything that isn't evidence. Without Bun, write that line by hand. The doctor warns about ticks with nothing after them.
 4. **Found code work?** It doesn't belong in a task phase. Add a code phase with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase add <spec> "<title>"` (update.md → *New work → add or split a phase*) and link the two with `needs`.
 5. The stopping rule (§8), end-of-chunk (§9) and handoff apply as for code phases.
 

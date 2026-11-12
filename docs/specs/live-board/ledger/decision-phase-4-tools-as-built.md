@@ -33,3 +33,14 @@ What the mode files and later phases call, and where it differs from `technical.
 - **Doctor** (`doctor/joined.ts`): runs instead of the frozen-list checks for a joined spec. Errors: a listed
   phase document that doesn't read. Warnings: a prose file missing here; boxes in a phase file once
   `progress.md` has no phase lines.
+- **`phase task <spec> <phase> --add "<text>"… | --edit <task> "<text>" | --drop <task>`** (`phases/task.ts`,
+  `plan/ops/task.ts`, a `task` row in `PLAN_INTENTS`): one action per call. Files select a task like tick (prefix,
+  `#N`, open items only); the record by id, found anywhere in the spec. A done task refuses edit and drop. New
+  record tasks get `newTasks` ids, and a `Gate:` text now sets `gate: true` there too (as `plan apply` does).
+- **`phase set --needs-deployed a,b|none --same-files-as a,b|none`**: frontmatter lists in files; on the record
+  an empty list drops the field.
+- **Mode files** route every plan change through SKILL.md → *Plan changes* (the command table, join first, read
+  through `context status|execute`, no-Bun manual read). Prose and the spec `status:` stay hand edits.
+  No command moves a joined phase's `file` (flat→folder promotion) or removes a phase; review drops a QA
+  phase's tasks and retitles it instead.
+
