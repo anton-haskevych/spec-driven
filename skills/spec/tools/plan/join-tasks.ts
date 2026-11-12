@@ -46,7 +46,7 @@ function taskFrom(id: string, entry: EntryTask, head: string): Task {
 }
 
 // A ticked task may carry a note after ` — ` that isn't evidence; it still names the same task.
-function matchingIndexes(keys: readonly string[], entry: EntryTask): number[] {
+export function matchingIndexes(keys: readonly string[], entry: EntryTask): number[] {
   const at = entry.text.lastIndexOf(EVIDENCE_SEPARATOR);
   const candidates = [entry.text, ...(entry.done && at !== -1 ? [entry.text.slice(0, at)] : [])];
   for (const candidate of candidates) {

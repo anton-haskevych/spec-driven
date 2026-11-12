@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import type { Env } from "../core/env";
 import { join } from "node:path";
 import { gitAt, type Git } from "../core/git";
 import { defaultBranch, systemAsyncRunner, systemRunner, type AsyncRunner, type Runner } from "../core/run";
@@ -16,14 +17,17 @@ import { planJoin, type JoinCopy, type JoinPlan } from "../plan/join";
 import { readTreeCopies } from "../plan/join-copies";
 import { phaseDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
 import { landBanner } from "../plan/land-banner";
+import { joinFromTree } from "./join-from-tree";
 import { NO_DEFAULT_BRANCH } from "./push";
 
-export const JOIN_USAGE = "join <spec>";
+export const JOIN_USAGE = "join <spec> [--from-tree]";
+const FROM_TREE = "--from-tree";
 
 export interface JoinDeps {
   runner: Runner;
   asyncRunner: AsyncRunner;
   now: () => Date;
+  env?: Env;
 }
 
 interface Joining {
@@ -34,11 +38,12 @@ interface Joining {
 }
 
 export function systemJoinDeps(): JoinDeps {
-  return { runner: systemRunner, asyncRunner: systemAsyncRunner, now: () => new Date() };
+  return { runner: systemRunner, asyncRunner: systemAsyncRunner, now: () => new Date(), env: process.env };
 }
 
 export async function joinCommand(projectDir: string, args: readonly string[], deps: JoinDeps = systemJoinDeps()): Promise<string> {
   const [spec, ...extra] = args;
+  if (spec !== undefined && extra.length === 1 && extra[0] === FROM_TREE) return joinFromTree(projectDir, spec, deps);
   if (spec === undefined || extra.length > 0) return `usage: ${JOIN_USAGE}`;
   const branch = defaultBranch(projectDir, deps.runner);
   if (!branch) return `join: ${NO_DEFAULT_BRANCH.replace("nothing pushed", "nothing written")}`;

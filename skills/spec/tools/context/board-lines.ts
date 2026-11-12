@@ -27,5 +27,5 @@ export function treeAheadLine(joined: JoinedPlan, read: ReadSpecFile): string | 
   });
   if (ahead.length === 0) return undefined;
   const ticks = ahead.length === 1 ? "1 tick" : `${ahead.length} ticks`;
-  return `Tree is ahead of the board: ${ticks} (${ahead.join(", ")}) ${ahead.length === 1 ? "is" : "are"} open on the record.`;
+  return `Tree is ahead of the board: ${ticks} (${ahead.join(", ")}) ${ahead.length === 1 ? "is" : "are"} open on the record. Run join ${joined.spec.name} --from-tree.`;
 }

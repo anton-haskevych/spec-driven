@@ -65,6 +65,18 @@ describe("spec.ts join (real git)", () => {
     expect(onRecord(`specs/${SPEC}/phases/2.json`).tasks[0]).toEqual({ id: "2.1", text: "Alpha", done: true, evidence: treeHead });
   });
 
+  test("--from-tree adds this tree's ticks made after the join, matched by text, with its head", async () => {
+    await joinIn(repo);
+    const tree = repo.addWorktree("pr-b", "feat/pr-b");
+    writeSpec(tree, BOARD_ON, [PHASES[0] as PhaseSpec, { id: "2", tasks: ["Alpha", ["Beta", true]] }]);
+    tree.commitAll("tick Beta");
+    const treeHead = tree.git("rev-parse", "HEAD");
+
+    expect(await joinCommand(tree.dir, [SPEC, "--from-tree"], deps())).toBe(`join: recorded 1 tick from tree pr-b (2.2) at ${treeHead.slice(0, 7)}`);
+    expect(onRecord(`specs/${SPEC}/phases/2.json`).tasks[1]).toMatchObject({ id: "2.2", done: true, evidence: treeHead, doneIn: "pr-b" });
+    expect(await joinCommand(tree.dir, [SPEC, "--from-tree"], deps())).toBe("join: nothing in tree pr-b is ahead of the board");
+  });
+
   test("a second run says already on the board and lands a missing banner", async () => {
     await joinIn(repo);
     repo.git("pull", "-q", "--no-rebase", "origin", "main");

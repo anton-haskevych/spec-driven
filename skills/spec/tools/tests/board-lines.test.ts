@@ -34,7 +34,7 @@ describe("treeAheadLine", () => {
 
   test("names the tasks this tree ticked that the record has open", () => {
     const frozen = "## Deliverables\n\n- [x] model it\n- [x] ship\n- [ ] test\n";
-    expect(treeAheadLine(joined, files(frozen))).toBe("Tree is ahead of the board: 1 tick (2.1) is open on the record.");
+    expect(treeAheadLine(joined, files(frozen))).toBe("Tree is ahead of the board: 1 tick (2.1) is open on the record. Run join alpha --from-tree.");
   });
 
   test("says nothing when the tree's boxes match the record", () => {
