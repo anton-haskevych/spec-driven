@@ -7,12 +7,12 @@ import type { Result } from "../core/result";
 import { isoTimestamp } from "../core/schedule";
 import { findSpecs } from "../core/spec-folders";
 import { loadSpecStateFromFiles } from "../core/spec-state";
-import { baseProject } from "../mainline/load";
 import { isPlainObject } from "../record/document";
 import { gitRecordPort, type RecordPort } from "../record/ref";
 import { writeRecord, type RecordPlan, type StoreWrite } from "../record/write";
-import { loadSettings, SETTINGS_FILE } from "../playbook/settings";
-import { pinDefault } from "../publish/snapshot";
+import { boardBase } from "../plan/board-base";
+import type { PhaseDoc } from "../plan/docs/phase-doc";
+import type { SpecDoc } from "../plan/docs/spec-doc";
 import { planJoin, type JoinCopy, type JoinPlan } from "../plan/join";
 import { readTreeCopies } from "../plan/join-copies";
 import { phaseDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
@@ -59,42 +59,36 @@ export async function joinCommand(projectDir: string, args: readonly string[], d
   const planned = planJoin({ spec, ...copies.value, joinedAt: isoTimestamp(deps.now()) });
   if ("refused" in planned) return `join: refused, nothing written. ${planned.refused}`;
   let existing: unknown;
-  const written = await writeRecord(port, joinPlan(planned, (doc) => (existing = doc)), { validate: validateRecordDoc });
+  const written = await writeRecord(port, newSpecPlan(planned, "join", (doc) => (existing = doc)), { validate: validateRecordDoc });
   const lines = [...planned.recorded, ...planned.left].map((line) => `join: ${line}`);
   return [...lines, await resultLine(joining, planned, written, existing, copies.value.trees.length)].join("\n");
 }
 
-// The setting and the spec come from the default branch, so a tree cut before the switch agrees.
 async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<{ base: JoinCopy; trees: JoinCopy[]; onBase(pointer: string): boolean }>> {
   const { git, branch, spec } = joining;
-  const tip = pinDefault(git, branch);
-  if (!tip.ok) return { ok: false, reason: `Can't reach origin (${tip.reason}); a join is never queued, so run it again when origin answers.` };
-  const project = await baseProject(git, tip.value);
-  if (!project.ok) return project;
-  const settings = loadSettings(project.value.dir);
-  if (!settings.board.record) return { ok: false, reason: `The board is off here: ${SETTINGS_FILE} on ${branch} doesn't say board.record: on.` };
-  if (settings.docs !== "main") return { ok: false, reason: "The board needs docs: main in this version." };
-  const folders = findSpecs(project.value.dir, spec);
+  const base = await boardBase(git, branch, "a join");
+  if (!base.ok) return base;
+  const { tip, projectDir } = base.value;
+  const folders = findSpecs(projectDir, spec);
   const [folder] = folders;
   if (!folder) return { ok: false, reason: `No spec named ${spec} on origin/${branch}; land the spec first.` };
   if (folders.length > 1) return { ok: false, reason: `${folders.length} specs are named ${spec} on origin/${branch}.` };
   const state = loadSpecStateFromFiles(folder);
   if (!state.hasProgress) return { ok: false, reason: `${spec} is still in prep; it has no phases to put on the board.` };
-  const trees = await readTreeCopies(git, deps.asyncRunner, tip.value, spec);
+  const trees = await readTreeCopies(git, deps.asyncRunner, tip, spec);
   if (!trees.ok) return trees;
-  return { ok: true, value: { base: { tree: branch, head: tip.value, state }, trees: trees.value, onBase: (pointer) => existsSync(join(folder.dir, pointer)) } };
+  return { ok: true, value: { base: { tree: branch, head: tip, state }, trees: trees.value, onBase: (pointer) => existsSync(join(folder.dir, pointer)) } };
 }
 
-// `spec.json` is a create: of two machines joining at once, the second finds it and changes nothing.
-function joinPlan(planned: JoinPlan, seen: (doc: unknown) => void): RecordPlan {
-  const { spec, phases } = planned;
+// `spec.json` is a create: of two machines writing a spec at once, the second finds it and changes nothing.
+export function newSpecPlan({ spec, phases }: { spec: SpecDoc; phases: readonly PhaseDoc[] }, verb: string, seen: (doc: unknown) => void): RecordPlan {
   return (view) => {
     const current = view.doc(specDocPath(spec.name));
     seen(current);
     if (current !== undefined) return { unchanged: true };
     return {
       ops: [{ op: "create", path: specDocPath(spec.name), doc: spec }, ...phases.map((phase) => ({ op: "create" as const, path: phaseDocPath(spec.name, phase.id), doc: phase }))],
-      message: `record: join ${spec.name}`,
+      message: `record: ${verb} ${spec.name}`,
     };
   };
 }
