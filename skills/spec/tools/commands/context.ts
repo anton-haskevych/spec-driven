@@ -2,6 +2,8 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { findSpecs, type SpecFolder } from "../core/spec-folders";
 import { diskReader } from "../core/spec-state";
+import { planShapeOf } from "../plan/plan-diff";
+import { noticePlanChange, planMemoryFor, type PlanMemory } from "../plan/plan-version";
 import { readPlansAt, type PlanSource } from "../plan/read-plans";
 import { boardLine, treeAheadLine } from "../context/board-lines";
 import { babysitPack } from "../context/babysit-pack";
@@ -40,13 +42,16 @@ export interface ContextDeps {
   readClaimsHere: ClaimsHereReader;
   workflow?: LocalPilot;
   now?: () => Date;
+  memory?: PlanMemory;
 }
 
 export function systemContextDeps(): ContextDeps {
+  const memory = planMemoryFor(process.env);
   return {
     runner: systemRunner,
     readHeld: (projectDir) => heldByOthers(projectDir, { runner: systemRunner, claudeHome: defaultClaudeHome(), env: process.env }),
     readClaimsHere: systemClaimsHere,
+    ...(memory ? { memory } : {}),
   };
 }
 
@@ -85,7 +90,7 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
 
   const doctor = doctorReport(projectDir, name, deps.runner, plans).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
-  const block = (body: string) => packBlock(state.spec.name, mode, inferredFrom, withBoardLines(plans, state.spec, body));
+  const block = (body: string) => packBlock(state.spec.name, mode, inferredFrom, withBoardLines(plans, state.spec, body, deps.memory));
   if (mode === "babysit") return block(babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
   const nodes = loadNodes(projectDir, plans.marks);
   const held = await deps.readHeld(projectDir);
@@ -100,9 +105,13 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   return block(body);
 }
 
-function withBoardLines(plans: PlanSource, spec: SpecFolder, body: string): string {
+function withBoardLines(plans: PlanSource, spec: SpecFolder, body: string, memory: PlanMemory | undefined): string {
   const joined = plans.joined(spec.name);
-  const lines = [boardLine(plans.record, joined, plans.pending), joined ? treeAheadLine(joined, diskReader(spec.dir)) : undefined].filter((line) => line !== undefined);
+  const lines = [
+    boardLine(plans.record, joined, plans.pending),
+    joined && memory ? noticePlanChange(memory, spec.name, planShapeOf(joined)) : undefined,
+    joined ? treeAheadLine(joined, diskReader(spec.dir)) : undefined,
+  ].filter((line) => line !== undefined);
   return lines.length === 0 ? body : `${lines.join("\n")}\n\n${body}`;
 }
 
