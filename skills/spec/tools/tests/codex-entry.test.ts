@@ -9,6 +9,11 @@ import type { SessionRef } from "../runtime/sessions";
 import { createContextFixture } from "./context-fixture";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { asyncStubRunner } from "./stub-runner";
+import { gitAt } from "../core/git";
+import { phaseDocPath, specDocPath } from "../plan/kinds";
+import { serializeDoc } from "../record/document";
+import { gitRecordPort } from "../record/ref";
+import { phaseDoc, specDoc, task } from "./record-factories";
 
 const root = realpathSync(join(import.meta.dir, "../../../.."));
 let legacy: TestRepo;
@@ -169,6 +174,20 @@ test("unknown phase/prep layouts refuse rather than falling back to a free phase
   expect((await runCodexEntry(request, deps)).ok).toBe(false);
   expect(calls).toEqual([]);
 });
+
+test("a joined spec with a stub progress.md passes the layout check from the record", async () => {
+  writeFileSync(join(pilot.dir, "docs/specs/checkout/progress.md"), "> On the board since 2026-11-11.\n");
+  const port = gitRecordPort(gitAt(pilot.dir, isolatedRunner));
+  if (!port) throw new Error("no origin");
+  const docs = {
+    [specDocPath("checkout")]: specDoc({ name: "checkout", phases: ["2"] }),
+    [phaseDocPath("checkout", "2")]: phaseDoc({ id: "2", file: "phases/phase-2.md", tasks: [task({ id: "2.1", text: "model" })] }),
+  };
+  const commit = port.commit({ kind: "absent" }, Object.entries(docs).map(([path, doc]) => ({ path, text: serializeDoc(doc) })), "record: join checkout");
+  if (!commit.ok) throw new Error(commit.reason);
+  port.push(commit.value, { kind: "absent" });
+  expect(await runCodexEntry(request, deps)).not.toMatchObject({ ok: false, reason: expect.stringContaining("current spec layout") });
+}, 30_000);
 
 test("native mismatch/unavailable coverage refuses and alternate-home is not enabled", async () => {
   const observe = deps.observe;

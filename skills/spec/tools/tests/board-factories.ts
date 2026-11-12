@@ -5,6 +5,7 @@ import type { PhaseState, SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 import type { PrRow } from "../pr/checks/rollup";
 import { specMeta, specNode } from "./factories";
+import { FILES_ONLY } from "../plan/read-plans";
 
 export const NOW = new Date("2026-10-01T20:00:00Z");
 
@@ -55,6 +56,7 @@ export function boardInputs(specs: readonly SpecFixture[], overrides: Partial<Bo
     nodes: new Map(specs.map((fixture) => [fixture.node.spec.name, fixture.node])),
     states: new Map(specs.map((fixture) => [fixture.node.spec.name, fixture.state])),
     stages: new Map(specs.flatMap((fixture) => (fixture.stage ? [[fixture.node.spec.name, fixture.stage] as const] : []))),
+    plans: FILES_ONLY,
     workspaces: [],
     worktreePaths: [],
     counts: { merged: 0, unknownBase: 0, unreadable: 0, duplicates: [] },
