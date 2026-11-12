@@ -131,6 +131,16 @@ describe("treeOccupant: may this tree be deleted?", () => {
     expect(treeOccupant("/t/old", view("unreadable"))).toBe("sessions can't be read");
   });
 
+  test("a session that started in it keeps it after moving to another tree: its hooks still run from there", () => {
+    const moved = liveSession({ sessionId: "other", cwd: "/t/other", startDir: "/t/old", name: "s execute 2" });
+    expect(treeOccupant("/t/old", view([moved]))).toBe("s execute 2 started there");
+  });
+
+  test("the caller's own start tree is kept too: removing it would switch off its own hooks", () => {
+    const self = liveSession({ sessionId: "me", cwd: "/t/other", startDir: "/t/old/sub", name: "s execute 2" });
+    expect(treeOccupant("/t/old", view([self]))).toBe("s execute 2 started there");
+  });
+
   test("the caller's own session and closed claims don't keep it", () => {
     expect(treeOccupant("/t/old", view([session("/t/old", "me")], [held("closed", claim("2", "/t/old"))]))).toBeUndefined();
   });
