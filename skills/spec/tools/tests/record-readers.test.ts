@@ -73,6 +73,7 @@ describe("one-spec readers of a joined spec (real git)", () => {
     expect(pack).toContain("Phase 2");
     expect(pack).toContain("- [ ] 2.1 second");
     expect(pack).not.toContain("frozen two");
+    expect(pack.split("\n")[1]).toBe("Board: live · plan v1");
     expect(runner.recordFetches).toBe(1);
   });
 

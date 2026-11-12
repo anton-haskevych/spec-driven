@@ -1,8 +1,9 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { findSpecs } from "../core/spec-folders";
+import { findSpecs, type SpecFolder } from "../core/spec-folders";
 import { diskReader } from "../core/spec-state";
-import { readPlansAt } from "../plan/read-plans";
+import { readPlansAt, type PlanSource } from "../plan/read-plans";
+import { boardLine, treeAheadLine } from "../context/board-lines";
 import { babysitPack } from "../context/babysit-pack";
 import { executePack, resumePack, type PackInput } from "../context/packs";
 import { neighborhoodReport } from "./graph";
@@ -84,7 +85,8 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
 
   const doctor = doctorReport(projectDir, name, deps.runner, plans).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
-  if (mode === "babysit") return packBlock(state.spec.name, mode, inferredFrom, babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
+  const block = (body: string) => packBlock(state.spec.name, mode, inferredFrom, withBoardLines(plans, state.spec, body));
+  if (mode === "babysit") return block(babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
   const nodes = loadNodes(projectDir, plans.marks);
   const held = await deps.readHeld(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir, specsInFlight(held, state.spec.name));
@@ -95,7 +97,13 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   const body = mode === "execute"
     ? executeBody(projectDir, { state, doctor, relations, ready, held, playbooks, settings, stale, workflow: deps.workflow, lessons: loadProjectLessons(projectDir) }, request.hint)
     : resumePack({ state, doctor, relations, ready, held, playbooks, settings, stale, lessons: [] });
-  return packBlock(state.spec.name, mode, inferredFrom, body);
+  return block(body);
+}
+
+function withBoardLines(plans: PlanSource, spec: SpecFolder, body: string): string {
+  const joined = plans.joined(spec.name);
+  const lines = [boardLine(plans.record, joined), joined ? treeAheadLine(joined, diskReader(spec.dir)) : undefined].filter((line) => line !== undefined);
+  return lines.length === 0 ? body : `${lines.join("\n")}\n\n${body}`;
 }
 
 function packBlock(spec: string, mode: string, inferredFrom: string | undefined, body: string): string {
