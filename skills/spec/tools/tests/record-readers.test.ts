@@ -6,8 +6,9 @@ import { readyReport } from "../commands/ready";
 import { gitAt } from "../core/git";
 import type { Runner } from "../core/run";
 import { resolveSpec } from "../core/spec-folders";
+import { isFinished, loadNodes } from "../graph/nodes";
 import { issuesForWrittenFile } from "../hooks/spec-file-check";
-import { specStatesAt } from "../plan/read-plans";
+import { readLocalPlans, specStatesAt } from "../plan/read-plans";
 import { phaseDocPath, specDocPath } from "../plan/kinds";
 import { serializeDoc } from "../record/document";
 import { RECORD_REF } from "../record/layout";
@@ -42,6 +43,12 @@ describe("one-spec readers of a joined spec (real git)", () => {
     repo.write("docs/specs/alpha/ledger/INDEX.md", "# Ledger\n");
     repo.write("docs/specs/alpha/phases/phase-1.md", "# Phase 1\n\n**Goal:** one.\n\n## Deliverables\n\n- [x] frozen\n");
     repo.write("docs/specs/alpha/phases/phase-2.md", "# Phase 2\n\n**Goal:** two.\n\n## Deliverables\n\n- [ ] frozen two\n");
+    repo.write("docs/specs/beta/CLAUDE.md", "---\nstatus: active\n---\n# Beta\n");
+    repo.write("docs/specs/beta/progress.md", "- [ ] Phase 1 — Use → `phases/phase-1.md`\n");
+    repo.write("docs/specs/beta/phases/phase-1.md", "---\nneeds: [alpha#1]\n---\n- [ ] use alpha\n");
+    repo.write("docs/specs/gamma/CLAUDE.md", "---\nstatus: active\n---\n# Gamma\n");
+    repo.write("docs/specs/gamma/progress.md", STUB);
+    repo.write("docs/specs/gamma/phases/phase-1.md", "# Phase 1\n\n## Deliverables\n\n- [ ] frozen\n");
     repo.commitAll("alpha");
     repo.git("push", "-q", "origin", "main");
     const port = gitRecordPort(gitAt(repo.dir, isolatedRunner));
@@ -50,6 +57,8 @@ describe("one-spec readers of a joined spec (real git)", () => {
       [specDocPath("alpha")]: specDoc({ name: "alpha", phases: ["1", "2"] }),
       [phaseDocPath("alpha", "1")]: phaseDoc({ id: "1", file: "phases/phase-1.md", tasks: [task({ id: "1.1", text: "first", done: true })] }),
       [phaseDocPath("alpha", "2")]: phaseDoc({ id: "2", file: "phases/phase-2.md", needs: ["1"], tasks: [task({ id: "2.1", text: "second" })] }),
+      [specDocPath("gamma")]: specDoc({ name: "gamma", phases: ["1"] }),
+      [phaseDocPath("gamma", "1")]: phaseDoc({ id: "1", file: "phases/phase-1.md", tasks: [task({ id: "1.1", text: "only", done: true })] }),
     };
     const commit = port.commit({ kind: "absent" }, Object.entries(docs).map(([path, doc]) => ({ path, text: serializeDoc(doc) })), "record: join alpha");
     if (!commit.ok) throw new Error(commit.reason);
@@ -88,5 +97,16 @@ describe("one-spec readers of a joined spec (real git)", () => {
     expect(states(alpha).phases[1]?.entry).toContain("- [ ] 2.1 second");
     states(alpha);
     expect(runner.recordFetches).toBe(1);
+  });
+
+  test("a spec that needs a joined spec's finished phase is unblocked by the record's marks", () => {
+    expect(readyReport(repo.dir, "beta", isolatedRunner, NOW)).toStartWith("Ready now: 1 Use");
+  });
+
+  test("a joined spec whose record tasks are all done is finished, though its progress.md is a stub", () => {
+    const nodes = loadNodes(repo.dir, readLocalPlans(repo.dir, isolatedRunner, NOW).marks);
+    expect(nodes.get("gamma")?.phases).toEqual([{ id: "1", done: true, deployed: false }]);
+    expect(isFinished(nodes.get("gamma")!)).toBe(true);
+    expect(isFinished(loadNodes(repo.dir).get("gamma")!)).toBe(false);
   });
 });
