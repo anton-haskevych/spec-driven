@@ -7,7 +7,9 @@ import type { SpecFolder } from "../core/spec-folders";
 import { graphIssues } from "../graph/checks";
 import type { SpecNode } from "../graph/nodes";
 import type { PlanSource } from "../plan/read-plans";
+import { recordViewOf } from "../record/read";
 import type { Issue } from "./issue";
+import { joinedSpecIssues } from "./joined";
 import { checkLedgerEntry, checkLedgerIndex } from "./ledger";
 import { gateIssues } from "./gates";
 import { phaseEdgeIssues } from "./phase-edges";
@@ -41,7 +43,13 @@ export function runDoctor(spec: SpecFolder, context: DoctorContext): Issue[] {
   const tasks = [...taskPhaseIssues(state), ...phaseGateIssues(state), ...phasePlaybookIssues(state, context.playbooks)];
   const prOpeningFile = join(spec.dir, "pr-opening.md");
   const gates = gateIssues(prOpeningFile, readTextIfExists(prOpeningFile) ?? "", context.gates);
-  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec, context.projectDir), ...(context.plans.isJoined(spec.name) ? [] : progressIssues(spec)), ...edges, ...schedule, ...tasks, ...gates];
+  return [...metaIssues(spec, context), ...graph, ...ledgerIssues(spec, context.projectDir), ...planIssues(spec, context.plans), ...edges, ...schedule, ...tasks, ...gates];
+}
+
+function planIssues(spec: SpecFolder, plans: PlanSource): Issue[] {
+  const view = recordViewOf(plans.record);
+  if (!view || !plans.isJoined(spec.name)) return progressIssues(spec);
+  return joinedSpecIssues(spec, view);
 }
 
 function metaIssues(spec: SpecFolder, context: DoctorContext): Issue[] {
