@@ -20,3 +20,10 @@ Phase 2a, where it differs from `technical.md` → *Local copy*:
 - **A newer `meta.json` layout** reads as `{ kind: "newer" }`: callers read files and say to update.
 - **Count rule:** `countTasks` / `allTasksDone` / `entryTaskCount` (`core/phase-entry.ts`). Complete = at least
   one task and all done. A joined phase is also done when `deployed` is set; a zero-task phase otherwise stays open.
+- **Board inputs carry the command's `PlanSource`** (`plans`) and `joinedActivity`, computed once in
+  `loadBoardInputs`; `phaseActivity(states, workspaces, joined)` merges it. A joined phase counts as in progress
+  only while the record has it open, and only from evidence `… on origin/<branch>`: join's bare sha names no tree.
+- **`resolvePr` takes a `SpecSource`**; its callers pass `specStatesAt`, which opens the record only when a spec
+  name is resolved, so `pr status <number>` and babysit's polling never read or fetch it.
+- **The tree-ahead pack line names no command yet.** Phase 3 builds `join --from-tree`; append
+  `Run join <spec> --from-tree.` to `treeAheadLine` (`context/board-lines.ts`) when it lands.

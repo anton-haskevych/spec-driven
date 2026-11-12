@@ -26,7 +26,9 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/tests/record-factories.ts`, `join-fixtures.ts` | `specDoc`, `phaseDoc`, `task`; spec copies incl. the Nov 11 fixture | 2 |
 | `skills/spec/tools/record/read.ts` | `readRecord(port, { fetch, now })`: the one read per command; `gitRecordReadPort` | 2a |
 | `skills/spec/tools/plan/state-source.ts` | `stateSourceFor(view)`, `joinedSpecState`, `withLiveTasks`, `joinedPhaseMarks` | 2a |
-| `skills/spec/tools/plan/read-plans.ts` | `PlanSource { state, marks, isJoined, record }`; `readPlansAt` (checkout settings), `readLocalPlans` (never fetches) | 2a |
+| `skills/spec/tools/plan/read-plans.ts` | `PlanSource { state, marks, isJoined, joined, record }`; `readPlansAt` (checkout settings), `readLocalPlans` (never fetches), `specStatesAt` (lazy, for `pr` commands) | 2a |
+| `skills/spec/tools/board/joined-activity.ts` | A joined phase in progress in the tree whose branch its task evidence names | 2a |
+| `skills/spec/tools/context/board-lines.ts` | The pack's `Board:` line and the tree-ahead line; every record-sourced pack line goes here | 2a |
 
 ## Existing files touched
 

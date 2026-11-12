@@ -1,34 +1,34 @@
 # In-flight state
 
-**Session ended:** 2026-11-11
+**Session ended:** 2026-11-12
 **Active phase:** 2a — A joined spec is read from the record
 
 ## Where things stand
 
-- Done and committed: the one count rule (deliverable 1), `stateSourceFor` + `readRecord` + `PlanSource`
-  (`plan/read-plans.ts`), one read per command (deliverable 3, ticked). Switched to the source: the board's base
-  (`mainline/load.ts`, node marks, overlay skips joined specs), the pack (`commands/context.ts`, shares its source
-  with the embedded doctor), `ready`, the doctor (skips `progressIssues` for joined), the spec-file hook (never
-  fetches).
-- Deliverable 2 is open only because these callers still read files: `pr/actions/open.ts:35`,
-  `pr/resolve.ts:46`, `commands/phase.ts:149` → `phases/review-refs.ts:37`, `runtime/codex/entry.ts:94`,
-  `trees/place-system.ts:72` (its own checkout copy: skip it for a joined spec, base already holds the record's).
-- Deliverable 4 is built (`loadNodes(dir, marks)`); it lacks its test: a spec whose `needs` names a joined,
-  finished spec is unblocked (`ready/refs.ts:21-31` through `nodes`), and a stub `progress.md` gets a stage.
-- Not started: 5 (activity from evidence), 6 (`Board:` line, tree-ahead line in `context/board-lines.ts`),
-  7 (golden board test, `list` caller), 8 (writers refuse, hook branch for checkbox / edges / `progress.md`).
+- Deliverables 1–7 are done and ticked. Every reader listed in the phase reads joined specs through the
+  command's `PlanSource`; only the file planners (`phases/*.ts`, `commands/join.ts`, `plan/join-copies.ts`) and
+  the worktree overlay (`workspaces/views.ts`, which skips joined specs) still call `loadSpecStateFromFiles`.
+- Only deliverable 8 is open: phase writers refuse on a joined spec until phase 3, and the spec-file hook gives
+  blocking feedback after a checkbox, edge-frontmatter or `progress.md` edit in a joined spec.
 
 ## Implicit context
 
-- `BoardInputs` has no record view yet. Deliverable 5 needs the joined specs' tasks there (or a `PlanSource`
-  on `Mainline`, already returned as `mainline.plans`); thread it through `loadBoardInputs`.
-- Task evidence today is a full sha (join) or a note; phase 3 writes `<sha> on origin/<branch>`. Activity should
-  parse `on origin/(\S+)` and map the branch to a worktree via `loadWorkspaces(git)`.
-- Rendered task lines are `- [x] <id> <text> — <evidence>`; `core/gate.ts` `GATE_ITEM` already accepts the id.
-- Full suite: 7 real-git tests time out at 5 s under load (push, record-race, codex entry, runtime readers);
-  they pass alone with `--timeout 30000`.
+- Writers to guard: `commands/phase.ts` dispatches tick, deployed, add, split, park, unpark. Refusal line from
+  the phase entry: `phase tick: <spec> is on the board; this version can't write it yet` (one per action
+  word). Decide the joined check with `readLocalPlans(projectDir, systemRunner, now).isJoined(spec)`: a write
+  must not fetch just to refuse. Park/unpark write only `in-flight/`, not the plan: check whether they should
+  stay allowed (they touch no frozen box) and say so under *Say if wrong*.
+- Hook: `hooks/spec-file-check.ts` returns `[]` for `progress.md` today (`:51-62`); it already builds
+  `readLocalPlans` at `:66`. The new branch: in a joined spec, an edit to `progress.md`, a phase file's
+  checkbox lines or its `needs`/`needs-deployed`/`same-files-as`/`pr` frontmatter → blocking feedback naming
+  the command (`phase tick` lands in phase 3; until then say the board can't take the edit yet and to undo it).
+  Comparing old vs new needs the file's committed text (`git show HEAD:<path>`) or a diff of checkbox/edge
+  lines against the record's tasks and edges: the record is simpler (`plans.joined(spec)`), compare
+  `entryTasks` done-state and `phaseFrontmatter` edges with the phase doc.
+- Full suite: real-git tests can time out at 5 s under load; rerun with `--timeout 30000`.
 
 ## Pick up from here
 
-- Switch the five remaining callers (above) to `readPlansAt` / the board's `plans`, then tick deliverable 2.
-- Then deliverable 4's test, then 5.
+- Write the refusal in `commands/phase.ts` first (one test per action in a real-git or tree fixture with a
+  joined spec, reuse `tests/record-readers.test.ts`'s setup), then the hook branch, then tick deliverable 8.
+- Phase 2a is then complete: run update → *Close the phase*; PR B's remaining phases are 3, 3a, 3b, 4.
