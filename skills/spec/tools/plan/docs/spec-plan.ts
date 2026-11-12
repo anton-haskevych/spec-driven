@@ -1,3 +1,4 @@
+import { needsCycle } from "../../core/phase-edges";
 import type { PhaseDoc } from "./phase-doc";
 import type { SpecDoc } from "./spec-doc";
 
@@ -14,7 +15,21 @@ export function specPlanProblems(spec: SpecDoc, phases: readonly PhaseDoc[]): st
     ...phases.filter((phase) => !listed.has(phase.id)).map((phase) => `phase ${phase.id} has a document but is not in spec.json's phases`),
     ...phases.flatMap((phase) => unresolvedEdges(phase, listed, spec.name)),
     ...repeatedTaskIds(phases),
+    ...needsCycles(phases),
   ];
+}
+
+// One line per loop, named from the first phase on it in plan order.
+function needsCycles(phases: readonly PhaseDoc[]): string[] {
+  const byId = new Map(phases.map((phase) => [phase.id, phase.needs]));
+  const reported = new Set<string>();
+  return phases.flatMap((phase) => {
+    if (reported.has(phase.id)) return [];
+    const loop = needsCycle((id) => byId.get(id), phase.id);
+    if (!loop) return [];
+    for (const id of loop) reported.add(id);
+    return [`needs cycle: ${loop.join(" → ")}`];
+  });
 }
 
 function unresolvedEdges(phase: PhaseDoc, listed: ReadonlySet<string>, spec: string): string[] {

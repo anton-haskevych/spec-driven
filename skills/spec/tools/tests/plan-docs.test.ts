@@ -74,6 +74,11 @@ describe("specPlanProblems", () => {
       "task id 1.1 is in phases 1 and 3",
     ]);
   });
+
+  test("names a needs cycle once, from the first phase on it", () => {
+    const phases = [phaseDoc({ id: "3", needs: ["5"] }), phaseDoc({ id: "4" }), phaseDoc({ id: "5", needs: ["4", "3"] })];
+    expect(specPlanProblems(specDoc({ phases: ["3", "4", "5"] }), phases)).toEqual(["needs cycle: 3 → 5 → 3"]);
+  });
 });
 
 describe("validateRecordDoc", () => {
