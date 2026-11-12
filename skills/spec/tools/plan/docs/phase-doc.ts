@@ -12,6 +12,10 @@ export interface Task {
   gate?: boolean;
   // A tick made offline that waits for its push.
   unpushed?: boolean;
+  // Who closed it and when: the session id and the tree's folder name. Join leaves them out.
+  doneAt?: string;
+  doneBy?: string;
+  doneIn?: string;
 }
 
 // One phase on the record. Edges are always written out: `needs` is never implied.
@@ -101,6 +105,9 @@ function readTask(value: unknown, index: number, problems: string[]): Task {
     evidence: optionalText(fields.evidence, "evidence", own),
     gate: fields.gate === undefined ? undefined : flag(fields.gate, "gate", own),
     unpushed: fields.unpushed === undefined ? undefined : flag(fields.unpushed, "unpushed", own),
+    doneAt: optionalText(fields.doneAt, "doneAt", own),
+    doneBy: optionalText(fields.doneBy, "doneBy", own),
+    doneIn: optionalText(fields.doneIn, "doneIn", own),
   });
   problems.push(...own.map((problem) => `task ${id ?? `#${index + 1}`}: ${problem}`));
   return task;
