@@ -35,7 +35,7 @@ const LOCAL_LIVENESS: Result<LiveSession[]> = { ok: false, reason: "--local skip
 const NO_SCAN: WorkspaceScanResult = { scans: [], counts: { merged: 0, unknownBase: 0, unreadable: 0 } };
 
 export async function loadBoard(projectDir: string, request: BoardRequest, runners: BoardRunners, now: Date): Promise<Result<Board>> {
-  const inputs = await loadBoardInputs(projectDir, request, runners);
+  const inputs = await loadBoardInputs(projectDir, request, runners, now);
   if (!inputs.ok) return inputs;
   return { ok: true, value: buildBoard(inputs.value, now, boardMe(projectDir, runners.runner)) };
 }
@@ -46,21 +46,21 @@ export function boardMe(projectDir: string, runner: Runner): string | undefined 
   return me.ok ? me.value : undefined;
 }
 
-export async function loadBoardInputs(projectDir: string, request: BoardRequest, runners: BoardRunners): Promise<Result<BoardInputs>> {
+export async function loadBoardInputs(projectDir: string, request: BoardRequest, runners: BoardRunners, now: Date = new Date()): Promise<Result<BoardInputs>> {
   const branch = defaultBranch(projectDir, runners.runner);
   if (!branch) return { ok: false, reason: "no default branch (origin/HEAD is unset and gh did not answer)" };
   const prLists = request.local ? undefined : fetchPrLists(projectDir, runners.asyncRunner);
   const git = gitAt(projectDir, runners.runner);
-  const mainline = await loadMainline(git, branch, { timeoutMs: FETCH_TIMEOUT_MS, local: request.local });
+  const mainline = await loadMainline(git, branch, { timeoutMs: FETCH_TIMEOUT_MS, local: request.local, now });
   if (!mainline.ok) return mainline;
-  const { base, commonDir, nodes, states, stages, backlog, settings, duplicates } = mainline.value;
+  const { base, commonDir, nodes, states, stages, backlog, settings, duplicates, plans } = mainline.value;
   const sessions = request.local ? "local" : loadLiveSessions(runners.claudeHome, psProcStarts(runners.runner));
   const ownFiles = heldClaims(git, sessions === "local" ? LOCAL_LIVENESS : sessions, states);
   const remote = request.local ? [] : remoteHeldClaims(git, ownFiles);
   const local = withoutTakenOver(ownFiles, remote);
   const scanned = await scanWorkspaces(git, runners.asyncRunner, base.sha, new Set(local.map((held) => held.claim.workspace)));
   const { scans, counts } = scanned.ok ? scanned.value : NO_SCAN;
-  const workspaces = loadWorkspaceViews(scans, nodes);
+  const workspaces = loadWorkspaceViews(scans, nodes, plans.isJoined);
   return {
     ok: true,
     value: {

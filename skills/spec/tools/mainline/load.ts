@@ -5,8 +5,9 @@ import type { BaseRef, SpecStage } from "../board/inputs";
 import { gitCommonDir, type Git } from "../core/git";
 import type { Result } from "../core/result";
 import { listSpecs, type SpecFolder } from "../core/spec-folders";
-import { loadSpecStateFromFiles, type SpecState } from "../core/spec-state";
+import type { SpecState } from "../core/spec-state";
 import { loadNodes, type SpecNode } from "../graph/nodes";
+import { readPlans, type PlanSource } from "../plan/read-plans";
 import { loadSettings, type ProjectSettings } from "../playbook/settings";
 import { originTip, pinDefault } from "../publish/snapshot";
 import { baseCache } from "./base-cache";
@@ -14,6 +15,7 @@ import { baseCache } from "./base-cache";
 export interface MainlineOptions {
   timeoutMs: number;
   local: boolean;
+  now: Date;
 }
 
 export interface Mainline {
@@ -25,6 +27,7 @@ export interface Mainline {
   backlog: BacklogItem[];
   settings: ProjectSettings;
   duplicates: string[];
+  plans: PlanSource;
 }
 
 export interface BaseProject {
@@ -42,7 +45,9 @@ export async function loadMainline(git: Git, branch: string, options: MainlineOp
   const project = await baseProject(git, sha);
   if (!project.ok) return project;
   const { commonDir, dir } = project.value;
-  return { ok: true, value: { base: { branch, sha, date: date.value, fetch }, commonDir, ...loadSpecDocs(dir) } };
+  const settings = loadSettings(dir);
+  const plans = readPlans(git, { fetch: settings.board.record && !options.local, now: options.now });
+  return { ok: true, value: { base: { branch, sha, date: date.value, fetch }, commonDir, settings, plans, ...loadSpecDocs(dir, plans) } };
 }
 
 // The spec docs at `sha`, extracted to the shared cache: `root` is the repo root there, `dir` this project.
@@ -64,18 +69,17 @@ function pinBase(git: Git, branch: string, options: MainlineOptions): Result<{ s
   return { ok: true, value: { sha: local.value, fetch: pinned ?? "local" } };
 }
 
-function loadSpecDocs(projectDir: string): Omit<Mainline, "base" | "commonDir"> {
+function loadSpecDocs(projectDir: string, plans: PlanSource): Omit<Mainline, "base" | "commonDir" | "settings" | "plans"> {
   const specs = listSpecs(projectDir);
   const states = new Map<string, SpecState>();
-  for (const spec of specs) if (!states.has(spec.name)) states.set(spec.name, loadSpecStateFromFiles(spec));
+  for (const spec of specs) if (!states.has(spec.name)) states.set(spec.name, plans.state(spec));
   const stages = new Map<string, SpecStage>();
   for (const [name, state] of states) if (!state.hasProgress) stages.set(name, stageOf(state.spec));
   return {
-    nodes: loadNodes(projectDir),
+    nodes: loadNodes(projectDir, plans.marks),
     states,
     stages,
     backlog: loadBacklog(projectDir),
-    settings: loadSettings(projectDir),
     duplicates: duplicateNames(specs),
   };
 }

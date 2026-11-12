@@ -5,6 +5,7 @@ import { readInFlight } from "../core/in-flight";
 import { allTasksDone, countTasks, summarizePhaseEntry, type PhaseEntrySummary } from "../core/phase-entry";
 import type { SpecFolder } from "../core/spec-folders";
 import { diskReader, loadSpecStateFromFiles, type PhaseState, type ReadSpecFile, type SpecState } from "../core/spec-state";
+import type { PhaseMark } from "../graph/nodes";
 import type { RecordView } from "../record/view";
 import { readPhaseDoc, type PhaseDoc, type Task } from "./docs/phase-doc";
 import { readSpecDoc, type SpecDoc } from "./docs/spec-doc";
@@ -47,6 +48,14 @@ export function joinedSpecState(spec: SpecFolder, read: ReadSpecFile, plan: Join
   return { spec, hasProgress: true, phases, inFlight: readInFlight(read, phases) };
 }
 
+export function joinedPhaseMarks(plan: JoinedPlan): PhaseMark[] {
+  return plan.phases.map((doc) => ({ id: doc.id, done: phaseDocDone(doc), deployed: doc.deployed !== undefined }));
+}
+
+function phaseDocDone(doc: PhaseDoc): boolean {
+  return doc.deployed !== undefined || allTasksDone(countTasks(doc.tasks));
+}
+
 function joinedPhase(read: ReadSpecFile, doc: PhaseDoc): PhaseState {
   const count = countTasks(doc.tasks);
   const prose = read(doc.file);
@@ -55,7 +64,7 @@ function joinedPhase(read: ReadSpecFile, doc: PhaseDoc): PhaseState {
   return {
     id: doc.id,
     name: doc.title,
-    done: doc.deployed !== undefined || allTasksDone(count),
+    done: phaseDocDone(doc),
     deployed: doc.deployed !== undefined,
     ...(doc.deployed ? { deployedOn: doc.deployed } : {}),
     pointer: doc.file,
