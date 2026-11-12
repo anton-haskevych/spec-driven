@@ -1,9 +1,9 @@
 import { landOnRef, type FileChange, type RefEdit, type Tip } from "../core/land-on-ref";
-import { isPlainObject, serializeDoc } from "./document";
+import { serializeDoc } from "./document";
 import { META_PATH, RECORD_LAYOUT } from "./layout";
 import { planWrites, type Conflict, type RecordOp, type Validate } from "./plan-writes";
 import type { RecordPort } from "./ref";
-import { openRecordView, type RecordView } from "./view";
+import { openRecordView, recordLayout, type RecordView } from "./view";
 
 export type RecordPlan = (view: RecordView) => { ops: RecordOp[]; message?: string } | { refused: string } | { unchanged: true };
 
@@ -32,7 +32,7 @@ export async function writeRecord(port: RecordPort, plan: RecordPlan, options: W
 function planEdit(port: RecordPort, tip: Tip, plan: RecordPlan, validate: Validate): RefEdit<Record<string, string>, Stopped> {
   const view = openRecordView(port, tip);
   if (!view.ok) return stop({ kind: "failed", reason: view.reason });
-  const layout = layoutOf(view.value);
+  const layout = recordLayout(view.value);
   if (layout !== undefined && layout > RECORD_LAYOUT) return stop({ kind: "refused", reason: OLDER_PLUGIN });
 
   const intent = plan(view.value);
@@ -42,11 +42,6 @@ function planEdit(port: RecordPort, tip: Tip, plan: RecordPlan, validate: Valida
   if (planned.kind !== "planned") return stop(planned);
   if (planned.changes.length === 0) return stop({ kind: "unchanged" });
   return { kind: "commit", changes: withMeta(planned.changes, layout), message: intent.message ?? DEFAULT_MESSAGE, landed: planned.versions };
-}
-
-function layoutOf(view: RecordView): number | undefined {
-  const meta = view.doc(META_PATH);
-  return isPlainObject(meta) && typeof meta.layout === "number" ? meta.layout : undefined;
 }
 
 function withMeta(changes: FileChange[], layout: number | undefined): FileChange[] {

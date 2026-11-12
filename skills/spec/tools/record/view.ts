@@ -1,6 +1,7 @@
 import type { Tip } from "../core/land-on-ref";
 import type { Result } from "../core/result";
-import { parseDoc } from "./document";
+import { blobVersion, isPlainObject, parseDoc } from "./document";
+import { META_PATH } from "./layout";
 import type { RecordPort } from "./ref";
 
 export interface RecordView {
@@ -8,6 +9,36 @@ export interface RecordView {
   paths(): string[];
   version(path: string): string | undefined;
   doc(path: string): unknown;
+}
+
+// Every document read up front: a reader over many specs costs two git spawns, however many it opens.
+export function readRecordSnapshot(port: Pick<RecordPort, "blobIdsByPath" | "readBlobs">, tip: string): Result<RecordView> {
+  const versions = port.blobIdsByPath(tip);
+  if (!versions.ok) return versions;
+  const blobs = port.readBlobs([...new Set(versions.value.values())]);
+  if (!blobs.ok) return blobs;
+  const texts = new Map([...versions.value].map(([path, version]) => [path, blobs.value.get(version) ?? ""]));
+  return { ok: true, value: viewOfTexts(texts, { kind: "at", sha: tip }) };
+}
+
+export function viewOfTexts(texts: ReadonlyMap<string, string>, tip: Tip): RecordView {
+  return {
+    tip,
+    paths: () => [...texts.keys()].toSorted(),
+    version: (path) => {
+      const text = texts.get(path);
+      return text === undefined ? undefined : blobVersion(text);
+    },
+    doc: (path) => {
+      const text = texts.get(path);
+      return text === undefined ? undefined : parseDoc(text);
+    },
+  };
+}
+
+export function recordLayout(view: RecordView): number | undefined {
+  const meta = view.doc(META_PATH);
+  return isPlainObject(meta) && typeof meta.layout === "number" ? meta.layout : undefined;
 }
 
 export function openRecordView(port: Pick<RecordPort, "blobIdsByPath" | "readBlob">, tip: Tip): Result<RecordView> {
