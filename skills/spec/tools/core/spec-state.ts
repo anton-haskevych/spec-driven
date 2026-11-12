@@ -16,6 +16,7 @@ export interface PhaseState {
   name: string;
   done: boolean;
   deployed: boolean;
+  deployedOn?: string;
   pointer: string;
   edges: PhaseEdges;
   entry?: string;
@@ -61,6 +62,7 @@ function loadPhase(read: ReadSpecFile, line: PhaseLine, index: number): PhaseSta
     ...parsePhaseTitle(line.title, String(index + 1)),
     done: line.done,
     deployed: line.deployed,
+    ...(line.deployedOn ? { deployedOn: line.deployedOn } : {}),
     pointer: line.pointer,
     edges: parsePhaseEdges(data),
     entry,

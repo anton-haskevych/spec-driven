@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { parsePhaseEdges } from "../core/phase-edges";
 import { parsePhaseLines } from "../core/progress";
-import type { SpecState } from "../core/spec-state";
+import { specStateFrom, type SpecState } from "../core/spec-state";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
 import type { SpecNode } from "../graph/nodes";
 import { phaseNeeds, readySet } from "../ready/ready-set";
@@ -55,6 +55,15 @@ describe("deployed marker", () => {
   test("reads a deployed note after a ticked phase's pointer", () => {
     const [line] = parsePhaseLines("- [x] Phase 2 — Agg → `phases/p2.md` · deployed 2026-09-20\n");
     expect(line?.deployed).toBe(true);
+  });
+
+  test("keeps the deployed day, and the phase state carries it", () => {
+    const [dated, undated] = parsePhaseLines("- [x] Phase 2 — Agg → `phases/p2.md` · deployed 2026-09-20\n- [x] Phase 3 — B → `phases/p3.md` · deployed\n");
+    expect(dated?.deployedOn).toBe("2026-09-20");
+    expect(undated?.deployed).toBe(true);
+    expect(undated?.deployedOn).toBeUndefined();
+    const state = specStateFrom({ name: "s", dir: "/s" }, (path) => (path === "progress.md" ? "- [x] Phase 1 — A → `phases/p1.md` · deployed 2026-09-21\n" : undefined));
+    expect(state.phases[0]?.deployedOn).toBe("2026-09-21");
   });
 });
 
