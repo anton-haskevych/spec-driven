@@ -40,9 +40,3 @@ export function indentedPhaseLines(progress: string): string[] {
     .tasks.filter((task) => task.depth > TOP_LEVEL && PHASE_TITLE.test(task.text) && PHASE_POINTER.test(task.text))
     .map((task) => task.text);
 }
-
-export function countCheckboxes(markdown: string): CheckboxCount {
-  const { tasks } = outlineMarkdown(markdown);
-  const checked = tasks.filter((task) => task.checked).length;
-  return { checked, unchecked: tasks.length - checked };
-}

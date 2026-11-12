@@ -51,6 +51,17 @@ describe("phase tick (code phase)", () => {
     expect(phase?.summary?.deliverables).toEqual({ checked: 2, unchecked: 0 });
   });
 
+  test("ticking the last Deliverables item closes the phase even with an open box under another heading", () => {
+    tree = createTree("spec-tick-");
+    const spec = tree.spec("checkout", {
+      "progress.md": PROGRESS,
+      "phases/phase-1-harness.md": "- [x] done\n",
+      "phases/phase-2-tick.md": "## Deliverables\n- [ ] locator\n\n## Verification\n- [ ] smoke test\n",
+    });
+    expect(phaseCommand(tree.root, ["tick", "checkout", "2", "locator"])).toBe('ticked "locator" in Phase 2\nPhase 2 complete — run update.md → Close the phase');
+    expect(read(spec.dir, "progress.md")).toContain("- [x] Phase 2 — Tick");
+  });
+
   test("an unknown phase or item is invalid and writes nothing", () => {
     const spec = checkout();
     expect(phaseCommand(tree.root, ["tick", "checkout", "9", "#1"])).toStartWith("phase tick: no Phase 9 in checkout");

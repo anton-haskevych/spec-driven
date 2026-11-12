@@ -118,6 +118,16 @@ describe("checkPhases", () => {
       '"Phase 3 — Missing" points at phases/phase-3.md, which does not exist',
     ]);
   });
+
+  test("counts the Deliverables section only, as tick and the board do", () => {
+    const entry = "## Deliverables\n- [x] a\n\n## Verification\n- [ ] smoke test\n";
+    const ticked = [phaseLine({ done: true, title: "Phase 1 — Schema", pointer: "phases/phase-1.md" })];
+    const open = [phaseLine({ title: "Phase 1 — Schema", pointer: "phases/phase-1.md" })];
+    expect(checkPhases("progress.md", ticked, () => entry)).toEqual([]);
+    expect(checkPhases("progress.md", open, () => entry).map((i) => i.problem)).toEqual([
+      '"Phase 1 — Schema" has every sub-item ticked in phases/phase-1.md; tick the phase',
+    ]);
+  });
 });
 
 describe("checkInFlight", () => {
