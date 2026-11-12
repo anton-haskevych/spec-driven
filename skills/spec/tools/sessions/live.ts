@@ -24,13 +24,17 @@ export interface LiveSession {
   procStart: string;
   // Set on a tab sent to the background: the conversation goes on as this job (its session id starts with it).
   parkedJobId?: string;
+  // The folder the session was launched in, where its project hooks run, wherever it works now; unset when unknown.
+  startDir?: string;
 }
 
 export function defaultClaudeHome(env: Readonly<Record<string, string | undefined>> = process.env): string {
   return env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude");
 }
 
-export type ProcStarts = (pids: readonly number[]) => ReadonlyMap<number, string>;
+// Each pid's start time in every form this platform records it in.
+export type ProcStarts = (pids: readonly number[]) => ReadonlyMap<number, string | readonly string[]>;
+export type StartDirs = (pids: readonly number[]) => ReadonlyMap<number, string>;
 
 export function parseSessionFile(text: string): LiveSession | undefined {
   const data = parseJson(text);
@@ -61,7 +65,7 @@ export function parseSessionFile(text: string): LiveSession | undefined {
   };
 }
 
-export function loadLiveSessions(claudeHome: string, procStarts: ProcStarts): Result<LiveSession[]> {
+export function loadLiveSessions(claudeHome: string, procStarts: ProcStarts, startDirs: StartDirs = () => new Map()): Result<LiveSession[]> {
   const dir = join(claudeHome, "sessions");
   const files = sessionFiles(dir);
   if (!files.ok) return files;
@@ -74,7 +78,13 @@ export function loadLiveSessions(claudeHome: string, procStarts: ProcStarts): Re
   if (sessions.length === 0) return { ok: true, value: [] };
   const starts = procStarts(sessions.map((session) => session.pid));
   const live = sessions.filter((session) => sameStart(starts.get(session.pid), session.procStart));
-  return { ok: true, value: newestPerSession(live).map((session) => ({ ...session, cwd: canonicalPath(session.cwd) })) };
+  const newest = newestPerSession(live);
+  const dirs = startDirs(newest.map((session) => session.pid));
+  return { ok: true, value: newest.map((session) => withPaths(session, dirs.get(session.pid))) };
+}
+
+function withPaths(session: LiveSession, startDir: string | undefined): LiveSession {
+  return { ...session, cwd: canonicalPath(session.cwd), ...(startDir ? { startDir: canonicalPath(startDir) } : {}) };
 }
 
 function sessionFiles(dir: string): Result<string[]> {
@@ -96,8 +106,9 @@ function readSession(path: string): LiveSession | "unreadable" | undefined {
   return "unreadable";
 }
 
-function sameStart(running: string | undefined, recorded: string): boolean {
-  return running !== undefined && collapse(running) === collapse(recorded);
+function sameStart(running: string | readonly string[] | undefined, recorded: string): boolean {
+  const forms = running === undefined ? [] : typeof running === "string" ? [running] : running;
+  return forms.some((form) => collapse(form) === collapse(recorded));
 }
 
 function collapse(text: string): string {
