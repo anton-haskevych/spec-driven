@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
+import { count, oneOf, stringArray } from "../core/read-fields";
 import { isRecord, parseFrontmatter, type FrontmatterData } from "../core/frontmatter";
 import { isGateKind, type GateKind } from "../core/gate";
 import { SHIP_MODES, type ShipMode } from "../core/spec-meta";
@@ -135,12 +136,6 @@ function crewSetting(section: FrontmatterData, problems: string[]): CrewSetting 
   };
 }
 
-function count(value: unknown, key: string, problems: string[]): number | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value === "number" && Number.isInteger(value) && value >= 0) return value;
-  problems.push(`${key} must be a whole number, 0 or more`);
-  return undefined;
-}
 
 function sectionOf(data: FrontmatterData, key: string, problems: string[]): FrontmatterData {
   const value = data[key];
@@ -154,13 +149,6 @@ function sectionOf(data: FrontmatterData, key: string, problems: string[]): Fron
   return value;
 }
 
-function oneOf<T extends string>(value: unknown, allowed: readonly T[], key: string, problems: string[]): T | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value === "string" && (allowed as readonly string[]).includes(value)) return value as T;
-  const choices = allowed.length === 2 ? allowed.join(" or ") : `${allowed.slice(0, -1).join(", ")} or ${allowed.at(-1)}`;
-  problems.push(`${key} must be ${choices}, not "${String(value)}"`);
-  return undefined;
-}
 
 function draftFlag(value: unknown, problems: string[]): boolean {
   if (value === undefined) return DEFAULT_SETTINGS.pr.draft;
@@ -169,12 +157,6 @@ function draftFlag(value: unknown, problems: string[]): boolean {
   return DEFAULT_SETTINGS.pr.draft;
 }
 
-function stringArray(value: unknown, key: string, problems: string[]): string[] {
-  if (value === undefined) return [];
-  if (Array.isArray(value) && value.every((item) => typeof item === "string")) return value;
-  problems.push(`${key} must be a list of strings, e.g. ${key}: ["Vercel*"]`);
-  return [];
-}
 
 function gateName(value: unknown, key: string, problems: string[]): string | undefined {
   if (value === undefined) return undefined;
