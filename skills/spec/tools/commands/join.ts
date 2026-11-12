@@ -18,10 +18,12 @@ import { readTreeCopies } from "../plan/join-copies";
 import { phaseDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
 import { landBanner } from "../plan/land-banner";
 import { joinFromTree } from "./join-from-tree";
+import { joinTidy } from "./join-tidy";
 import { NO_DEFAULT_BRANCH } from "./push";
 
-export const JOIN_USAGE = "join <spec> [--from-tree]";
+export const JOIN_USAGE = "join <spec> [--from-tree | --tidy]";
 const FROM_TREE = "--from-tree";
+const TIDY = "--tidy";
 
 export interface JoinDeps {
   runner: Runner;
@@ -44,6 +46,7 @@ export function systemJoinDeps(): JoinDeps {
 export async function joinCommand(projectDir: string, args: readonly string[], deps: JoinDeps = systemJoinDeps()): Promise<string> {
   const [spec, ...extra] = args;
   if (spec !== undefined && extra.length === 1 && extra[0] === FROM_TREE) return joinFromTree(projectDir, spec, deps);
+  if (spec !== undefined && extra.length === 1 && extra[0] === TIDY) return joinTidy(projectDir, spec, deps);
   if (spec === undefined || extra.length > 0) return `usage: ${JOIN_USAGE}`;
   const branch = defaultBranch(projectDir, deps.runner);
   if (!branch) return `join: ${NO_DEFAULT_BRANCH.replace("nothing pushed", "nothing written")}`;

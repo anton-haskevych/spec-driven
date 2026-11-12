@@ -8,7 +8,7 @@ export interface PhaseEdges {
   pr?: string;
 }
 
-const EDGE_KEYS = ["needs", "needs-deployed", "same-files-as", "pr"];
+export const EDGE_KEYS = ["needs", "needs-deployed", "same-files-as", "pr"];
 
 export function parsePhaseEdges(data: FrontmatterData | undefined): PhaseEdges {
   if (!data) return { declared: false, needs: [], needsDeployed: [], sameFilesAs: [] };
