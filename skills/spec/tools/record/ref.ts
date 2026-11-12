@@ -1,6 +1,7 @@
 import type { Git } from "../core/git";
 import type { FileChange, RefPort, Tip, TipRead } from "../core/land-on-ref";
-import { leasePush, NETWORK } from "../core/remote-push";
+import { leasePush, NETWORK, REMOTE_TIMEOUT_MS } from "../core/remote-push";
+import { ranOutOfTime } from "../core/run";
 import type { Result } from "../core/result";
 import { commitOnto } from "../publish/commit-onto";
 import { RECORD_REF, RECORD_TRACKING_REF } from "./layout";
@@ -35,14 +36,17 @@ export function gitRecordPort(git: Git): RecordPort | undefined {
 }
 
 // One round trip when the record exists; ls-remote only after a failed fetch, to tell absent from unreachable.
-export function fetchRecordTip(git: Git): TipRead {
-  const fetched = git.run(["fetch", "-q", "--no-tags", "origin", `+${RECORD_REF}:${RECORD_TRACKING_REF}`], NETWORK);
+// A fetch that ran out of time already answered that: asking again would wait out a second limit.
+export function fetchRecordTip(git: Git, timeoutMs = REMOTE_TIMEOUT_MS): TipRead {
+  const network = { ...NETWORK, timeoutMs };
+  const fetched = git.run(["fetch", "-q", "--no-tags", "origin", `+${RECORD_REF}:${RECORD_TRACKING_REF}`], network);
   if (fetched.code === 0) {
     const tip = git.out(["rev-parse", "--verify", "-q", RECORD_TRACKING_REF]);
     return tip.ok ? { kind: "at", sha: tip.value } : { kind: "failed", reason: tip.reason };
   }
+  if (ranOutOfTime(fetched)) return { kind: "offline", reason: fetched.stderr };
   if (REF_LOCKED.test(fetched.stderr)) return { kind: "busy", reason: fetched.stderr.trim() };
-  const listed = git.run(["ls-remote", "--exit-code", "origin", RECORD_REF], NETWORK);
+  const listed = git.run(["ls-remote", "--exit-code", "origin", RECORD_REF], network);
   if (listed.code === LS_REMOTE_NO_MATCH) {
     git.run(["update-ref", "-d", RECORD_TRACKING_REF]);
     return { kind: "absent" };
