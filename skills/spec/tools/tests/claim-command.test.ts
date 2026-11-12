@@ -49,6 +49,17 @@ describe("claim command (real git)", () => {
   });
   afterAll(() => repo.cleanup());
 
+  test("taking a claim in a tree pushes its branch so it exists on origin", async () => {
+    claude = createTree("spec-claim-claude-");
+    const tree = repo.addWorktree("fresh", "feat/fresh");
+    tree.write("src/work.ts", "work\n");
+    tree.commitAll("work");
+    expect(await claimCommand(tree.dir, ["take", "a", "1"], deps("s9"))).toBe("claim: took a phase 1");
+    expect(repo.git("--git-dir", repo.origin, "rev-parse", "refs/heads/feat/fresh")).toBe(tree.git("rev-parse", "HEAD"));
+    await claimCommand(tree.dir, ["release", "a"], deps("s9"));
+    repo.git("worktree", "remove", "--force", tree.dir);
+  });
+
   test("takes a free phase, then answers the same session that it already holds it", async () => {
     claude = createTree("spec-claim-claude-");
     liveSession("s1", "a execute 1");

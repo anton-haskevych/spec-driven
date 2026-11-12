@@ -16,6 +16,7 @@ import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { loadWorkspaces } from "../workspaces/list";
 import { systemBoardDeps, type BoardDeps } from "./board";
+import { pushAfterTake } from "./claim-push";
 
 const TAKE_OVER_FLAG = "--take-over";
 const TAKE_OVER_HINT = 'say "take it over" to take it anyway';
@@ -49,7 +50,9 @@ export async function claimCommand(projectDir: string, args: readonly string[], 
   const [action, spec, phase, ...extra] = args.filter((arg) => arg !== TAKE_OVER_FLAG);
   const sessionId = ownSessionId(deps.env);
   if (action === "list" && !spec) return withWorld(projectDir, deps, listClaims);
-  if (action === "take" && spec && phase && extra.length === 0) return withWorld(projectDir, deps, (world) => take(world, spec, phase, sessionId, takeOver));
+  if (action === "take" && spec && phase && extra.length === 0) {
+    return withWorld(projectDir, deps, (world) => take(world, spec, phase, sessionId, takeOver)).then((line) => pushAfterTake(projectDir, deps.runner, line));
+  }
   if (action === "release" && spec && extra.length === 0 && !takeOver) return withWorld(projectDir, deps, (world) => release(world, spec, phase, sessionId));
   return `usage: ${CLAIM_USAGE}`;
 }
