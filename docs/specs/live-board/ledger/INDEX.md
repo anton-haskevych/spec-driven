@@ -24,5 +24,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-join-as-built.md` — [phase 2a+] — readers, specPlanProblems, task text and evidence, zero-task phases
 - `decision-readers-read-a-snapshot-not-the-folder-copy.md` — [phase 2a+] — readRecord: snapshot of git objects; fetch only with board on
 - `decision-joined-spec-guards-until-record-writes.md` — [phase 3, 3a] — writers refuse and the hook blocks plan edits; lift per write
+- `decision-plan-changes-as-built.md` — [phase 3b+] — planChangePlan vs phaseStatePlan, PLAN_INTENTS, dry run then send, parks
 
 ## Workarounds

@@ -31,13 +31,19 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/hooks/frozen-plan-edits.ts` | Which plan parts (boxes, edges, phase lines) a hand edit to a joined spec changed | 2a |
 | `skills/spec/tools/context/board-lines.ts` | The pack's `Board:` line and the tree-ahead line; every record-sourced pack line goes here | 2a |
 | `skills/spec/tools/plan/phase-writer.ts` | `PhaseWriter` port, `phaseWriterFor` (picked once), `PhaseOutcome`, `renderPhaseOutcome` | 3 |
-| `skills/spec/tools/plan/file-writer.ts`, `record-writer.ts` | The two homes: today's planners + `applyEdits`; the record (tick now, the rest in 3a) | 3 |
+| `skills/spec/tools/plan/file-writer.ts`, `record-writer.ts` | The two homes: today's planners + `applyEdits`; the record, every action | 3, 3a |
 | `skills/spec/tools/plan/record-tick.ts` | Push with `SAVE`, then `sendIntent` the tick; offline queues; the result line | 3 |
 | `skills/spec/tools/plan/ops/tick.ts` | `tickPlan` (pure), `findTask`, `closedLine`, `readTickIntent` | 3 |
 | `skills/spec/tools/plan/intents.ts` | `INTENT_PLANNERS` (reads) and `intentRunners(git)` (flushes push a queued commit first) | 3 |
 | `skills/spec/tools/record/overlay.ts` | Lays queued intents over a view: reads show a queued tick done | 3 |
 | `skills/spec/tools/plan/join-from-tree.ts`, `commands/join-from-tree.ts` | `join <spec> --from-tree` | 3 |
 | `skills/spec/tools/commands/phase/` | One file per phase action; `context.ts` gives each its writer | 3 |
+| `skills/spec/tools/plan/ops/change.ts` | `planChangePlan` (raises `planVersion`, re-checks edges and cycles at the tip), `phaseStatePlan`, `docPatch` | 3a |
+| `skills/spec/tools/plan/ops/add.ts`, `split.ts`, `move.ts`, `set.ts`, `phase-state.ts` | Pure edits of a joined plan; `newTasks` gives `<phase>.<n>` ids | 3a |
+| `skills/spec/tools/plan/plan-intents.ts` | `PLAN_INTENTS`: per command, how a queued intent reads back and the plan it runs | 3a |
+| `skills/spec/tools/plan/record-plan.ts`, `record-send.ts` | Dry run on the read record, then send; `RecordWorld`, `sendRecordIntent`, `storeRefusal` | 3a |
+| `skills/spec/tools/phases/move.ts`, `set.ts` | The file home's `move` and `set`; `set.ts` also owns `PhaseFields` and `describeFields` | 3a |
+| `skills/spec/tools/plan/docs/parks.ts` | `PhaseDoc.parks` reader; `joinedSpecState` renders them as the phase's Needs you note | 3a |
 | `skills/spec/tools/publish/push-commit.ts` | Pushes one queued commit; `gone` when the branch moved on without it | 3 |
 | `skills/spec/tools/commands/claim-push.ts` | Push the branch after a held claim | 3 |
 | `skills/spec/tools/tests/joined-repo.ts` | A real-git repo with `alpha` joined and the board on; `recordPhase` | 3 |

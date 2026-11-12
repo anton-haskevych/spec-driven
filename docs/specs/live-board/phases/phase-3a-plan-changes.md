@@ -40,11 +40,11 @@ tasks as `tick` does today.
 
 ## Deliverables
 
-- [ ] `phase add`, `split`, `deployed`, `park` and `unpark` on the port: one batch for a joined spec, today's file edits otherwise
-- [ ] `phase move <spec> <task-id…> --to <phase>` and `phase set <spec> <phase> --needs | --pr | --gate | --title | --outcome`, for both homes; ids stay with the tasks
-- [ ] Every plan change raises `planVersion` and re-checks edges and cycles against the tip it lands on
-- [ ] Two clones (real git): one adds a phase while the other moves a task between two other phases; both land. One adds the edge 5→3 while the other adds 3→5; the second is refused as a cycle
-- [ ] Offline: each command returns `kept on this machine` with the pending count
+- [x] `phase add`, `split`, `deployed`, `park` and `unpark` on the port: one batch for a joined spec, today's file edits otherwise
+- [x] `phase move <spec> <task-id…> --to <phase>` and `phase set <spec> <phase> --needs | --pr | --gate | --title | --outcome`, for both homes; ids stay with the tasks
+- [x] Every plan change raises `planVersion` and re-checks edges and cycles against the tip it lands on
+- [x] Two clones (real git): one adds a phase while the other moves a task between two other phases; both land. One adds the edge 5→3 while the other adds 3→5; the second is refused as a cycle
+- [x] Offline: each command returns `kept on this machine` with the pending count
 
 ## Phase-local notes
 

@@ -20,3 +20,7 @@ Phase 2a put two guards in place. Phases 3 and 3a lift them as each write gets a
 
 **Phase 3 lifted the tick:** `recordWriter` ticks on the record; add, split and deployed still refuse there
 (`notYet` in `plan/record-writer.ts`), and the hook's message says only those can't write a joined spec yet.
+
+**Phase 3a lifted the rest:** every phase action writes a joined spec's record (`decision-plan-changes-as-built.md`);
+the hook's message now names `phase add` / `split` / `move` / `set`, and `deployed --land` on a joined spec
+writes the record instead of refusing. The hook itself stays: a hand edit to a frozen file still changes nothing.

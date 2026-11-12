@@ -62,6 +62,8 @@ type PhaseDoc = {
   pr?: string; due?: string; code: boolean; playbook?: string; gate?: "design" | "outward"; shape?: string;
   deployed?: string;                             // date
   tasks: Task[];
+  parks?: { parkedAt: string; question: string; recommend?: string; answer?: { at: string; text: string } }[];
+                                                 // 3a; phase 7 moves them to question documents
   handoff?: { at: string; by: string; note: string };   // phase 7
 };
 type Task = { id: string; text: string; done: boolean; evidence?: string; gate?: boolean;
@@ -277,7 +279,8 @@ that change a plan work on both homes**: the tool picks the record or the files,
 | `join <spec> [--from-tree \| --tidy]` | Puts a spec on the record; adds a tree's earlier ticks; later removes the frozen lines | 2, 3, 4 |
 | `phase tick <spec> <phase> <task-id>` | Push, then mark done with the pushed commit | 3 |
 | `phase add \| split \| deployed \| park \| unpark` | As today; the record for a joined spec | 3a |
-| `phase move <spec> <task-id…> --to <phase>` | Moves tasks; ids stay | 3a |
+| `phase add … --task "<text>"` | A new phase's deliverables; on the record, tasks `<phase>.<n>` | 3a |
+| `phase move <spec> <task-id…> --to <phase> [--from <phase>]` | Moves tasks; ids stay. In files, `--from` is required and items are selected as tick does | 3a |
 | `phase set <spec> <phase> [--needs …] [--pr …] [--gate …] [--title …] [--outcome …]` | Edits a phase's plan fields, in the record or the phase file's frontmatter | 3a |
 | `plan apply <spec> --file <draft.json>` | Writes a new spec's plan in one batch (board on only) | 4 |
 | `record export <spec> [--unjoin]` | Writes the lists back into files; the way back | 4 |
