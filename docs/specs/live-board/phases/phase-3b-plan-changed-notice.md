@@ -32,7 +32,7 @@ version is unchanged or the spec isn't joined, and resolves the project from `pa
 
 ## Deliverables
 
-- [ ] `plan-version`: the one-line change summary between two versions; per-session memory in tmpdir
+- [x] `plan-version`: the one-line change summary between two versions; per-session memory in tmpdir
 - [ ] The summary on every write result and in packs, once per version
 - [ ] `hooks/plan-changed.ts`: at most one fetch attempt every 120 s, 3 s limit, 10-minute back-off after a failure; emits the summary once per version; never blocks, fails open
 - [ ] Offline test: 20 edits in a row with origin unreachable add under 4 s in total

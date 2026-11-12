@@ -1,6 +1,7 @@
 import { systemRunner } from "../../core/run";
 import { resolveSpec } from "../../core/spec-folders";
 import { phaseWriterFor, type PhaseDeps, type PhaseWriter } from "../../plan/phase-writer";
+import { planMemoryFor } from "../../plan/plan-version";
 import { readPlansAt, type PlanSource } from "../../plan/read-plans";
 import type { LocalPilot } from "../../runtime/workflow-capabilities";
 
@@ -14,7 +15,8 @@ export interface PhaseContext {
 }
 
 export function systemPhaseDeps(): PhaseDeps {
-  return { runner: systemRunner, env: process.env, now: () => new Date() };
+  const memory = planMemoryFor(process.env);
+  return { runner: systemRunner, env: process.env, now: () => new Date(), ...(memory ? { memory } : {}) };
 }
 
 export function phaseContext(projectDir: string, deps: PhaseDeps, workflow?: LocalPilot): PhaseContext {

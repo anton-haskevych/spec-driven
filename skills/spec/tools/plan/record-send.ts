@@ -3,6 +3,7 @@ import { gitAt, gitCommonDir, type Git } from "../core/git";
 import { defaultBranch } from "../core/run";
 import { outboxDir, sendIntent, type IntentRunners, type RecordWrite } from "../record/outbox";
 import { gitRecordPort, type RecordPort } from "../record/ref";
+import type { RecordView } from "../record/view";
 import type { RecordPlan } from "../record/write";
 import { ownSessionId } from "../sessions/own";
 import { intentRunners } from "./intents";
@@ -19,6 +20,8 @@ export interface RecordWorld {
   tree: string;
   now: Date;
   runners: IntentRunners;
+  // Shown each record the write planned against; the last one is the tip it landed on.
+  watch?: (view: RecordView) => void;
 }
 
 export const NO_ORIGIN: PhaseOutcome = { kind: "refused", reason: "This repo has no origin; the board's record lives there." };
@@ -46,7 +49,9 @@ export function recordWorld(projectDir: string, deps: PhaseDeps): RecordWorld {
 // what the plan saw at the tip.
 export async function sendRecordIntent(world: RecordWorld, command: string, args: unknown, plan: RecordPlan): Promise<RecordWrite | undefined> {
   if (!world.port || !world.outbox) return undefined;
-  return sendIntent(world.port, world.outbox, { session: world.session, command, args }, world.runners, { validate: validateRecordDoc }, world.now, plan);
+  const { watch } = world;
+  const watched: RecordPlan = watch ? (view) => (watch(view), plan(view)) : plan;
+  return sendIntent(world.port, world.outbox, { session: world.session, command, args }, world.runners, { validate: validateRecordDoc }, world.now, watched);
 }
 
 // The store's refusals, as one command line: `<action>: refused, nothing written. <reason>`.

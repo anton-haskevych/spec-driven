@@ -10,17 +10,20 @@ import type { SplitRequest } from "../phases/split";
 import type { TickRequest } from "../phases/tick";
 import { pilotJoinedRefusal, type LocalPilot } from "../runtime/workflow-capabilities";
 import { fileWriter } from "./file-writer";
+import type { PlanMemory } from "./plan-version";
 import type { PlanSource } from "./read-plans";
 import { recordWriter } from "./record-writer";
 
 // `invalid`: the request can't be written anywhere (bad phase, missing evidence); `refused`: the record said
 // no, or the save before it failed. Neither wrote anything.
-export type PhaseOutcome =
+// `notice`: the plan changed under this session since it last saw it; printed before the result.
+export type PhaseOutcome = (
   | { kind: "landed"; line: string }
   | { kind: "unchanged"; line: string }
   | { kind: "invalid"; reason: string }
   | { kind: "refused"; reason: string }
-  | { kind: "queued"; pending: number };
+  | { kind: "queued"; pending: number }
+) & { notice?: string };
 
 // A spec in files answers at once; a joined spec waits on its record write.
 type Written = PhaseOutcome | Promise<PhaseOutcome>;
@@ -40,6 +43,7 @@ export interface PhaseDeps {
   runner: Runner;
   env: Env;
   now: () => Date;
+  memory?: PlanMemory;
 }
 
 // Chosen once per command: a joined spec writes the record, every other spec its files.
@@ -62,6 +66,11 @@ export function renderWritten(action: string, written: Written): string | Promis
 }
 
 export function renderPhaseOutcome(action: string, outcome: PhaseOutcome): string {
+  const result = resultLine(action, outcome);
+  return outcome.notice ? `${outcome.notice}\n${result}` : result;
+}
+
+function resultLine(action: string, outcome: PhaseOutcome): string {
   switch (outcome.kind) {
     case "landed":
     case "unchanged":

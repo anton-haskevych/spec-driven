@@ -7,19 +7,21 @@ import { findPhaseDoc } from "./ops/change";
 import { openRecordPark } from "./ops/phase-state";
 import { PLAN_INTENTS } from "./plan-intents";
 import type { PhaseDeps, PhaseOutcome, PhaseWriter } from "./phase-writer";
-import { recordPlanCommand } from "./record-plan";
-import { recordWorld } from "./record-send";
+import { recordPlanCommand, type PlannedIntent } from "./record-plan";
+import type { RecordWorld } from "./record-send";
 import { recordTick } from "./record-tick";
 import type { JoinedPlan } from "./state-source";
+import { withPlanNotice } from "./write-notice";
 
 // A joined spec: every action writes the record, one batch per command. A park answered here that was
 // left in an in-flight file before parks moved onto the record is answered in that file.
 export function recordWriter(projectDir: string, spec: SpecFolder, joined: JoinedPlan, files: PhaseWriter, deps: PhaseDeps): PhaseWriter {
   const name = spec.name;
-  const send = (command: Parameters<typeof recordPlanCommand>[3]["command"], args: object, plan: Parameters<typeof recordPlanCommand>[3]["plan"]) =>
-    recordPlanCommand(recordWorld(projectDir, deps), spec, joined, { command, args, plan });
+  const noticed = (write: (world: RecordWorld) => PhaseOutcome | Promise<PhaseOutcome>) => withPlanNotice(projectDir, name, joined, deps, write);
+  const send = (command: PlannedIntent["command"], args: object, plan: PlannedIntent["plan"]) =>
+    noticed((world) => recordPlanCommand(world, spec, joined, { command, args, plan }));
   return {
-    tick: (request) => recordTick(recordWorld(projectDir, deps), name, joined, request),
+    tick: (request) => noticed((world) => recordTick(world, name, joined, request)),
     add(request) {
       const intent = { spec: name, title: request.title, ...(request.after ? { after: request.after } : {}), edges: request.edges, tasks: [...(request.tasks ?? [])] };
       return send("add", intent, (see) => PLAN_INTENTS.add.plan(intent, see));
