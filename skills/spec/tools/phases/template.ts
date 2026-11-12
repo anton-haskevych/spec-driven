@@ -16,7 +16,7 @@ export interface PhaseFileInput {
 }
 
 const PLACEHOLDER_ITEM = "- [ ] <specific deliverable>";
-const ON_BOARD = "The tasks are on the board: `phase tick <spec> <phase> <task-id>` closes one, `phase add --task` and `phase move` change them.";
+export const ON_BOARD = "The tasks are on the board: `phase tick <spec> <phase> <task-id>` closes one, `phase add --task` and `phase move` change them.";
 
 export function slugify(title: string): string {
   return title

@@ -10,6 +10,7 @@ import type { PhaseMark } from "../graph/nodes";
 import type { RecordView } from "../record/view";
 import { readPhaseDoc, type PhaseDoc, type Task } from "./docs/phase-doc";
 import { readSpecDoc, type SpecDoc } from "./docs/spec-doc";
+import { deliverablesSection, isCheckboxLine, linesOutsideFences } from "./deliverables";
 import { phaseDocPath, specDocPath } from "./kinds";
 
 export type SpecSource = (spec: SpecFolder) => SpecState;
@@ -19,10 +20,6 @@ export interface JoinedPlan {
   phases: PhaseDoc[];
 }
 
-const FENCE = /^\s*(```|~~~)/;
-const SECTION = /^##\s+/;
-const DELIVERABLES = /^##\s+deliverables\b/i;
-const CHECKBOX = /^\s*[-*+]\s+\[[ xX]\]\s/;
 const RUN_LIMIT = 5;
 
 export function stateSourceFor(view: RecordView | undefined): SpecSource {
@@ -87,32 +84,13 @@ export function withLiveTasks(body: string, tasks: readonly Task[]): string {
     const rest = lines.slice(section.end);
     return [...lines.slice(0, section.start), ...live, ...(rest.length > 0 ? ["", ...rest] : [""])].join("\n");
   }
-  const kept = outsideFences(lines, (line) => !CHECKBOX.test(line)).join("\n").replace(/\n+$/, "");
+  const outside = new Set(linesOutsideFences(lines));
+  const kept = lines.filter((line, index) => !outside.has(index) || !isCheckboxLine(line)).join("\n").replace(/\n+$/, "");
   return `${kept}\n\n${live.join("\n")}\n`;
 }
 
 export function taskLine(task: Task): string {
   return `- [${task.done ? "x" : " "}] ${task.id} ${task.text}${task.evidence ? ` — ${task.evidence}` : ""}`;
-}
-
-function deliverablesSection(lines: readonly string[]): { start: number; end: number } | undefined {
-  let inFence = false;
-  let start: number | undefined;
-  for (const [index, line] of lines.entries()) {
-    if (FENCE.test(line)) inFence = !inFence;
-    if (inFence || !SECTION.test(line)) continue;
-    if (start !== undefined) return { start, end: index };
-    if (DELIVERABLES.test(line)) start = index;
-  }
-  return start === undefined ? undefined : { start, end: lines.length };
-}
-
-function outsideFences(lines: readonly string[], keep: (line: string) => boolean): string[] {
-  let inFence = false;
-  return lines.filter((line) => {
-    if (FENCE.test(line)) inFence = !inFence;
-    return inFence || FENCE.test(line) || keep(line);
-  });
 }
 
 function firstOpenRun(tasks: readonly Task[]): string[] {
