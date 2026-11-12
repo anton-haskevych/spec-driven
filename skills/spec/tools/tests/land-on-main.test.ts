@@ -65,4 +65,20 @@ describe("landOnMain (real git)", () => {
     expect(await land(appendLine("mine"), racing)).toMatchObject({ kind: "landed" });
     expect(onOrigin()).toBe("one\nraced\nmine");
   });
+
+  test("one plan can write several files in one commit", async () => {
+    const outcome = await land((projectDir) => ({
+      kind: "write",
+      files: [
+        { file: join(projectDir, NOTE), text: "one\nboth\n" },
+        { file: join(projectDir, "docs/specs/a/second.md"), text: "second\n" },
+      ],
+      message: "both files",
+      landed: "both",
+    }));
+    expect(outcome).toMatchObject({ kind: "landed", landed: "both" });
+    expect(onOrigin()).toBe("one\nboth");
+    expect(repo.git("--git-dir", repo.origin, "show", "main:docs/specs/a/second.md")).toBe("second");
+    expect(repo.git("--git-dir", repo.origin, "log", "--format=%s", "-1", "main")).toBe("both files");
+  });
 });
