@@ -66,6 +66,16 @@ describe("phase set on a spec in files", () => {
   });
 });
 
+describe("phase set --needs-deployed / --same-files-as on a spec in files", () => {
+  test("writes both edges as frontmatter lists; none removes the line", () => {
+    const spec = checkout();
+    expect(phase(["set", "checkout", "5", "--needs-deployed", "3", "--same-files-as", "4"])).toBe("set: phase 5 · needs 3 deployed · same files as 4");
+    expect(read(spec.dir, "phases/phase-5-ship.md")).toStartWith("---\nneeds: [4]\nneeds-deployed: [3]\nsame-files-as: [4]\n---\n");
+    expect(phase(["set", "checkout", "5", "--needs-deployed", "none"])).toBe("set: phase 5 · needs nothing deployed");
+    expect(read(spec.dir, "phases/phase-5-ship.md")).toStartWith("---\nneeds: [4]\nsame-files-as: [4]\n---\n");
+  });
+});
+
 describe("phase add --task on a spec in files", () => {
   test("writes each task as a deliverable", () => {
     const spec = checkout();

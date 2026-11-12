@@ -6,7 +6,7 @@ const SAMPLES: Record<PlanCommand, object> = {
   add: { spec: "s", title: "T", edges: { needs: ["1"], pr: "B", code: false }, tasks: ["x"] },
   split: { spec: "s", id: "3", titles: ["Rest"], items: [[1, 2]] },
   move: { spec: "s", tasks: ["3.1"], to: "4", from: "3" },
-  set: { spec: "s", phase: "3", fields: { needs: [], pr: null, gate: "design", title: "T", outcome: "" } },
+  set: { spec: "s", phase: "3", fields: { needs: [], needsDeployed: ["1"], sameFilesAs: [], pr: null, gate: "design", title: "T", outcome: "" } },
   deployed: { spec: "s", phase: "1", day: "2026-11-12" },
   park: { spec: "s", phase: "1", question: "Q?", recommend: "no", at: "T1" },
   unpark: { spec: "s", phase: "1", answer: "A", at: "T2" },

@@ -111,6 +111,16 @@ describe("phase set on the record", () => {
     expect(run(change(setEdit({ spec: SPEC, phase: "5", fields: { pr: "C" } })), record(cyclic)).result).toHaveProperty("ops");
   });
 
+  test("sets needs-deployed and same-files-as; an empty list drops the field", () => {
+    const set = run(change(setEdit({ spec: SPEC, phase: "5", fields: { needsDeployed: ["2"], sameFilesAs: ["3"] } })));
+    expect(set.after?.phases.find((p) => p.id === "5")).toMatchObject({ needsDeployed: ["2"], sameFilesAs: ["3"] });
+    expect(set.seen[0]?.line).toBe("set: phase 5 · needs 2 deployed · same files as 3 (plan v5)");
+    const phases = defaultPhases().map((p) => (p.id === "5" ? { ...p, sameFilesAs: ["3"] } : p));
+    const cleared = run(change(setEdit({ spec: SPEC, phase: "5", fields: { sameFilesAs: [] } })), record(phases));
+    expect(cleared.after?.phases.find((p) => p.id === "5")?.sameFilesAs).toBeUndefined();
+    expect(cleared.seen[0]?.line).toBe("set: phase 5 · no same-files edge (plan v5)");
+  });
+
   test("nothing new is unchanged", () => {
     expect(run(change(setEdit({ spec: SPEC, phase: "3", fields: { pr: "B" } }))).seen[0]).toEqual({ kind: "unchanged", line: "set: phase 3 already has those values", added: [] });
   });

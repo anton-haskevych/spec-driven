@@ -12,6 +12,8 @@ import { issuesIntroducedBy } from "./validate";
 // A field left out is kept; `null` clears `pr` or `gate`, and `needs: []` clears the needs.
 export interface PhaseFields {
   needs?: string[];
+  needsDeployed?: string[];
+  sameFilesAs?: string[];
   pr?: string | null;
   gate?: GateKind | null;
   title?: string;
@@ -25,6 +27,8 @@ export interface SetRequest {
 
 export interface PlanFields {
   needs: string[];
+  needsDeployed: string[];
+  sameFilesAs: string[];
   pr?: string;
   gate?: GateKind;
   title: string;
@@ -64,6 +68,8 @@ export function withFields(before: PlanFields, fields: PhaseFields): PlanFields 
   const gate = fields.gate === undefined ? before.gate : (fields.gate ?? undefined);
   return {
     needs: fields.needs ?? before.needs,
+    needsDeployed: fields.needsDeployed ?? before.needsDeployed,
+    sameFilesAs: fields.sameFilesAs ?? before.sameFilesAs,
     title: fields.title ?? before.title,
     outcome: fields.outcome ?? before.outcome,
     ...(pr ? { pr } : {}),
@@ -75,6 +81,8 @@ export function describeFields(before: PlanFields, after: PlanFields): string[] 
   const same = (key: keyof PlanFields) => JSON.stringify(before[key]) === JSON.stringify(after[key]);
   return [
     same("needs") ? undefined : after.needs.length === 0 ? "needs nothing" : `needs ${after.needs.join(", ")}`,
+    same("needsDeployed") ? undefined : after.needsDeployed.length === 0 ? "needs nothing deployed" : `needs ${after.needsDeployed.join(", ")} deployed`,
+    same("sameFilesAs") ? undefined : after.sameFilesAs.length === 0 ? "no same-files edge" : `same files as ${after.sameFilesAs.join(", ")}`,
     same("pr") ? undefined : after.pr ? `PR ${after.pr}` : "no PR group",
     same("gate") ? undefined : after.gate ? `gate ${after.gate}` : "no gate",
     same("title") ? undefined : `title "${after.title}"`,
@@ -84,13 +92,17 @@ export function describeFields(before: PlanFields, after: PlanFields): string[] 
 
 function fieldsOf(phase: PhaseState): PlanFields {
   const outcome = OUTCOME.exec(phase.entry ?? "")?.[0].replace(/^\*\*Outcome:\*\*\s*/, "") ?? "";
-  return { needs: phase.edges.needs, title: phase.name, outcome, ...(phase.edges.pr ? { pr: phase.edges.pr } : {}), ...(phase.gate ? { gate: phase.gate } : {}) };
+  const { needs, needsDeployed, sameFilesAs } = phase.edges;
+  return { needs, needsDeployed, sameFilesAs, title: phase.name, outcome, ...(phase.edges.pr ? { pr: phase.edges.pr } : {}), ...(phase.gate ? { gate: phase.gate } : {}) };
 }
 
 function editEntry(entry: string, id: string, fields: PhaseFields): FrontmatterPatch {
   let text = entry;
   const steps: Array<(current: string) => FrontmatterPatch> = [];
   if (fields.needs) steps.push((current) => setFrontmatterLine(current, "needs", `[${fields.needs?.join(", ")}]`));
+  for (const [key, list] of [["needs-deployed", fields.needsDeployed], ["same-files-as", fields.sameFilesAs]] as const) {
+    if (list) steps.push((current) => frontmatterValue(current, key, list.length === 0 ? null : `[${list.join(", ")}]`));
+  }
   if (fields.pr !== undefined) steps.push((current) => frontmatterValue(current, "pr", fields.pr));
   if (fields.gate !== undefined) steps.push((current) => frontmatterValue(current, "gate", fields.gate));
   if (fields.title) steps.push((current) => ({ kind: "ok", text: HEADING.test(current) ? current.replace(HEADING, `# Phase ${id} — ${fields.title}`) : current }));

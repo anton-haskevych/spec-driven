@@ -112,11 +112,13 @@ function edgesOf(value: unknown): Read<AddIntent["edges"]> {
 function fieldsOf(value: unknown): Read<PhaseFields> {
   if (!isPlainObject(value)) return MISSING;
   const needs = optional(value.needs, texts);
+  const needsDeployed = optional(value.needsDeployed, texts);
+  const sameFilesAs = optional(value.sameFilesAs, texts);
   const pr = value.pr === null ? null : optional(value.pr, text);
   const gate = value.gate === null || value.gate === undefined || isGateKind(value.gate) ? value.gate : MISSING;
   const title = optional(value.title, text);
   const outcome = value.outcome === undefined || typeof value.outcome === "string" ? value.outcome : MISSING;
-  const fields = { needs, pr, gate, title, outcome };
+  const fields = { needs, needsDeployed, sameFilesAs, pr, gate, title, outcome };
   if (Object.values(fields).some((field) => field === MISSING)) return MISSING;
   return Object.fromEntries(Object.entries(fields).filter(([, field]) => field !== undefined));
 }
