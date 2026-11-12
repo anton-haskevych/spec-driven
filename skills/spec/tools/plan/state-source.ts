@@ -1,0 +1,118 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { parseFrontmatter } from "../core/frontmatter";
+import { readInFlight } from "../core/in-flight";
+import { allTasksDone, countTasks, summarizePhaseEntry, type PhaseEntrySummary } from "../core/phase-entry";
+import type { SpecFolder } from "../core/spec-folders";
+import { diskReader, loadSpecStateFromFiles, type PhaseState, type ReadSpecFile, type SpecState } from "../core/spec-state";
+import type { RecordView } from "../record/view";
+import { readPhaseDoc, type PhaseDoc, type Task } from "./docs/phase-doc";
+import { readSpecDoc, type SpecDoc } from "./docs/spec-doc";
+import { phaseDocPath, specDocPath } from "./kinds";
+
+export type SpecSource = (spec: SpecFolder) => SpecState;
+
+export interface JoinedPlan {
+  spec: SpecDoc;
+  phases: PhaseDoc[];
+}
+
+const FENCE = /^\s*(```|~~~)/;
+const SECTION = /^##\s+/;
+const DELIVERABLES = /^##\s+deliverables\b/i;
+const CHECKBOX = /^\s*[-*+]\s+\[[ xX]\]\s/;
+const RUN_LIMIT = 5;
+
+export function stateSourceFor(view: RecordView | undefined): SpecSource {
+  return (spec) => {
+    const plan = view ? readJoinedPlan(view, spec.name) : undefined;
+    if (!plan) return loadSpecStateFromFiles(spec);
+    return { ...joinedSpecState(spec, diskReader(spec.dir), plan), reviewed: existsSync(join(spec.dir, "reviews")) };
+  };
+}
+
+// A phase document that doesn't read is left out rather than guessed at from the frozen file.
+export function readJoinedPlan(view: RecordView, name: string): JoinedPlan | undefined {
+  const spec = readSpecDoc(view.doc(specDocPath(name))).doc;
+  if (!spec) return undefined;
+  const phases = spec.phases.flatMap((id) => {
+    const doc = readPhaseDoc(view.doc(phaseDocPath(name, id))).doc;
+    return doc ? [doc] : [];
+  });
+  return { spec, phases };
+}
+
+export function joinedSpecState(spec: SpecFolder, read: ReadSpecFile, plan: JoinedPlan): SpecState {
+  const phases = plan.phases.map((doc) => joinedPhase(read, doc));
+  return { spec, hasProgress: true, phases, inFlight: readInFlight(read, phases) };
+}
+
+function joinedPhase(read: ReadSpecFile, doc: PhaseDoc): PhaseState {
+  const count = countTasks(doc.tasks);
+  const prose = read(doc.file);
+  const entry = prose === undefined ? undefined : withLiveTasks(bodyOf(prose), doc.tasks);
+  const fromProse: Partial<PhaseEntrySummary> = entry === undefined ? {} : summarizePhaseEntry(entry);
+  return {
+    id: doc.id,
+    name: doc.title,
+    done: doc.deployed !== undefined || allTasksDone(count),
+    deployed: doc.deployed !== undefined,
+    ...(doc.deployed ? { deployedOn: doc.deployed } : {}),
+    pointer: doc.file,
+    edges: { declared: true, needs: doc.needs, needsDeployed: doc.needsDeployed ?? [], sameFilesAs: doc.sameFilesAs ?? [], ...(doc.pr ? { pr: doc.pr } : {}) },
+    entry,
+    summary: { ...fromProse, deliverables: count, nextRun: firstOpenRun(doc.tasks) },
+    schedule: { ...(doc.due ? { due: doc.due } : {}), problems: [] },
+    code: doc.code,
+    playbook: doc.playbook,
+    ...(doc.gate ? { gate: doc.gate } : {}),
+  };
+}
+
+export function withLiveTasks(body: string, tasks: readonly Task[]): string {
+  const lines = body.split("\n");
+  const section = deliverablesSection(lines);
+  const live = ["## Deliverables", "", ...tasks.map(taskLine)];
+  if (section) {
+    const rest = lines.slice(section.end);
+    return [...lines.slice(0, section.start), ...live, ...(rest.length > 0 ? ["", ...rest] : [""])].join("\n");
+  }
+  const kept = outsideFences(lines, (line) => !CHECKBOX.test(line)).join("\n").replace(/\n+$/, "");
+  return `${kept}\n\n${live.join("\n")}\n`;
+}
+
+export function taskLine(task: Task): string {
+  return `- [${task.done ? "x" : " "}] ${task.id} ${task.text}${task.evidence ? ` — ${task.evidence}` : ""}`;
+}
+
+function deliverablesSection(lines: readonly string[]): { start: number; end: number } | undefined {
+  let inFence = false;
+  let start: number | undefined;
+  for (const [index, line] of lines.entries()) {
+    if (FENCE.test(line)) inFence = !inFence;
+    if (inFence || !SECTION.test(line)) continue;
+    if (start !== undefined) return { start, end: index };
+    if (DELIVERABLES.test(line)) start = index;
+  }
+  return start === undefined ? undefined : { start, end: lines.length };
+}
+
+function outsideFences(lines: readonly string[], keep: (line: string) => boolean): string[] {
+  let inFence = false;
+  return lines.filter((line) => {
+    if (FENCE.test(line)) inFence = !inFence;
+    return inFence || FENCE.test(line) || keep(line);
+  });
+}
+
+function firstOpenRun(tasks: readonly Task[]): string[] {
+  const start = tasks.findIndex((task) => !task.done);
+  if (start === -1) return [];
+  const end = tasks.findIndex((task, index) => index > start && task.done);
+  return tasks.slice(start, end === -1 ? undefined : end).slice(0, RUN_LIMIT).map((task) => `${task.id} ${task.text}`);
+}
+
+function bodyOf(prose: string): string {
+  const parsed = parseFrontmatter(prose);
+  return parsed.kind === "invalid" ? prose : parsed.body;
+}

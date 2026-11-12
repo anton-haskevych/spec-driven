@@ -1,28 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import type { SpecState } from "../core/spec-state";
-import type { PhaseDoc } from "../plan/docs/phase-doc";
 import { planJoin } from "../plan/join";
+import { joinedSpecState } from "../plan/state-source";
 import { readySet } from "../ready/ready-set";
 import { copyOf, specFiles, SPEC, type PhaseSpec } from "./join-fixtures";
-import { phaseEdges, phaseState } from "./factories";
-
-// Phase 2a reads joined specs this way; here it only has to agree with the ready set's rule.
-function stateFromDocs(base: SpecState, docs: readonly PhaseDoc[]): SpecState {
-  return {
-    ...base,
-    phases: docs.map((doc) => {
-      const checked = doc.tasks.filter((task) => task.done).length;
-      return phaseState({
-        id: doc.id,
-        name: doc.title,
-        done: doc.tasks.length > 0 && checked === doc.tasks.length,
-        pointer: doc.file,
-        edges: phaseEdges({ declared: true, needs: doc.needs, needsDeployed: doc.needsDeployed ?? [], sameFilesAs: doc.sameFilesAs ?? [], ...(doc.pr ? { pr: doc.pr } : {}) }),
-        summary: { deliverables: { checked, unchecked: doc.tasks.length - checked }, nextRun: [] },
-      });
-    }),
-  };
-}
 
 function readyIds(state: SpecState): { ready: string[]; waiting: string[] } {
   const set = readySet(state, new Map());
@@ -33,7 +14,7 @@ function sameReadySet(phases: readonly PhaseSpec[]): void {
   const base = copyOf("main", "a".repeat(40), specFiles(phases));
   const plan = planJoin({ spec: SPEC, base, trees: [], onBase: () => true, joinedAt: "2026-11-11T21:00:00-08:00" });
   if ("refused" in plan) throw new Error(plan.refused);
-  expect(readyIds(stateFromDocs(base.state, plan.phases))).toEqual(readyIds(base.state));
+  expect(readyIds(joinedSpecState(base.state.spec, () => undefined, plan))).toEqual(readyIds(base.state));
 }
 
 describe("join writes the edges the ready set computes today", () => {
