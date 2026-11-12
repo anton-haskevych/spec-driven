@@ -1,8 +1,12 @@
-import { gitAt, type Git } from "../core/git";
+import { gitAt, gitCommonDir, type Git } from "../core/git";
 import type { Runner } from "../core/run";
 import { loadSettings } from "../playbook/settings";
 import type { MarksSource } from "../graph/nodes";
+import { listOutbox, outboxDir, type OutboxEntry } from "../record/outbox";
+import { overlayIntents } from "../record/overlay";
 import { gitRecordReadPort, readRecord, recordViewOf, type RecordRead, type RecordReadOptions } from "../record/read";
+import { INTENT_PLANNERS } from "./intents";
+import { validateRecordDoc } from "./kinds";
 import { joinedPhaseMarks, readJoinedPlan, stateSourceFor, type JoinedPlan, type SpecSource } from "./state-source";
 
 export interface PlanSource {
@@ -11,16 +15,26 @@ export interface PlanSource {
   isJoined(spec: string): boolean;
   joined(spec: string): JoinedPlan | undefined;
   record: RecordRead;
+  // Changes this clone queued while origin was unreachable; reads already show them.
+  pending: number;
 }
 
 export const FILES_ONLY: PlanSource = planSourceOf({ kind: "none" });
 
 export function readPlans(git: Git, options: RecordReadOptions): PlanSource {
   const port = gitRecordReadPort(git);
-  return planSourceOf(port ? readRecord(port, options) : { kind: "none" });
+  const read: RecordRead = port ? readRecord(port, options) : { kind: "none" };
+  if (read.kind !== "read") return planSourceOf(read);
+  const queued = queuedIntents(git);
+  return planSourceOf({ ...read, view: overlayIntents(read.view, queued, INTENT_PLANNERS, validateRecordDoc) }, queued.length);
 }
 
-export function planSourceOf(record: RecordRead): PlanSource {
+function queuedIntents(git: Git): OutboxEntry[] {
+  const common = gitCommonDir(git);
+  return common.ok ? listOutbox(outboxDir(common.value)).filter((entry) => entry.refused === undefined) : [];
+}
+
+export function planSourceOf(record: RecordRead, pending = 0): PlanSource {
   const view = recordViewOf(record);
   const plan = (spec: string) => (view ? readJoinedPlan(view, spec) : undefined);
   return {
@@ -32,6 +46,7 @@ export function planSourceOf(record: RecordRead): PlanSource {
     isJoined: (spec) => plan(spec) !== undefined,
     joined: plan,
     record,
+    pending,
   };
 }
 

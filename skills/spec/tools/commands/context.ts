@@ -102,7 +102,7 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
 
 function withBoardLines(plans: PlanSource, spec: SpecFolder, body: string): string {
   const joined = plans.joined(spec.name);
-  const lines = [boardLine(plans.record, joined), joined ? treeAheadLine(joined, diskReader(spec.dir)) : undefined].filter((line) => line !== undefined);
+  const lines = [boardLine(plans.record, joined, plans.pending), joined ? treeAheadLine(joined, diskReader(spec.dir)) : undefined].filter((line) => line !== undefined);
   return lines.length === 0 ? body : `${lines.join("\n")}\n\n${body}`;
 }
 
