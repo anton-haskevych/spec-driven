@@ -7,6 +7,7 @@ import type { ParkRequest, UnparkRequest } from "../phases/park";
 import type { MoveRequest } from "../phases/move";
 import type { SetRequest } from "../phases/set";
 import type { SplitRequest } from "../phases/split";
+import type { TaskRequest } from "../phases/task";
 import type { TickRequest } from "../phases/tick";
 import { pilotJoinedRefusal, type LocalPilot } from "../runtime/workflow-capabilities";
 import { fileWriter } from "./file-writer";
@@ -37,6 +38,7 @@ export interface PhaseWriter {
   split(request: SplitRequest): Written;
   move(request: MoveRequest): Written;
   set(request: SetRequest): Written;
+  task(request: TaskRequest): Written;
 }
 
 export interface PhaseDeps {
@@ -57,7 +59,7 @@ export function phaseWriterFor(projectDir: string, spec: SpecFolder, plans: Plan
 
 export function refusingWriter(reason: string): PhaseWriter {
   const refuse = (): PhaseOutcome => ({ kind: "invalid", reason });
-  return { tick: refuse, park: refuse, unpark: refuse, deployed: refuse, add: refuse, split: refuse, move: refuse, set: refuse };
+  return { tick: refuse, park: refuse, unpark: refuse, deployed: refuse, add: refuse, split: refuse, move: refuse, set: refuse, task: refuse };
 }
 
 // Keeps a file spec's answer synchronous; only a record write is awaited.

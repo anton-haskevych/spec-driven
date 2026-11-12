@@ -38,6 +38,10 @@ export function recordWriter(projectDir: string, spec: SpecFolder, joined: Joine
       const intent = { spec: name, phase: request.phase, fields: request.fields };
       return send("set", intent, (see) => PLAN_INTENTS.set.plan(intent, see));
     },
+    task(request) {
+      const intent = { spec: name, ...request };
+      return send("task", intent, (see) => PLAN_INTENTS.task.plan(intent, see));
+    },
     deployed(request) {
       if (!isCalendarDay(request.day)) return { kind: "invalid", reason: `--date "${request.day}" is not a date; use YYYY-MM-DD` };
       const intent = { spec: name, phase: request.phase, day: request.day };

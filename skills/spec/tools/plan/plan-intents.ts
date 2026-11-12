@@ -8,6 +8,7 @@ import { deployedEdit, parkEdit, unparkEdit, type DeployedIntent, type ParkInten
 import type { PhaseFields } from "../phases/set";
 import { setEdit, type SetIntent } from "./ops/set";
 import { splitEdit, type SplitIntent } from "./ops/split";
+import { taskEdit, type TaskIntent } from "./ops/task";
 
 type See = (seen: ChangeSeen) => void;
 type Fields = Record<string, unknown>;
@@ -23,6 +24,7 @@ export interface PlanIntents {
   split: PlanIntent<SplitIntent>;
   move: PlanIntent<MoveIntent>;
   set: PlanIntent<SetIntent>;
+  task: PlanIntent<TaskIntent>;
   deployed: PlanIntent<DeployedIntent>;
   park: PlanIntent<ParkIntent>;
   unpark: PlanIntent<UnparkIntent>;
@@ -46,6 +48,10 @@ export const PLAN_INTENTS: PlanIntents = {
   set: {
     read: (a) => withSpec(a, { phase: text(a.phase), fields: fieldsOf(a.fields) }),
     plan: (i, see) => planChangePlan(i.spec, "set", setEdit(i), see),
+  },
+  task: {
+    read: (a) => taskIntentOf(a),
+    plan: (i, see) => planChangePlan(i.spec, "task", taskEdit(i), see),
   },
   deployed: {
     read: (a) => withSpec(a, { phase: text(a.phase), day: text(a.day) }),
@@ -121,4 +127,11 @@ function fieldsOf(value: unknown): Read<PhaseFields> {
   const fields = { needs, needsDeployed, sameFilesAs, pr, gate, title, outcome };
   if (Object.values(fields).some((field) => field === MISSING)) return MISSING;
   return Object.fromEntries(Object.entries(fields).filter(([, field]) => field !== undefined));
+}
+
+function taskIntentOf(a: Fields): TaskIntent | undefined {
+  if (a.action === "add") return withSpec(a, { phase: text(a.phase), action: "add" as const, texts: texts(a.texts) });
+  if (a.action === "edit") return withSpec(a, { phase: text(a.phase), action: "edit" as const, task: text(a.task), text: text(a.text) });
+  if (a.action === "drop") return withSpec(a, { phase: text(a.phase), action: "drop" as const, task: text(a.task) });
+  return undefined;
 }

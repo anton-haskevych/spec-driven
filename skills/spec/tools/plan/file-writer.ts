@@ -9,6 +9,7 @@ import { planSet } from "../phases/set";
 import { planPark, planUnpark } from "../phases/park";
 import { refsToPhase } from "../phases/review-refs";
 import { planSplit, type Split } from "../phases/split";
+import { planTask } from "../phases/task";
 import { planTick } from "../phases/tick";
 import type { LocalPilot } from "../runtime/workflow-capabilities";
 import type { PhaseDeps, PhaseOutcome, PhaseWriter } from "./phase-writer";
@@ -71,6 +72,12 @@ export function fileWriter(projectDir: string, spec: SpecFolder, deps: PhaseDeps
       if (result.kind === "unchanged") return { kind: "unchanged", line: result.reason };
       applyEdits(result.plan);
       return landed(`set: phase ${result.phaseId} · ${result.said.join(" · ")}`);
+    },
+    task(request) {
+      const result = planTask(spec, request, loadNodes(projectDir));
+      if (result.kind === "invalid") return { kind: "invalid", reason: result.reason };
+      applyEdits(result.plan);
+      return landed(result.line);
     },
   };
 }

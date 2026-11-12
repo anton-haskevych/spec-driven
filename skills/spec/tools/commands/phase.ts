@@ -7,6 +7,7 @@ import { PARK_USAGE, phasePark, phaseUnpark, UNPARK_USAGE } from "./phase/park";
 import { MOVE_USAGE, phaseMove } from "./phase/move";
 import { phaseSet, SET_USAGE } from "./phase/set";
 import { phaseSplit, SPLIT_USAGE } from "./phase/split";
+import { phaseTask, TASK_USAGE } from "./phase/task";
 import { phaseTick, TICK_USAGE } from "./phase/tick";
 
 interface PhaseAction {
@@ -23,6 +24,7 @@ const ACTIONS: Record<string, PhaseAction> = {
   split: { usage: SPLIT_USAGE, run: phaseSplit },
   move: { usage: MOVE_USAGE, run: phaseMove },
   set: { usage: SET_USAGE, run: phaseSet },
+  task: { usage: TASK_USAGE, run: phaseTask },
 };
 
 export const PHASE_USAGE = Object.values(ACTIONS)
