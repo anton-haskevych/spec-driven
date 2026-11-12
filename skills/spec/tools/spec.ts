@@ -3,6 +3,7 @@ import { contextPack } from "./commands/context";
 import { parseContextRequest } from "./context/request";
 import { doctorCommand, DOCTOR_USAGE } from "./commands/doctor";
 import { GATES_USAGE, gatesReport } from "./commands/gates";
+import { JOIN_USAGE, joinCommand } from "./commands/join";
 import { graphCommand } from "./commands/graph";
 import { LAUNCH_USAGE, launchCommand } from "./commands/launch";
 import { lessonsCommand } from "./commands/lessons";
@@ -61,6 +62,7 @@ export const COMMANDS: Record<string, Command> = {
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },
   trees: { usage: TREES_USAGE, run: (dir, args) => treesCommand(dir, args) },
   record: { usage: RECORD_USAGE, run: (dir, args) => recordCommand(dir, args) },
+  join: { usage: JOIN_USAGE, run: (dir, args) => joinCommand(dir, args) },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)

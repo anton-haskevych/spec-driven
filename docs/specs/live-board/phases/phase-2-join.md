@@ -54,8 +54,8 @@ switch must agree with one cut after.
 
 - [x] `spec-doc` and `phase-doc` readers that collect problems (unknown phase in `phases`, a `needs` that doesn't resolve, duplicate task ids) and reuse the existing field readers; `core/read-fields.ts`; factories in `tests/record-factories.ts`
 - [ ] Settings key `board.record: on | off`, default off, read from the default branch; in `describeSettings`; the doctor warns when it is on without `docs: main`
-- [ ] `planJoin`: base + worktree views → documents; tasks matched by text; done anywhere is done with evidence; unmatched tasks and tree-only phases returned as disagreements (Nov 11 fixture; a fixture with a task inserted above a ticked one)
-- [ ] `planJoin` writes implied edges; golden test: a linear spec and a partly-edged spec have the same ready set computed from their documents as from their files
+- [x] `planJoin`: base + worktree views → documents; tasks matched by text; done anywhere is done with evidence; unmatched tasks and tree-only phases returned as disagreements (Nov 11 fixture; a fixture with a task inserted above a ticked one)
+- [x] `planJoin` writes implied edges; golden test: a linear spec and a partly-edged spec have the same ready set computed from their documents as from their files
 - [ ] `spec.ts join <spec>`: one batch with `spec.json` create-only, then the banner; refuses with the board off, without `docs: main`, and offline; a second run says `already on the board` and lands a missing banner; two clones joining at once leave one record (real git)
 
 ## Phase-local notes
