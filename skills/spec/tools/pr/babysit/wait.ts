@@ -12,7 +12,7 @@ import { resolvePr } from "../resolve";
 import { appendEvent, readEvents, type BabysitEvent } from "./log";
 import { pollUntil, type PollClock } from "./poll";
 import { settleLine, waitStep, type Settle, type WaitContext, type WaitStep } from "./wait-step";
-import { specStatesAt } from "../../plan/read-plans";
+import { plansOnDemandAt } from "../../plan/read-plans";
 
 export interface WaitRequest {
   target: readonly string[];
@@ -36,7 +36,7 @@ const SHORT_SHA = 7;
 
 export async function waitForPr(projectDir: string, request: WaitRequest, deps: WaitDeps): Promise<string> {
   const { runner, clock } = deps;
-  const resolved = resolvePr(ghClient(projectDir, runner), projectDir, request.target, specStatesAt(projectDir, runner, new Date(clock.now())));
+  const resolved = resolvePr(ghClient(projectDir, runner), projectDir, request.target, plansOnDemandAt(projectDir, runner, new Date(clock.now())));
   if (!resolved.ok) return `pr wait: ${resolved.reason}`;
   const { view } = resolved.value;
   const git = gitAt(projectDir, runner);

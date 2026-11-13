@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { specStateFrom, type SpecState } from "../core/spec-state";
-import { FILES_ONLY } from "../plan/read-plans";
+import { FILES_ONLY, type SpecPlans } from "../plan/read-plans";
 import { ghClient } from "../pr/gh";
 import { pickGroup, prGroups } from "../pr/groups";
 import { resolvePr } from "../pr/resolve";
 import { phasedSpecFiles, prView, type PhaseSketch } from "./pr-factories";
 import { stubRunner, type CannedRuns } from "./stub-runner";
+import { prDoc } from "./record-factories";
 import { createTree, type Tree } from "./tree";
 
 const TWO_GROUPS: PhaseSketch[] = [
@@ -57,16 +58,16 @@ describe("resolvePr", () => {
   afterEach(() => tree?.cleanup());
 
   const view = (number: number, state = "OPEN") => ({ stdout: JSON.stringify(prView({ number, state })) });
-  const resolve = (args: string[], canned: CannedRuns, states = FILES_ONLY.state) => {
+  const resolve = (args: string[], canned: CannedRuns, plans: SpecPlans = FILES_ONLY) => {
     const runner = stubRunner(canned);
-    return { result: resolvePr(ghClient(tree.root, runner), tree.root, args, states), calls: runner.calls };
+    return { result: resolvePr(ghClient(tree.root, runner), tree.root, args, plans), calls: runner.calls };
   };
 
   test("the PR group comes from the spec source, so a joined spec's record decides it", () => {
     tree = createTree();
     tree.spec("billing", phasedSpecFiles(TWO_GROUPS));
     const recordSaysB = (): SpecState => stateOf([{ id: "1", title: "Schema", pr: "B" }]);
-    const { result } = resolve(["billing"], [[["gh", "pr", "view", "feat/billing-pr-b"], view(903)]], recordSaysB);
+    const { result } = resolve(["billing"], [[["gh", "pr", "view", "feat/billing-pr-b"], view(903)]], { state: recordSaysB, prs: () => undefined });
     expect(result).toMatchObject({ ok: true, value: { view: { number: 903 } } });
   });
 
@@ -102,6 +103,14 @@ describe("resolvePr", () => {
     tree.spec("billing", { ...phasedSpecFiles(TWO_GROUPS), "pr-opening.md": "## Spec state\n\nPR #901 (B)\n" });
     const { result } = resolve(["billing", "A"], [[["gh", "pr", "view", "feat/billing-pr-a"], { code: 1, stderr: 'no pull requests found for branch "feat/billing-pr-a"' }], [["gh", "pr", "view", "901"], view(901)]]);
     expect(result).toEqual({ ok: false, reason: 'no pull requests found for branch "feat/billing-pr-a"' });
+  });
+
+  test("a spec on layout 2 links its PR documents' numbers, not pr-opening.md's", () => {
+    tree = createTree();
+    tree.spec("billing", { ...phasedSpecFiles([{ id: "1", title: "Schema", pr: "A" }]), "pr-opening.md": "## Spec state\n\nPR #779 merged.\n" });
+    const onRecord: SpecPlans = { state: FILES_ONLY.state, prs: () => [prDoc({ group: "A", branch: "feat/billing-pr-a", number: 812, state: "merged" })] };
+    const { result } = resolve(["billing"], [[["gh", "pr", "view", "feat/billing-pr-a"], { code: 1, stderr: "no pull requests found" }], [["gh", "pr", "view", "812"], view(812, "MERGED")]], onRecord);
+    expect(result).toMatchObject({ ok: true, value: { view: { number: 812 } } });
   });
 
   test("an unknown spec is refused", () => {

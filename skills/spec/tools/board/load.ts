@@ -6,7 +6,8 @@ import { defaultBranch, type AsyncRunner, type Runner } from "../core/run";
 import type { SpecState } from "../core/spec-state";
 import { loadMainline } from "../mainline/load";
 import { fetchPrLists, type PrLists } from "../pr/gh-lists";
-import { specPrNumbers } from "../pr/resolve";
+import type { PrDoc } from "../plan/docs/pr-doc";
+import { linkedPrNumbers } from "../pr/resolve";
 import { toPrRows, type PrRow } from "../pr/checks/rollup";
 import { heldClaims, remoteHeldClaims, withoutTakenOver } from "../claims/held";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
@@ -82,7 +83,7 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       sessions,
       claims: [...remote, ...local],
       prs: prLists ? prRows(await prLists, settings.checks.external) : "local",
-      prLinks: prLinks(states, workspaces),
+      prLinks: prLinks(states, workspaces, plans.prs),
       ...(request.ownSessionId ? { ownSessionId: request.ownSessionId } : {}),
     },
   };
@@ -92,12 +93,12 @@ function prRows(lists: Result<PrLists>, externalPatterns: readonly string[]): Re
   return lists.ok ? { ok: true, value: toPrRows(lists.value.open, lists.value.recent, externalPatterns) } : lists;
 }
 
-// A branch's pr-opening.md often links its PR before the docs reach main.
-function prLinks(states: ReadonlyMap<string, SpecState>, workspaces: readonly WorkspaceView[]): Map<string, number[]> {
+// A branch's pr-opening.md often links its PR before the docs reach main; a spec on layout 2 links its PR documents.
+function prLinks(states: ReadonlyMap<string, SpecState>, workspaces: readonly WorkspaceView[], prs: (spec: string) => PrDoc[] | undefined): Map<string, number[]> {
   const links = new Map<string, number[]>();
   for (const views of [states, ...workspaces.map((workspace) => workspace.states)]) {
     for (const [spec, state] of views) {
-      const numbers = specPrNumbers(readTextIfExists(join(state.spec.dir, "pr-opening.md")) ?? "");
+      const numbers = linkedPrNumbers(readTextIfExists(join(state.spec.dir, "pr-opening.md")), prs(spec));
       links.set(spec, [...new Set([...(links.get(spec) ?? []), ...numbers])]);
     }
   }

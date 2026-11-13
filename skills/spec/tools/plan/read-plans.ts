@@ -4,7 +4,9 @@ import { loadSettings } from "../playbook/settings";
 import type { FieldsSource, MarksSource } from "../graph/nodes";
 import type { RecordFields } from "../graph/spec-fields";
 import { RECORD_LAYOUT } from "../record/layout";
+import type { PrDoc } from "./docs/pr-doc";
 import type { SpecDoc } from "./docs/spec-doc";
+import { readSpecPrDocs } from "./pr-sync";
 import { listOutbox, outboxDir, type OutboxEntry } from "../record/outbox";
 import { overlayIntents } from "../record/overlay";
 import { gitRecordReadPort, readRecord, recordViewOf, type RecordRead, type RecordReadOptions } from "../record/read";
@@ -18,6 +20,8 @@ export interface PlanSource {
   fields: FieldsSource;
   isJoined(spec: string): boolean;
   joined(spec: string): JoinedPlan | undefined;
+  // A spec's PR documents once it is on layout 2; before that its PR lines are in pr-opening.md.
+  prs(spec: string): PrDoc[] | undefined;
   record: RecordRead;
   // Changes this clone queued while origin was unreachable; reads already show them.
   pending: number;
@@ -51,6 +55,10 @@ export function planSourceOf(record: RecordRead, pending = 0): PlanSource {
       const joined = plan(spec)?.spec;
       return joined && joined.layout >= RECORD_LAYOUT ? recordFieldsOf(joined) : undefined;
     },
+    prs: (spec) => {
+      const joined = plan(spec)?.spec;
+      return view && joined && joined.layout >= RECORD_LAYOUT ? readSpecPrDocs(view, spec) : undefined;
+    },
     isJoined: (spec) => plan(spec) !== undefined,
     joined: plan,
     record,
@@ -63,10 +71,17 @@ export function readPlansAt(projectDir: string, runner: Runner, now: Date): Plan
   return readPlans(gitAt(projectDir, runner), { fetch: loadSettings(projectDir).board.record, now });
 }
 
+export type SpecPlans = Pick<PlanSource, "state" | "prs">;
+
 // Opens the record on the first spec asked for: a command aimed at a PR number never reads it.
-export function specStatesAt(projectDir: string, runner: Runner, now: Date): SpecSource {
+export function plansOnDemandAt(projectDir: string, runner: Runner, now: Date): SpecPlans {
   let plans: PlanSource | undefined;
-  return (spec) => (plans ??= readPlansAt(projectDir, runner, now)).state(spec);
+  const open = () => (plans ??= readPlansAt(projectDir, runner, now));
+  return { state: (spec) => open().state(spec), prs: (spec) => open().prs(spec) };
+}
+
+export function specStatesAt(projectDir: string, runner: Runner, now: Date): SpecSource {
+  return plansOnDemandAt(projectDir, runner, now).state;
 }
 
 // Hooks and the doctor never fetch: they read what the last fetch left.
