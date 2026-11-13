@@ -1,11 +1,13 @@
 import { samePhase } from "../../core/phase-title";
 import { normalizePhaseHint } from "../../context/request";
 import type { RecordOp } from "../../record/plan-writes";
+import type { RecordView } from "../../record/view";
 import type { RecordPlan } from "../../record/write";
 import type { PhaseDoc } from "../docs/phase-doc";
 import type { SpecDoc } from "../docs/spec-doc";
 import { specPlanProblems } from "../docs/spec-plan";
-import { phaseDocPath, specDocPath } from "../kinds";
+import { missingPrDocs, prGroupOf } from "../docs/pr-doc";
+import { phaseDocPath, prDocPath, specDocPath } from "../kinds";
 import { readJoinedPlan, type JoinedPlan } from "../state-source";
 
 // A plan change's new phase list, in order, and the line it reports at the version it lands as.
@@ -40,7 +42,7 @@ export function planChangePlan(spec: string, action: string, edit: (plan: Joined
     const next: SpecDoc = { ...plan.spec, phases: change.phases.map((phase) => phase.id), planVersion: version };
     const introduced = newProblems(specPlanProblems(plan.spec, plan.phases), specPlanProblems(next, change.phases));
     if (introduced.length > 0) return { refused: introduced.join("; ") };
-    const ops = [specOp(plan.spec, next), ...phaseOps(spec, plan.phases, change.phases)];
+    const ops = [specOp(plan.spec, next), ...phaseOps(spec, plan.phases, change.phases), ...newGroupOps(view, plan, change.phases)];
     see({ kind: "changed", line: change.line(version), added: change.phases.filter((phase) => !plan.phases.some((old) => old.id === phase.id)) });
     return { ops, message: `record: ${action} ${spec} (plan v${version})` };
   };
@@ -92,6 +94,13 @@ function newProblems(before: readonly string[], after: readonly string[]): strin
 
 function specOp(before: SpecDoc, after: SpecDoc): RecordOp {
   return { op: "update", path: specDocPath(after.name), patch: docPatch(before, after) };
+}
+
+// Only a group the plan didn't have: a spec joined before PR documents existed gets its others at upgrade.
+function newGroupOps(view: RecordView, plan: JoinedPlan, phases: readonly PhaseDoc[]): RecordOp[] {
+  const known = new Set(plan.phases.filter((phase) => phase.code).map(prGroupOf));
+  const has = (group: string) => known.has(group) || view.doc(prDocPath(plan.spec.name, group)) !== undefined;
+  return missingPrDocs(plan.spec.name, phases, has).map((doc) => ({ op: "create", path: prDocPath(plan.spec.name, doc.group), doc }));
 }
 
 function phaseOps(spec: string, before: readonly PhaseDoc[], after: readonly PhaseDoc[]): RecordOp[] {

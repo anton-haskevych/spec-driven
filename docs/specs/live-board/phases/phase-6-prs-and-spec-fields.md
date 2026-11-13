@@ -65,7 +65,7 @@ phase 1's move, or `publish/publish.ts`.
 - [ ] Spec fields on `SpecDoc`; `loadNodes` serves joined specs from the record; the two direct frontmatter reads share one reader
 - [ ] `owner`, `focus`, `ship` and `phase deployed` write the record for a joined spec; new `spec.ts spec-status <spec> <value>` for both homes
 - [ ] Layout 2: a spec joined under PR B is upgraded on its next touch (fields and PR numbers copied in one batch); until then its readers use the files; a PR B plugin refuses to write (test with a layout-1 fixture)
-- [ ] `landOnMain` calls `core/land-on-ref.ts`: 5 tries, a timeout and no credential prompt; its result type and callers unchanged
+- [x] `landOnMain` calls `core/land-on-ref.ts`: 5 tries, a timeout and no credential prompt; its result type and callers unchanged
 - [ ] `update.md`, `execute.md`, `babysit.md`, `SKILL.md` updated; ROADMAP row and version bump for PR C
 
 ## Phase-local notes

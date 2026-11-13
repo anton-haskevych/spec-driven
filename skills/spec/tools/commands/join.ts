@@ -15,7 +15,8 @@ import type { PhaseDoc } from "../plan/docs/phase-doc";
 import type { SpecDoc } from "../plan/docs/spec-doc";
 import { planJoin, type JoinCopy, type JoinPlan } from "../plan/join";
 import { readTreeCopies } from "../plan/join-copies";
-import { phaseDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
+import { missingPrDocs } from "../plan/docs/pr-doc";
+import { phaseDocPath, prDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
 import { landBanner } from "../plan/land-banner";
 import { joinFromTree } from "./join-from-tree";
 import { joinTidy } from "./join-tidy";
@@ -87,7 +88,11 @@ export function newSpecPlan({ spec, phases }: { spec: SpecDoc; phases: readonly 
     seen(current);
     if (current !== undefined) return { unchanged: true };
     return {
-      ops: [{ op: "create", path: specDocPath(spec.name), doc: spec }, ...phases.map((phase) => ({ op: "create" as const, path: phaseDocPath(spec.name, phase.id), doc: phase }))],
+      ops: [
+        { op: "create", path: specDocPath(spec.name), doc: spec },
+        ...phases.map((phase) => ({ op: "create" as const, path: phaseDocPath(spec.name, phase.id), doc: phase })),
+        ...missingPrDocs(spec.name, phases, () => false).map((doc) => ({ op: "create" as const, path: prDocPath(spec.name, doc.group), doc })),
+      ],
       message: `record: ${verb} ${spec.name}`,
     };
   };
