@@ -4,6 +4,7 @@ import { landSpecField, type SpecFieldEdit } from "../core/land-spec-field";
 import { hasMatchKey } from "../core/people";
 import type { Result } from "../core/result";
 import { systemRunner, type Runner } from "../core/run";
+import { fieldLine, systemFieldDeps, writeJoinedField, type FieldWriteDeps } from "./spec-field-write";
 
 export type OwnerWho = { kind: "me" } | { kind: "none" } | { kind: "name"; name: string };
 
@@ -26,14 +27,18 @@ export function parseOwnerArgs(args: readonly string[]): OwnerRequest | string {
 }
 
 // Changes main for the whole team: runs only on someone's word that the spec is theirs, or nobody's.
-export async function ownerCommand(projectDir: string, args: readonly string[], runner: Runner = systemRunner): Promise<string> {
+// A joined spec's owner is on the record: no commit on main.
+export async function ownerCommand(projectDir: string, args: readonly string[], runner: Runner = systemRunner, deps: FieldWriteDeps = systemFieldDeps(runner)): Promise<string> {
   const request = parseOwnerArgs(args);
   if (typeof request === "string") return request;
   const owner = resolveOwner(request.who, () => runnerName(gitAt(projectDir, runner)));
   if (!owner.ok) return `owner: ${owner.reason}, or name the person`;
-  const outcome = await landSpecField(projectDir, runner, ownerEdit(request.spec, owner.value));
-  if (outcome.kind !== "landed") return `owner: ${outcome.reason}`;
-  return `owner: ${request.spec} ${owner.value === undefined ? "has no owner" : `is ${owner.value}`} (${outcome.sha.slice(0, 7)})`;
+  const edit = ownerEdit(request.spec, owner.value);
+  const landed = (sha: string) => `owner: ${request.spec} ${owner.value === undefined ? "has no owner" : `is ${owner.value}`} (${sha})`;
+  const joined = await writeJoinedField(projectDir, { spec: request.spec, key: "owner", value: owner.value ?? null }, deps);
+  if (joined) return fieldLine("owner", joined, landed, edit.already);
+  const outcome = await landSpecField(projectDir, runner, edit);
+  return outcome.kind === "landed" ? landed(outcome.sha.slice(0, 7)) : `owner: ${outcome.reason}`;
 }
 
 function resolveOwner(who: OwnerWho, me: () => Result<string>): Result<string | undefined> {

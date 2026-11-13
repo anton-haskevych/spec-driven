@@ -10,6 +10,12 @@ import type { RunOptions } from "../core/run";
 import { anonymousRunner, isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 import { cannedGh } from "./stub-runner";
 import { createTree } from "./tree";
+import { joinedRepo } from "./joined-repo";
+import type { PrDoc } from "../plan/docs/pr-doc";
+import { gitRecordPort } from "../record/ref";
+import { writeRecord } from "../record/write";
+import { RECORD_REF } from "../record/layout";
+import { prDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
 
 const runners: BoardRunners = { runner: isolatedRunner, asyncRunner: isolatedAsyncRunner, claudeHome: "/no/claude/home" };
 
@@ -195,4 +201,28 @@ describe("loadBoard with worktrees (real git)", () => {
     expect(fromMain).not.toContain("◀ here");
     expect(normalized(fromWorktree)).toBe(normalized(fromMain));
   });
+});
+
+describe("board load on a joined spec (real git)", () => {
+  test("a PR merged on github.com moves its document and shows merged", async () => {
+    const repo = joinedRepo("spec-board-pr-sync-");
+    const port = gitRecordPort(gitAt(repo.dir, isolatedRunner));
+    if (!port) throw new Error("no origin");
+    const upgraded = await writeRecord(port, () => ({ ops: [{ op: "update", path: specDocPath("alpha"), patch: { layout: 2 } }, { op: "create", path: prDocPath("alpha", "default"), doc: { group: "default", branch: "feat/alpha", state: "not-opened" } }] }), { validate: validateRecordDoc });
+    expect(upgraded.kind).toBe("landed");
+    const merged = { number: 50, headRefName: "feat/alpha", headRefOid: "abc123", state: "MERGED", mergedAt: "2026-11-12T08:00:00Z", mergeCommit: { oid: "fff999" }, url: "u" };
+    const asyncRunner = cannedGh(isolatedAsyncRunner, [
+      [["gh", "pr", "list", "--state", "open"], { stdout: "[]" }],
+      [["gh", "pr", "list", "--state", "all"], { stdout: JSON.stringify([merged]) }],
+    ]);
+    try {
+      const inputs = await loadBoardInputs(repo.dir, { local: false }, { ...runners, asyncRunner });
+      if (!inputs.ok) throw new Error(inputs.reason);
+      const expected: PrDoc = { group: "default", branch: "feat/alpha", state: "merged", number: 50, headRefOid: "abc123", mergedSha: "fff999", mergedAt: "2026-11-12" };
+      expect(inputs.value.prDocs.get("alpha")).toEqual([expected]);
+      expect(JSON.parse(repo.git("--git-dir", repo.origin, "show", `${RECORD_REF}:${prDocPath("alpha", "default")}`))).toEqual(expected);
+    } finally {
+      repo.cleanup();
+    }
+  }, 30_000);
 });

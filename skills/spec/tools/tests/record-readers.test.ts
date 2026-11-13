@@ -107,16 +107,17 @@ describe("one-spec readers of a joined spec (real git)", () => {
   });
 
   test("a joined spec whose record tasks are all done is finished, though its progress.md is a stub", () => {
-    const nodes = loadNodes(repo.dir, readLocalPlans(repo.dir, isolatedRunner, NOW).marks);
+    const nodes = loadNodes(repo.dir, readLocalPlans(repo.dir, isolatedRunner, NOW));
     expect(nodes.get("gamma")?.phases).toEqual([{ id: "1", done: true, deployed: false }]);
     expect(isFinished(nodes.get("gamma")!)).toBe(true);
     expect(isFinished(loadNodes(repo.dir).get("gamma")!)).toBe(false);
   });
 
   test("a tick and a move name tasks by id on a joined spec, and the files stay alone", async () => {
+    const deps = { runner: isolatedRunner, env: {}, now: () => NOW };
     const before = readFileSync(spec("phases/phase-2.md"), "utf8");
-    expect(await phaseCommand(repo.dir, ["tick", "alpha", "2", "#1"])).toBe('phase tick: no task "#1" in phase 2; alpha is on the board, where a task is named by its id. Open tasks:\n2.1 second');
-    expect(await phaseCommand(repo.dir, ["move", "alpha", "9.9", "--to", "2"])).toBe("phase move: no task 9.9 in alpha");
+    expect(await phaseCommand(repo.dir, ["tick", "alpha", "2", "#1"], undefined, deps)).toBe('phase tick: no task "#1" in phase 2; alpha is on the board, where a task is named by its id. Open tasks:\n2.1 second');
+    expect(await phaseCommand(repo.dir, ["move", "alpha", "9.9", "--to", "2"], undefined, deps)).toBe("phase move: no task 9.9 in alpha");
     expect(readFileSync(spec("phases/phase-2.md"), "utf8")).toBe(before);
   });
 

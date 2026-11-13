@@ -43,12 +43,22 @@ describe("spec.ts join (real git)", () => {
     const head = repo.git("rev-parse", "HEAD");
     const output = await joinIn(repo);
     expect(output).toMatch(new RegExp(`^join: ${SPEC} is on the board \\(2 phases, 3 tasks, 0 worktrees read\\) · banner landed on main \\([0-9a-f]{7}\\)$`));
-    expect(onRecord(`specs/${SPEC}/spec.json`)).toMatchObject({ name: SPEC, planVersion: 1, phases: ["1", "2"], joinedFrom: head, layout: 1 });
+    expect(onRecord(`specs/${SPEC}/spec.json`)).toMatchObject({ name: SPEC, planVersion: 1, phases: ["1", "2"], joinedFrom: head, layout: 2, status: "active" });
     expect(onRecord(`specs/${SPEC}/phases/2.json`)).toMatchObject({ needs: ["1"], tasks: [{ id: "2.1", text: "Alpha", done: false }, { id: "2.2", text: "Beta", done: false }] });
     expect(recordLog()).toEqual([`record: join ${SPEC}`]);
     expect(progressOnMain()).toContain(bannerLine("2026-11-11"));
     expect(repo.git("rev-parse", "HEAD")).toBe(head);
     expect(repo.git("status", "--porcelain")).toBe("");
+  });
+
+  test("the spec's fields and its merged PR come over from main's files", async () => {
+    repo.write(`${SPEC_DIR}/CLAUDE.md`, "---\nstatus: active\nowner: Taras\nfocus: must\nship: auto\n---\n# Spec\n");
+    repo.write(`${SPEC_DIR}/pr-opening.md`, "# PR\n\n## Spec state\n\nPR #37 merged 2026-11-10 as 9392c3f (squash).\n");
+    repo.commitAll("fields");
+    repo.git("push", "-q", "origin", "main");
+    await joinIn(repo);
+    expect(onRecord(`specs/${SPEC}/spec.json`)).toMatchObject({ layout: 2, status: "active", owner: "Taras", focus: "must", ship: "auto" });
+    expect(onRecord(`specs/${SPEC}/prs/default.json`)).toEqual({ group: "default", branch: `feat/${SPEC}`, state: "merged", number: 37, mergedAt: "2026-11-10", mergedSha: "9392c3f", method: "squash" });
   });
 
   test("a tick made in a worktree is recorded as done with that tree's head", async () => {

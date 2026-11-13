@@ -136,14 +136,14 @@ Append to the "Existing files touched" table:
 
 Don't bump `updated:` for an ordinary session: parallel sessions on one spec each bumped it and collided on that line. It moves only with a status change (below) or a review or prep rewrite.
 
-Transition status if applicable:
+Transition status if applicable, with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts spec-status <spec> <status>`: it writes `status:` in `CLAUDE.md` on main, or the record for a spec on the board (SKILL.md → *Tools* → Spec fields on the board). Report its line. A spec not yet on the default branch is refused (`land the spec first`): edit `status:` by hand in this tree instead. Without Bun, edit it by hand.
 
 - Only ever write a value the project allows (SKILL.md → *Stage vs. status*). The spec-file hook blocks any other value.
 - `draft` → `active`: first items checked off across any phase
 - `active` → `done`: every phase is done (`spec.ts ready <name>` says no phase is left)
 - A legacy `in-progress` status counts as `active` — rewrite it to `active` on the next transition
 - Print a notice when status transitions: "Status: draft → active"
-- After a transition, run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>`
+- After a transition, run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>` (it bumps `updated:`, which stays in `CLAUDE.md`)
 
 ## 8. Report and nudge
 

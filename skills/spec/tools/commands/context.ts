@@ -92,7 +92,7 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   const mode = request.mode === "route" ? "resume" : request.mode;
   const block = (body: string) => packBlock(state.spec.name, mode, inferredFrom, withBoardLines(plans, state.spec, body, deps.memory));
   if (mode === "babysit") return block(babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
-  const nodes = loadNodes(projectDir, plans.marks);
+  const nodes = loadNodes(projectDir, plans);
   const held = await deps.readHeld(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir, specsInFlight(held, state.spec.name));
   const ready = readySet(state, nodes);

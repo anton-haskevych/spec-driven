@@ -1,5 +1,6 @@
 import { gitFailureReason, type Git } from "../core/git";
 import type { Result } from "../core/result";
+import type { RunOptions } from "../core/run";
 import { isSpecDocPath } from "../core/spec-folders";
 import { commitOnto } from "./commit-onto";
 
@@ -19,7 +20,7 @@ export interface SnapshotRequest {
   spec?: string;
 }
 
-export function pinDefault(git: Git, branch: string, options: { timeoutMs?: number } = {}): Result<string> {
+export function pinDefault(git: Git, branch: string, options: Omit<RunOptions, "cwd"> = {}): Result<string> {
   const fetched = git.out(["fetch", "-q", "origin", branch], options);
   if (!fetched.ok) return fetched;
   return originTip(git, branch);

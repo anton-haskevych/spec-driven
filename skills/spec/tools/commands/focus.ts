@@ -5,6 +5,7 @@ import { BAND_CHOICES, FOCUS_BANDS, focusBand } from "../core/spec-meta";
 import { landFocus, type LandOutcome } from "../focus/land";
 import type { FocusAction } from "../focus/plan";
 import { NO_DEFAULT_BRANCH } from "./push";
+import { fieldLine, systemFieldDeps, writeJoinedField, type FieldWriteDeps, type FieldWritten } from "./spec-field-write";
 
 type FocusVerb = FocusAction["kind"];
 
@@ -32,9 +33,11 @@ export function parseFocusArgs(args: readonly string[]): FocusAction | string {
   return band ? { kind: name, spec, band } : `focus ${name}: ${word} is not a band; use ${BAND_CHOICES}`;
 }
 
-export async function focusCommand(projectDir: string, args: readonly string[], runner: Runner = systemRunner): Promise<string> {
+export async function focusCommand(projectDir: string, args: readonly string[], runner: Runner = systemRunner, deps: FieldWriteDeps = systemFieldDeps(runner)): Promise<string> {
   const action = parseFocusArgs(args);
   if (typeof action === "string") return action;
+  const joined = await writeJoinedField(projectDir, { spec: action.spec, key: "focus", value: action.kind === "drop" ? null : action.band, focus: action.kind }, deps);
+  if (joined) return focusRecordLine(action, joined);
   const branch = defaultBranch(projectDir, runner);
   if (!branch) return `focus: ${NO_DEFAULT_BRANCH}`;
   return focusLine(action, await landFocus(gitAt(projectDir, runner), { defaultBranch: branch, action }));
@@ -46,6 +49,13 @@ export function focusLine(action: FocusAction, outcome: LandOutcome): string {
   const { verb, spec, band } = outcome.landed;
   const sha = outcome.sha.slice(0, 7);
   return band ? `focus: ${verb} ${spec} to ${band} (${sha})` : `focus: ${verb} ${spec} (${sha})`;
+}
+
+function focusRecordLine(action: FocusAction, written: FieldWritten): string {
+  if (written.kind === "refused") return [...written.notes, `focus ${action.kind}: ${written.reason}`].join("\n");
+  const verb = { add: "added", move: "moved", drop: "dropped" }[action.kind];
+  const landed = (sha: string) => (action.kind === "drop" ? `focus: ${verb} ${action.spec} (${sha})` : `focus: ${verb} ${action.spec} to ${action.band} (${sha})`);
+  return fieldLine("focus", written, landed, `${action.spec} already says that`);
 }
 
 function isVerb(name: string | undefined): name is FocusVerb {

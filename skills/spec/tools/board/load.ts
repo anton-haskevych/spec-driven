@@ -6,7 +6,8 @@ import { defaultBranch, type AsyncRunner, type Runner } from "../core/run";
 import type { SpecState } from "../core/spec-state";
 import { loadMainline } from "../mainline/load";
 import { fetchPrLists, type PrLists } from "../pr/gh-lists";
-import { specPrNumbers } from "../pr/resolve";
+import type { PrDoc } from "../plan/docs/pr-doc";
+import { linkedPrNumbers } from "../pr/resolve";
 import { toPrRows, type PrRow } from "../pr/checks/rollup";
 import { heldClaims, remoteHeldClaims, withoutTakenOver } from "../claims/held";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
@@ -16,6 +17,11 @@ import { canonicalPath, loadWorkspaces } from "../workspaces/list";
 import { loadWorkspaceViews } from "../workspaces/views";
 import type { BoardInputs, WorkspaceView } from "./inputs";
 import { joinedActivity } from "./joined-activity";
+import { boardPrDocs } from "./pr-sync";
+import { validateRecordDoc } from "../plan/kinds";
+import { prSyncPlan } from "../plan/pr-sync";
+import { gitRecordPort } from "../record/ref";
+import { writeRecord } from "../record/write";
 import { buildBoard } from "./lanes";
 import type { Board } from "./model";
 
@@ -64,6 +70,8 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
   const workspaces = loadWorkspaceViews(scans, nodes, plans.isJoined);
   // An unreadable worktree list falls back to the live ones, as claimContext falls back to claimed ones.
   const trees = loadWorkspaces(git);
+  const prs = prLists ? prRows(await prLists, settings.checks.external) : "local";
+  const prDocs = await syncedPrDocs(git, [...states.keys()], plans.prs, prs);
   return {
     ok: true,
     value: {
@@ -74,15 +82,16 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       states,
       stages,
       plans,
-      joinedActivity: joinedActivity([...states.keys()].flatMap((name) => plans.joined(name) ?? []), trees.ok ? trees.value : []),
+      joinedActivity: joinedActivity([...states.keys()].flatMap((name) => plans.joined(name) ?? []), trees.ok ? trees.value : [], (spec) => prDocs.get(spec)),
       workspaces,
       worktreePaths: trees.ok ? trees.value.map((worktree) => worktree.path) : workspaces.map((workspace) => workspace.path),
       counts: { ...counts, duplicates },
       backlogCount: backlog.length,
       sessions,
       claims: [...remote, ...local],
-      prs: prLists ? prRows(await prLists, settings.checks.external) : "local",
-      prLinks: prLinks(states, workspaces),
+      prs,
+      prDocs,
+      prLinks: prLinks(states, workspaces, plans.prs),
       ...(request.ownSessionId ? { ownSessionId: request.ownSessionId } : {}),
     },
   };
@@ -92,16 +101,25 @@ function prRows(lists: Result<PrLists>, externalPatterns: readonly string[]): Re
   return lists.ok ? { ok: true, value: toPrRows(lists.value.open, lists.value.recent, externalPatterns) } : lists;
 }
 
-// A branch's pr-opening.md often links its PR before the docs reach main.
-function prLinks(states: ReadonlyMap<string, SpecState>, workspaces: readonly WorkspaceView[]): Map<string, number[]> {
+// A branch's pr-opening.md often links its PR before the docs reach main; a spec on layout 2 links its PR documents.
+function prLinks(states: ReadonlyMap<string, SpecState>, workspaces: readonly WorkspaceView[], prs: (spec: string) => PrDoc[] | undefined): Map<string, number[]> {
   const links = new Map<string, number[]>();
   for (const views of [states, ...workspaces.map((workspace) => workspace.states)]) {
     for (const [spec, state] of views) {
-      const numbers = specPrNumbers(readTextIfExists(join(state.spec.dir, "pr-opening.md")) ?? "");
+      const numbers = linkedPrNumbers(readTextIfExists(join(state.spec.dir, "pr-opening.md")), prs(spec));
       links.set(spec, [...new Set([...(links.get(spec) ?? []), ...numbers])]);
     }
   }
   return links;
+}
+
+// PRs opened or merged on github.com reach their documents here as well as at pr status. A write that
+// doesn't land is retried by the next load.
+async function syncedPrDocs(git: Git, specs: readonly string[], docsOf: (spec: string) => PrDoc[] | undefined, prs: Result<PrRow[]> | "local"): Promise<Map<string, PrDoc[]>> {
+  const synced = boardPrDocs(specs, docsOf, prs !== "local" && prs.ok ? prs.value : []);
+  const port = synced.sightings.length > 0 ? gitRecordPort(git) : undefined;
+  if (port) await writeRecord(port, prSyncPlan(synced.sightings), { validate: validateRecordDoc });
+  return synced.docs;
 }
 
 // Resolved like worktree paths, so the board can match it against them.

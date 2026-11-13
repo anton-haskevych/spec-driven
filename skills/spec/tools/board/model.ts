@@ -46,6 +46,7 @@ export type FlightNext =
   | "approved"
   | "changes requested"
   | "ticked on branch, not merged"
+  | "built, PR not opened"
   | "uncommitted";
 
 export interface FlightRow extends RowBase {
@@ -97,6 +98,8 @@ export type AttentionRow =
   | { kind: "overdue"; spec: string; phase?: string; due: string }
   | { kind: "deploy"; spec: string; phase: string; waiting: string[] }
   | { kind: "merge"; spec: string; phase?: string; prGroup?: string; pr: number }
+  // A PR group whose phases are built and whose PR nobody opened.
+  | { kind: "open-pr"; spec: string; prGroup?: string; phases: string[] }
   | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number }
   // A held PR: waiting for the user's review, approved (merge it), or sent back (relaunch execute).
   | { kind: "pr-review" | "pr-approved" | "pr-changes"; spec: string; phase?: string; prGroup?: string; pr: number }

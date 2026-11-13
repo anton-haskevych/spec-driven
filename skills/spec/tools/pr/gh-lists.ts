@@ -4,8 +4,8 @@ import { parseJson } from "./gh-records";
 
 export const GH_TIMEOUT_MS = 10_000;
 const PR_LIST_LIMIT = "100";
-const OPEN_FIELDS = "number,headRefName,isDraft,url,statusCheckRollup,author,reviewDecision,labels";
-const RECENT_FIELDS = "number,headRefName,state,mergedAt,url";
+const OPEN_FIELDS = "number,headRefName,headRefOid,isDraft,url,statusCheckRollup,author,reviewDecision,labels";
+const RECENT_FIELDS = "number,headRefName,headRefOid,state,mergedAt,mergeCommit,url";
 
 export interface PrLists {
   open: unknown[];

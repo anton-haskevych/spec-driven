@@ -11,5 +11,5 @@ export function readyReport(projectDir: string, specName: string | undefined, ru
   if (!spec) return `ready: no spec named ${specName}`;
   const plans = readPlansAt(projectDir, runner, now);
   const state = plans.state(spec);
-  return `${renderReadySet(readySet(state, loadNodes(projectDir, plans.marks)))}\n\n${renderPrGroups(state)}`;
+  return `${renderReadySet(readySet(state, loadNodes(projectDir, plans)))}\n\n${renderPrGroups(state)}`;
 }

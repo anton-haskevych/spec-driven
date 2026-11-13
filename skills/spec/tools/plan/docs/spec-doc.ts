@@ -1,5 +1,5 @@
 import type { FrontmatterData } from "../../core/frontmatter";
-import { requiredText, stringArray, wholeNumber, withoutUndefined } from "../../core/read-fields";
+import { optionalText, requiredText, stringArray, wholeNumber, withoutUndefined } from "../../core/read-fields";
 import { readFocusFields, readLifecycleFields, readShipField, type FocusBand, type ShipMode } from "../../core/spec-meta";
 import { readObject, type DocRead } from "./read";
 
@@ -13,6 +13,8 @@ export interface SpecDoc {
   joinedAt: string;
   joinedFrom: string;
   layout: number;
+  // From layout 2: the spec's stage, as CLAUDE.md's `status:` held it before.
+  status?: string;
   focus?: FocusBand;
   owner?: string;
   ship?: ShipMode;
@@ -37,6 +39,7 @@ function readSpecFields(fields: FrontmatterData, problems: string[]): SpecDoc {
     joinedAt: requiredText(fields.joinedAt, "joinedAt", problems) ?? "",
     joinedFrom: requiredText(fields.joinedFrom, "joinedFrom", problems) ?? "",
     layout: wholeNumber(fields.layout, "layout", problems) ?? 0,
+    status: optionalText(fields.status, "status", problems),
     focus: focus.focus,
     owner: focus.owner,
     ship: ship.ship,

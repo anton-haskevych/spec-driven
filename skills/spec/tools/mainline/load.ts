@@ -76,7 +76,7 @@ function loadSpecDocs(projectDir: string, plans: PlanSource): Omit<Mainline, "ba
   const stages = new Map<string, SpecStage>();
   for (const [name, state] of states) if (!state.hasProgress) stages.set(name, stageOf(state.spec));
   return {
-    nodes: loadNodes(projectDir, plans.marks),
+    nodes: loadNodes(projectDir, plans),
     states,
     stages,
     backlog: loadBacklog(projectDir),

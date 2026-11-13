@@ -79,6 +79,15 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/record-export.ts`, `plan/export.ts` | `record export [--unjoin]`: the way back to files | 4 |
 | `skills/spec/tools/plan/deliverables.ts`, `plan/banner.ts` | Deliverables section helpers; banner, stub and manual read line | 4 |
 | `skills/spec/tools/doctor/joined.ts` | Doctor checks for a joined spec | 4 |
+| `skills/spec/tools/plan/docs/pr-doc.ts` | PR document reader, `missingPrDocs`, the `default` group | 6 |
+| `skills/spec/tools/plan/upgrade.ts`, `plan/upgrade-read.ts`, `plan/upgrade-send.ts` | Files → record copier (four fields, PR numbers); layout-1 upgrade on first write | 6 |
+| `skills/spec/tools/graph/spec-fields.ts` | `readSpecFields`: one reader of a spec's fields in either home | 6 |
+| `skills/spec/tools/plan/ops/field.ts`, `commands/spec-field-write.ts`, `commands/spec-status.ts` | Field intent; owner/ship/focus/spec-status on the record | 6 |
+| `skills/spec/tools/plan/pr-sync.ts`, `plan/pr-observed.ts`, `plan/pr-sync-send.ts` | PR document sync: match by branch then head, GitHub → state, `recordPr` | 6 |
+| `skills/spec/tools/board/pr-sync.ts` | The board's PR lists → synced PR documents and the write-back | 6 |
+| `skills/spec/tools/plan/phase-stage.ts` | `phaseStage`: todo, doing, built, merged, deployed, done | 6 |
+| `skills/spec/tools/board/joined-activity.ts`, `board/record-rows.ts` | Joined phases in flight by stage; the `open-pr` *Needs you* row | 6 |
+| `skills/spec/tools/core/land-on-main.ts` | Branch port over `landOnRef`; `pushDeclined` in `core/remote-push.ts` | 6 |
 | `skills/spec/SKILL.md` | Layout rules and the *Tools* section | |
 
 ## External references

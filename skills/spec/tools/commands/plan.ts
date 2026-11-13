@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
+import { readTextIfExists } from "../core/files";
 import { gitAt } from "../core/git";
 import { defaultBranch } from "../core/run";
 import { isoTimestamp } from "../core/schedule";
@@ -9,6 +10,7 @@ import { progressStub } from "../plan/banner";
 import { boardBase } from "../plan/board-base";
 import type { PhaseDoc } from "../plan/docs/phase-doc";
 import { validateRecordDoc } from "../plan/kinds";
+import { specFieldsFromFiles } from "../plan/upgrade";
 import { gitRecordPort } from "../record/ref";
 import { writeRecord, type StoreWrite } from "../record/write";
 import { newSpecPlan, systemJoinDeps, type JoinDeps } from "./join";
@@ -44,7 +46,8 @@ async function applyDraft(projectDir: string, folder: SpecFolder, draft: unknown
   if ("problems" in planned) return refused(`The draft has problems: ${planned.problems.join("; ")}.`);
   const missing = planned.phases.filter((phase) => !existsSync(join(folder.dir, phase.file))).map((phase) => phase.file);
   if (missing.length > 0) return refused(`Write the phase files first: ${missing.join(", ")}.`);
-  const written = await writeRecord(port, newSpecPlan(planned, "plan", () => {}), { validate: validateRecordDoc });
+  const fields = specFieldsFromFiles(readTextIfExists(join(folder.dir, "CLAUDE.md")) ?? "");
+  const written = await writeRecord(port, newSpecPlan({ ...planned, spec: { ...planned.spec, ...fields } }, "plan", () => {}), { validate: validateRecordDoc });
   if (written.kind !== "landed") return writtenRefusal(folder.name, written);
   writeFileSync(join(folder.dir, "progress.md"), progressStub("", folder.name, isoTimestamp(now).slice(0, 10)));
   return `plan: ${folder.name} is on the board (${countsOf(planned.phases)}) · progress.md written`;

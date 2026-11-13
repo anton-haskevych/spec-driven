@@ -1,3 +1,4 @@
+import type { PrDoc } from "../plan/docs/pr-doc";
 import type { PhaseDoc, Task } from "../plan/docs/phase-doc";
 import type { SpecDoc } from "../plan/docs/spec-doc";
 
@@ -29,4 +30,9 @@ export function specDoc(overrides: Partial<SpecDoc> = {}): SpecDoc {
     layout: 1,
     ...overrides,
   };
+}
+
+export function prDoc(overrides: Partial<PrDoc> = {}): PrDoc {
+  const group = overrides.group ?? "A";
+  return { group, branch: `feat/checkout-pr-${group.toLowerCase()}`, state: "not-opened", ...overrides };
 }

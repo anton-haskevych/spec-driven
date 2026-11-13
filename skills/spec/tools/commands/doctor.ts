@@ -31,7 +31,7 @@ export function doctorReport(projectDir: string, specName?: string, runner: Runn
   }
 
   const statuses = allowedStatuses(projectDir);
-  const nodes = loadNodes(projectDir, plans.marks);
+  const nodes = loadNodes(projectDir, plans);
   const gates = loadGates(projectDir);
   const playbooks = new Set(loadPlaybooks(projectDir).map((playbook) => playbook.name));
   const context = { projectDir, statuses, nodes, gates, today: isoDay(new Date()), playbooks, plans };

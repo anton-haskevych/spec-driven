@@ -5,7 +5,7 @@ import { openPr, type OpenDeps } from "../../pr/actions/open";
 
 export const PR_OPEN_USAGE = "pr open <spec-name> [<group>] [--draft]";
 
-const systemDeps: OpenDeps = { runner: systemRunner, clock: systemClock, now: () => new Date() };
+const systemDeps: OpenDeps = { runner: systemRunner, clock: systemClock, now: () => new Date(), env: process.env };
 
 export async function prOpen(projectDir: string, args: readonly string[], deps: OpenDeps = systemDeps): Promise<string> {
   const parsed = parseOpenArgs(args);

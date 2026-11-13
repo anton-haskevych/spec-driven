@@ -100,6 +100,8 @@ function attentionCells(row: AttentionRow, now: Date): string[] {
       return [`${rowName(row)} asks: ${row.question}`, row.recommend ? `I'd say ${row.recommend}` : "answer it"];
     case "merge":
       return [`#${row.pr} checks pass → merge`, rowName(row)];
+    case "open-pr":
+      return ["built, PR not opened → open it", `${row.spec}${row.prGroup ? ` PR ${row.prGroup}` : ""} · phases ${row.phases.join(", ")}`];
     case "fix":
       return [`#${row.pr} ${row.failing} ${row.failing === 1 ? "check" : "checks"} failing → fix`, rowName(row)];
     case "pr-review":

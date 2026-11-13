@@ -20,11 +20,14 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   completes … fresh-process pickup" timed out at 5906 ms against the 5 s default; alone with `--timeout 30000`:
   `4 pass · 0 fail`, as at the branch base (`docs/specs/_ledger/gotcha-codex-packaged-entry-test-runs-near-its-timeout.md`).
   PR B, 2026-11-12: `1805 pass · 0 fail`; typecheck clean; `bun install --frozen-lockfile` no changes.
+  PR C, 2026-11-13: `1901 pass · 0 fail` across 269 files (272 s) before the newer-layout fix; then the
+  write-command suites (`410 pass · 0 fail`) and the new `record-newer-layout.test.ts`; typecheck clean;
+  `bun install --frozen-lockfile` no changes.
 - [x] `bun run typecheck` clean (PR A, 2026-11-11)
 - [x] `bun install --frozen-lockfile` clean (no new runtime dependencies) (PR A, 2026-11-11)
-- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*)
-- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143)
-- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`)
+- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`)
+- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227)
+- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C: `doctor: clean (1 spec)`)
 - [x] With the board off, a file-based spec behaves as before: the pre-existing suites pass unchanged
   PR A: nothing reads the record yet; the same one timing failure as `bun test` above.
   PR B, 2026-11-12: full suite green; the only edited expectation is the frozen-plan hook naming `phase task`.
@@ -105,5 +108,30 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
 
   PR A: phases 1 ✓
   PR B: phases 2
+  ```
+  PR C, 2026-11-13, bare origin + clones `laptop` (released 2.53.0) and `desktop` (this branch), script
+  `pr-c-scenario.sh` in the session scratchpad. The upgrade works; **2.53.0 does not refuse**: it reads the
+  layout-2 record as no record and writes its files (`ledger/gotcha-2-53-writes-files-on-a-newer-record.md`).
+  Fixed forward (2.54 refuses a newer layout, `tests/record-newer-layout.test.ts`); for 2.53 → 2.54 every
+  install must update before the first 2.54 write in CRM.
+  ```
+  $ laptop: spec.ts (2.53.0) join demo
+  join: demo is on the board (2 phases, 2 tasks, 0 worktrees read) · banner landed on main (e95b144)
+  --- record after the 2.53.0 join
+  meta.json: { "layout": 1 }
+  $ desktop: spec.ts (this branch) phase set demo 2 --title Writes
+  set: phase 2 · title "Writes" (plan v2)
+  --- record after this branch's first write
+  meta.json: { "layout": 2 }
+  spec.json: {…,"layout":2,"status":"active","owner":"Taras","ship":"auto"}
+  prs/A.json: {"group":"A","branch":"feat/demo-pr-a","state":"merged","number":5,"mergedAt":"2026-11-10","mergedSha":"abc1234","method":"squash"}
+  prs/B.json: {"group":"B","branch":"feat/demo-pr-b","state":"not-opened"}
+  record: set demo (plan v2)
+  record: upgrade demo to layout 2
+  record: join demo
+  $ laptop: spec.ts (2.53.0) phase set demo 2 --title Again
+  set: phase 2 · title "Again"            ← a file write: 2.53.0 should have refused
+  $ desktop: spec.ts (this branch) owner demo Anton
+  owner: demo is Anton (351768e)          ← on the record; main still has 2 commits
   ```
 - [x] The claims suites pass unchanged after `core/remote-push.ts` is lifted out (PR A: no diff in `tests/claims-*.ts`, 93 pass)

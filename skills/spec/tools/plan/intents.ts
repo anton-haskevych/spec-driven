@@ -5,12 +5,19 @@ import type { IntentPlanners } from "../record/overlay";
 import type { RecordPlan } from "../record/write";
 import { readTickIntent, tickPlan, type TickIntent } from "./ops/tick";
 import { PLAN_INTENTS, planIntentRunner, type PlanCommand } from "./plan-intents";
+import { FIELD_COMMAND, fieldPlan, readFieldIntent } from "./ops/field";
 
 const UNREADABLE: RecordPlan = () => ({ refused: "this queued change can't be read; drop it" });
 const PUSHED_COMMIT = /^([0-9a-f]{40}) on origin\/(\S+)/;
 
-// Plan changes and phase state need no network step of their own: overlay and flush run the same plan.
-const PLAN_RUNNERS = Object.fromEntries((Object.keys(PLAN_INTENTS) as PlanCommand[]).map((command) => [command, planIntentRunner(command)]));
+// Plan changes, phase state and spec fields need no network step of their own: overlay and flush run the same plan.
+const PLAN_RUNNERS = {
+  ...Object.fromEntries((Object.keys(PLAN_INTENTS) as PlanCommand[]).map((command) => [command, planIntentRunner(command)])),
+  [FIELD_COMMAND]: (args: unknown) => {
+    const intent = readFieldIntent(args);
+    return intent ? fieldPlan(intent) : UNREADABLE;
+  },
+};
 
 // The pure plan of each queued intent: what reads lay over the record while it waits.
 export const INTENT_PLANNERS: IntentPlanners = {

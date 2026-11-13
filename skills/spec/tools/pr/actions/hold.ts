@@ -3,7 +3,7 @@ import type { Runner } from "../../core/run";
 import { ghClient } from "../gh";
 import { resolvePr } from "../resolve";
 import { ghWrites } from "./gh-writes";
-import { specStatesAt } from "../../plan/read-plans";
+import { plansOnDemandAt } from "../../plan/read-plans";
 
 export const HOLD_LABEL = "hold-for-review";
 const HOLD_LABEL_DESCRIPTION = "Green; waiting for a human review before merge";
@@ -19,7 +19,7 @@ export interface HoldDeps {
 }
 
 export function holdPr(projectDir: string, request: HoldRequest, deps: HoldDeps): string {
-  const resolved = resolvePr(ghClient(projectDir, deps.runner), projectDir, request.target, specStatesAt(projectDir, deps.runner, new Date()));
+  const resolved = resolvePr(ghClient(projectDir, deps.runner), projectDir, request.target, plansOnDemandAt(projectDir, deps.runner, new Date()));
   if (!resolved.ok) return `pr hold: ${resolved.reason}`;
   const { number, state } = resolved.value.view;
   if (state !== "OPEN") return `pr hold: #${number} is ${state.toLowerCase()}`;

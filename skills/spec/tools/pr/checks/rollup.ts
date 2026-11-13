@@ -11,6 +11,10 @@ export interface PrRow {
   state: PrListState;
   draft: boolean;
   url: string;
+  headRefOid?: string;
+  // Only the all-states list asks for these.
+  mergedAt?: string;
+  mergeCommit?: string;
   // The author's gh login; only the open list asks for it.
   author?: string;
   // gh's reviewDecision and label names; only the open list asks for them.
@@ -94,12 +98,18 @@ function toPrRow(record: FrontmatterData): PrRow | undefined {
   const author = isRecord(record.author) ? stringField(record.author, "login") : undefined;
   const review = REVIEWS[stringField(record, "reviewDecision") ?? ""];
   const labels = labelNames(record.labels);
+  const headRefOid = stringField(record, "headRefOid");
+  const mergedAt = state === "MERGED" ? stringField(record, "mergedAt") : undefined;
+  const mergeCommit = isRecord(record.mergeCommit) ? stringField(record.mergeCommit, "oid") : undefined;
   return {
     number,
     branch,
     state,
     draft: booleanField(record, "isDraft") ?? false,
     url: stringField(record, "url") ?? "",
+    ...(headRefOid ? { headRefOid } : {}),
+    ...(mergedAt ? { mergedAt } : {}),
+    ...(mergeCommit ? { mergeCommit } : {}),
     ...(author ? { author } : {}),
     ...(review ? { review } : {}),
     ...(labels.length > 0 ? { labels } : {}),

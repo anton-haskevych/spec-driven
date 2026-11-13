@@ -47,8 +47,9 @@ priority and due date stay as spec fields.
 
 **This release moves data that joined specs already hold in files** (CRM has had the board on since phase 5).
 Raise `RECORD_LAYOUT` to 2 and add the upgrade step: the next command that touches a spec whose
-`SpecDoc.layout` is 1 copies `status`, owner, focus, ship, the lifecycle notes and relations from `CLAUDE.md`,
-and the PR numbers and merge lines from `pr-opening.md`, into the record in one batch. Until a spec is
+`SpecDoc.layout` is 1 copies `status`, owner, focus and ship from `CLAUDE.md`, and the PR numbers and merge
+lines from `pr-opening.md`, into the record in one batch. Relations, `stale` and `dropped` stay in `CLAUDE.md`:
+no command writes them (preflight 2026-11-12; `ledger/decision-phase-6-fields-and-prs-as-built.md`). Until a spec is
 upgraded, `loadNodes` and `specPrNumbers` read those fields from its files. A session still on PR B refuses to
 write once the layout is 2, so it can't put an owner in the old home (`technical.md` → *Releases*).
 
@@ -59,14 +60,14 @@ phase 1's move, or `publish/publish.ts`.
 
 ## Deliverables
 
-- [ ] `pr-doc` reader; PR documents created `not-opened` for each group at join, at upgrade and when a group first appears
-- [ ] `pr open` and `pr merge` write the PR document for a joined spec; `specPrNumbers` reads the record; a PR merged on github.com moves its document at the next `pr status` or board load
-- [ ] `phaseStage`: todo, doing, built, merged, deployed; the board's in-flight and ready lanes use it; `built` with no PR is a *Needs you* row
-- [ ] Spec fields on `SpecDoc`; `loadNodes` serves joined specs from the record; the two direct frontmatter reads share one reader
-- [ ] `owner`, `focus`, `ship` and `phase deployed` write the record for a joined spec; new `spec.ts spec-status <spec> <value>` for both homes
-- [ ] Layout 2: a spec joined under PR B is upgraded on its next touch (fields and PR numbers copied in one batch); until then its readers use the files; a PR B plugin refuses to write (test with a layout-1 fixture)
-- [ ] `landOnMain` calls `core/land-on-ref.ts`: 5 tries, a timeout and no credential prompt; its result type and callers unchanged
-- [ ] `update.md`, `execute.md`, `babysit.md`, `SKILL.md` updated; ROADMAP row and version bump for PR C
+- [x] `pr-doc` reader; PR documents created `not-opened` for each group at join, at upgrade and when a group first appears
+- [x] `pr open` and `pr merge` write the PR document for a joined spec; `specPrNumbers` reads the record; a PR merged on github.com moves its document at the next `pr status` or board load
+- [x] `phaseStage`: todo, doing, built, merged, deployed; the board's in-flight and ready lanes use it; `built` with no PR is a *Needs you* row
+- [x] Spec fields on `SpecDoc`; `loadNodes` serves joined specs from the record; the two direct frontmatter reads share one reader
+- [x] `owner`, `focus`, `ship` and `phase deployed` write the record for a joined spec; new `spec.ts spec-status <spec> <value>` for both homes
+- [x] Layout 2: a spec joined under PR B is upgraded on its next touch (fields and PR numbers copied in one batch); until then its readers use the files; a PR B plugin refuses to write (test with a layout-1 fixture)
+- [x] `landOnMain` calls `core/land-on-ref.ts`: 5 tries, a timeout and no credential prompt; its result type and callers unchanged
+- [x] `update.md`, `execute.md`, `babysit.md`, `SKILL.md` updated; ROADMAP row and version bump for PR C
 
 ## Phase-local notes
 

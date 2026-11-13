@@ -4,8 +4,12 @@ import { join } from "node:path";
 import { PR_USAGE, prCommand } from "../commands/pr";
 import { prStatus } from "../commands/pr/status";
 import { specPrNumbers } from "../pr/resolve";
-import { check, prView } from "./pr-factories";
-import { stubRunner } from "./stub-runner";
+import { check, ghPrViewJson, prView } from "./pr-factories";
+import { routeGh, sequencedRunner, stubRunner } from "./stub-runner";
+import { isolatedRunner, type TestRepo } from "./git-repo";
+import { joinedRepo } from "./joined-repo";
+import { prDocPath } from "../plan/kinds";
+import { RECORD_REF } from "../record/layout";
 import { createTree, type Tree } from "./tree";
 
 const view = (number: number, state: string) => JSON.stringify(prView({ number, state, headRefOid: "abcdef0123" }));
@@ -22,16 +26,16 @@ describe("pr status", () => {
   let tree: Tree;
   afterEach(() => tree?.cleanup());
 
-  test("a PR number goes straight to gh; the verdict line follows the header", () => {
+  test("a PR number goes straight to gh; the verdict line follows the header", async () => {
     tree = createTree();
     const runner = stubRunner([[["gh", "pr", "view", "871"], { stdout: view(871, "MERGED") }], GIT_MAIN]);
-    expect(prStatus(tree.root, ["#871"], runner).split("\n").slice(0, 2)).toEqual([
+    expect((await prStatus(tree.root, ["#871"], runner)).split("\n").slice(0, 2)).toEqual([
       "PR #871 merged · mergeable CLEAN · head abcdef0",
       "verdict: merged",
     ]);
   });
 
-  test("with a spec name it reports the last open PR and names the others", () => {
+  test("with a spec name it reports the last open PR and names the others", async () => {
     tree = createTree();
     tree.spec("billing", { "pr-opening.md": "## Spec state\n\nPR #779 merged, PR #801 open, PR #812 closed.\n" });
     const runner = stubRunner([
@@ -39,21 +43,21 @@ describe("pr status", () => {
       [["gh", "pr", "view", "801"], { stdout: view(801, "OPEN") }],
       GIT_MAIN,
     ]);
-    const lines = prStatus(tree.root, ["billing"], runner).split("\n");
+    const lines = (await prStatus(tree.root, ["billing"], runner)).split("\n");
     expect(lines[0]).toStartWith("PR #801 ready");
     expect(lines.at(-1)).toBe("other PRs in this spec: #779, #812");
   });
 
-  test("no argument uses the current branch's PR; failures are one plain line", () => {
+  test("no argument uses the current branch's PR; failures are one plain line", async () => {
     tree = createTree();
     tree.spec("empty", { "pr-opening.md": "## Spec state\n\nNo PR yet.\n" });
     const noPr = stubRunner([[["gh", "pr", "view"], { code: 1, stderr: 'no pull requests found for branch "feat/x"' }]]);
-    expect(prStatus(tree.root, [], noPr)).toBe('pr status: no pull requests found for branch "feat/x"');
-    expect(prStatus(tree.root, ["empty"], noPr)).toBe('pr status: no pull requests found for branch "feat/x"; pr-opening.md for empty links no PR');
-    expect(prStatus(tree.root, ["nope"], noPr)).toBe("pr status: no spec named nope");
+    expect(await prStatus(tree.root, [], noPr)).toBe('pr status: no pull requests found for branch "feat/x"');
+    expect(await prStatus(tree.root, ["empty"], noPr)).toBe('pr status: no pull requests found for branch "feat/x"; pr-opening.md for empty links no PR');
+    expect(await prStatus(tree.root, ["nope"], noPr)).toBe("pr status: no spec named nope");
   });
 
-  test("a failed job's log is saved under the clone's babysit folder; the triage gate comes from settings", () => {
+  test("a failed job's log is saved under the clone's babysit folder; the triage gate comes from settings", async () => {
     tree = createTree();
     tree.write("docs/specs/_playbook/settings.md", "---\ngates:\n  ci-triage: ci-triage\n---\n");
     const failed = check({ name: "E2E Tests", bucket: "fail", link: "https://github.com/acme/app/actions/runs/3788/job/9921" });
@@ -64,7 +68,7 @@ describe("pr status", () => {
       [["git", "rev-parse"], { stdout: `${join(tree.root, ".git")}\n` }],
     ]);
     const saved = join(tree.root, ".git", "spec-board", "babysit", "pr-921", "job-9921.log");
-    const lines = prStatus(tree.root, ["921"], runner).split("\n");
+    const lines = (await prStatus(tree.root, ["921"], runner)).split("\n");
     expect(lines).toContain(`         log ${saved}`);
     expect(lines).toContain("triage   gate ci-triage (gates.ci-triage)");
     expect(existsSync(saved)).toBe(true);
@@ -76,4 +80,19 @@ describe("pr status", () => {
     expect(PR_USAGE).toStartWith("pr status [<pr> | <spec-name> [<group>]] | pr log ");
     expect(await prCommand(tree.root, [])).toBe(`usage: ${PR_USAGE}`);
   });
+});
+
+describe("pr status on a joined spec (real git)", () => {
+  let repo: TestRepo;
+  afterEach(() => repo?.cleanup());
+  const onRecord = (path: string) => JSON.parse(repo.git("--git-dir", repo.origin, "show", `${RECORD_REF}:${path}`));
+
+  test("a PR merged on github.com moves its document to merged", async () => {
+    repo = joinedRepo("spec-pr-status-joined-");
+    const merged = ghPrViewJson({ number: 40, state: "MERGED", headRefName: "feat/alpha", headRefOid: "abcdef0123", mergeCommit: "fedcba9876" });
+    const stub = sequencedRunner([[["gh", "pr", "view", "40"], [{ stdout: merged }]]]);
+    const lines = (await prStatus(repo.dir, ["40"], routeGh(stub, isolatedRunner), new Date("2026-11-12T10:00:00Z"), {})).split("\n");
+    expect(lines[1]).toBe("verdict: merged");
+    expect(onRecord(prDocPath("alpha", "default"))).toEqual({ group: "default", branch: "feat/alpha", state: "merged", number: 40, headRefOid: "abcdef0123", mergedSha: "fedcba9876" });
+  }, 30_000);
 });
