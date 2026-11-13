@@ -1,4 +1,5 @@
-import { countCheckboxes, indentedPhaseLines, type PhaseLine } from "../core/progress";
+import { allTasksDone, entryTaskCount } from "../core/phase-entry";
+import { indentedPhaseLines, type PhaseLine } from "../core/progress";
 import { error, warning, type Issue } from "./issue";
 
 export type ReadPhaseEntry = (pointer: string) => string | undefined;
@@ -16,11 +17,11 @@ function checkPhase(progressFile: string, phase: PhaseLine, entry: string | unde
   const title = phase.title.replace(TITLE_END, "");
   if (entry === undefined) return [error(progressFile, `"${title}" points at ${phase.pointer}, which does not exist`)];
 
-  const boxes = countCheckboxes(entry);
+  const boxes = entryTaskCount(entry);
   if (phase.done && boxes.unchecked > 0) {
     return [warning(progressFile, `"${title}" is ticked but ${boxes.unchecked} sub-items in ${phase.pointer} are not`)];
   }
-  if (!phase.done && boxes.checked > 0 && boxes.unchecked === 0) {
+  if (!phase.done && allTasksDone(boxes)) {
     return [warning(progressFile, `"${title}" has every sub-item ticked in ${phase.pointer}; tick the phase`)];
   }
   return [];

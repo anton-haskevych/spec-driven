@@ -11,9 +11,12 @@ export interface PhaseFileInput {
   title: string;
   edges: PhaseFileEdges;
   items?: readonly string[];
+  // A joined spec: its tasks are on the board, so the file names no deliverables.
+  onBoard?: boolean;
 }
 
 const PLACEHOLDER_ITEM = "- [ ] <specific deliverable>";
+export const ON_BOARD = "The tasks are on the board: `phase tick <spec> <phase> <task-id>` closes one, `phase task`, `phase add --task` and `phase move` change them.";
 
 export function slugify(title: string): string {
   return title
@@ -30,8 +33,8 @@ export function progressLine(id: string, title: string, pointer: string): string
   return `- [ ] Phase ${id} — ${title} → \`${pointer}\``;
 }
 
-export function phaseFileText({ id, title, edges, items }: PhaseFileInput): string {
-  const deliverables = items && items.length > 0 ? items : [PLACEHOLDER_ITEM];
+export function phaseFileText({ id, title, edges, items, onBoard }: PhaseFileInput): string {
+  const deliverables = onBoard ? [ON_BOARD] : items && items.length > 0 ? items : [PLACEHOLDER_ITEM];
   return [
     frontmatter(edges),
     "",

@@ -6,7 +6,9 @@ import { join } from "node:path";
 import { SUB_COMMANDS } from "../context/request";
 import { isRecord, parseFrontmatter, stringField } from "../core/frontmatter";
 import { SHIP_MODES } from "../core/spec-meta";
-import { phaseFileText } from "../phases/template";
+import { PHASE_ACTIONS } from "../commands/phase";
+import { manualReadLine } from "../plan/banner";
+import { ON_BOARD, phaseFileText } from "../phases/template";
 
 const SKILL_DIR = join(import.meta.dir, "..", "..");
 const PLUGIN_ROOT = join(SKILL_DIR, "..", "..");
@@ -32,8 +34,12 @@ function collectCommands(value: unknown): string[] {
 }
 
 describe("SKILL.md hook wiring", () => {
-  test("declares the PreToolUse and PostToolUse hooks", () => {
-    expect(hookCommands()).toHaveLength(2);
+  test("declares the PreToolUse hooks (lesson recall, plan changed) and the PostToolUse spec-file check", () => {
+    expect(hookCommands().map((command) => SCRIPT_PATH.exec(command)?.[2])).toEqual([
+      "skills/spec/tools/hooks/lesson-recall.ts",
+      "skills/spec/tools/hooks/plan-changed.ts",
+      "skills/spec/tools/hooks/spec-file-check.ts",
+    ]);
   });
 
   test("hook commands use CLAUDE_PLUGIN_ROOT, because CLAUDE_SKILL_DIR is empty inside hooks", () => {
@@ -242,5 +248,31 @@ describe("self-approved gate wiring", () => {
     const evidence = /--evidence "(self-approved per [^"]+)"/.exec(execute)?.[1];
     expect(evidence).toContain("crew.self-approve");
     expect(hasEvidence((evidence ?? "").replace("<YYYY-MM-DD>", "2026-10-13"))).toBe(true);
+  });
+});
+
+describe("plan changes wiring", () => {
+  const read = (file: string) => readFileSync(join(SKILL_DIR, file), "utf8");
+  const section = (text: string, heading: string) => text.split(`\n## ${heading}\n`)[1]?.split("\n## ")[0] ?? "";
+
+  test("SKILL.md *Plan changes* gives a command for every phase action", () => {
+    const planChanges = section(read("SKILL.md"), "Plan changes");
+    for (const action of PHASE_ACTIONS) expect(planChanges).toContain(`\`phase ${action}`);
+  });
+
+  test("the modes that change a plan join first; handoff tidies; create applies a plan on the board", () => {
+    for (const file of ["execute.md", "review.md", "update.md"]) expect(read(file)).toContain("tools/spec.ts join <spec>`");
+    expect(read("handoff.md")).toContain("tools/spec.ts join <spec-name> --tidy`");
+    expect(read("create.md")).toContain("tools/spec.ts plan apply <name> --file <draft.json>`");
+  });
+
+  test("create.md's on-board phase file says what join and tidy write", () => {
+    expect(read("create.md")).toContain(`\`\`${ON_BOARD}\`\``);
+  });
+
+  test("SKILL.md's manual read is the one the stub progress.md prints", () => {
+    const [fetch, show] = [...manualReadLine("<spec>").matchAll(/`([^`]+)`/g)].map((match) => match[1]);
+    expect(read("SKILL.md")).toContain(`\`${fetch}\`, then \`git show FETCH_HEAD:specs/<spec>/spec.json\``);
+    expect(read("SKILL.md")).toContain(`\`${show}\``);
   });
 });

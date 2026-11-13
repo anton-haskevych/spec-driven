@@ -7,6 +7,7 @@ import { checkIndentedPhaseLines, checkInFlight, checkPhases } from "../doctor/p
 import { runDoctor } from "../doctor/run";
 import { checkSpecMeta } from "../doctor/spec-meta";
 import { phaseLine } from "./factories";
+import { FILES_ONLY } from "../plan/read-plans";
 
 const STATUSES = ["active", "done", "good-enough"];
 const noEntries = () => false;
@@ -118,6 +119,16 @@ describe("checkPhases", () => {
       '"Phase 3 — Missing" points at phases/phase-3.md, which does not exist',
     ]);
   });
+
+  test("counts the Deliverables section only, as tick and the board do", () => {
+    const entry = "## Deliverables\n- [x] a\n\n## Verification\n- [ ] smoke test\n";
+    const ticked = [phaseLine({ done: true, title: "Phase 1 — Schema", pointer: "phases/phase-1.md" })];
+    const open = [phaseLine({ title: "Phase 1 — Schema", pointer: "phases/phase-1.md" })];
+    expect(checkPhases("progress.md", ticked, () => entry)).toEqual([]);
+    expect(checkPhases("progress.md", open, () => entry).map((i) => i.problem)).toEqual([
+      '"Phase 1 — Schema" has every sub-item ticked in phases/phase-1.md; tick the phase',
+    ]);
+  });
 });
 
 describe("checkInFlight", () => {
@@ -138,7 +149,7 @@ describe("checkInFlight", () => {
     write("phases/phase-1.md", "- [x] a\n");
     write("in-flight/phase-1.md", "# In flight\n\nawaiting deploy\n");
     write("in-flight.md", "# In flight\n\nold note\n");
-    const context = { projectDir: dir, statuses: STATUSES, nodes: new Map(), today: "2026-10-12", playbooks: new Set<string>() };
+    const context = { projectDir: dir, statuses: STATUSES, nodes: new Map(), today: "2026-10-12", playbooks: new Set<string>(), plans: FILES_ONLY };
     const flagged = runDoctor({ name: "one", dir }, context).filter((issue) => issue.problem.includes("pending notes"));
     expect(flagged.map((issue) => issue.file)).toEqual([join(dir, "in-flight/phase-1.md"), join(dir, "in-flight.md")]);
     rmSync(dir, { recursive: true, force: true });

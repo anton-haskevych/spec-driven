@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { gateItemText, isGateItem } from "../core/gate";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { phaseGateIssues } from "../doctor/phase-gates";
 import { createTree } from "./tree";
 
@@ -23,7 +23,7 @@ describe("a phase's gate", () => {
   afterAll(tree.cleanup);
 
   test("is read from frontmatter, and a phase without one has none", () => {
-    expect(loadSpecState(spec).phases.map((phase) => phase.gate)).toEqual(["design", "outward", undefined, undefined]);
+    expect(loadSpecStateFromFiles(spec).phases.map((phase) => phase.gate)).toEqual(["design", "outward", undefined, undefined]);
   });
 
   test("is not an edge: a gate alone doesn't make a spec use declared edges", () => {
@@ -31,11 +31,11 @@ describe("a phase's gate", () => {
       "progress.md": "- [ ] Phase 1 — A → `phases/phase-1-a.md`\n",
       "phases/phase-1-a.md": "---\ngate: design\n---\n- [ ] Gate: agreed\n",
     });
-    expect(loadSpecState(solo).phases[0]?.edges.declared).toBe(false);
+    expect(loadSpecStateFromFiles(solo).phases[0]?.edges.declared).toBe(false);
   });
 
   test("the doctor errors on an unknown kind and warns when a gated phase has no Gate: item", () => {
-    const issues = phaseGateIssues(loadSpecState(spec)).map((issue) => `${issue.severity}: ${issue.problem}`);
+    const issues = phaseGateIssues(loadSpecStateFromFiles(spec)).map((issue) => `${issue.severity}: ${issue.problem}`);
     expect(issues).toEqual([
       "warning: gate: outward, but no deliverable starts \"Gate:\"; add one saying who approves (e.g. - [ ] Gate: design agreed with Anton)",
       'error: gate must be design or outward, not "maybe"',
@@ -43,7 +43,7 @@ describe("a phase's gate", () => {
   });
 
   test("onlyPointer limits the check to one phase file", () => {
-    expect(phaseGateIssues(loadSpecState(spec), "phases/phase-1-design.md")).toEqual([]);
+    expect(phaseGateIssues(loadSpecStateFromFiles(spec), "phases/phase-1-design.md")).toEqual([]);
   });
 });
 

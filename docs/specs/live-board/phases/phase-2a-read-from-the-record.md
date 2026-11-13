@@ -56,14 +56,14 @@ edited by five phases) only calls it.
 
 ## Deliverables
 
-- [ ] One task-count rule in `core/phase-entry.ts` that takes tasks, used by tick, the doctor and the packs
-- [ ] `stateSourceFor(projectDir, view)`: a joined spec as today's `SpecState` with `hasProgress`, summary from task documents, `entry` without the frozen Deliverables section; every listed caller uses it; file specs unchanged
-- [ ] One `RecordView` per command; a test that `board` over 40 specs fetches once, and that the spec-file hook and the doctor never fetch
-- [ ] `loadNodes` takes a joined spec's done and deployed marks from the view: a spec that needs a joined, finished spec is unblocked; a joined spec with a stub `progress.md` still gets a pack, a stage and `isFinished`
-- [ ] `PhaseActivity` for joined specs from task evidence: `claim take` refuses a phase with tasks done in another tree, and `trees place` returns that tree
-- [ ] Packs open with the `Board:` line (live, or local copy with its age), show tasks with ids under the phase's prose, and say when this tree's boxes are ahead of the record
-- [ ] Board, ready, list and doctor read joined specs from the record with no worktree overlay and no frozen-file checks; a golden board test with one joined and one file spec side by side
-- [ ] Phase writers refuse on a joined spec until phase 3; the spec-file check gives blocking feedback after a checkbox, edge frontmatter or `progress.md` edit in a joined spec and names the command to use
+- [x] One task-count rule in `core/phase-entry.ts` that takes tasks, used by tick, the doctor and the packs
+- [x] `stateSourceFor(projectDir, view)`: a joined spec as today's `SpecState` with `hasProgress`, summary from task documents, `entry` without the frozen Deliverables section; every listed caller uses it; file specs unchanged
+- [x] One `RecordView` per command; a test that `board` over 40 specs fetches once, and that the spec-file hook and the doctor never fetch
+- [x] `loadNodes` takes a joined spec's done and deployed marks from the view: a spec that needs a joined, finished spec is unblocked; a joined spec with a stub `progress.md` still gets a pack, a stage and `isFinished`
+- [x] `PhaseActivity` for joined specs from task evidence: `claim take` refuses a phase with tasks done in another tree, and `trees place` returns that tree
+- [x] Packs open with the `Board:` line (live, or local copy with its age), show tasks with ids under the phase's prose, and say when this tree's boxes are ahead of the record
+- [x] Board, ready, list and doctor read joined specs from the record with no worktree overlay and no frozen-file checks; a golden board test with one joined and one file spec side by side
+- [x] Phase writers refuse on a joined spec until phase 3; the spec-file check gives blocking feedback after a checkbox, edge frontmatter or `progress.md` edit in a joined spec and names the command to use
 
 ## Phase-local notes
 

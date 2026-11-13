@@ -10,7 +10,6 @@ import { parseFrontmatter } from "../core/frontmatter";
 import { ownerOf } from "../core/people";
 import { resolveSpec, type SpecFolder } from "../core/spec-folders";
 import { readSpecMeta } from "../core/spec-meta";
-import { loadSpecState } from "../core/spec-state";
 import { loadSettings } from "../playbook/settings";
 import { loadLiveSessions } from "../sessions/live";
 import { ownSessionId } from "../sessions/own";
@@ -67,16 +66,16 @@ async function loadPlaceWorld(projectDir: string, spec: string, deps: PlaceDeps)
   if (!worktrees.ok) return worktrees;
   const inputs = await loadBoardInputs(projectDir, { local: true }, deps);
   if (!inputs.ok) return inputs;
-  const { nodes, states, workspaces } = inputs.value;
+  const { nodes, states, workspaces, plans, joinedActivity } = inputs.value;
   const own = resolveSpec(projectDir, spec);
-  const views = [states.get(spec), typeof own === "string" ? undefined : loadSpecState(own)].filter((view) => view !== undefined);
+  const views = [states.get(spec), typeof own === "string" ? undefined : plans.state(own)].filter((view) => view !== undefined);
   if (views.length === 0) return { ok: false, reason: typeof own === "string" ? own : `no spec named ${spec}` };
   const baseMeta = nodes.get(spec)?.meta;
   const owner = baseMeta ? ownerOf(baseMeta) : typeof own === "string" ? undefined : checkoutOwner(own);
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   return {
     ok: true,
-    value: { ownSessionId: ownSessionId(deps.env), defaultBranch: branch, worktrees: worktrees.value, sessions, claims: heldClaims(git, sessions, states), activity: phaseActivity(states, workspaces), views, ...(owner === undefined ? {} : { owner }) },
+    value: { ownSessionId: ownSessionId(deps.env), defaultBranch: branch, worktrees: worktrees.value, sessions, claims: heldClaims(git, sessions, states), activity: phaseActivity(states, workspaces, joinedActivity), views, ...(owner === undefined ? {} : { owner }) },
   };
 }
 

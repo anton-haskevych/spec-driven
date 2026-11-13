@@ -15,6 +15,7 @@ import { scanWorkspaces, type WorkspaceScanResult } from "../workspaces/scan";
 import { canonicalPath, loadWorkspaces } from "../workspaces/list";
 import { loadWorkspaceViews } from "../workspaces/views";
 import type { BoardInputs, WorkspaceView } from "./inputs";
+import { joinedActivity } from "./joined-activity";
 import { buildBoard } from "./lanes";
 import type { Board } from "./model";
 
@@ -35,7 +36,7 @@ const LOCAL_LIVENESS: Result<LiveSession[]> = { ok: false, reason: "--local skip
 const NO_SCAN: WorkspaceScanResult = { scans: [], counts: { merged: 0, unknownBase: 0, unreadable: 0 } };
 
 export async function loadBoard(projectDir: string, request: BoardRequest, runners: BoardRunners, now: Date): Promise<Result<Board>> {
-  const inputs = await loadBoardInputs(projectDir, request, runners);
+  const inputs = await loadBoardInputs(projectDir, request, runners, now);
   if (!inputs.ok) return inputs;
   return { ok: true, value: buildBoard(inputs.value, now, boardMe(projectDir, runners.runner)) };
 }
@@ -46,21 +47,23 @@ export function boardMe(projectDir: string, runner: Runner): string | undefined 
   return me.ok ? me.value : undefined;
 }
 
-export async function loadBoardInputs(projectDir: string, request: BoardRequest, runners: BoardRunners): Promise<Result<BoardInputs>> {
+export async function loadBoardInputs(projectDir: string, request: BoardRequest, runners: BoardRunners, now: Date = new Date()): Promise<Result<BoardInputs>> {
   const branch = defaultBranch(projectDir, runners.runner);
   if (!branch) return { ok: false, reason: "no default branch (origin/HEAD is unset and gh did not answer)" };
   const prLists = request.local ? undefined : fetchPrLists(projectDir, runners.asyncRunner);
   const git = gitAt(projectDir, runners.runner);
-  const mainline = await loadMainline(git, branch, { timeoutMs: FETCH_TIMEOUT_MS, local: request.local });
+  const mainline = await loadMainline(git, branch, { timeoutMs: FETCH_TIMEOUT_MS, local: request.local, now });
   if (!mainline.ok) return mainline;
-  const { base, commonDir, nodes, states, stages, backlog, settings, duplicates } = mainline.value;
+  const { base, commonDir, nodes, states, stages, backlog, settings, duplicates, plans } = mainline.value;
   const sessions = request.local ? "local" : loadLiveSessions(runners.claudeHome, psProcStarts(runners.runner));
   const ownFiles = heldClaims(git, sessions === "local" ? LOCAL_LIVENESS : sessions, states);
   const remote = request.local ? [] : remoteHeldClaims(git, ownFiles);
   const local = withoutTakenOver(ownFiles, remote);
   const scanned = await scanWorkspaces(git, runners.asyncRunner, base.sha, new Set(local.map((held) => held.claim.workspace)));
   const { scans, counts } = scanned.ok ? scanned.value : NO_SCAN;
-  const workspaces = loadWorkspaceViews(scans, nodes);
+  const workspaces = loadWorkspaceViews(scans, nodes, plans.isJoined);
+  // An unreadable worktree list falls back to the live ones, as claimContext falls back to claimed ones.
+  const trees = loadWorkspaces(git);
   return {
     ok: true,
     value: {
@@ -70,8 +73,10 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       nodes,
       states,
       stages,
+      plans,
+      joinedActivity: joinedActivity([...states.keys()].flatMap((name) => plans.joined(name) ?? []), trees.ok ? trees.value : []),
       workspaces,
-      worktreePaths: worktreePaths(git, workspaces),
+      worktreePaths: trees.ok ? trees.value.map((worktree) => worktree.path) : workspaces.map((workspace) => workspace.path),
       counts: { ...counts, duplicates },
       backlogCount: backlog.length,
       sessions,
@@ -97,12 +102,6 @@ function prLinks(states: ReadonlyMap<string, SpecState>, workspaces: readonly Wo
     }
   }
   return links;
-}
-
-// An unreadable worktree list falls back to the live ones, as claimContext falls back to claimed ones.
-function worktreePaths(git: Git, workspaces: readonly WorkspaceView[]): string[] {
-  const listed = loadWorkspaces(git);
-  return listed.ok ? listed.value.map((worktree) => worktree.path) : workspaces.map((workspace) => workspace.path);
 }
 
 // Resolved like worktree paths, so the board can match it against them.

@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { needsCycle } from "../core/phase-edges";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 import { resolvePhaseRef } from "../ready/refs";
@@ -23,21 +24,10 @@ function unresolved(state: SpecState, nodes: ReadonlyMap<string, SpecNode>, phas
 }
 
 function cycles(state: SpecState, onlyPointer?: string): Issue[] {
-  const byId = new Map(state.phases.map((phase) => [phase.id, phase]));
+  const byId = new Map(state.phases.map((phase) => [phase.id, phase.edges.needs]));
   return state.phases.flatMap((phase) => {
     if (onlyPointer && phase.pointer !== onlyPointer) return [];
-    const loop = walk(byId, phase.id, phase.id, new Set());
-    return loop ? [error(join(state.spec.dir, phase.pointer), `needs cycle: ${[phase.id, ...loop].join(" → ")}`)] : [];
+    const loop = needsCycle((id) => byId.get(id), phase.id);
+    return loop ? [error(join(state.spec.dir, phase.pointer), `needs cycle: ${loop.join(" → ")}`)] : [];
   });
-}
-
-function walk(byId: ReadonlyMap<string, PhaseState>, start: string, current: string, visited: Set<string>): string[] | undefined {
-  for (const next of byId.get(current)?.edges.needs ?? []) {
-    if (next === start) return [start];
-    if (visited.has(next) || !byId.has(next)) continue;
-    visited.add(next);
-    const rest = walk(byId, start, next, visited);
-    if (rest) return [next, ...rest];
-  }
-  return undefined;
 }

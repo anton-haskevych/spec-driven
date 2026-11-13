@@ -7,7 +7,7 @@ import { readTextIfExists } from "../../core/files";
 import type { Result } from "../../core/result";
 import type { Runner } from "../../core/run";
 import { findSpecs } from "../../core/spec-folders";
-import { loadSpecState } from "../../core/spec-state";
+import { readPlansAt } from "../../plan/read-plans";
 import { run } from "../../spec";
 import { sameSession } from "../identity";
 import { isSessionDescendant } from "../is-session-descendant";
@@ -50,7 +50,7 @@ export async function runCodexEntry(request: CodexEntryRequest, deps: CodexEntry
   if (deps.env.CODEX_HOME) return { ok: false, reason: "alternate-home native entry is unsupported" };
   const workspace = verifyPilotWorkspace(request.cwd, request.legacyProjectDir, deps.runner);
   if (!workspace.ok) return workspace;
-  const valid = existingTarget(workspace.value, target.value);
+  const valid = existingTarget(workspace.value, target.value, deps);
   if (!valid.ok) return valid;
   const native = await deps.observe({ source: SOURCE, mode: "local-daemon", threadId: own.value.id, cwd: workspace.value });
   if (native.discovery.state !== "observed") return { ok: false, reason: native.discovery.reason };
@@ -87,11 +87,11 @@ function pilotTarget(request: ContextRequest): Result<LocalPilot> {
   return { ok: true, value: { kind: "local-pilot", spec: request.name, phase: normalizePhaseHint(request.hint) } };
 }
 
-function existingTarget(cwd: string, target: LocalPilot): Result<true> {
+function existingTarget(cwd: string, target: LocalPilot, deps: CodexEntryDeps): Result<true> {
   const specs = findSpecs(cwd, target.spec);
   const spec = specs.length === 1 ? specs[0] : undefined;
   if (!spec) return { ok: false, reason: "local-pilot requires one existing named spec" };
-  const state = loadSpecState(spec);
+  const state = readPlansAt(cwd, deps.runner, new Date(deps.now())).state(spec);
   if (!state.hasProgress || !existsSync(join(spec.dir, "ledger/INDEX.md")) || !state.phases.some((phase) => phase.id === target.phase)) {
     return { ok: false, reason: "local-pilot requires current spec layout and an existing exact phase; no fallback phase was selected" };
   }

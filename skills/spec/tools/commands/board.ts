@@ -46,7 +46,7 @@ export async function boardCommand(projectDir: string, args: readonly string[], 
 async function load(projectDir: string, args: BoardArgs, deps: BoardDeps): Promise<Result<Board>> {
   const request = { local: args.local, ownSessionId: ownSessionId(deps.env) };
   if (!args.who) return loadBoard(projectDir, request, deps, deps.now);
-  const inputs = await loadBoardInputs(projectDir, request, deps);
+  const inputs = await loadBoardInputs(projectDir, request, deps, deps.now);
   if (!inputs.ok) return inputs;
   const board = buildBoard(inputs.value, deps.now, boardMe(projectDir, deps.runner));
   return { ok: true, value: { ...board, people: [personWork(inputs.value, board, args.who)] } };

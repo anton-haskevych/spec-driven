@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { taskPhaseIssues } from "../doctor/task-phases";
 import { renderPrGroups } from "../ready/render";
 import { phaseEdges, phaseState } from "./factories";
@@ -15,7 +15,7 @@ describe("a phase's code flag", () => {
   afterAll(tree.cleanup);
 
   test("defaults to code and reads code: false as a task phase", () => {
-    const phases = loadSpecState(spec).phases;
+    const phases = loadSpecStateFromFiles(spec).phases;
     expect(phases.map((phase) => phase.code)).toEqual([true, false]);
   });
 });

@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
+import { count, oneOf, stringArray } from "../core/read-fields";
 import { isRecord, parseFrontmatter, type FrontmatterData } from "../core/frontmatter";
 import { isGateKind, type GateKind } from "../core/gate";
 import { SHIP_MODES, type ShipMode } from "../core/spec-meta";
@@ -18,6 +19,12 @@ export interface ProjectSettings {
   gates: { afterMergeMain?: string; bootstrap?: string; perCommit?: string; ciTriage?: string };
   deploy?: DeploySetting;
   crew: CrewSetting;
+  board: BoardSetting;
+}
+
+// Whether specs may join the board's shared record. Read from the default branch, so every tree agrees.
+export interface BoardSetting {
+  record: boolean;
 }
 
 // The standing go: how many sessions the overseer runs, and which gate kinds a worker passes itself.
@@ -44,7 +51,10 @@ export const DEFAULT_SETTINGS: ProjectSettings = {
   checks: { external: [] },
   gates: {},
   crew: { workers: 3, babysitters: 2, selfApprove: [] },
+  board: { record: false },
 };
+
+const SWITCH = ["on", "off"] as const;
 
 const SECTION_KEYS: Record<string, readonly string[]> = {
   pr: ["draft", "merge", "ship"],
@@ -52,6 +62,7 @@ const SECTION_KEYS: Record<string, readonly string[]> = {
   gates: ["after-merge-main", "bootstrap", "per-commit", "ci-triage"],
   deploy: ["paths", "gate"],
   crew: ["workers", "babysitters", "self-approve"],
+  board: ["record"],
 };
 const TOP_KEYS = new Set(["docs", ...Object.keys(SECTION_KEYS)]);
 
@@ -89,6 +100,7 @@ export function parseSettings(text: string): ParsedSettings {
     },
     ...optional("deploy", deploy),
     crew: crewSetting(section("crew"), problems),
+    board: { record: oneOf(section("board").record, SWITCH, "board.record", problems) === "on" },
   };
   problems.push(...Object.keys(data).filter((key) => !TOP_KEYS.has(key)).map((key) => `unknown key: ${key}`));
   return { settings, problems };
@@ -110,6 +122,7 @@ export function describeSettings(settings: ProjectSettings): string {
     ...(gates.bootstrap ? [`fresh worktree: gate ${gates.bootstrap}`] : []),
     ...(gates.ciTriage ? [`CI triage: gate ${gates.ciTriage}`] : []),
     ...(deploy ? [`deploy: gate ${deploy.gate} for ${deploy.paths.length} ${deploy.paths.length === 1 ? "path" : "paths"}`] : []),
+    ...(settings.board.record ? ["board record on"] : []),
   ].join(" · ");
 }
 
@@ -135,12 +148,6 @@ function crewSetting(section: FrontmatterData, problems: string[]): CrewSetting 
   };
 }
 
-function count(value: unknown, key: string, problems: string[]): number | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value === "number" && Number.isInteger(value) && value >= 0) return value;
-  problems.push(`${key} must be a whole number, 0 or more`);
-  return undefined;
-}
 
 function sectionOf(data: FrontmatterData, key: string, problems: string[]): FrontmatterData {
   const value = data[key];
@@ -154,13 +161,6 @@ function sectionOf(data: FrontmatterData, key: string, problems: string[]): Fron
   return value;
 }
 
-function oneOf<T extends string>(value: unknown, allowed: readonly T[], key: string, problems: string[]): T | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value === "string" && (allowed as readonly string[]).includes(value)) return value as T;
-  const choices = allowed.length === 2 ? allowed.join(" or ") : `${allowed.slice(0, -1).join(", ")} or ${allowed.at(-1)}`;
-  problems.push(`${key} must be ${choices}, not "${String(value)}"`);
-  return undefined;
-}
 
 function draftFlag(value: unknown, problems: string[]): boolean {
   if (value === undefined) return DEFAULT_SETTINGS.pr.draft;
@@ -169,12 +169,6 @@ function draftFlag(value: unknown, problems: string[]): boolean {
   return DEFAULT_SETTINGS.pr.draft;
 }
 
-function stringArray(value: unknown, key: string, problems: string[]): string[] {
-  if (value === undefined) return [];
-  if (Array.isArray(value) && value.every((item) => typeof item === "string")) return value;
-  problems.push(`${key} must be a list of strings, e.g. ${key}: ["Vercel*"]`);
-  return [];
-}
 
 function gateName(value: unknown, key: string, problems: string[]): string | undefined {
   if (value === undefined) return undefined;

@@ -4,6 +4,8 @@ import type { PrRow } from "../pr/checks/rollup";
 import type { LiveSession } from "../sessions/live";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
+import type { PlanSource } from "../plan/read-plans";
+import type { PhaseActivity } from "./activity";
 
 export type { HeldClaim };
 
@@ -32,6 +34,10 @@ export interface BoardInputs {
   nodes: ReadonlyMap<string, SpecNode>;
   states: ReadonlyMap<string, SpecState>;
   stages: ReadonlyMap<string, SpecStage>;
+  // Read once per command: joined specs come from the record, the rest from files.
+  plans: PlanSource;
+  // Joined specs' phases in progress, from task evidence; phaseActivity merges it.
+  joinedActivity: ReadonlyMap<string, PhaseActivity>;
   workspaces: readonly WorkspaceView[];
   // Every `git worktree list` path, live or not: sessions are scoped to this repo by these.
   worktreePaths: readonly string[];

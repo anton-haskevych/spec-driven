@@ -23,7 +23,7 @@ describe("spec.ts record (real git)", () => {
       runner: isolatedRunner,
       env: { CLAUDE_CODE_SESSION_ID: "s1" },
       now: () => new Date(),
-      runners: { refuse: (args) => () => ({ refused: `${String(args)} was already closed` }), add: (args) => () => ({ ops: [{ op: "replace", path: LIST, doc: { items: [args] } }] }) },
+      runners: () => ({ refuse: (args) => () => ({ refused: `${String(args)} was already closed` }), add: (args) => () => ({ ops: [{ op: "replace", path: LIST, doc: { items: [args] } }] }) }),
       validate: () => [],
     };
     const common = gitCommonDir(gitAt(repo.dir, isolatedRunner));
@@ -76,8 +76,8 @@ describe("spec.ts record (real git)", () => {
   });
 
   test("usage, and refused under a Codex local pilot", async () => {
-    expect(await record("drop", "x")).toBe("usage: record status | sync | drop <n>");
-    expect(await record()).toBe("usage: record status | sync | drop <n>");
+    expect(await record("drop", "x")).toBe("usage: record status | sync | drop <n> | export <spec> [--unjoin]");
+    expect(await record()).toBe("usage: record status | sync | drop <n> | export <spec> [--unjoin]");
     const pilot: LocalPilot = { kind: "local-pilot", spec: "alpha", phase: "1" };
     expect(await run(["record", "status"], repo.dir, { workflow: pilot })).toContain("record unavailable in local-pilot");
   });

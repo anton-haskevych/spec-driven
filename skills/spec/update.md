@@ -14,12 +14,12 @@ Run SKILL.md → *Preconditions*. A legacy spec follows `legacy-layout.md` → `
 
 Read in parallel:
 
-- `progress.md` — phase index + top-level checkbox state
+- The phase state: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts context status <name>`, and for the current phase `context execute <name> <phase>` (its tasks with their ids). They read the spec wherever it lives (SKILL.md → *Plan changes*). Without Bun, `progress.md`.
 - `CLAUDE.md` — frontmatter (status, area, domain, scope)
 - `technical.md` — skim for planned approach (needed for divergence detection)
 - `code-map.md`
 - `ledger/INDEX.md`
-- The current phase's entry — follow the pointer from `progress.md`, read either the flat file or the folder's `plan.md`
+- The current phase's entry for its prose — the flat file or the folder's `plan.md`
 
 The "current phase" is the active phase from SKILL.md → *Next-chunk rule*. If several phases are in progress, take the one this tree's claim names (`bun ${CLAUDE_SKILL_DIR}/tools/spec.ts claim list`) and list it under `Say if wrong:`; with no claim here, the one the conversation worked on.
 
@@ -38,15 +38,18 @@ Compare recent commits against unchecked sub-items in the current phase entry. F
 
 ## 4. Apply progress changes
 
+Every change below is one `spec.ts phase …` command (SKILL.md → *Plan changes*). Run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts join <spec>` before the first one and pass on its line when it joins the spec. Report each command's own line.
+
 ### Check off sub-checkboxes inside the phase entry
 
-- Tick each completed sub-item with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> "<item prefix>"|#N`. Without Bun, change `- [ ]` to `- [x]` in the phase's flat file or folder `plan.md`.
+- Tick each completed sub-item with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase tick <spec> <phase> <task>`, naming the task as the pack shows it (its id on the board, its text or `#N` in files). Without Bun, change `- [ ]` to `- [x]` in the phase's flat file or folder `plan.md`.
 - **Task phase (`code: false`)?** Git can't prove these items, so each tick carries its evidence: `phase tick … --evidence "2026-09-24, Drive/Recordings/ballroom.mp4"` writes `- [x] Record the interview — 2026-09-24, Drive/Recordings/ballroom.mp4`. A link to the published page works too. No evidence from the user or the session, no tick.
+- **A deliverable that changed** (reworded, no longer needed, newly found inside this phase): `phase task <spec> <phase> --edit <task> "<text>"`, `--drop <task>` or `--add "<text>"`. A done task stays as it is.
 - **Do NOT check off or modify anything in `progress.md`** except in the narrow case below.
 
 ### Update the top-level phase checkbox in progress.md
 
-- `phase tick` flips the top-level box itself when it ticks the last open sub-item. By hand: flip it to `[x]` only when **all** sub-checkboxes in that phase's entry are checked.
+- `phase tick` flips the top-level box itself when it ticks the last open sub-item. Without Bun: flip it to `[x]` only when **all** sub-checkboxes in that phase's entry are checked.
 - Do not partially mark a phase as done at the top level.
 - When the user confirms a ticked phase has been deployed, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase deployed <spec> <phase> [--date YYYY-MM-DD]` (SKILL.md → *Phase edges*). This is what releases phases that declare `needs-deployed` on it. Never infer a deploy from a merge. The one exception is babysit's infra deploy gate: its last check proves the deploy, and it marks the phases with `phase deployed --land` ([babysit.md](babysit.md)). Without Bun, insert ` · deployed <YYYY-MM-DD>` directly after the pointer (after its closing backtick), before any trailing note; the reader doesn't see it anywhere else.
 
@@ -54,8 +57,9 @@ Compare recent commits against unchecked sub-items in the current phase entry. F
 
 Phase ids never change or disappear: `spec#7` refs, `[phase 7]` ledger scopes and `research/phase-7/` all depend on them.
 
-- **Work that deserves its own phase:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase add <spec> "<title>" [--after <id>] [--needs a,b] [--pr X] [--code false]`. It takes the next integer, or with `--after 7` the next free letter (`7a`), writes the phase file from the template and the `progress.md` line. Then fill in its Goal, Outcome, files and deliverables.
-- **Work that is its own spec** (a dependency with its own phases, a system other specs will use, another owner): spin it off (prep.md → *Spin-off*) and give the waiting phase `needs: [<new spec>]`.
+- **Work that deserves its own phase:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase add <spec> "<title>" [--after <id>] [--needs a,b] [--pr X] [--code false] [--task "<deliverable>"]…`. It takes the next integer, or with `--after 7` the next free letter (`7a`), writes the phase file from the template and the phase line. Give its deliverables as `--task`; then fill in its Goal, Outcome and files in the phase file.
+- **Work that is its own spec** (a dependency with its own phases, a system other specs will use, another owner): spin it off (prep.md → *Spin-off*) and give the waiting phase the edge with `phase set <spec> <phase> --needs <its needs>,<new spec>`.
+- **An edge, PR group or gate that changed:** `phase set <spec> <phase> --needs … | --needs-deployed … | --same-files-as … | --pr X | --gate …` (`none` clears).
 - **A phase that grew two jobs:** `phase split <spec> <id> "<title>"… [--items "b:1,2 c:3"]`. The original keeps its id, file and ticked items; each title becomes a lettered part (`b` = first title) and takes the open items listed by `#N`. The output lists every ref that still points at the original: keep each one or retarget it to a part.
 - **Without Bun:** do the same by hand, following the same id rules. Copy the flat template from `create.md`, and put the `progress.md` line after the last line of that id's family. Never write a nested `- [ ] Phase …` line: the tools can't see it, and the doctor warns.
 
@@ -136,7 +140,7 @@ Transition status if applicable:
 
 - Only ever write a value the project allows (SKILL.md → *Stage vs. status*). The spec-file hook blocks any other value.
 - `draft` → `active`: first items checked off across any phase
-- `active` → `done`: all top-level phase checkboxes in `progress.md` are `[x]`
+- `active` → `done`: every phase is done (`spec.ts ready <name>` says no phase is left)
 - A legacy `in-progress` status counts as `active` — rewrite it to `active` on the next transition
 - Print a notice when status transitions: "Status: draft → active"
 - After a transition, run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <spec-name>`
@@ -168,7 +172,7 @@ You have uncommitted changes — consider committing the implementation + spec u
 
 ## 9. Close the phase
 
-If the top-level phase checkbox in `progress.md` just flipped to `[x]` (all sub-items in the phase entry are done), **do not just report it** — close the phase so the spec is resumable at the boundary and phase N's durable learnings reach the ledger:
+If `phase tick` just said `Phase <N> complete` (all its tasks are done), **do not just report it** — close the phase so the spec is resumable at the boundary and phase N's durable learnings reach the ledger:
 
 1. Read [handoff.md](handoff.md) and run its *Reflect and redirect* and *Commit* sections; *Commit* also pushes, and in `docs: main` projects publishes the spec docs. Skip *Signal completion* — the session is **not** ending.
 2. Print the `Remote:` line, then one line: `Phase <N> complete — Phase <N+1> ready.` (or `All phases complete — see pr-opening.md for the PR gate.`), then continue with whatever the session was doing.
@@ -186,6 +190,8 @@ If the current phase is a **flat file** and it has outgrown its scale — multip
 3. Delete the old flat file `phases/phase-<N>-<slug>.md`
 4. Update the pointer in `progress.md` from `phases/phase-<N>-<slug>.md` to `phases/phase-<N>-<slug>/plan.md`
 5. The next resume/update session automatically uses the new folder path because `progress.md` is authoritative
+
+A spec on the board keeps its flat phase files: its record names each file, and no command moves that path yet.
 
 Reverse demotion (folder → flat file) is not automated. If it's ever needed, the user does it manually.
 

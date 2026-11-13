@@ -1,6 +1,7 @@
 import type { Git } from "../core/git";
 import type { FileChange, RefPort, Tip, TipRead } from "../core/land-on-ref";
-import { leasePush, NETWORK } from "../core/remote-push";
+import { leasePush, NETWORK, REMOTE_TIMEOUT_MS } from "../core/remote-push";
+import { ranOutOfTime } from "../core/run";
 import type { Result } from "../core/result";
 import { commitOnto } from "../publish/commit-onto";
 import { RECORD_REF, RECORD_TRACKING_REF } from "./layout";
@@ -8,6 +9,7 @@ import { RECORD_REF, RECORD_TRACKING_REF } from "./layout";
 export interface RecordPort extends RefPort {
   blobIdsByPath(tip: string): Result<Map<string, string>>;
   readBlob(version: string): Result<string>;
+  readBlobs(versions: readonly string[]): Result<Map<string, string>>;
 }
 
 const LS_REMOTE_NO_MATCH = 2;
@@ -29,18 +31,22 @@ export function gitRecordPort(git: Git): RecordPort | undefined {
       const read = git.run(["cat-file", "blob", version]);
       return read.code === 0 ? { ok: true, value: read.stdout } : { ok: false, reason: `can't read record blob ${version}: ${read.stderr.trim()}` };
     },
+    readBlobs: (versions) => readBlobBatch(git, versions),
   };
 }
 
 // One round trip when the record exists; ls-remote only after a failed fetch, to tell absent from unreachable.
-export function fetchRecordTip(git: Git): TipRead {
-  const fetched = git.run(["fetch", "-q", "--no-tags", "origin", `+${RECORD_REF}:${RECORD_TRACKING_REF}`], NETWORK);
+// A fetch that ran out of time already answered that: asking again would wait out a second limit.
+export function fetchRecordTip(git: Git, timeoutMs = REMOTE_TIMEOUT_MS): TipRead {
+  const network = { ...NETWORK, timeoutMs };
+  const fetched = git.run(["fetch", "-q", "--no-tags", "origin", `+${RECORD_REF}:${RECORD_TRACKING_REF}`], network);
   if (fetched.code === 0) {
     const tip = git.out(["rev-parse", "--verify", "-q", RECORD_TRACKING_REF]);
     return tip.ok ? { kind: "at", sha: tip.value } : { kind: "failed", reason: tip.reason };
   }
+  if (ranOutOfTime(fetched)) return { kind: "offline", reason: fetched.stderr };
   if (REF_LOCKED.test(fetched.stderr)) return { kind: "busy", reason: fetched.stderr.trim() };
-  const listed = git.run(["ls-remote", "--exit-code", "origin", RECORD_REF], NETWORK);
+  const listed = git.run(["ls-remote", "--exit-code", "origin", RECORD_REF], network);
   if (listed.code === LS_REMOTE_NO_MATCH) {
     git.run(["update-ref", "-d", RECORD_TRACKING_REF]);
     return { kind: "absent" };
@@ -73,4 +79,24 @@ function listBlobIds(git: Git, tip: string): Result<Map<string, string>> {
     if (path && blob) versions.set(path, blob);
   }
   return { ok: true, value: versions };
+}
+
+// One spawn for every document: `<id> blob <bytes>\n<content>\n` per blob, sizes in bytes, not characters.
+function readBlobBatch(git: Git, versions: readonly string[]): Result<Map<string, string>> {
+  const texts = new Map<string, string>();
+  if (versions.length === 0) return { ok: true, value: texts };
+  const read = git.run(["cat-file", "--batch"], { stdin: `${versions.join("\n")}\n` });
+  if (read.code !== 0) return { ok: false, reason: `can't read the record's documents: ${read.stderr.trim()}` };
+  const bytes = Buffer.from(read.stdout, "utf8");
+  let at = 0;
+  for (const version of versions) {
+    const headerEnd = bytes.indexOf(0x0a, at);
+    const [id, type, size] = bytes.subarray(at, headerEnd).toString("utf8").split(" ");
+    if (id !== version || type !== "blob" || size === undefined) return { ok: false, reason: `record blob ${version} is missing` };
+    const start = headerEnd + 1;
+    const end = start + Number(size);
+    texts.set(version, bytes.subarray(start, end).toString("utf8"));
+    at = end + 1;
+  }
+  return { ok: true, value: texts };
 }

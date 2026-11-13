@@ -14,6 +14,7 @@ import { loadSettings } from "../playbook/settings";
 import { loadNodes } from "../graph/nodes";
 import { loadGates } from "../playbook/gates";
 import { doctorFileReport } from "./doctor-file";
+import { readLocalPlans, type PlanSource } from "../plan/read-plans";
 
 export const DOCTOR_USAGE = "doctor [<spec-name>] | doctor <spec-name> --file <path-relative-to-spec>";
 
@@ -23,17 +24,17 @@ export function doctorCommand(projectDir: string, args: readonly string[]): stri
   return `usage: ${DOCTOR_USAGE}`;
 }
 
-export function doctorReport(projectDir: string, specName?: string, runner: Runner = systemRunner): string {
+export function doctorReport(projectDir: string, specName?: string, runner: Runner = systemRunner, plans: PlanSource = readLocalPlans(projectDir, runner, new Date())): string {
   const specs = specName ? findSpecs(projectDir, specName) : listSpecs(projectDir);
   if (specName && specs.length === 0) {
     return `doctor: no spec named ${specName} under docs/specs/ or */docs/specs/`;
   }
 
   const statuses = allowedStatuses(projectDir);
-  const nodes = loadNodes(projectDir);
+  const nodes = loadNodes(projectDir, plans.marks);
   const gates = loadGates(projectDir);
   const playbooks = new Set(loadPlaybooks(projectDir).map((playbook) => playbook.name));
-  const context = { projectDir, statuses, nodes, gates, today: isoDay(new Date()), playbooks };
+  const context = { projectDir, statuses, nodes, gates, today: isoDay(new Date()), playbooks, plans };
   const specIssues = specs.flatMap((spec) => runDoctor(spec, context));
   const repo = repoIssues(projectDir, gates, runner);
   const projectIssues = [...projectLedgerIssues(projectDir), ...backlogIssues(projectDir), ...playbookIssues(projectDir)];

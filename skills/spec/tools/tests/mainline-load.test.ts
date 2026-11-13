@@ -6,7 +6,7 @@ import { gitAt } from "../core/git";
 import { baseProject, loadMainline, type MainlineOptions } from "../mainline/load";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 
-const FETCHED: MainlineOptions = { timeoutMs: 10_000, local: false };
+const FETCHED: MainlineOptions = { timeoutMs: 10_000, local: false, now: new Date("2026-11-11T20:00:00Z") };
 
 describe("loadMainline (real git)", () => {
   let repo: TestRepo;

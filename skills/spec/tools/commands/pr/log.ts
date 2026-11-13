@@ -5,6 +5,7 @@ import { systemRunner, type Runner } from "../../core/run";
 import { appendEvent, readEvents, renderTimeline, type BabysitEvent } from "../../pr/babysit/log";
 import { ghClient } from "../../pr/gh";
 import { parsePrNumber, resolvePr } from "../../pr/resolve";
+import { specStatesAt } from "../../plan/read-plans";
 
 export const PR_LOG_USAGE = 'pr log [<pr> | <spec-name> [<group>]] [--add "<text>" | --start <spec-name> --group <group> | --pushed | --stopped "<why>"]';
 
@@ -94,6 +95,6 @@ function logWrite(values: { add?: string; start?: string; group?: string; pushed
 function prNumber(projectDir: string, target: readonly string[], runner: Runner): Result<number> {
   const number = target.length === 1 ? parsePrNumber(target[0]!) : undefined;
   if (number !== undefined) return { ok: true, value: number };
-  const resolved = resolvePr(ghClient(projectDir, runner), projectDir, target);
+  const resolved = resolvePr(ghClient(projectDir, runner), projectDir, target, specStatesAt(projectDir, runner, new Date()));
   return resolved.ok ? { ok: true, value: resolved.value.view.number } : resolved;
 }

@@ -1,3 +1,4 @@
+import { parseFrontmatter } from "./frontmatter";
 import { outlineMarkdown, type TaskItem } from "./markdown";
 import type { CheckboxCount } from "./progress";
 
@@ -15,18 +16,35 @@ const SENTENCE_END = /\.\s+(?=[A-Z])/;
 const RUN_LIMIT = 5;
 const WORK_FALLBACK_ITEMS = 3;
 
+export interface DoneFlag {
+  done: boolean;
+}
+
+// The one task-count rule: tick, split, the doctor, the packs and the record all count this way.
+export function countTasks(tasks: readonly DoneFlag[]): CheckboxCount {
+  const checked = tasks.filter((task) => task.done).length;
+  return { checked, unchecked: tasks.length - checked };
+}
+
+export function allTasksDone(count: CheckboxCount): boolean {
+  return count.checked > 0 && count.unchecked === 0;
+}
+
+// A phase entry's tasks are its Deliverables section when it has one, every box otherwise.
+export function entryTaskCount(entry: string): CheckboxCount {
+  return countTasks(deliverablesOf(outlineMarkdown(bodyOf(entry)).tasks).map((task) => ({ done: task.checked })));
+}
+
 export function summarizePhaseEntry(text: string): PhaseEntrySummary {
   const { tasks, paragraphs } = outlineMarkdown(text);
   const labelled = (label: string) => paragraphs.map((p) => labelledText(p.text, label)).find((match) => match !== undefined);
-  const deliverableTasks = tasks.some((t) => DELIVERABLES.test(t.section))
-    ? tasks.filter((t) => DELIVERABLES.test(t.section))
-    : tasks;
+  const deliverableTasks = deliverablesOf(tasks);
 
   return {
     goal: labelled("Goal"),
     outcome: labelled("Outcome"),
     work: workSummary(paragraphs.filter((p) => IMPLEMENTATION.test(p.section)).map((p) => p.text), deliverableTasks),
-    deliverables: count(deliverableTasks),
+    deliverables: countTasks(deliverableTasks.map((task) => ({ done: task.checked }))),
     nextRun: firstOpenRun(tasks),
   };
 }
@@ -48,9 +66,14 @@ function workSummary(guidance: string[], deliverables: TaskItem[]): string | und
   return titles.length > 0 ? titles.join("; ") : undefined;
 }
 
-function count(tasks: TaskItem[]): CheckboxCount {
-  const checked = tasks.filter((t) => t.checked).length;
-  return { checked, unchecked: tasks.length - checked };
+function deliverablesOf(tasks: TaskItem[]): TaskItem[] {
+  const deliverables = tasks.filter((task) => DELIVERABLES.test(task.section));
+  return deliverables.length > 0 ? deliverables : tasks;
+}
+
+function bodyOf(entry: string): string {
+  const parsed = parseFrontmatter(entry);
+  return parsed.kind === "invalid" ? entry : parsed.body;
 }
 
 function firstOpenRun(tasks: TaskItem[]): string[] {

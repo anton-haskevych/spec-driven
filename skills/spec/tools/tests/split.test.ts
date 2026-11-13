@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { phaseCommand } from "../commands/phase";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { createTree, type Tree } from "./tree";
 
 const PROGRESS = [
@@ -62,7 +62,7 @@ describe("phase split", () => {
     expect(part).toStartWith("---\nneeds: [6]\npr: B\n---\n");
     expect(part).toContain("## Deliverables\n\n- [ ] write path\n");
 
-    expect(loadSpecState(spec).phases.map((phase) => phase.id)).toEqual(["6", "7", "7a", "7b", "7c", "8", "9"]);
+    expect(loadSpecStateFromFiles(spec).phases.map((phase) => phase.id)).toEqual(["6", "7", "7a", "7b", "7c", "8", "9"]);
   });
 
   test("without --items, nothing moves and the parts get a placeholder deliverable", () => {
@@ -75,7 +75,7 @@ describe("phase split", () => {
   test("moving every open item out flips the original's progress box", () => {
     const spec = checkout();
     phaseCommand(tree.root, ["split", "checkout", "7", "Rest", "--items", "b:1,2,3"]);
-    expect(loadSpecState(spec).phases.find((phase) => phase.id === "7")?.done).toBe(true);
+    expect(loadSpecStateFromFiles(spec).phases.find((phase) => phase.id === "7")?.done).toBe(true);
   });
 
   test("refuses done, folder-shape and unknown phases, writing nothing", () => {

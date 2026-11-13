@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { phaseCommand } from "../commands/phase";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { taskPhaseIssues } from "../doctor/task-phases";
 import { planTick } from "../phases/tick";
 import { createTree, type Tree } from "./tree";
@@ -46,9 +46,20 @@ describe("phase tick (code phase)", () => {
     expect(output).toBe('ticked "locator" in Phase 2\nPhase 2 complete — run update.md → Close the phase');
     expect(read(spec.dir, "progress.md")).toContain("- [x] Phase 2 — Tick → `phases/phase-2-tick.md` (notes)");
 
-    const phase = loadSpecState(spec).phases[1];
+    const phase = loadSpecStateFromFiles(spec).phases[1];
     expect(phase?.done).toBe(true);
     expect(phase?.summary?.deliverables).toEqual({ checked: 2, unchecked: 0 });
+  });
+
+  test("ticking the last Deliverables item closes the phase even with an open box under another heading", () => {
+    tree = createTree("spec-tick-");
+    const spec = tree.spec("checkout", {
+      "progress.md": PROGRESS,
+      "phases/phase-1-harness.md": "- [x] done\n",
+      "phases/phase-2-tick.md": "## Deliverables\n- [ ] locator\n\n## Verification\n- [ ] smoke test\n",
+    });
+    expect(phaseCommand(tree.root, ["tick", "checkout", "2", "locator"])).toBe('ticked "locator" in Phase 2\nPhase 2 complete — run update.md → Close the phase');
+    expect(read(spec.dir, "progress.md")).toContain("- [x] Phase 2 — Tick");
   });
 
   test("an unknown phase or item is invalid and writes nothing", () => {
@@ -100,7 +111,7 @@ describe("phase tick (task phase)", () => {
     const spec = ballroom();
     phaseCommand(tree.root, ["tick", "ballroom", "1", "record", "--evidence", "2026-09-30, Drive/rec.mp4"]);
     expect(read(spec.dir, "phases/phase-1-record.md")).toContain("- [x] record the interview — 2026-09-30, Drive/rec.mp4\n");
-    expect(taskPhaseIssues(loadSpecState(spec))).toEqual([]);
+    expect(taskPhaseIssues(loadSpecStateFromFiles(spec))).toEqual([]);
   });
 });
 

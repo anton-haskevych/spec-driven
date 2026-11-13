@@ -1,7 +1,11 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { findSpecs } from "../core/spec-folders";
-import { diskReader, loadSpecState } from "../core/spec-state";
+import { findSpecs, type SpecFolder } from "../core/spec-folders";
+import { diskReader } from "../core/spec-state";
+import { planShapeOf } from "../plan/plan-diff";
+import { noticePlanChange, planMemoryFor, type PlanMemory } from "../plan/plan-version";
+import { readPlansAt, type PlanSource } from "../plan/read-plans";
+import { boardLine, treeAheadLine } from "../context/board-lines";
 import { babysitPack } from "../context/babysit-pack";
 import { executePack, resumePack, type PackInput } from "../context/packs";
 import { neighborhoodReport } from "./graph";
@@ -37,13 +41,17 @@ export interface ContextDeps {
   readHeld: HeldReader;
   readClaimsHere: ClaimsHereReader;
   workflow?: LocalPilot;
+  now?: () => Date;
+  memory?: PlanMemory;
 }
 
 export function systemContextDeps(): ContextDeps {
+  const memory = planMemoryFor(process.env);
   return {
     runner: systemRunner,
     readHeld: (projectDir) => heldByOthers(projectDir, { runner: systemRunner, claudeHome: defaultClaudeHome(), env: process.env }),
     readClaimsHere: systemClaimsHere,
+    ...(memory ? { memory } : {}),
   };
 }
 
@@ -75,14 +83,16 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   const specs = findSpecs(projectDir, name);
   if (specs.length !== 1 || !specs[0]) return "";
 
-  const state = loadSpecState(specs[0]);
+  const plans = readPlansAt(projectDir, deps.runner, deps.now?.() ?? new Date());
+  const state = plans.state(specs[0]);
   const hasLedger = existsSync(join(state.spec.dir, "ledger", "INDEX.md"));
   if (!state.hasProgress || !hasLedger) return "";
 
-  const doctor = doctorReport(projectDir, name).split("\n").slice(0, DOCTOR_LINES).join("\n");
+  const doctor = doctorReport(projectDir, name, deps.runner, plans).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
-  if (mode === "babysit") return packBlock(state.spec.name, mode, inferredFrom, babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
-  const nodes = loadNodes(projectDir);
+  const block = (body: string) => packBlock(state.spec.name, mode, inferredFrom, withBoardLines(plans, state.spec, body, deps.memory));
+  if (mode === "babysit") return block(babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
+  const nodes = loadNodes(projectDir, plans.marks);
   const held = await deps.readHeld(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir, specsInFlight(held, state.spec.name));
   const ready = readySet(state, nodes);
@@ -92,7 +102,17 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   const body = mode === "execute"
     ? executeBody(projectDir, { state, doctor, relations, ready, held, playbooks, settings, stale, workflow: deps.workflow, lessons: loadProjectLessons(projectDir) }, request.hint)
     : resumePack({ state, doctor, relations, ready, held, playbooks, settings, stale, lessons: [] });
-  return packBlock(state.spec.name, mode, inferredFrom, body);
+  return block(body);
+}
+
+function withBoardLines(plans: PlanSource, spec: SpecFolder, body: string, memory: PlanMemory | undefined): string {
+  const joined = plans.joined(spec.name);
+  const lines = [
+    boardLine(plans.record, joined, plans.pending),
+    joined && memory ? noticePlanChange(memory, spec.name, planShapeOf(joined)) : undefined,
+    joined ? treeAheadLine(joined, diskReader(spec.dir)) : undefined,
+  ].filter((line) => line !== undefined);
+  return lines.length === 0 ? body : `${lines.join("\n")}\n\n${body}`;
 }
 
 function packBlock(spec: string, mode: string, inferredFrom: string | undefined, body: string): string {

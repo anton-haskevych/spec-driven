@@ -16,7 +16,7 @@ If *Preconditions* flagged a legacy layout, read `legacy-layout.md` → `status`
 
 ## 3. Read phases
 
-Read `progress.md`. Parse its `## Phases` section into a list of records:
+Read `progress.md`. A spec on the board keeps only a stub there (it starts `> On the board since`): read its `spec.json` and phase documents instead (SKILL.md → *Plan changes* → *Reading a joined spec without Bun*); a phase is done when every task in it is `done`. Otherwise parse its `## Phases` section into a list of records:
 
 `{ number, name, top_level_checked, pointer }`
 

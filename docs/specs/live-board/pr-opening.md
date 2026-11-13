@@ -14,17 +14,19 @@ PR #37 merged 2026-11-11 as 9392c3f (squash).
 
 Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft — never straight to `main`.
 
-- [ ] `bun test` passes (incl. `skill-wiring.test.ts`, `commands-table.test.ts`, `board-no-focus-golden.test.ts`)
+- [x] `bun test` passes (incl. `skill-wiring.test.ts`, `commands-table.test.ts`, `board-no-focus-golden.test.ts`)
   PR A, 2026-11-11 (load average 289): `1561 pass · 1 fail` — `codex-packaged-entry.test.ts` "source fixture
   completes … fresh-process pickup" timed out at 5906 ms against the 5 s default; alone with `--timeout 30000`:
   `4 pass · 0 fail`, as at the branch base (`docs/specs/_ledger/gotcha-codex-packaged-entry-test-runs-near-its-timeout.md`).
+  PR B, 2026-11-12: `1805 pass · 0 fail`; typecheck clean; `bun install --frozen-lockfile` no changes.
 - [x] `bun run typecheck` clean (PR A, 2026-11-11)
 - [x] `bun install --frozen-lockfile` clean (no new runtime dependencies) (PR A, 2026-11-11)
-- [ ] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added
+- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*)
 - [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143)
 - [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`)
-- [ ] With the board off, a file-based spec behaves as before: the pre-existing suites pass unchanged
+- [x] With the board off, a file-based spec behaves as before: the pre-existing suites pass unchanged
   PR A: nothing reads the record yet; the same one timing failure as `bun test` above.
+  PR B, 2026-11-12: full suite green; the only edited expectation is the frozen-plan hook naming `phase task`.
 - [x] From a scratch repo with two clones (two "machines"), with this branch's tools: the PR's own scenario
   runs end to end and its output is pasted here (PR A: three writers race; PR B: a spec joins, two trees tick
   tasks of the same phase and of different phases, each sees the other's on its next command, and
@@ -47,5 +49,60 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   $ origin: refs
   refs/heads/main
   refs/spec-board/record
+  ```
+  PR B, 2026-11-12, bare origin + clones `laptop` and `desktop`, `board.record: on`, `docs: main`, this
+  branch's `spec.ts` (script: the session scratchpad's `pr-b-scenario.sh`; the context pack trimmed to its table):
+  ```
+  $ laptop: spec.ts join demo
+  join: demo is on the board (2 phases, 3 tasks, 0 worktrees read) · banner landed on main (fae4224)
+  $ laptop: spec.ts phase tick demo 1 1.1
+  tick: phase 1 · 1.1 done (b86f6e7 on origin/feat/demo-pr-a)
+  $ desktop: spec.ts phase tick demo 1 1.2
+  tick: phase 1 · 1.2 done (424853e on origin/feat/demo-pr-b)
+  Phase 1 complete — run update.md → Close the phase
+  $ desktop: spec.ts phase tick demo 2 2.1
+  tick: phase 2 · 2.1 done (424853e on origin/feat/demo-pr-b)
+  Phase 2 complete — run update.md → Close the phase
+  --- laptop's next command sees desktop's ticks
+  $ laptop: spec.ts ready demo
+  Ready now: none
+
+  PR A: phases 1 ✓
+  PR B: phases 2 ✓
+  $ laptop: spec.ts phase task demo 2 --add write log
+  task: phase 2 · added 2.2 (plan v2)
+  --- desktop sees the task laptop added
+  $ desktop: spec.ts context status demo
+  Board: live · plan v2
+  | Phase | Status | Delivers | Work |
+  | 1 — Read | ✅ done | reads work | 1.1 parse input — b86f6e73772974f1dd678fe42be38cf847220512 on origin/feat/demo-pr-a; 1.2 read cache… |
+  | 2 — Write | 🟡 WIP (1/2) | writes work | 2.1 write file — 424853edbd301a0aa7309c38de02c76d3afcf8cb on origin/feat/demo-pr-b; 2.2 write log |
+  --- the way back
+  $ laptop: spec.ts record export demo --unjoin
+  export: demo written to files (2 phases, 4 tasks); off the board. Commit and publish these files: every tree reads them from now on
+  $ laptop: progress.md and phase 1 after export
+  # Demo — Progress
+
+  ## Phases
+
+  - [x] Phase 1 — Read → `phases/phase-1-read.md`
+  - [ ] Phase 2 — Write → `phases/phase-2-write.md`
+  ---
+  needs: []
+  pr: A
+  ---
+  # Phase 1 — Read
+
+  **Outcome:** reads work.
+
+  ## Deliverables
+
+  - [x] parse input — b86f6e73772974f1dd678fe42be38cf847220512 on origin/feat/demo-pr-a
+  - [x] read cache — 424853edbd301a0aa7309c38de02c76d3afcf8cb on origin/feat/demo-pr-b
+  $ laptop: spec.ts ready demo
+  Ready now: 2 Write (in progress)
+
+  PR A: phases 1 ✓
+  PR B: phases 2
   ```
 - [x] The claims suites pass unchanged after `core/remote-push.ts` is lifted out (PR A: no diff in `tests/claims-*.ts`, 93 pass)

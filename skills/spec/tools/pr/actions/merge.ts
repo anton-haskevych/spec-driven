@@ -14,6 +14,7 @@ import { ghClient } from "../gh";
 import { parsePrNumber, resolvePr } from "../resolve";
 import { ghWrites } from "./gh-writes";
 import { withMergeLine, type MergeRecord } from "./merge-line";
+import { specStatesAt } from "../../plan/read-plans";
 
 export interface MergeRequest {
   target: readonly string[];
@@ -37,7 +38,7 @@ const SHORT_SHA = 7;
 const NO_METHOD = "pr merge: pr.merge is not set; pass --method or set it in docs/specs/_playbook/settings.md";
 
 export async function mergePr(projectDir: string, request: MergeRequest, deps: MergeDeps): Promise<string> {
-  const resolved = resolvePr(ghClient(projectDir, deps.runner), projectDir, request.target);
+  const resolved = resolvePr(ghClient(projectDir, deps.runner), projectDir, request.target, specStatesAt(projectDir, deps.runner, deps.now()));
   if (!resolved.ok) return `pr merge: ${resolved.reason}`;
   const { view } = resolved.value;
   const settings = loadSettings(projectDir);

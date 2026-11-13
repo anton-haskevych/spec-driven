@@ -1,23 +1,10 @@
 import type { Tip } from "../core/land-on-ref";
-import { blobVersion, parseDoc, serializeDoc } from "../record/document";
+import { blobVersion, serializeDoc } from "../record/document";
 import type { RecordPort } from "../record/ref";
-import type { RecordView } from "../record/view";
-import { fakeRef, type FakeRef } from "./fake-ref";
+import { viewOfTexts, type RecordView } from "../record/view";
 
-export function viewOfTexts(texts: ReadonlyMap<string, string>, tip: Tip = { kind: "absent" }): RecordView {
-  return {
-    tip,
-    paths: () => [...texts.keys()].toSorted(),
-    version: (path) => {
-      const text = texts.get(path);
-      return text === undefined ? undefined : blobVersion(text);
-    },
-    doc: (path) => {
-      const text = texts.get(path);
-      return text === undefined ? undefined : parseDoc(text);
-    },
-  };
-}
+export { viewOfTexts };
+import { fakeRef, type FakeRef } from "./fake-ref";
 
 export function viewOf(docs: Record<string, unknown>, tip: Tip = { kind: "at", sha: "t1" }): RecordView {
   return viewOfTexts(new Map(Object.entries(docs).map(([path, doc]) => [path, serializeDoc(doc)])), tip);
@@ -36,6 +23,13 @@ export function fakeRecord(): FakeRecord {
         for (const text of commit.files.values()) if (blobVersion(text) === version) return { ok: true as const, value: text };
       }
       return { ok: false as const, reason: `no blob ${version}` };
+    },
+    readBlobs(versions: readonly string[]) {
+      const texts = new Map<string, string>();
+      for (const commit of ref.commits.values()) {
+        for (const text of commit.files.values()) if (versions.includes(blobVersion(text))) texts.set(blobVersion(text), text);
+      }
+      return { ok: true as const, value: texts };
     },
   });
 }

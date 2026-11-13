@@ -28,8 +28,15 @@ export function checkSettings(file: string, text: string, gates: Gates): Issue[]
   };
   const named = Object.entries(gateKeys).flatMap(([key, name]) => (name ? [{ key, name }] : []));
   const crew = frontmatter.kind === "ok" ? frontmatter.data.crew : undefined;
-  return [...problems.map((problem) => warning(file, problem)), ...gateNameIssues(file, named, gates), ...selfApproveIssues(file, crew)];
+  return [
+    ...problems.map((problem) => warning(file, problem)),
+    ...gateNameIssues(file, named, gates),
+    ...selfApproveIssues(file, crew),
+    ...(settings.board.record && settings.docs !== "main" ? [warning(file, BOARD_NEEDS_DOCS_MAIN)] : []),
+  ];
 }
+
+const BOARD_NEEDS_DOCS_MAIN = "board.record is on, but the board needs docs: main in this version; no spec can join";
 
 // A misspelt kind would make a gate the user meant to wave through park instead, silently.
 function selfApproveIssues(file: string, crew: unknown): Issue[] {

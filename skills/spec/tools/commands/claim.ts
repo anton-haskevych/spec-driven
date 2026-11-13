@@ -16,6 +16,7 @@ import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { loadWorkspaces } from "../workspaces/list";
 import { systemBoardDeps, type BoardDeps } from "./board";
+import { pushAfterTake } from "./claim-push";
 
 const TAKE_OVER_FLAG = "--take-over";
 const TAKE_OVER_HINT = 'say "take it over" to take it anyway';
@@ -49,7 +50,9 @@ export async function claimCommand(projectDir: string, args: readonly string[], 
   const [action, spec, phase, ...extra] = args.filter((arg) => arg !== TAKE_OVER_FLAG);
   const sessionId = ownSessionId(deps.env);
   if (action === "list" && !spec) return withWorld(projectDir, deps, listClaims);
-  if (action === "take" && spec && phase && extra.length === 0) return withWorld(projectDir, deps, (world) => take(world, spec, phase, sessionId, takeOver));
+  if (action === "take" && spec && phase && extra.length === 0) {
+    return withWorld(projectDir, deps, (world) => take(world, spec, phase, sessionId, takeOver)).then((line) => pushAfterTake(projectDir, deps.runner, line));
+  }
   if (action === "release" && spec && extra.length === 0 && !takeOver) return withWorld(projectDir, deps, (world) => release(world, spec, phase, sessionId));
   return `usage: ${CLAIM_USAGE}`;
 }
@@ -67,14 +70,14 @@ async function loadClaimWorld(projectDir: string, deps: ClaimDeps): Promise<Resu
   if (!worktrees.ok) return worktrees;
   const inputs = await loadBoardInputs(projectDir, { local: true }, deps);
   if (!inputs.ok) return inputs;
-  const { states, workspaces, currentPath } = inputs.value;
+  const { states, workspaces, currentPath, joinedActivity } = inputs.value;
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   return {
     ok: true,
     value: {
       dir: dir.value,
       context: claimContext(git, sessions, states, loadClaims(dir.value).claims),
-      activity: phaseActivity(states, workspaces),
+      activity: phaseActivity(states, workspaces, joinedActivity),
       currentPath,
       ownStates: workspaces.find((workspace) => workspace.path === currentPath)?.states,
       branch: worktrees.value.find((worktree) => worktree.path === currentPath)?.branch,

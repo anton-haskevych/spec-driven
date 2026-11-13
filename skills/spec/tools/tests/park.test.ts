@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { phaseCommand } from "../commands/phase";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { parkOf } from "../core/park";
 import { planPark, planUnpark } from "../phases/park";
 import { createTree, type Tree } from "./tree";
@@ -36,7 +36,7 @@ describe("phase park", () => {
     const spec = studio();
     const output = phaseCommand(tree.root, ["park", "studio", "1", "Grid or list?", "--recommend", "grid"]);
     expect(output).toBe('parked Phase 1 in in-flight/phase-1.md: "Grid or list?" · recommend: grid\nCommit and push the note, then hand off.');
-    expect(parkOf(loadSpecState(spec).inFlight ?? [], "1")?.question).toBe("Grid or list?");
+    expect(parkOf(loadSpecStateFromFiles(spec).inFlight ?? [], "1")?.question).toBe("Grid or list?");
   });
 
   test("refuses a done phase, a second open question and an empty one", () => {
@@ -56,7 +56,7 @@ describe("phase unpark", () => {
     const unpark = planUnpark(spec, { phase: "1", answer: "grid, Anton", at: AT });
     expect(unpark.plan.kind === "ok" && unpark.plan.edits[0]?.text).toContain(`\n  - Answered ${AT}: grid, Anton\n`);
     expect(phaseCommand(tree.root, ["unpark", "studio", "1", "grid"])).toBe('answered Phase 1: "grid"');
-    expect(parkOf(loadSpecState(spec).inFlight ?? [], "1")).toBeUndefined();
+    expect(parkOf(loadSpecStateFromFiles(spec).inFlight ?? [], "1")).toBeUndefined();
   });
 
   test("refuses a phase that is not parked", () => {

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { phaseCommand } from "../commands/phase";
 import { deployedMarker, parsePhaseLines } from "../core/progress";
-import { loadSpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles } from "../core/spec-state";
 import { createTree, type Tree } from "./tree";
 
 const PROGRESS = [
@@ -36,14 +36,14 @@ describe("phase deployed", () => {
     expect(progressOf(spec.dir)).toContain(
       "- [x] Phase 1 — Aggregate → `phases/phase-1-aggregate.md` · deployed 2026-09-20 (closed 2026-09-08)\n",
     );
-    expect(loadSpecState(spec).phases.map((phase) => phase.deployed)).toEqual([true, false, false]);
+    expect(loadSpecStateFromFiles(spec).phases.map((phase) => phase.deployed)).toEqual([true, false, false]);
   });
 
   test("handles a pointer without backticks", () => {
     const spec = billing();
     phaseCommand(tree.root, ["deployed", "billing", "2", "--date", "2026-09-21"]);
     expect(progressOf(spec.dir)).toContain("- [x] Phase 2 — Bare → phases/phase-2-bare.md · deployed 2026-09-21\n");
-    expect(loadSpecState(spec).phases[1]?.deployed).toBe(true);
+    expect(loadSpecStateFromFiles(spec).phases[1]?.deployed).toBe(true);
   });
 
   test("is idempotent: a second call changes nothing and says so", () => {
@@ -69,7 +69,7 @@ describe("phase deployed", () => {
     const spec = billing();
     const output = phaseCommand(tree.root, ["deployed", "billing", "2"]);
     expect(output).toMatch(/^Phase 2 marked deployed \d{4}-\d{2}-\d{2}$/);
-    expect(loadSpecState(spec).phases[1]?.deployed).toBe(true);
+    expect(loadSpecStateFromFiles(spec).phases[1]?.deployed).toBe(true);
   });
 });
 

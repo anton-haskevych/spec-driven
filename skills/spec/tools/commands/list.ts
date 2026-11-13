@@ -3,7 +3,8 @@ import { loadBacklog, type BacklogItem } from "../backlog/items";
 import { loadBoard } from "../board/load";
 import { renderBoard } from "../board/render";
 import { isOverdue, isoDay } from "../core/schedule";
-import { loadNodes } from "../graph/nodes";
+import { loadNodes, type MarksSource } from "../graph/nodes";
+import { readLocalPlans, readPlansAt } from "../plan/read-plans";
 import { supersededBy } from "../graph/lifecycle";
 import { FINISHED_STATUSES, matchesItem, matchesSpec, orderBacklog, orderSpecs, STALE_FILTER } from "../portfolio/order";
 import { renderPortfolio } from "../portfolio/render";
@@ -25,10 +26,10 @@ export async function listCommand(projectDir: string, args: readonly string[], d
   const today = isoDay(deps.now);
   const route = listRoute(args);
   if (typeof route === "string") return route;
-  if (route.kind === "table") return portfolioTable(projectDir, route.args, today);
+  if (route.kind === "table") return portfolioTable(projectDir, route.args, today, readPlansAt(projectDir, deps.runner, deps.now).marks);
   const board = await loadBoard(projectDir, { local: route.local, ownSessionId: ownSessionId(deps.env) }, deps, deps.now);
   if (board.ok) return fenced(renderBoard(board.value));
-  return `${portfolioTable(projectDir, [], today)}\n\nboard unavailable: ${board.reason}`;
+  return `${portfolioTable(projectDir, [], today, readLocalPlans(projectDir, deps.runner, deps.now).marks)}\n\nboard unavailable: ${board.reason}`;
 }
 
 // --local only means something to the board; the table reads the checkout either way.
@@ -39,12 +40,12 @@ export function listRoute(args: readonly string[]): ListRoute | string {
   return tableArgs.length === 0 ? { kind: "board", local: args.includes(LOCAL_FLAG) } : { kind: "table", args: tableArgs };
 }
 
-export function portfolioTable(projectDir: string, args: readonly string[], today: string): string {
+export function portfolioTable(projectDir: string, args: readonly string[], today: string, marks: MarksSource = () => undefined): string {
   const filter = args.filter((arg) => arg !== ALL && arg !== JSON_FLAG && arg !== TABLE).join(" ").trim();
   // A finished status is a lifecycle filter: `list abandoned` shows abandoned specs without `all`.
   const showFinished = args.includes(ALL) || FINISHED_STATUSES.has(filter.toLowerCase());
 
-  const nodes = loadNodes(projectDir);
+  const nodes = loadNodes(projectDir, marks);
   const rows = [...nodes.values()].map((node) => specRow(node, projectDir, today, supersededBy(nodes, node.spec.name)));
   const matching = rows.filter((row) => !filter || matchesSpec(row, filter));
   const specs = orderSpecs(matching.filter((row) => showFinished || !row.finished));

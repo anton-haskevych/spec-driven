@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import type { EditPlan } from "../core/apply-edits";
 import type { SpecFolder } from "../core/spec-folders";
-import { diskReader, loadSpecState, type PhaseState, type SpecState } from "../core/spec-state";
+import { diskReader, loadSpecStateFromFiles, type PhaseState, type SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 import { findPhase } from "./find-phase";
 import { familyOf, nextIntegerId, nextLetterIds } from "./ids";
@@ -13,6 +13,8 @@ export interface AddRequest {
   title: string;
   after?: string;
   edges: PhaseFileEdges;
+  // Deliverables, one per entry: items in a file, tasks with fresh ids on the record.
+  tasks?: readonly string[];
 }
 
 export interface Added {
@@ -27,7 +29,7 @@ interface Placement {
 }
 
 export function planAdd(spec: SpecFolder, request: AddRequest, nodes: ReadonlyMap<string, SpecNode>): Added {
-  const state = loadSpecState(spec);
+  const state = loadSpecStateFromFiles(spec);
   const placement = request.after === undefined ? atEnd(state.phases) : afterFamily(state, request.after);
   if (typeof placement === "string") return invalid(placement);
 
@@ -37,7 +39,7 @@ export function planAdd(spec: SpecFolder, request: AddRequest, nodes: ReadonlyMa
 
   const progress = insertAfterPhases(read("progress.md") ?? "", placement.anchors, [progressLine(placement.id, request.title, pointer)]);
   const edits = [
-    { file: join(spec.dir, pointer), text: phaseFileText({ id: placement.id, title: request.title, edges: request.edges }) },
+    { file: join(spec.dir, pointer), text: phaseFileText({ id: placement.id, title: request.title, edges: request.edges, items: (request.tasks ?? []).map((task) => `- [ ] ${task}`) }) },
     { file: join(spec.dir, "progress.md"), text: progress },
   ];
   const introduced = issuesIntroducedBy(spec, edits, nodes);

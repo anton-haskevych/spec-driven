@@ -79,3 +79,12 @@ describe("settings in the doctor and the spec-file hook", () => {
     expect(JSON.parse(response ?? "{}").reason).toContain("names gates (setup)");
   });
 });
+
+describe("checkSettings: the board", () => {
+  test("warns when the board is on without docs: main", () => {
+    expect(checkSettings("settings.md", "---\nboard: { record: on }\n---\n", GATES).map((issue) => [issue.severity, issue.problem])).toEqual([
+      ["warning", "board.record is on, but the board needs docs: main in this version; no spec can join"],
+    ]);
+    expect(checkSettings("settings.md", "---\ndocs: main\nboard: { record: on }\n---\n", GATES)).toEqual([]);
+  });
+});

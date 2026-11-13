@@ -1,18 +1,19 @@
 import { existsSync } from "node:fs";
 import type { WorkspaceView } from "../board/inputs";
 import { listSpecs } from "../core/spec-folders";
-import { loadSpecState, type SpecState } from "../core/spec-state";
+import { loadSpecStateFromFiles, type SpecState } from "../core/spec-state";
 import { loadNodes, type SpecNode } from "../graph/nodes";
 import type { WorkspaceScan } from "./scan";
 
 // Each live worktree's own state of the specs it changed. listSpecs requires CLAUDE.md, so a spec folder
-// that lost it (deleted or renamed on the branch) is skipped.
-export function loadWorkspaceViews(scans: readonly WorkspaceScan[], baseNodes: ReadonlyMap<string, SpecNode>): WorkspaceView[] {
+// that lost it (deleted or renamed on the branch) is skipped. A joined spec has one copy, on the record,
+// so a worktree's frozen boxes never overlay it.
+export function loadWorkspaceViews(scans: readonly WorkspaceScan[], baseNodes: ReadonlyMap<string, SpecNode>, isJoined: (spec: string) => boolean = () => false): WorkspaceView[] {
   return scans.map(({ workspace, specs }) => {
-    const changed = new Set(specs);
+    const changed = new Set(specs.filter((spec) => !isJoined(spec)));
     const folders = existsSync(workspace.path) ? listSpecs(workspace.path).filter((folder) => changed.has(folder.name)) : [];
     const states = new Map<string, SpecState>();
-    for (const folder of folders) if (!states.has(folder.name)) states.set(folder.name, loadSpecState(folder));
+    for (const folder of folders) if (!states.has(folder.name)) states.set(folder.name, loadSpecStateFromFiles(folder));
     const missingFromBase = [...states.keys()].filter((name) => !baseNodes.has(name));
     return {
       path: workspace.path,

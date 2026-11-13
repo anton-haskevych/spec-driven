@@ -8,14 +8,17 @@ import { dropEntry, flushOutbox, listOutbox, outboxDir, refusedFor, type IntentR
 import type { Validate } from "../record/plan-writes";
 import { gitRecordPort } from "../record/ref";
 import { ownSessionId } from "../sessions/own";
+import { intentRunners } from "../plan/intents";
+import { validateRecordDoc } from "../plan/kinds";
+import { EXPORT_USAGE, recordExport } from "./record-export";
 
-export const RECORD_USAGE = "record status | sync | drop <n>";
+export const RECORD_USAGE = `record status | sync | drop <n> | ${EXPORT_USAGE.replace("record ", "")}`;
 
 export interface RecordDeps {
   runner: Runner;
   env: Env;
   now: () => Date;
-  runners: IntentRunners;
+  runners(git: Git): IntentRunners;
   validate: Validate;
 }
 
@@ -27,12 +30,13 @@ interface RecordWorld {
 }
 
 export function systemRecordDeps(): RecordDeps {
-  return { runner: systemRunner, env: process.env, now: () => new Date(), runners: {}, validate: () => [] };
+  return { runner: systemRunner, env: process.env, now: () => new Date(), runners: intentRunners, validate: validateRecordDoc };
 }
 
 export async function recordCommand(projectDir: string, args: readonly string[], deps: RecordDeps = systemRecordDeps()): Promise<string> {
   const [action, n, ...extra] = args;
   const usage = `usage: ${RECORD_USAGE}`;
+  if (action === "export" && n !== undefined && (extra.length === 0 || (extra.length === 1 && extra[0] === "--unjoin"))) return recordExport(projectDir, n, extra.length === 1, deps);
   if (extra.length > 0 || (action !== "drop" && n !== undefined)) return usage;
   const git = gitAt(projectDir, deps.runner);
   const commonDir = gitCommonDir(git);
@@ -53,7 +57,7 @@ function statusLine(world: RecordWorld): string {
 async function syncLine(world: RecordWorld): Promise<string> {
   const port = gitRecordPort(world.git);
   if (!port) return "this repo has no origin; the board's record lives there";
-  const flushed = await flushOutbox(port, world.outbox, world.deps.runners, { validate: world.deps.validate });
+  const flushed = await flushOutbox(port, world.outbox, world.deps.runners(world.git), { validate: world.deps.validate });
   if (flushed.kind === "offline") return offlineLine(world);
   const tip = port.fetchTip();
   if (tip.kind === "offline") return offlineLine(world);

@@ -25,6 +25,16 @@ export interface RunJob {
 }
 
 const COMMAND_NOT_FOUND = 127;
+const TIMED_OUT = /^timed out after \d+ ms$/;
+
+// What a runner reports as stderr when it killed a command at its limit.
+export function timedOutAfter(ms: number | undefined): string {
+  return `timed out after ${ms} ms`;
+}
+
+export function ranOutOfTime(result: RunResult): boolean {
+  return TIMED_OUT.test(result.stderr);
+}
 
 export const systemRunner: Runner = {
   run(argv, options = {}) {
@@ -35,7 +45,7 @@ export const systemRunner: Runner = {
         stdin: options.stdin === undefined ? "ignore" : Buffer.from(options.stdin),
         timeout: options.timeoutMs,
       });
-      const stderr = result.exitedDueToTimeout ? `timed out after ${options.timeoutMs} ms` : result.stderr.toString();
+      const stderr = result.exitedDueToTimeout ? timedOutAfter(options.timeoutMs) : result.stderr.toString();
       return { code: result.exitCode ?? 1, stdout: result.stdout.toString(), stderr };
     } catch (cause) {
       return failedToRun(cause);
@@ -55,7 +65,7 @@ export const systemAsyncRunner: AsyncRunner = {
         timeout: options.timeoutMs,
       });
       const [stdout, stderr, code] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited]);
-      return { code, stdout, stderr: child.killed && options.timeoutMs ? `timed out after ${options.timeoutMs} ms` : stderr };
+      return { code, stdout, stderr: child.killed && options.timeoutMs ? timedOutAfter(options.timeoutMs) : stderr };
     } catch (cause) {
       return failedToRun(cause);
     }

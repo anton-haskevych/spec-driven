@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { chmodSync, existsSync } from "node:fs";
+import { join } from "node:path";
 import { gitAt } from "../core/git";
-import { pathsOutsideSpecDocs, pushBranch } from "../publish/push";
+import { pathsOutsideSpecDocs, pushBranch, pushResult, SAVE } from "../publish/push";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 
 describe("pathsOutsideSpecDocs", () => {
@@ -18,7 +20,7 @@ describe("pushBranch (real git)", () => {
 
   afterEach(() => repo.cleanup());
 
-  const push = () => pushBranch(gitAt(repo.dir, isolatedRunner), "main");
+  const push = () => pushResult(pushBranch(gitAt(repo.dir, isolatedRunner), "main"));
   const onOrigin = (ref: string) => repo.git("--git-dir", repo.origin, "rev-parse", "--verify", "-q", ref);
 
   test("pushes a new branch to its own name, sets the upstream and counts the commits", () => {
@@ -92,5 +94,36 @@ describe("pushBranch (real git)", () => {
       reason: "main has unpushed changes outside docs/specs (src/app.ts) — not pushing code to main; ask the user",
     });
     expect(onOrigin("refs/heads/main")).toBe(before);
+  });
+
+  test("tells an unreachable origin from a push origin rejected, and names the branch", () => {
+    repo.git("checkout", "-q", "-b", "feat");
+    repo.write("src/a.ts", "a\n");
+    repo.commitAll("mine");
+    const other = repo.clone("other");
+    other.git("checkout", "-q", "-b", "feat");
+    other.write("src/b.ts", "b\n");
+    other.commitAll("theirs");
+    other.git("push", "-q", "origin", "feat");
+    const git = gitAt(repo.dir, isolatedRunner);
+
+    expect(pushBranch(git, "main", SAVE)).toMatchObject({ kind: "rejected", branch: "feat" });
+    repo.git("remote", "set-url", "origin", join(repo.root, "nowhere.git"));
+    expect(pushBranch(git, "main", SAVE)).toMatchObject({ kind: "offline", branch: "feat" });
+  });
+
+  test("a save skips pre-push hooks; a plain push still runs them", () => {
+    repo.git("checkout", "-q", "-b", "feat");
+    repo.write(".git/hooks/pre-push", "#!/bin/sh\ntouch \"$GIT_DIR/../hook-ran\"\nexit 1\n");
+    chmodSync(join(repo.dir, ".git/hooks/pre-push"), 0o755);
+    repo.write("src/a.ts", "a\n");
+    repo.commitAll("mine");
+    const git = gitAt(repo.dir, isolatedRunner);
+
+    expect(pushBranch(git, "main", SAVE)).toEqual({ kind: "pushed", branch: "feat", commits: 1, behind: 0 });
+    expect(existsSync(join(repo.dir, "hook-ran"))).toBe(false);
+    repo.write("src/b.ts", "b\n");
+    repo.commitAll("two");
+    expect(pushBranch(git, "main")).toMatchObject({ kind: "rejected", branch: "feat" });
   });
 });

@@ -53,14 +53,14 @@ joined spec they refuse (`ledger/decision-codex-reads-the-board-refuses-writes.m
 
 ## Deliverables
 
-- [ ] `commands/phase.ts` is a dispatcher over `commands/phase/<action>.ts`; `PhaseWriter` port with `fileWriter` and `recordWriter`, chosen once; one outcome renderer
-- [ ] `pushBranch` takes network options and returns `pushed | offline | rejected | refused`; `spec.ts push` unchanged
-- [ ] `phase tick <spec> <phase> <task-id>` on a joined spec: pushes with a timeout, no prompt and no pre-push hooks, then marks the task done with the pushed commit; a rejected push refuses; a repeat says `already done`; task phases and `Gate:` tasks keep the evidence rule; uncommitted code edits are named in the line
-- [ ] Two clones (real git): tree A ticks 2.3 and tree B ticks 2.4 of the same phase, then A ticks 2.5 and B ticks 3.1; all four land and each sees the other's on its next command
-- [ ] Offline: ticks 2.3 then 2.4 are both `kept on this machine`, the pack shows both done and the pending count, and one `record sync` lands both and pushes their commits; a queued tick whose commit left the branch is refused and stays
-- [ ] `join <spec> --from-tree` adds this tree's earlier ticks, matched by text
-- [ ] Taking a claim pushes the branch so it exists on the remote
-- [ ] Codex local-pilot: `phase tick | park | unpark` refuse on a joined spec with the line in `technical.md`; tested beside the existing pilot tests
+- [x] `commands/phase.ts` is a dispatcher over `commands/phase/<action>.ts`; `PhaseWriter` port with `fileWriter` and `recordWriter`, chosen once; one outcome renderer
+- [x] `pushBranch` takes network options and returns `pushed | offline | rejected | refused`; `spec.ts push` unchanged
+- [x] `phase tick <spec> <phase> <task-id>` on a joined spec: pushes with a timeout, no prompt and no pre-push hooks, then marks the task done with the pushed commit; a rejected push refuses; a repeat says `already done`; task phases and `Gate:` tasks keep the evidence rule; uncommitted code edits are named in the line
+- [x] Two clones (real git): tree A ticks 2.3 and tree B ticks 2.4 of the same phase, then A ticks 2.5 and B ticks 3.1; all four land and each sees the other's on its next command
+- [x] Offline: ticks 2.3 then 2.4 are both `kept on this machine`, the pack shows both done and the pending count, and one `record sync` lands both and pushes their commits; a queued tick whose commit left the branch is refused and stays
+- [x] `join <spec> --from-tree` adds this tree's earlier ticks, matched by text
+- [x] Taking a claim pushes the branch so it exists on the remote
+- [x] Codex local-pilot: `phase tick | park | unpark` refuse on a joined spec with the line in `technical.md`; tested beside the existing pilot tests
 
 ## Phase-local notes
 

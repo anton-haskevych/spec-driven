@@ -3,7 +3,7 @@ import type { EditPlan } from "../core/apply-edits";
 import { deployedMarker, PHASE_POINTER } from "../core/progress";
 import { isCalendarDay } from "../core/schedule";
 import type { SpecFolder } from "../core/spec-folders";
-import { diskReader, loadSpecState } from "../core/spec-state";
+import { diskReader, loadSpecStateFromFiles } from "../core/spec-state";
 import { findPhase } from "./find-phase";
 import { locatePhaseLine } from "./locate";
 import { issuesIntroducedBy } from "./validate";
@@ -22,7 +22,7 @@ const CODE_SPAN_CLOSE = "`";
 
 export function planDeployed(spec: SpecFolder, request: DeployedRequest): Deployed {
   if (!isCalendarDay(request.day)) return invalid(`--date "${request.day}" is not a date; use YYYY-MM-DD`);
-  const phase = findPhase(loadSpecState(spec), request.phase);
+  const phase = findPhase(loadSpecStateFromFiles(spec), request.phase);
   if (typeof phase === "string") return invalid(phase);
   if (!phase.done) return invalid(`Phase ${phase.id} is not ticked; only a finished phase can be deployed`);
   if (phase.deployed) return { plan: { kind: "unchanged", reason: `Phase ${phase.id} is already marked deployed` }, phaseId: phase.id };

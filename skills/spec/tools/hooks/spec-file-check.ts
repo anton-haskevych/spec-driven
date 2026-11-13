@@ -4,14 +4,16 @@ import { readTextIfExists } from "../core/files";
 import { isRecord } from "../core/frontmatter";
 import { findProjectDir, locateSpecFile, type SpecFileLocation } from "../core/spec-folders";
 import { allowedStatuses } from "../core/taxonomy";
-import { formatIssues, type Issue } from "../doctor/issue";
+import { error, formatIssues, type Issue } from "../doctor/issue";
 import { checkBacklogItem } from "../doctor/backlog-item";
 import { checkLedgerEntry } from "../doctor/ledger";
 import { checkProjectLesson } from "../doctor/project-lesson";
 import { checkSpecMeta } from "../doctor/spec-meta";
 import { linkIssues } from "../graph/checks";
 import { loadNodes } from "../graph/nodes";
-import { loadSpecState } from "../core/spec-state";
+import { systemRunner, type Runner } from "../core/run";
+import { readLocalPlans, type PlanSource } from "../plan/read-plans";
+import { changedPlanParts, joinedEditProblem } from "./frozen-plan-edits";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
 import { phaseGateIssues } from "../doctor/phase-gates";
 import { phaseScheduleIssues } from "../doctor/schedule";
@@ -31,13 +33,13 @@ const SETTINGS = /\/docs\/specs\/_playbook\/settings\.md$/;
 const PLAYBOOK = /\/docs\/specs\/_playbook\/[^/]+\.md$/;
 const PROJECT_FILES = [PROJECT_LESSON, BACKLOG_ITEM, PLAYBOOK];
 
-export function issuesForWrittenFile(filePath: string, projectDir: string): Issue[] {
+export function issuesForWrittenFile(filePath: string, projectDir: string, runner: Runner = systemRunner): Issue[] {
   const location = locateSpecFile(filePath);
   const projectFile = PROJECT_FILES.some((pattern) => pattern.test(filePath));
   const text = location || projectFile ? readTextIfExists(filePath) : undefined;
   if (text === undefined) return [];
   if (projectFile) return projectFileIssues(filePath, text, projectDir);
-  return location ? specFileIssues(location, filePath, text, projectDir) : [];
+  return location ? specFileIssues(location, filePath, text, projectDir, runner) : [];
 }
 
 function projectFileIssues(filePath: string, text: string, projectDir: string): Issue[] {
@@ -48,12 +50,16 @@ function projectFileIssues(filePath: string, text: string, projectDir: string): 
   return backlog ? checkBacklogItem(filePath, text, backlog[1] !== undefined) : [];
 }
 
-function specFileIssues(location: SpecFileLocation, filePath: string, text: string, projectDir: string): Issue[] {
+function specFileIssues(location: SpecFileLocation, filePath: string, text: string, projectDir: string, runner: Runner): Issue[] {
   if (location.pathInSpec === "CLAUDE.md") {
     const links = linkIssues(loadNodes(projectDir), location.spec.name, filePath);
     return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links];
   }
-  if (location.pathInSpec.startsWith("phases/")) return phaseFileIssues(location, projectDir);
+  if (location.pathInSpec.startsWith("phases/") || location.pathInSpec === "progress.md") {
+    const plans = readLocalPlans(projectDir, runner, new Date());
+    const frozen = plans.isJoined(location.spec.name) ? frozenPlanIssues(location, filePath, text, runner) : [];
+    return location.pathInSpec === "progress.md" ? frozen : [...frozen, ...phaseFileIssues(location, projectDir, plans)];
+  }
   if (isLedgerEntry(location.pathInSpec)) {
     const ledgerDir = dirname(filePath);
     return checkLedgerEntry(filePath, text, (name) => existsSync(join(ledgerDir, name)));
@@ -61,12 +67,21 @@ function specFileIssues(location: SpecFileLocation, filePath: string, text: stri
   return [];
 }
 
-function phaseFileIssues(location: SpecFileLocation, projectDir: string): Issue[] {
-  const state = loadSpecState(location.spec);
+// A PostHook can't stop the edit; blocking feedback makes Claude undo it. Compared with the committed copy,
+// so the frozen file drifting behind the record is never flagged, only this edit.
+function frozenPlanIssues(location: SpecFileLocation, filePath: string, text: string, runner: Runner): Issue[] {
+  const committed = runner.run(["git", "show", `HEAD:./${basename(filePath)}`], { cwd: dirname(filePath) });
+  if (committed.code !== 0) return [];
+  const parts = changedPlanParts(location.pathInSpec, committed.stdout, text);
+  return parts.length === 0 ? [] : [error(filePath, joinedEditProblem(location.spec.name, parts))];
+}
+
+function phaseFileIssues(location: SpecFileLocation, projectDir: string, plans: PlanSource): Issue[] {
+  const state = plans.state(location.spec);
   const pointer = location.pathInSpec;
   const playbooks = new Set(loadPlaybooks(projectDir).map((playbook) => playbook.name));
   return [
-    ...phaseEdgeIssues(state, loadNodes(projectDir), pointer),
+    ...phaseEdgeIssues(state, loadNodes(projectDir, plans.marks), pointer),
     ...phaseScheduleIssues(state, isoDay(new Date()), pointer),
     ...taskPhaseIssues(state, pointer),
     ...phaseGateIssues(state, pointer),

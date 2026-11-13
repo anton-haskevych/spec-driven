@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { locateOpenItem, locatePhaseLine } from "../phases/locate";
+import { locateOpenItem, locatePhaseLine, openItemNumber } from "../phases/locate";
 
 const entry = [
   "---",
@@ -79,5 +79,14 @@ describe("locatePhaseLine", () => {
 
   test("returns undefined when no line holds the pointer", () => {
     expect(locatePhaseLine(progress, "phases/phase-2-x.md")).toBeUndefined();
+  });
+});
+
+describe("openItemNumber", () => {
+  test("gives a prefix match its #N among the open items", () => {
+    const text = "- [x] done\n- [ ] first\n- [ ] second\n";
+    expect(openItemNumber(text, "sec")).toEqual({ kind: "found", number: 2 });
+    expect(openItemNumber(text, "#1")).toEqual({ kind: "found", number: 1 });
+    expect(openItemNumber(text, "zzz").kind).toBe("invalid");
   });
 });

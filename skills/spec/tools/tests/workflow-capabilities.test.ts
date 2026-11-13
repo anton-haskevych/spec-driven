@@ -2,6 +2,9 @@ import { expect, test } from "bun:test";
 import { pilotCommandRefusal, pilotModeRefusal, type LocalPilot } from "../runtime/workflow-capabilities";
 import { run } from "../spec";
 import { createContextFixture } from "./context-fixture";
+import { phaseCommand } from "../commands/phase";
+import { isolatedRunner } from "./git-repo";
+import { joinedRepo } from "./joined-repo";
 
 const pilot: LocalPilot = { kind: "local-pilot", spec: "checkout", phase: "2" };
 
@@ -63,4 +66,19 @@ test("park advice follows declared workflow while Claude keeps its push instruct
     expect(result).toContain("Commit the note locally, then hand off.");
     expect(result).not.toContain("push the note");
   } finally { fixture.cleanup(); }
+});
+
+test("pilot: tick, park and unpark refuse on a joined spec and write nothing", async () => {
+  const repo = joinedRepo("spec-pilot-joined-");
+  try {
+    const alpha: LocalPilot = { kind: "local-pilot", spec: "alpha", phase: "2" };
+    const deps = { runner: isolatedRunner, env: {}, now: () => new Date("2026-11-12T10:00:00Z") };
+    for (const argv of [["tick", "alpha", "2", "2.3"], ["park", "alpha", "2", "question"], ["unpark", "alpha", "2", "answer"]]) {
+      expect(pilotCommandRefusal(["phase", ...argv], alpha)).toBeUndefined();
+      expect(await phaseCommand(repo.dir, argv, alpha, deps)).toBe(`phase ${argv[0]}: alpha is on the board; a Codex pilot can't write it yet`);
+    }
+    expect(repo.git("status", "--porcelain")).toBe("");
+  } finally {
+    repo.cleanup();
+  }
 });

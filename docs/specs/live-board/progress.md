@@ -18,12 +18,12 @@
 ## Phases
 
 - [x] Phase 1 — The shared record → `phases/phase-1-shared-record.md`
-- [ ] Phase 2 — A spec joins the board → `phases/phase-2-join.md`
-- [ ] Phase 2a — A joined spec is read from the record → `phases/phase-2a-read-from-the-record.md`
-- [ ] Phase 3 — A finished task is saved and recorded at once → `phases/phase-3-tick-saves-and-records.md`
-- [ ] Phase 3a — Plan changes are written at once → `phases/phase-3a-plan-changes.md`
-- [ ] Phase 3b — A session hears that the plan changed → `phases/phase-3b-plan-changed-notice.md`
-- [ ] Phase 4 — The modes use the commands → `phases/phase-4-modes-use-commands.md`
+- [x] Phase 2 — A spec joins the board → `phases/phase-2-join.md`
+- [x] Phase 2a — A joined spec is read from the record → `phases/phase-2a-read-from-the-record.md`
+- [x] Phase 3 — A finished task is saved and recorded at once → `phases/phase-3-tick-saves-and-records.md`
+- [x] Phase 3a — Plan changes are written at once → `phases/phase-3a-plan-changes.md`
+- [x] Phase 3b — A session hears that the plan changed → `phases/phase-3b-plan-changed-notice.md`
+- [x] Phase 4 — The modes use the commands → `phases/phase-4-modes-use-commands.md`
 - [ ] Phase 5 — CRM turns the board on → `phases/phase-5-crm-turns-it-on.md`
 - [ ] Phase 6 — PRs and spec fields on the record → `phases/phase-6-prs-and-spec-fields.md`
 - [ ] Phase 7 — Questions and hand-off notes → `phases/phase-7-questions-and-handoff.md`

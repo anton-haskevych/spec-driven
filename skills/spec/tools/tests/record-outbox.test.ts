@@ -34,6 +34,13 @@ describe("the outbox of intents", () => {
     expect(listOutbox(dir)).toEqual([{ n: 1, session: "s1", command: "add", args: "a", queuedAt: NOW.toISOString() }]);
   });
 
+  test("a runner that can't reach origin before it plans leaves its entry queued, unmarked", async () => {
+    queueIntent(dir, { session: "s1", command: "push-first", args: "a" }, NOW);
+    const offlineFirst: IntentRunners = { ...runners, "push-first": () => ({ offline: "origin unreachable" }) };
+    expect(await flushOutbox(record, dir, offlineFirst, options)).toEqual({ kind: "offline", pending: 1 });
+    expect(listOutbox(dir)[0]?.refused).toBeUndefined();
+  });
+
   test("entries take the next free number, never another's", () => {
     expect(queueIntent(dir, { session: "s1", command: "add", args: "a" }, NOW)).toBe(1);
     expect(queueIntent(dir, { session: "s2", command: "add", args: "b" }, NOW)).toBe(2);

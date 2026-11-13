@@ -102,7 +102,7 @@ Draft the implementation phases, **then stop and agree on them with the user bef
 
 For each planned phase, prepare:
 - **Phase goal** — what ships at the end of this phase
-- **Edges** — `needs`, `needs-deployed`, `same-files-as`, and a `pr` group, in the phase file's frontmatter (SKILL.md → *Phase edges*). Parallelism is computed from these; don't list it by hand.
+- **Edges** — `needs`, `needs-deployed`, `same-files-as`, and a `pr` group, in the phase file's frontmatter (SKILL.md → *Phase edges*), or in the draft when the board is on (§6 → *With the board on*). Parallelism is computed from these; don't list it by hand.
 - **Gate** — `gate: design` when the user must agree a design before it's built, `gate: outward` when the phase publishes, sends or deploys on their word (SKILL.md → *Phase edges*). Add a `- [ ] Gate: <what is approved, by whom>` deliverable at the point the approval is needed. Most phases have no gate.
 - **Shape** — read [archetypes.md](archetypes.md), plus `docs/specs/_playbook/archetypes.md` if the project has one. When a phase follows a known shape (harness-first, guardrail-alone, expand-bake-contract, …), set `shape: <name>` in its frontmatter and apply that shape's edges and traps.
 - **Files to touch** — paths that will be edited or created
@@ -127,7 +127,7 @@ No "Phase 1: TBD" — every phase describes a specific deliverable before you wr
 
 ### 6. Write
 
-Create the spec folder with the full file set below. Use the taxonomy values from `SKILL.md` — ask the user when you're unsure between two valid values.
+Create the spec folder with the full file set below. First run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts settings`: when it says `board record on`, the plan goes on the board's record, not into files; follow *With the board on* below for `progress.md`, the phase files' frontmatter edges and their Deliverables. Every other file is written as below. Use the taxonomy values from `SKILL.md` — ask the user when you're unsure between two valid values.
 
 **If the folder already exists from prep** (`status: prep` stub + `product-brief.md` + `research/`): do not refuse and do not discard prep's work. Keep `product-brief.md` and `research/` untouched, overwrite the stub `CLAUDE.md` with the full version below (this moves the stage from prep to draft; the `status:` value follows SKILL.md → *Stage vs. status*), and scaffold the remaining files. `design.md`'s problem statement should build on `product-brief.md`; `technical.md` and the phase plans should cite the `research/` snapshots as their ground truth.
 
@@ -323,6 +323,23 @@ will move to the ledger during execution>
 #### `docs/specs/$ARGUMENTS/phases/phase-<N>-<slug>/plan.md` (folder shape)
 
 For phases that chose folder shape in *Plan — the phasing gate*, create the folder and put the equivalent content in `plan.md`. Supplementary files (tier breakdowns, wireframes, fixture notes) can be scaffolded alongside `plan.md` if you already know at planning time what they'll contain — otherwise leave the folder with only `plan.md` and add supplementary files during execution.
+
+#### With the board on
+
+When `spec.ts settings` says `board record on`, the plan is written in one batch with `plan apply` (SKILL.md → *Plan changes*):
+
+1. **Phase files hold the prose.** Write each from the template above, but leave `needs`, `needs-deployed`, `same-files-as` and `pr` out of the frontmatter (`gate`, `code`, `due`, `shape` and `playbook` stay), and put this sentence where the Deliverables list was: ``The tasks are on the board: `phase tick <spec> <phase> <task-id>` closes one, `phase task`, `phase add --task` and `phase move` change them.``
+2. **Don't write `progress.md`.** `plan apply` writes its stub.
+3. **Write the draft** to your scratchpad as JSON, one entry per phase, in order:
+   ```json
+   { "phases": [
+     { "id": "1", "title": "<Name>", "outcome": "<the Outcome line>", "file": "phases/phase-1-<slug>.md",
+       "needs": [], "needsDeployed": ["<id>"], "sameFilesAs": ["<id>"], "pr": "A", "code": true, "gate": "design",
+       "tasks": ["<deliverable 1>", "Gate: design agreed with <who>"] }
+   ] }
+   ```
+   `needs` on every phase (`[]` when none: nothing is implied on the record); leave out the other edges, `pr` and `gate` when they don't apply, and `code` for a code phase. Tasks are plain texts; the tool gives them ids `<phase>.<n>`.
+4. **Run** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts plan apply <name> --file <draft.json>`. It checks the draft as the doctor checks a plan (edges that resolve, no `needs` cycle, each phase file present), writes it to the record and writes the stub `progress.md`. Pass its line on. A refusal writes nothing: fix the draft or the missing file and run it again. When it refuses because the board is off or origin is unreachable, write the plan into files as above instead and say so in one line.
 
 #### `docs/specs/$ARGUMENTS/ledger/INDEX.md`
 

@@ -27,23 +27,22 @@ export interface SpecNode {
 const CODE_MAP_PATH = /^\s*\|\s*`([^`]+)`/;
 const H1 = /^#[ \t]+(.+?)\s*$/m;
 
-export function loadNodes(projectDir: string): Map<string, SpecNode> {
+// A joined spec's done and deployed marks come from the record; its progress.md is frozen.
+export type MarksSource = (spec: string) => PhaseMark[] | undefined;
+
+export function loadNodes(projectDir: string, marks: MarksSource = () => undefined): Map<string, SpecNode> {
   const nodes = new Map<string, SpecNode>();
   for (const spec of listSpecs(projectDir)) {
-    if (!nodes.has(spec.name)) nodes.set(spec.name, loadNode(spec));
+    if (!nodes.has(spec.name)) nodes.set(spec.name, loadNode(spec, marks));
   }
   return nodes;
 }
 
-function loadNode(spec: SpecFolder): SpecNode {
+function loadNode(spec: SpecFolder, marks: MarksSource): SpecNode {
   const meta = parseFrontmatter(readTextIfExists(join(spec.dir, "CLAUDE.md")) ?? "");
   const data = meta.kind === "ok" ? meta.data : {};
   const title = meta.kind === "ok" ? H1.exec(meta.body)?.[1] : undefined;
-  const phases = parsePhaseLines(readTextIfExists(join(spec.dir, "progress.md")) ?? "").map((line, index) => ({
-    id: parsePhaseTitle(line.title, String(index + 1)).id,
-    done: line.done,
-    deployed: line.deployed,
-  }));
+  const phases = marks(spec.name) ?? progressMarks(spec);
   return {
     spec,
     status: stringField(data, "status"),
@@ -53,6 +52,14 @@ function loadNode(spec: SpecFolder): SpecNode {
     meta: readSpecMeta(data),
     ...(title ? { title } : {}),
   };
+}
+
+function progressMarks(spec: SpecFolder): PhaseMark[] {
+  return parsePhaseLines(readTextIfExists(join(spec.dir, "progress.md")) ?? "").map((line, index) => ({
+    id: parsePhaseTitle(line.title, String(index + 1)).id,
+    done: line.done,
+    deployed: line.deployed,
+  }));
 }
 
 function codeMapPaths(codeMap: string): string[] {

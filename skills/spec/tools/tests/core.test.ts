@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { parseFrontmatter, stringList } from "../core/frontmatter";
-import { countCheckboxes, parsePhaseLines } from "../core/progress";
+import { parsePhaseLines } from "../core/progress";
+import { entryTaskCount } from "../core/phase-entry";
 import { locateSpecFile } from "../core/spec-folders";
 import { fieldValues, statusValues } from "../core/taxonomy";
 import { phaseLine } from "./factories";
@@ -46,10 +47,10 @@ describe("parsePhaseLines", () => {
   });
 });
 
-describe("countCheckboxes", () => {
+describe("entryTaskCount", () => {
   test("counts nested and upper-case ticks, but not boxes inside code fences", () => {
     const entry = "- [x] a\n  - [X] b\n- [ ] c\n```\n- [ ] fenced\n```";
-    expect(countCheckboxes(entry)).toEqual({ checked: 2, unchecked: 1 });
+    expect(entryTaskCount(entry)).toEqual({ checked: 2, unchecked: 1 });
   });
 });
 
