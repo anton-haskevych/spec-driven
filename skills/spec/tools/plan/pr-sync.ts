@@ -7,11 +7,14 @@ import { readPrDoc, type PrDoc, type PrState } from "./docs/pr-doc";
 import { readSpecDoc } from "./docs/spec-doc";
 import { prDocPath, prDocsFolder, specDocPath } from "./kinds";
 
+// `ready`: open, with CI not read; a green document stays green while its PR and head are the same.
+export type PrSeenState = Exclude<PrState, "not-opened"> | "ready";
+
 // `branch` and `headRefOid` find the PR group; the rest is copied onto its document.
 export interface PrObserved {
   number: number;
   branch: string;
-  state: Exclude<PrState, "not-opened">;
+  state: PrSeenState;
   headRefOid?: string;
   mergedAt?: string;
   mergedSha?: string;
@@ -25,19 +28,27 @@ export interface PrSighting {
 
 const SYNCED = ["number", "state", "headRefOid", "mergedAt", "mergedSha", "method"] as const;
 
-export function githubPrState(state: string, isDraft: boolean, green: boolean): PrObserved["state"] {
+export function githubPrState(state: string, isDraft: boolean, green?: boolean): PrSeenState {
   if (state === "MERGED") return "merged";
   if (state === "CLOSED") return "closed";
   if (isDraft) return "draft";
+  if (green === undefined) return "ready";
   return green ? "green" : "open";
 }
 
 // A merged PR comes from its own state and head, never from ancestry: a squash merge isn't an ancestor.
 export function prDocAfter(doc: PrDoc, seen: PrObserved): PrDoc | undefined {
   const base: PrDoc = seen.number === doc.number ? doc : { group: doc.group, branch: doc.branch, state: doc.state };
-  const after: PrDoc = withoutUndefined({ ...base, ...Object.fromEntries(SYNCED.map((key) => [key, seen[key] ?? base[key]])) });
+  const synced = { ...seen, state: stateAfter(doc, seen) };
+  const after: PrDoc = withoutUndefined({ ...base, ...Object.fromEntries(SYNCED.map((key) => [key, synced[key] ?? base[key]])) });
   const same = Object.keys(after).length === Object.keys(doc).length && SYNCED.every((key) => after[key] === doc[key]);
   return same ? undefined : after;
+}
+
+function stateAfter(doc: PrDoc, seen: PrObserved): PrState {
+  if (seen.state !== "ready") return seen.state;
+  const sameHead = doc.number === seen.number && doc.headRefOid !== undefined && doc.headRefOid === seen.headRefOid;
+  return doc.state === "green" && sameHead ? "green" : "open";
 }
 
 export function matchPrDoc(docs: readonly PrDoc[], seen: Pick<PrObserved, "branch" | "headRefOid">): PrDoc | undefined {

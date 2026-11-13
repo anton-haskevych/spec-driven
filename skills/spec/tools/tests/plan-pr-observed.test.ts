@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { prObservedOf, prObservedOfRow, prSeenOf } from "../plan/pr-observed";
 import type { PrRow } from "../pr/checks/rollup";
 import { prView } from "./pr-factories";
-import { prDoc } from "./record-factories";
 
 const row = (overrides: Partial<PrRow> = {}): PrRow => ({ number: 7, branch: "feat/checkout-pr-a", state: "OPEN", draft: false, url: "", headRefOid: "aaa111", ...overrides });
 
@@ -11,6 +10,7 @@ describe("prObservedOf", () => {
     const view = prView({ number: 7, state: "OPEN", isDraft: false, headRefName: "feat/checkout-pr-a", headRefOid: "aaa111" });
     expect(prObservedOf(view, true)).toEqual({ number: 7, branch: "feat/checkout-pr-a", state: "green", headRefOid: "aaa111" });
     expect(prObservedOf(view, false).state).toBe("open");
+    expect(prObservedOf(view).state).toBe("ready");
   });
 
   test("a merged PR carries its merge commit; prSeenOf never says green", () => {
@@ -21,16 +21,12 @@ describe("prObservedOf", () => {
 });
 
 describe("prObservedOfRow", () => {
-  test("an open row keeps the document's green while the head is the same", () => {
-    expect(prObservedOfRow(row(), prDoc({ number: 7, state: "green", headRefOid: "aaa111" })).state).toBe("green");
-  });
-
-  test("a moved head drops green to open", () => {
-    expect(prObservedOfRow(row({ headRefOid: "bbb222" }), prDoc({ number: 7, state: "green", headRefOid: "aaa111" })).state).toBe("open");
+  test("an open row is ready: its CI wasn't read", () => {
+    expect(prObservedOfRow(row()).state).toBe("ready");
   });
 
   test("a merged row brings its merge commit and the day it merged", () => {
-    expect(prObservedOfRow(row({ state: "MERGED", mergeCommit: "fff999", mergedAt: "2026-11-12T08:00:00Z" }), prDoc())).toEqual({
+    expect(prObservedOfRow(row({ state: "MERGED", mergeCommit: "fff999", mergedAt: "2026-11-12T08:00:00Z" }))).toEqual({
       number: 7,
       branch: "feat/checkout-pr-a",
       state: "merged",
@@ -41,6 +37,6 @@ describe("prObservedOfRow", () => {
   });
 
   test("a draft row is draft", () => {
-    expect(prObservedOfRow(row({ draft: true }), prDoc()).state).toBe("draft");
+    expect(prObservedOfRow(row({ draft: true })).state).toBe("draft");
   });
 });

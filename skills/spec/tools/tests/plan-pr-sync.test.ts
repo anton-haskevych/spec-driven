@@ -13,6 +13,7 @@ describe("githubPrState", () => {
     ["OPEN", true, true, "draft"],
     ["OPEN", false, false, "open"],
     ["OPEN", false, true, "green"],
+    ["OPEN", false, undefined, "ready"],
   ] as const)("%s draft=%s green=%s → %s", (state, isDraft, green, expected) => {
     expect(githubPrState(state, isDraft, green)).toBe(expected);
   });
@@ -35,6 +36,22 @@ describe("prDocAfter", () => {
   test("a new PR number on the group starts the document over, keeping group and branch", () => {
     const closed = prDoc({ number: 7, state: "merged", headRefOid: "aaa111", mergedAt: "2026-11-01", mergedSha: "fff999", method: "squash" });
     expect(prDocAfter(closed, seen({ number: 9, headRefOid: "bbb222", branch: "renamed" }))).toEqual(prDoc({ number: 9, state: "open", headRefOid: "bbb222" }));
+  });
+});
+
+describe("a ready sighting (CI not read)", () => {
+  const green = prDoc({ number: 7, state: "green", headRefOid: "aaa111" });
+
+  test("keeps a green document green while PR and head are the same", () => {
+    expect(prDocAfter(green, seen({ state: "ready" }))).toBeUndefined();
+  });
+
+  test("a moved head drops it to open", () => {
+    expect(prDocAfter(green, seen({ state: "ready", headRefOid: "bbb222" }))).toEqual(prDoc({ number: 7, state: "open", headRefOid: "bbb222" }));
+  });
+
+  test("a draft document becomes open", () => {
+    expect(prDocAfter(prDoc({ number: 7, state: "draft", headRefOid: "aaa111" }), seen({ state: "ready" }))?.state).toBe("open");
   });
 });
 
