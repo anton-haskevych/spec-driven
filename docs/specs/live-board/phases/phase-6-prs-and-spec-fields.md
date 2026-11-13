@@ -61,7 +61,7 @@ phase 1's move, or `publish/publish.ts`.
 ## Deliverables
 
 - [x] `pr-doc` reader; PR documents created `not-opened` for each group at join, at upgrade and when a group first appears
-- [ ] `pr open` and `pr merge` write the PR document for a joined spec; `specPrNumbers` reads the record; a PR merged on github.com moves its document at the next `pr status` or board load
+- [x] `pr open` and `pr merge` write the PR document for a joined spec; `specPrNumbers` reads the record; a PR merged on github.com moves its document at the next `pr status` or board load
 - [ ] `phaseStage`: todo, doing, built, merged, deployed; the board's in-flight and ready lanes use it; `built` with no PR is a *Needs you* row
 - [x] Spec fields on `SpecDoc`; `loadNodes` serves joined specs from the record; the two direct frontmatter reads share one reader
 - [x] `owner`, `focus`, `ship` and `phase deployed` write the record for a joined spec; new `spec.ts spec-status <spec> <value>` for both homes
