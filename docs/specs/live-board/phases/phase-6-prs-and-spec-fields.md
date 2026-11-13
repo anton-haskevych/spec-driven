@@ -62,7 +62,7 @@ phase 1's move, or `publish/publish.ts`.
 
 - [x] `pr-doc` reader; PR documents created `not-opened` for each group at join, at upgrade and when a group first appears
 - [x] `pr open` and `pr merge` write the PR document for a joined spec; `specPrNumbers` reads the record; a PR merged on github.com moves its document at the next `pr status` or board load
-- [ ] `phaseStage`: todo, doing, built, merged, deployed; the board's in-flight and ready lanes use it; `built` with no PR is a *Needs you* row
+- [x] `phaseStage`: todo, doing, built, merged, deployed; the board's in-flight and ready lanes use it; `built` with no PR is a *Needs you* row
 - [x] Spec fields on `SpecDoc`; `loadNodes` serves joined specs from the record; the two direct frontmatter reads share one reader
 - [x] `owner`, `focus`, `ship` and `phase deployed` write the record for a joined spec; new `spec.ts spec-status <spec> <value>` for both homes
 - [x] Layout 2: a spec joined under PR B is upgraded on its next touch (fields and PR numbers copied in one batch); until then its readers use the files; a PR B plugin refuses to write (test with a layout-1 fixture)
