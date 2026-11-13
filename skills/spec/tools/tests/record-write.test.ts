@@ -33,6 +33,14 @@ describe("writeRecord", () => {
     expect(record.commits.get(record.tip ?? "")?.message).toBe("record: add a");
   });
 
+  test("maxOps lets one write carry more than the usual op limit", async () => {
+    const record = fakeRecord();
+    const many: RecordPlan = () => ({ ops: Array.from({ length: 60 }, (_, index) => ({ op: "create" as const, path: `t/${index}.json`, doc: {} })) });
+    expect((await writeRecord(record, many, options)).kind).toBe("invalid");
+    expect((await writeRecord(record, many, { ...options, maxOps: 60 })).kind).toBe("landed");
+    expect(record.filesAt(record.tip).size).toBe(61);
+  });
+
   test("the plan runs again on the tip another writer pushed in between", async () => {
     const record = fakeRecord();
     await writeRecord(record, addItem("a"), options);
