@@ -94,7 +94,7 @@ function blockedCells(board: Board): string[][] {
   return board.lanes.blocked.map((row) => [rowName(row), row.reasons.join("; ")]);
 }
 
-function attentionCells(row: AttentionRow, now: Date): string[] {
+export function attentionCells(row: AttentionRow, now: Date): string[] {
   switch (row.kind) {
     case "question":
       return [`${rowName(row)} asks: ${row.question}`, row.recommend ? `I'd say ${row.recommend}` : "answer it"];
