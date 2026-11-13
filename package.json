@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "bun test",
+    "test:fast": "bun skills/spec/tools/tests/real-git/fast-tier.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

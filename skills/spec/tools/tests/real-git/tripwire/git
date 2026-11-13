@@ -1,0 +1,6 @@
+#!/bin/sh
+# First on PATH while test:fast runs: any call means a fast test reached real git.
+call="git $* (in $PWD)"
+if [ -n "$SPEC_GIT_TRIPWIRE_LOG" ]; then printf '%s\n' "$call" >> "$SPEC_GIT_TRIPWIRE_LOG"; fi
+echo "real git in the fast tier: $call" >&2
+exit 97
