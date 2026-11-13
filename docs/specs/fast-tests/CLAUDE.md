@@ -1,6 +1,6 @@
 ---
 created: 2026-11-13T15:05:10-08:00
-updated: 2026-11-13T15:05:10-08:00
+updated: 2026-11-13T15:06:02-08:00
 status: prep
 area: [tools, tests]
 domain: [spec-workflow]
