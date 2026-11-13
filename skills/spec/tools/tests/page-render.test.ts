@@ -109,6 +109,25 @@ test("every style block is closed, so no rule hides inside a phone-only query", 
   expect({ depth, lowest }).toEqual({ depth: 0, lowest: 0 });
 });
 
+test("Now: the box lists the viewer's rows, so the shown rows and 'N more' add up to its count; others' rows fold apart", () => {
+  const model = pageModel();
+  const row = (title: string, owner?: string) => ({ kind: "overdue" as const, mark: "!" as const, title, detail: "", late: true, spec: "checkout", ...(owner ? { owner } : {}) });
+  const rows = [row("t1", "Taras"), row("a1"), row("a2", "Anton"), row("a3"), row("a4"), row("a5"), row("t2", "Taras")];
+  const html = renderApp({ ...model, needs: { rows, mine: 5, others: [{ person: "Taras", count: 2 }] } }).html;
+  const box = html.split(`<div class="needs">`)[1]?.split(`<div class="lane">`)[0] ?? "";
+  expect(box).toContain(`<b>5</b><span>need you</span>`);
+  expect(box.split(`data-id="needs-more"`)[0]?.match(/class="ny late"/g)).toHaveLength(3);
+  expect(box).toContain(`<summary class="fold">2 more<i class="chev"></i></summary>`);
+  expect(box).toContain(`<details class="folded others" data-id="needs-others"><summary class="fold">Waiting on others · 2<i class="chev"></i></summary>`);
+  expect(box.split(`data-id="needs-others"`)[0]).not.toContain("t1");
+});
+
+test("Now: a box with only other people's rows says nothing waits on you", () => {
+  const model = pageModel();
+  const html = renderApp({ ...model, needs: { rows: [{ kind: "overdue", mark: "!", title: "t1", detail: "", late: true, owner: "Taras" }], mine: 0, others: [{ person: "Taras", count: 1 }] } }).html;
+  expect(html).toContain(`<p class="empty">Nothing waits on you.</p>`);
+});
+
 test("only a question on the record gets answer buttons: a park in files has nothing to save to", () => {
   const model = pageModel();
   const park = { kind: "question" as const, mark: "Q" as const, title: "Ship it Friday?", detail: "checkout · phase 2", late: false, spec: "checkout" };

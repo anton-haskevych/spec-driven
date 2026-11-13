@@ -140,7 +140,8 @@ details.p0 .pn b { font-size: 21px; font-weight: 800; }
 .count { background: var(--you); color: var(--you-ink); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 4px; font-variant-numeric: tabular-nums; }
 .count b { font: 800 88px/0.82 var(--display); }
 .count span { font: 700 18px var(--display); }
-.count small { margin-top: auto; padding-top: 16px; display: flex; align-items: center; gap: 7px; font: 600 14px var(--sans); }
+.count small { margin-top: auto; padding-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font: 600 14px var(--sans); }
+.count small .oc { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .rows { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .ny { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: var(--surface); border-radius: 12px; padding: 12px 16px 12px 12px; min-width: 0; }
 .ny .k { flex: none; width: 40px; height: 40px; border-radius: 10px; background: var(--you); color: var(--you-ink); font: 700 16px/40px var(--sans); text-align: center; }

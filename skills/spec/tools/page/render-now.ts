@@ -1,6 +1,6 @@
-import { samePerson } from "../core/people";
 import { coverStrip, disc, due, esc, pri, sessionChip, since } from "./marks";
 import type { NeedRow, PageCard, PageModel, PageQuestion } from "./model";
+import { isMine } from "./needs";
 import { personOf } from "./people";
 
 const NEEDS_SHOWN = 3;
@@ -9,22 +9,29 @@ export function nowView(model: PageModel, now: Date): string {
   return [needsBlock(model, now), sessionsLane(model, now), movingLane(model, now), finishedToday(model, now)].join("");
 }
 
+// The count is the viewer's rows, so the box lists those (shown + "N more"); other people's rows fold apart.
 function needsBlock(model: PageModel, now: Date): string {
-  const rows = model.needs.rows.toSorted((a, b) => Number(isOthers(a, model)) - Number(isOthers(b, model)));
-  const shown = rows.slice(0, NEEDS_SHOWN).map((row) => needRow(model, row, now)).join("");
-  const rest = rows.slice(NEEDS_SHOWN);
-  const more = rest.length > 0 ? `<details class="folded" data-id="needs-more"><summary class="fold">${rest.length} more<i class="chev"></i></summary><div class="rows">${rest.map((row) => needRow(model, row, now)).join("")}</div></details>` : "";
-  const empty = rows.length === 0 ? `<p class="empty">Nothing waits on anyone.</p>` : "";
-  return `<div class="needs"><div class="count"><b>${model.needs.mine}</b><span>need you</span>${othersLine(model)}</div><div class="rows">${shown}${more}${empty}</div></div>`;
+  const mine = model.needs.rows.filter((row) => !isOthers(row, model));
+  const others = model.needs.rows.filter((row) => isOthers(row, model));
+  const shown = mine.slice(0, NEEDS_SHOWN).map((row) => needRow(model, row, now)).join("");
+  const more = fold("needs-more", `${mine.length - NEEDS_SHOWN} more`, mine.slice(NEEDS_SHOWN), model, now);
+  const theirs = fold("needs-others", `Waiting on others · ${others.length}`, others, model, now, " others");
+  const empty = mine.length > 0 ? "" : `<p class="empty">${others.length > 0 ? "Nothing waits on you." : "Nothing waits on anyone."}</p>`;
+  return `<div class="needs"><div class="count"><b>${model.needs.mine}</b><span>need you</span>${othersLine(model)}</div><div class="rows">${shown}${more}${empty}${theirs}</div></div>`;
+}
+
+function fold(id: string, label: string, rows: readonly NeedRow[], model: PageModel, now: Date, kind = ""): string {
+  if (rows.length === 0) return "";
+  return `<details class="folded${kind}" data-id="${id}"><summary class="fold">${esc(label)}<i class="chev"></i></summary><div class="rows">${rows.map((row) => needRow(model, row, now)).join("")}</div></details>`;
 }
 
 function isOthers(row: NeedRow, model: PageModel): boolean {
-  return row.owner !== undefined && model.me !== undefined && !samePerson(row.owner, model.me) && row.owner !== model.me;
+  return !isMine(row.owner, model.me);
 }
 
 function othersLine(model: PageModel): string {
-  const parts = model.needs.others.map(({ person, count }) => `${disc(model.people, { person, writing: false }, true)}${esc(personOf(model.people, person)?.name ?? person)} ${count}`);
-  return parts.length > 0 ? `<small>${parts.join(" ")}</small>` : "";
+  const parts = model.needs.others.map(({ person, count }) => `<span class="oc">${disc(model.people, { person, writing: false }, true)}${esc(personOf(model.people, person)?.name ?? person)} ${count}</span>`);
+  return parts.length > 0 ? `<small>${parts.join("")}</small>` : "";
 }
 
 export function needRow(model: PageModel, row: NeedRow, now: Date): string {

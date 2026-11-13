@@ -60,6 +60,12 @@ describe("the page model", () => {
     expect(model.needs.mine).toBe(model.needs.rows.length);
   });
 
+  test("one person spelled several ways is one count, matched as owners are", () => {
+    const close = (id: string, assignee: string) => cardDoc({ id, title: id, coveredBy: ["schedule-fixes#1"], assignee });
+    const docs = { ...pageDocs(), [cardDocPath("c95")]: close("c95", "Taras"), [cardDocPath("c96")]: close("c96", "Taras Korpach"), [cardDocPath("c97")]: close("c97", "taras") };
+    expect(pageModel(pageInputs(docs)).needs.others).toEqual([{ person: "Taras", count: 3 }]);
+  });
+
   test("sessions: writing now, and quiet with unpushed commits reads silent", () => {
     expect(model.sessions).toMatchObject([
       { person: "Anton", spec: "schedule-fixes", state: "writing" },
