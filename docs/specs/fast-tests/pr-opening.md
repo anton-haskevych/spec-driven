@@ -10,7 +10,7 @@ phase 3a. Baseline: 443 s full suite, 439 s of it in 74 real-git files (`researc
 
 Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft — never straight to `main`.
 
-- [ ] `bun test` passes and `bun run typecheck` is clean (phase 1 replaces this line with `gate: pre-pr` once `gates.md` exists)
+- [ ] gate: pre-pr
 - [ ] `bun run test:fast` runs no `*.git.test.ts`, its git tripwire stayed silent, and it passes
 - [ ] `real-git-allowlist.test.ts` green with `REAL_GIT_CAP` equal to the list length and empty repo-build and helper exception sets
 - [ ] Full-suite junit timing recorded here against the 443 s baseline (phase 9)
