@@ -42,7 +42,7 @@ describe("coveringCards", () => {
       "cards/0/c9.json": cardDoc({ id: "c9", priority: "p0", coveredBy: ["checkout#1-2"] }),
       "sources/c9/a.json": sourceDoc({ card: "c9", person: "Chasity" }),
       "cards/0/c10.json": cardDoc({ id: "c10", title: "Faster pay", coveredBy: ["checkout"] }),
-      "cards/0/c11.json": cardDoc({ id: "c11", status: "done", coveredBy: ["checkout"] }),
+      "cards/0/c11.json": cardDoc({ id: "c11", status: "done", closed: { at: "2026-11-13", by: "Anton", why: "shipped" }, coveredBy: ["checkout"] }),
       "cards/0/c12.json": cardDoc({ id: "c12", coveredBy: ["checkouts"] }),
     });
     const rows = coveringCards(view, "checkout");

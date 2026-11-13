@@ -65,7 +65,7 @@ describe("updateCardPlan", () => {
   test("the same values change nothing; a missing or closed card is refused", () => {
     expect(run((see) => updateCardPlan({ id: "c9", fields: { priority: "p2" } }, see), view)).toEqual({ result: { unchanged: true }, line: "card: c9 already has those values" });
     expect(run((see) => updateCardPlan({ id: "c8", fields: { priority: "p2" } }, see), view).result).toEqual({ refused: "no card c8 on the board" });
-    const closed = viewOf({ "cards/0/c9.json": cardDoc({ id: "c9", status: "done" }) });
+    const closed = viewOf({ "cards/0/c9.json": cardDoc({ id: "c9", status: "done", closed: { at: "2026-11-13", by: "Anton", why: "shipped" } }) });
     expect(run((see) => updateCardPlan({ id: "c9", fields: { title: "x" } }, see), closed).result).toEqual({ refused: "c9 is done; a closed card isn't edited" });
   });
 });

@@ -1,5 +1,6 @@
 import type { PhaseDeps } from "../plan/phase-writer";
 import { addCard } from "./card/add";
+import { endCard } from "./card/close";
 import { addSource, coverCard, updateCard } from "./card/edit";
 import { checkCards, listCards } from "./card/list";
 import { systemPhaseDeps } from "./phase/context";
@@ -11,6 +12,8 @@ export const CARD_USAGE = [
   'update <id> [--title "<text>"] [--commitment …] [--status open|doing] [--priority p0-p3|none] [--due YYYY-MM-DD|none] [--assignee <name>|none] [--note "<text>"|none] [--if-version <v>]',
   `source <id> ${QUOTE} [--role mention|evidence|origin]`,
   "cover <id> <spec | spec#phases>… [--remove <ref>]…",
+  'close <id> "<evidence: a merged commit, a data check, the assignee\'s word>"',
+  'drop <id> "<reason>"',
   "list [--all] [--tag <name>] [--json]",
   "check",
 ].join(" | ");
@@ -21,6 +24,8 @@ export function cardCommand(projectDir: string, args: readonly string[], deps: P
   if (action === "update") return updateCard(projectDir, rest, deps, CARD_USAGE);
   if (action === "source") return addSource(projectDir, rest, deps, CARD_USAGE);
   if (action === "cover") return coverCard(projectDir, rest, deps, CARD_USAGE);
+  if (action === "close") return endCard(projectDir, "done", rest, deps, CARD_USAGE);
+  if (action === "drop") return endCard(projectDir, "dropped", rest, deps, CARD_USAGE);
   if (action === "list") return listCards(projectDir, rest, deps, CARD_USAGE);
   if (action === "check" && rest.length === 0) return checkCards(projectDir, deps);
   return `usage: ${CARD_USAGE}`;

@@ -66,6 +66,14 @@ describe("card add, source, update, list and check (real git)", () => {
     expect(await card(a, "update", "c1", "--status", "done")).toStartWith('card update: refused, nothing written. --status (close and drop end a card) must be open or doing, not "done"');
     expect(await card(a, "check")).toBe("card check: clean");
   }, REAL_GIT_MS);
+
+  test("a card ends with why: closed with evidence or dropped with a reason, and leaves the open list", async () => {
+    expect(await card(a, "close", "c1", "merged #12; Chasity told on Nov 13")).toBe('card: c1 done — "merged #12; Chasity told on Nov 13"');
+    expect(await card(b, "drop", "c2", "same ask as c1")).toBe('card: c2 dropped — "same ask as c1"');
+    expect(await card(a, "close", "c2", "shipped")).toMatch(/^card close: refused, nothing written\. c2 was dropped .+: "same ask as c1"$/);
+    expect(await card(a, "close", "c3")).toStartWith("usage: card add");
+    expect((await card(a, "list")).split("\n").at(-1)).toBe("card: 1 open card");
+  }, REAL_GIT_MS);
 });
 
 describe("the card intent", () => {

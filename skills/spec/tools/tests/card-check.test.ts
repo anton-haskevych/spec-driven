@@ -57,7 +57,7 @@ describe("cover refs in the check", () => {
     const view = viewOf({
       "cards/0/c1.json": cardDoc({ id: "c1", coveredBy: ["checkout#2", "checkout#7"] }),
       "sources/c1/a.json": sourceDoc({ card: "c1" }),
-      "cards/0/c2.json": cardDoc({ id: "c2", status: "done", coveredBy: ["gone"] }),
+      "cards/0/c2.json": cardDoc({ id: "c2", status: "done", closed: { at: "2026-11-13", by: "Anton", why: "shipped" }, coveredBy: ["gone"] }),
       "sources/c2/a.json": sourceDoc({ card: "c2" }),
     });
     const specs = new Map([["checkout", { phases: [{ id: "1" }, { id: "2" }] }]]);

@@ -100,3 +100,13 @@ describe("validateRecordDoc", () => {
     expect(validateRecordDoc("tags/ballroom.json", tagDoc({ name: "Academy Ballroom" }))).toEqual(["tags/ballroom.json: name Academy Ballroom does not match the path"]);
   });
 });
+
+describe("a closed card", () => {
+  test("a done or dropped card says why; an open one has no closed", () => {
+    const closed = { at: "2026-11-13T10:00:00-08:00", by: "Anton", why: "merged #1215; Chasity told on Nov 13" };
+    expect(readCardDoc(cardDoc({ status: "done", closed })).problems).toEqual([]);
+    expect(readCardDoc(cardDoc({ status: "dropped" })).problems).toEqual(["a dropped card says why in closed: { at, by, why }"]);
+    expect(readCardDoc(cardDoc({ closed })).problems).toEqual(["an open card has no closed"]);
+    expect(readCardDoc({ ...cardDoc({ status: "done" }), closed: { at: "x", by: "" } }).problems).toEqual(["closed: by must be text", "closed: why must be text", "a done card says why in closed: { at, by, why }"]);
+  });
+});
