@@ -53,6 +53,10 @@ export function phaseDocPath(spec: string, phase: string): string {
   return `specs/${spec}/phases/${phase}.json`;
 }
 
+export function prDocsFolder(spec: string): string {
+  return `specs/${spec}/prs/`;
+}
+
 export function prDocPath(spec: string, group: string): string {
-  return `specs/${spec}/prs/${group}.json`;
+  return `${prDocsFolder(spec)}${group}.json`;
 }

@@ -88,9 +88,20 @@ describe("toPrRows", () => {
     expect(byNumber.get(874)).toMatchObject({ branch: "dependabot/github_actions/all-actions-e71a03c6fe", state: "OPEN", draft: false });
     expect(byNumber.get(874)?.checks?.counts.fail).toBeGreaterThan(0);
     expect(byNumber.get(566)).toMatchObject({ branch: "ops-provisioning-dx", state: "OPEN", draft: true });
-    expect(byNumber.get(880)).toEqual({ number: 880, branch: "feat/video-workspace-product-videos", state: "MERGED", draft: false, url: "https://github.com/CRM-Dance/crm/pull/880" });
+    expect(byNumber.get(880)).toEqual({ number: 880, branch: "feat/video-workspace-product-videos", state: "MERGED", draft: false, url: "https://github.com/CRM-Dance/crm/pull/880", mergedAt: "2026-10-01T21:54:12Z" });
     expect(byNumber.get(869)?.state).toBe("CLOSED");
     expect(rows.filter((row) => row.number === 879)).toHaveLength(1);
+  });
+
+  test("rows carry their head; a merged row its merge commit and day, an open one neither", () => {
+    const recent = [
+      { number: 5, headRefName: "feat/a", headRefOid: "aaa111", state: "MERGED", mergedAt: "2026-11-12T08:00:00Z", mergeCommit: { oid: "fff999" } },
+      { number: 6, headRefName: "feat/b", headRefOid: "bbb222", state: "OPEN", mergedAt: "2026-11-12T08:00:00Z" },
+    ];
+    const rows = toPrRows([], recent, []);
+    expect(rows[0]).toMatchObject({ headRefOid: "aaa111", mergedAt: "2026-11-12T08:00:00Z", mergeCommit: "fff999" });
+    expect(rows[1]).toMatchObject({ headRefOid: "bbb222" });
+    expect(rows[1]?.mergedAt).toBeUndefined();
   });
 
   test("external check globs are left out of the counts", async () => {
