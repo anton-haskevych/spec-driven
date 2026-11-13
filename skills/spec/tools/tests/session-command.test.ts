@@ -16,6 +16,10 @@ describe("session register (real git)", () => {
   let tree: WorkingCopy;
   const deps = (id: string | undefined) => ({ runner: isolatedRunner, env: id ? { CLAUDE_CODE_SESSION_ID: id } : {}, now: () => NOW });
   const run = (id: string | undefined, ...args: string[]) => Promise.resolve(sessionCommand(tree.dir, args, deps(id)));
+  const sessionPaths = (): string[] => {
+    repo.git("fetch", "-q", "origin", `+refs/spec-board/record:${TRACKING}`);
+    return repo.git("ls-tree", "-r", "--name-only", TRACKING).split("\n");
+  };
   const doc = (id: string): SessionDoc => {
     repo.git("fetch", "-q", "origin", `+refs/spec-board/record:${TRACKING}`);
     return JSON.parse(repo.git("show", `${TRACKING}:${sessionDocPath(claudeSessionRef({ CLAUDE_CODE_SESSION_ID: id })!)}`)) as SessionDoc;
@@ -43,10 +47,19 @@ describe("session register (real git)", () => {
     expect(doc("s2").mode).toBe("create");
   }, REAL_GIT_MS);
 
+  test("ending a session removes its document, once", async () => {
+    await run("s3", "register", "review", "alpha");
+    expect(sessionPaths()).toContain(sessionDocPath(claudeSessionRef({ CLAUDE_CODE_SESSION_ID: "s3" })!));
+    expect(await run("s3", "end")).toBe("session: s3 ended; its document is removed");
+    expect(sessionPaths()).not.toContain(sessionDocPath(claudeSessionRef({ CLAUDE_CODE_SESSION_ID: "s3" })!));
+    expect(await run("s3", "end")).toBe("session: s3 has no document to remove");
+  }, REAL_GIT_MS);
+
   test("usage, bad mode, no session id and a spec name that isn't one are refused", async () => {
     expect(await run("s1", "register", "review")).toBe(`usage: ${SESSION_USAGE}`);
     expect(await run("s1", "register", "dream", "alpha")).toBe(`usage: ${SESSION_USAGE}`);
     expect(await run(undefined, "register", "review", "alpha")).toBe("session: nothing registered; this session has no id");
+    expect(await run(undefined, "end")).toBe("session: nothing to end; this session has no id");
     expect(await run("s1", "register", "review", "../x")).toBe(`usage: ${SESSION_USAGE}`);
   }, REAL_GIT_MS);
 });
