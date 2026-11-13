@@ -34,6 +34,11 @@ describe("the page model", () => {
     expect(model.totals).toEqual({ done: 1, all: 4 });
   });
 
+  test("an ended card carries how it ended and its note; it has no deadline", () => {
+    expect(card("c92")).toMatchObject({ closed: { at: "2026-11-13T09:00:00-08:00", by: "Anton", why: "merged" }, note: "Spec: schedule-fixes | Items: featured row", due: { kind: "none" } });
+    expect(card("c94")).toMatchObject({ status: "dropped", closed: { at: "2026-11-10", by: "Anton", why: "no" } });
+  });
+
   test("needs you: the record's question with its id and version first, then the board's rows in its own words", () => {
     expect(model.needs.rows[0]).toMatchObject({ kind: "question", mark: "Q", title: "Reset the Teachers pick each morning?", detail: "schedule-fixes · phase 3", owner: "Anton", question: { id: "q12" } });
     expect(model.needs.rows.filter((row) => row.kind === "question")).toHaveLength(1);

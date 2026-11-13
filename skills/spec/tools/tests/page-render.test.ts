@@ -52,6 +52,14 @@ describe("the rendered page", () => {
     expect(html).toContain(`data-copy="Card c90 &quot;Filters say what they hide&quot;`);
   });
 
+  test("a done card's page says so at the top, with when, who and why, and shows its note under the quote", () => {
+    const sheet = html.split('<section class="sheet" id="c92"')[1]?.split("</section>")[0] ?? "";
+    expect(sheet).toContain(`<p class="end done"><b>Done</b> Nov 13 by Anton: merged</p>`);
+    expect(sheet).toContain(`<p class="note">Spec: schedule-fixes | Items: featured row</p>`);
+    expect(sheet).not.toContain("no deadline");
+    expect(html.split('<section class="sheet" id="c94"')[1]?.split("</section>")[0]).toContain(`<p class="end dropped"><b>Dropped</b> Nov 10 by Anton: no</p>`);
+  });
+
   test("words from the record are escaped", () => {
     const docs = { ...pageDocs(), [cardDocPath("c99")]: cardDoc({ id: "c99", title: `<img src=x onerror="alert(1)">`, status: "doing" }) };
     const page = renderPage(pageModel(pageInputs(docs)));

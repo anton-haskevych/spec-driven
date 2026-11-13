@@ -165,6 +165,9 @@ details.p0 .pn b { font-size: 21px; font-weight: 800; }
 .kv { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .tag { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 8px; box-sizing: border-box; font: 600 14px/1 var(--sans); background: var(--soft); color: var(--ink); white-space: nowrap; }
 .tag.todo { background: var(--todo-bg); color: var(--todo-ink); border: 1.5px solid var(--todo); }
+.end { margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; font-size: 15.5px; line-height: 1.35; background: var(--soft); color: var(--muted); }
+.end.done { background: var(--done-bg); color: var(--done-ink); } .end b { margin-right: 4px; }
+.note { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
 blockquote { margin: 0; background: var(--bg); border-radius: 12px; padding: 20px 22px; font-size: 20px; line-height: 1.4; }
 blockquote footer { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14.5px; color: var(--muted); margin-top: 12px; }
 .phases { display: flex; flex-direction: column; }

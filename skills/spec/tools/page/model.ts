@@ -1,6 +1,6 @@
 import type { BoardInputs } from "../board/inputs";
 import type { AttentionRow, Board } from "../board/model";
-import type { CardStatus, Commitment } from "../cards/card-doc";
+import type { CardEnd, CardStatus, Commitment } from "../cards/card-doc";
 import type { Priority } from "../core/schedule";
 import { readCards, readSourceEntries } from "../cards/read";
 import { readTags } from "../cards/tags";
@@ -89,7 +89,9 @@ export interface PageCard {
   who: Who[];
   // Sessions on a covering spec in the last day, latest first.
   sessions: PageSession[];
-  closedAt?: string;
+  // How a done or dropped card ended, and the card's own note (Academy keeps its context there).
+  closed?: CardEnd;
+  note?: string;
   // The card's id and where it stands, for pasting into a session.
   copy: string;
 }
@@ -183,7 +185,7 @@ export function buildPageModel(inputs: BoardInputs, board: Board, context: PageC
     sessions,
     cards,
     moving: live.filter((card) => card.stage === "moving").map((card) => card.id),
-    finishedToday: live.filter((card) => card.closedAt && sameDay(card.closedAt, now)).map((card) => card.id),
+    finishedToday: live.filter((card) => card.status === "done" && card.closed && sameDay(card.closed.at, now)).map((card) => card.id),
     plan: view ? planRows(live, readTags(view), { now }) : [],
     totals: { done: live.filter((card) => card.stage === "done").length, all: live.length },
     board,

@@ -6,9 +6,17 @@ import { answerForm } from "./render-now";
 const STAGE_WORDS: Record<string, string> = { todo: "to do", open: "to do", doing: "doing", built: "built", merged: "live", deployed: "live", done: "done" };
 
 export function cardSheet(model: PageModel, card: PageCard, now: Date): string {
-  const head = `<div class="lane"><h4>${esc(card.title)}</h4><div class="kv">${pri(card.priority)}${card.tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join("")}<span class="tag${card.stage === "done" ? "" : " todo"}">${esc(card.commitment)}</span>${due(card.due)}</div></div>`;
-  const parts = [head, quote(card), question(card, now), ...coveredBy(card), sessions(model, card, now), copy(card)];
+  const dueChip = card.due.kind === "none" && card.closed ? "" : due(card.due);
+  const head = `<div class="lane"><h4>${esc(card.title)}</h4>${ended(card)}<div class="kv">${pri(card.priority)}${card.tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join("")}<span class="tag${card.stage === "done" ? "" : " todo"}">${esc(card.commitment)}</span>${dueChip}</div></div>`;
+  const note = card.note ? `<p class="note">${esc(card.note)}</p>` : "";
+  const parts = [head, quote(card), note, question(card, now), ...coveredBy(card), sessions(model, card, now), copy(card)];
   return `<section class="sheet" id="${esc(card.id)}" data-view="card" data-id="${esc(card.id)}" data-kind="card" data-stage="${card.stage}" hidden>${parts.join("")}</section>`;
+}
+
+function ended(card: PageCard): string {
+  if (!card.closed || (card.status !== "done" && card.status !== "dropped")) return "";
+  const { at, by, why } = card.closed;
+  return `<p class="end ${card.status}"><b>${card.status === "done" ? "Done" : "Dropped"}</b> ${esc(monthDay(at.slice(0, 10)))} by ${esc(by)}: ${esc(why)}</p>`;
 }
 
 function quote(card: PageCard): string {

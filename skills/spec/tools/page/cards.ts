@@ -42,7 +42,8 @@ function pageCard(doc: CardDoc, inputs: CardInputs): PageCard {
     ...(question ? { question } : {}),
     who: whoOf(doc, sessions),
     sessions,
-    ...(doc.status === "done" && doc.closed ? { closedAt: doc.closed.at } : {}),
+    ...(doc.closed ? { closed: doc.closed } : {}),
+    ...(doc.note ? { note: doc.note } : {}),
   };
   return { ...card, copy: copyFor(card) };
 }
