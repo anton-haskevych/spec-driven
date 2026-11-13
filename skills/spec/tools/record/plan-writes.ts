@@ -22,9 +22,10 @@ export const MAX_OPS = 50;
 const RECORD_PATH = /^(?:[A-Za-z0-9][A-Za-z0-9._-]*\/)*[A-Za-z0-9][A-Za-z0-9._-]*\.json$/;
 
 // `alongside` ops ride in the batch outside the op limit and yield to an op the batch already has for their
-// path. They are written only when the batch itself changes something.
-export function planWrites(view: RecordView, ops: readonly RecordOp[], validate: Validate, alongside: readonly RecordOp[] = []): PlannedWrites {
-  const shapeProblems = [...batchProblems(ops), ...pathProblems(alongside)];
+// path. They are written only when the batch itself changes something. `limit` is raised only by a write
+// that must land whole (a board loaded from a file).
+export function planWrites(view: RecordView, ops: readonly RecordOp[], validate: Validate, alongside: readonly RecordOp[] = [], limit = MAX_OPS): PlannedWrites {
+  const shapeProblems = [...batchProblems(ops, limit), ...pathProblems(alongside)];
   if (shapeProblems.length > 0) return { kind: "invalid", problems: shapeProblems };
   const planned = planOps(view, ops, validate);
   if (planned.kind !== "planned" || planned.changes.length === 0) return planned;
@@ -52,8 +53,8 @@ function planOps(view: RecordView, ops: readonly RecordOp[], validate: Validate)
   return problems.length > 0 ? { kind: "invalid", problems } : { kind: "planned", changes, versions };
 }
 
-function batchProblems(ops: readonly RecordOp[]): string[] {
-  if (ops.length > MAX_OPS) return [`one write takes at most ${MAX_OPS} changes; got ${ops.length}`];
+function batchProblems(ops: readonly RecordOp[], limit: number): string[] {
+  if (ops.length > limit) return [`one write takes at most ${limit} changes; got ${ops.length}`];
   return pathProblems(ops);
 }
 

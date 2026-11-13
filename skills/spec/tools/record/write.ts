@@ -14,6 +14,8 @@ export type StoreWrite = { kind: "landed"; tip: string; versions: Record<string,
 
 export interface WriteOptions {
   validate: Validate;
+  // Above the usual op limit, for a write that must land whole.
+  maxOps?: number;
   pause?: (ms: number) => Promise<void>;
 }
 
@@ -21,7 +23,7 @@ export const OLDER_PLUGIN = "record: this plugin is older than the board's layou
 const DEFAULT_MESSAGE = "record: write";
 
 export async function writeRecord(port: RecordPort, plan: RecordPlan, options: WriteOptions): Promise<StoreWrite> {
-  const landing = await landOnRef<Record<string, string>, Stopped>(port, (tip) => planEdit(port, tip, plan, options.validate), {
+  const landing = await landOnRef<Record<string, string>, Stopped>(port, (tip) => planEdit(port, tip, plan, options), {
     name: "the board's record",
     ...(options.pause ? { pause: options.pause } : {}),
   });
@@ -29,7 +31,7 @@ export async function writeRecord(port: RecordPort, plan: RecordPlan, options: W
   return landing.kind === "stopped" ? landing.outcome : landing;
 }
 
-function planEdit(port: RecordPort, tip: Tip, plan: RecordPlan, validate: Validate): RefEdit<Record<string, string>, Stopped> {
+function planEdit(port: RecordPort, tip: Tip, plan: RecordPlan, { validate, maxOps }: WriteOptions): RefEdit<Record<string, string>, Stopped> {
   const view = openRecordView(port, tip);
   if (!view.ok) return stop({ kind: "failed", reason: view.reason });
   const layout = recordLayout(view.value);
@@ -38,7 +40,7 @@ function planEdit(port: RecordPort, tip: Tip, plan: RecordPlan, validate: Valida
   const intent = plan(view.value);
   if ("refused" in intent) return stop({ kind: "refused", reason: intent.refused });
   if ("unchanged" in intent) return stop({ kind: "unchanged" });
-  const planned = planWrites(view.value, intent.ops, validate, intent.alongside);
+  const planned = planWrites(view.value, intent.ops, validate, intent.alongside, maxOps);
   if (planned.kind !== "planned") return stop(planned);
   if (planned.changes.length === 0) return stop({ kind: "unchanged" });
   return { kind: "commit", changes: withMeta(planned.changes, layout), message: intent.message ?? DEFAULT_MESSAGE, landed: planned.versions };

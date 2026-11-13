@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Git } from "../core/git";
 import type { FileChange, RefPort, Tip, TipRead } from "../core/land-on-ref";
 import { leasePush, NETWORK, REMOTE_TIMEOUT_MS } from "../core/remote-push";
@@ -56,17 +59,31 @@ export function fetchRecordTip(git: Git, timeoutMs = REMOTE_TIMEOUT_MS): TipRead
 }
 
 function commitChanges(git: Git, base: Tip, changes: readonly FileChange[], message: string): Result<string> {
-  const entries: string[] = [];
-  for (const change of changes) {
-    if (change.text === undefined) {
-      entries.push(`${REMOVE_PATH}\t${change.path}\0`);
-      continue;
-    }
-    const blob = git.out(["hash-object", "-w", "--stdin"], { stdin: change.text });
-    if (!blob.ok) return blob;
-    entries.push(`100644 blob ${blob.value}\t${change.path}\0`);
-  }
+  const written = changes.flatMap((change) => (change.text === undefined ? [] : [change.text]));
+  const blobs = writeBlobs(git, written);
+  if (!blobs.ok) return blobs;
+  let next = 0;
+  const entries = changes.map((change) => (change.text === undefined ? `${REMOVE_PATH}\t${change.path}\0` : `100644 blob ${blobs.value[next++]}\t${change.path}\0`));
   return commitOnto(git, base.kind === "at" ? base.sha : undefined, entries.join(""), message);
+}
+
+// One git call for every blob: a board loaded from a file writes hundreds, and a spawn each took seconds.
+function writeBlobs(git: Git, texts: readonly string[]): Result<string[]> {
+  if (texts.length === 0) return { ok: true, value: [] };
+  const dir = mkdtempSync(join(tmpdir(), "spec-record-blobs-"));
+  try {
+    const paths = texts.map((text, index) => {
+      const path = join(dir, String(index));
+      writeFileSync(path, text);
+      return path;
+    });
+    const hashed = git.out(["hash-object", "-w", "--stdin-paths"], { stdin: `${paths.join("\n")}\n` });
+    if (!hashed.ok) return hashed;
+    const ids = hashed.value.split("\n").filter(Boolean);
+    return ids.length === texts.length ? { ok: true, value: ids } : { ok: false, reason: `git hash-object wrote ${ids.length} of ${texts.length} blobs` };
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 function listBlobIds(git: Git, tip: string): Result<Map<string, string>> {

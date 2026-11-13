@@ -1,6 +1,6 @@
-import type { Tip } from "../core/land-on-ref";
+import type { FileChange, Tip } from "../core/land-on-ref";
 import type { Result } from "../core/result";
-import { blobVersion, isPlainObject, parseDoc } from "./document";
+import { blobVersion, isPlainObject, parseDoc, serializeDoc } from "./document";
 import { META_PATH } from "./layout";
 import type { RecordPort } from "./ref";
 
@@ -34,6 +34,16 @@ export function viewOfTexts(texts: ReadonlyMap<string, string>, tip: Tip): Recor
       return text === undefined ? undefined : parseDoc(text);
     },
   };
+}
+
+// The view as it reads once these planned changes land (a change with no text deletes its path).
+export function viewWith(view: RecordView, changes: readonly FileChange[]): RecordView {
+  const texts = new Map(view.paths().map((path) => [path, serializeDoc(view.doc(path))]));
+  for (const change of changes) {
+    if (change.text === undefined) texts.delete(change.path);
+    else texts.set(change.path, change.text);
+  }
+  return viewOfTexts(texts, view.tip);
 }
 
 export function recordLayout(view: RecordView): number | undefined {
