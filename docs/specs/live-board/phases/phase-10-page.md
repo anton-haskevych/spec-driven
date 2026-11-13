@@ -69,7 +69,7 @@ mode; the user never types a command, and a crew worker never starts it.
 - [ ] Answering a waiting question from the page goes through `answerPlan` with the shown version; a conflict re-renders with the current question; the request is accepted only from the origin the page was served from; no other edit exists
 - [ ] `spec.ts page [<card-id>] [--json]`: starts the server detached with a state file (pid, port, plugin version) on a port that stays the same per clone, reuses a running one, replaces one from an older version, opens the browser; `--json` prints the model the page shows; `list.md` offers it
 - [ ] `SKILL.md` updated; ROADMAP row and version bump for PR G
-- [ ] `page/model.ts`: the pure page model built from the board inputs and the record view: needs-you rows with question ids and versions, live sessions, moving cards with phase squares, Plan rows per tag (priority, reason, counts, a panel per covering spec, Open, Done), and each card in full for the opened view
+- [x] `page/model.ts`: the pure page model built from the board inputs and the record view: needs-you rows with question ids and versions, live sessions, moving cards with phase squares, Plan rows per tag (priority, reason, counts, a panel per covering spec, Open, Done), and each card in full for the opened view
 
 ## Phase-local notes
 
