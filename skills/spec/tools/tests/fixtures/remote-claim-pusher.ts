@@ -1,4 +1,4 @@
-// Run by claims-remote.test.ts as a separate process, so pushers on different clones really race.
+// Run by claims-remote.git.test.ts as a separate process, so pushers on different clones really race.
 import { pushClaim } from "../../claims/remote";
 import { gitAt } from "../../core/git";
 import { isolatedRunner } from "../git-repo";

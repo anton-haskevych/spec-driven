@@ -17,13 +17,14 @@ export interface ImportScanner {
 // scanImports drops type-only imports, so a test that only borrows a type stays fast.
 export function importScanner(projectRoot: string): ImportScanner {
   const root = realpathSync(projectRoot);
-  const transpiler = new Bun.Transpiler({ loader: "tsx" });
+  const transpilers = { ts: new Bun.Transpiler({ loader: "ts" }), tsx: new Bun.Transpiler({ loader: "tsx" }) };
   const importsCache = new Map<string, string[]>();
 
   const importsOf = (file: string): string[] => {
     const cached = importsCache.get(file);
     if (cached) return cached;
     const source = readFileSync(file, "utf8").replace(SHEBANG, "");
+    const transpiler = file.endsWith("x") ? transpilers.tsx : transpilers.ts;
     const resolved = transpiler.scanImports(source).flatMap(({ path }) => resolveInside(root, path, dirname(file)));
     importsCache.set(file, resolved);
     return resolved;

@@ -1,4 +1,4 @@
-// Run by record-race.test.ts as separate processes, so writers on different clones really race.
+// Run by record-race.git.test.ts as separate processes, so writers on different clones really race.
 import { gitAt } from "../../core/git";
 import { gitRecordPort } from "../../record/ref";
 import { writeRecord, type RecordPlan } from "../../record/write";
