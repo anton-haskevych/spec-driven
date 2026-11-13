@@ -28,7 +28,7 @@ export function renderPage(model: PageModel): string {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="${FONTS_URL}">
 <style>${STYLES}</style></head>
-<body><div class="screen" id="screen"><div id="app">${html}</div></div>
+<body><div class="toast" id="toast" role="status" hidden></div><div class="screen" id="screen"><div id="app">${html}</div></div>
 <script>${PAGE_SCRIPT}</script></body></html>`;
 }
 

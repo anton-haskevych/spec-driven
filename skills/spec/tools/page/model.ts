@@ -169,7 +169,8 @@ export function buildPageModel(inputs: BoardInputs, board: Board, context: PageC
     const owner = node ? ownerOf(node.meta) : undefined;
     return owner === INVALID_OWNER ? undefined : owner;
   };
-  const needs = needRows(board, questions, { specOwner, cardAssignee: (id) => cards.find((card) => card.id === id)?.assignee, now });
+  const cardAsking = (question: PageQuestion) => cards.find((card) => card.question?.id === question.id && card.question.spec === question.spec)?.id;
+  const needs = needRows(board, questions, { specOwner, cardAssignee: (id) => cards.find((card) => card.id === id)?.assignee, cardAsking, now });
   const live = cards.filter((card) => card.status !== "dropped");
   return {
     version: PAGE_VERSION,

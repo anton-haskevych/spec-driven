@@ -29,9 +29,10 @@ function othersLine(model: PageModel): string {
 
 export function needRow(model: PageModel, row: NeedRow, now: Date): string {
   const late = row.late ? " late" : "";
-  const link = row.card ? ` <a href="#${esc(row.card)}">${esc(row.card)}</a>` : "";
+  const words = `${esc(row.title)}<span>${esc(row.detail)}</span>`;
+  const title = row.card ? `<a class="t" href="#${esc(row.card)}" title="Open ${esc(row.card)}">${words}</a>` : `<span class="t">${words}</span>`;
   const age = isOthers(row, model) && row.owner ? `<span class="age">${disc(model.people, { person: row.owner, writing: false }, true)}${esc(row.owner)}</span>` : row.since ? `<span class="age">${since(row.since, now)}</span>` : "";
-  return `<div class="ny${late}" data-id="${esc(row.question?.id ?? row.card ?? `${row.kind}:${row.spec ?? ""}`)}" data-kind="${row.kind}"><span class="k">${row.mark}</span><span class="t">${esc(row.title)}<span>${esc(row.detail)}${link}</span></span>${row.question ? answerForm(row.question) : ""}${age}</div>`;
+  return `<div class="ny${late}" data-id="${esc(row.question?.id ?? row.card ?? `${row.kind}:${row.spec ?? ""}`)}" data-kind="${row.kind}"><span class="k">${row.mark}</span>${title}${row.question ? answerForm(row.question) : ""}${age}</div>`;
 }
 
 export function answerForm(question: PageQuestion): string {

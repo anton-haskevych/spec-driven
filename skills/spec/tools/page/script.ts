@@ -46,6 +46,16 @@ export const PAGE_SCRIPT = `(() => {
     route();
   }
 
+  let toastTimer = 0;
+  function toast(text, bad) {
+    const node = document.getElementById("toast");
+    node.textContent = text;
+    node.classList.toggle("bad", Boolean(bad));
+    node.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { node.hidden = true; }, 8000);
+  }
+
   function beat() {
     const quiet = Math.round((Date.now() - state.lastTick) / 1000);
     const dead = quiet > DEAD_AFTER_S;
@@ -81,13 +91,16 @@ export const PAGE_SCRIPT = `(() => {
     said.textContent = "Sending…";
     try {
       const response = await fetch("/answer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ spec: form.dataset.spec, id: form.dataset.question, text, ifVersion: form.dataset.version }) });
-      const line = (await response.json()).line;
+      const reply = await response.json();
+      const line = reply.line;
+      toast(line, !reply.ok);
       form.elements.own.value = "";
       if (state.pending) swap(state.pending);
       const now = app.querySelector('form.answer[data-question="' + form.dataset.question + '"] .said');
       (now || said).textContent = line;
     } catch (error) {
       said.textContent = "Not sent: the page lost its server.";
+      toast(said.textContent, true);
     }
   });
 

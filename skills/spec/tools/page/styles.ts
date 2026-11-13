@@ -205,18 +205,21 @@ blockquote footer { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14
   .sheet h4 { font-size: 25px; }
   blockquote { font-size: 18px; padding: 16px; }
 }
-@media (max-width: 520px) {
 /* the live page: answers, folds, empty states */
 .body { max-width: 1120px; margin: 0 auto; }
-.ny form { display: contents; }
 .ny input { font: 500 14.5px var(--sans); min-height: 36px; padding: 0 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); min-width: 0; width: 12em; }
-.ny .said { flex-basis: 100%; font-size: 14.5px; color: var(--muted); }
+.ny .said { font-size: 14.5px; color: var(--muted); }
+.ny .said:empty { display: none; }
 details.folded > summary { list-style: none; cursor: pointer; }
 details.folded > summary::-webkit-details-marker { display: none; }
 details.folded[open] > summary .chev, details.panel[open] .chev { transform: rotate(45deg); }
 details.folded > .slab, details.folded > .rows { margin-top: 12px; }
 .notice { background: var(--surface); border: 1.5px dashed var(--faint); border-radius: 14px; padding: 18px 22px; color: var(--muted); }
 .empty { color: var(--muted); font-size: 15.5px; padding: 12px 0; }
-a.row, a.pc { color: inherit; }
+a.row, a.pc, a.t { color: inherit; }
+a.t:hover b, a.t:hover { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+a.row:hover .title b, a.pc:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 10; max-width: min(640px, calc(100vw - 32px)); padding: 14px 20px; border-radius: 12px; background: var(--p0-bg); color: var(--p0-fg); font: 600 15.5px/1.35 var(--sans); box-shadow: 0 8px 24px rgb(0 0 0 / 0.25); }
+.toast.bad { background: var(--late); color: var(--on-late); }
 @media (prefers-reduced-motion: reduce) { .body, .chev { transition: none; } }
 `;

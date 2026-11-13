@@ -3,6 +3,7 @@ import { buildBoard } from "../board/lanes";
 import { cardDocPath } from "../cards/paths";
 import { buildPageModel } from "../page/model";
 import { renderApp, renderPage } from "../page/render";
+import { STYLES } from "../page/styles";
 import { boardInputs } from "./board-factories";
 import { PAGE_NOW, pageDocs, pageInputs, pageModel } from "./page-fixture";
 import { cardDoc } from "./record-factories";
@@ -20,6 +21,10 @@ describe("the rendered page", () => {
   test("Now: the question row answers with the version the page showed", () => {
     const version = model.needs.rows[0]?.question?.version ?? "";
     expect(html).toContain(`<form class="acts answer" data-spec="schedule-fixes" data-question="q12" data-version="${version}"><button class="btn pick" type="submit" value="No reset" title="recommended">No reset</button>`);
+  });
+
+  test("a question row opens the card it is about", () => {
+    expect(html).toContain(`<a class="t" href="#c90" title="Open c90">Reset the Teachers pick each morning?<span>schedule-fixes · phase 3</span></a>`);
   });
 
   test("rows carry data-id, data-kind and data-stage", () => {
@@ -69,4 +74,15 @@ test("with no record: an honest empty page", () => {
   expect(html).toContain("Nothing waits on anyone.");
   expect(html).toContain("No projects yet");
   expect(html).toContain("<title>Live board · crm</title>");
+});
+
+test("every style block is closed, so no rule hides inside a phone-only query", () => {
+  const css = STYLES.replace(/\/\*[\s\S]*?\*\//g, "");
+  let depth = 0;
+  let lowest = 0;
+  for (const char of css) {
+    depth += char === "{" ? 1 : char === "}" ? -1 : 0;
+    lowest = Math.min(lowest, depth);
+  }
+  expect({ depth, lowest }).toEqual({ depth: 0, lowest: 0 });
 });

@@ -7,6 +7,8 @@ export interface NeedOwners {
   // A malformed owner comes back as nobody's.
   specOwner: (spec: string) => string | undefined;
   cardAssignee: (card: string) => string | undefined;
+  // The card a question is about, so its row opens that card.
+  cardAsking: (question: PageQuestion) => string | undefined;
   now: Date;
 }
 
@@ -45,6 +47,7 @@ export function needRows(board: Pick<Board, "lanes" | "me">, questions: readonly
 
 function questionRow(question: PageQuestion, owners: NeedOwners): NeedRow {
   const owner = owners.specOwner(question.spec);
+  const card = owners.cardAsking(question);
   return {
     kind: "question",
     mark: "Q",
@@ -54,6 +57,7 @@ function questionRow(question: PageQuestion, owners: NeedOwners): NeedRow {
     ...(owner ? { owner } : {}),
     since: question.askedAt,
     spec: question.spec,
+    ...(card ? { card } : {}),
     question,
   };
 }
