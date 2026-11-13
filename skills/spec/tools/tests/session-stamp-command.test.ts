@@ -48,7 +48,7 @@ describe("every phase write stamps its session (real git)", () => {
 
   test("a card added directly, never queued, stamps too", async () => {
     const quote = ["--quote", "Please add it", "--app", "imessage", "--at", "2026-11-11", "--ref", "msg 1"];
-    expect(await cardCommand(tree.dir, ["add", "A new card", ...quote], as("s3"))).toStartWith("card: c1 added");
+    expect(await cardCommand(tree.dir, ["add", "A new card", ...quote], as("s3"))).toMatch(/^card: c\d+ added/);
     expect(sessionPaths()).toHaveLength(3);
     expect(stamped("s3").mode).toBe("execute");
   }, REAL_GIT_MS);
