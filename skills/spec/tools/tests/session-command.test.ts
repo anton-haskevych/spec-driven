@@ -1,6 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { contextPack } from "../commands/context";
+import { phaseCommand } from "../commands/phase";
 import { sessionCommand, SESSION_USAGE } from "../commands/session";
 import { claudeSessionRef, sessionDocPath, type SessionDoc } from "../sessions/session-doc";
+import { contextDeps } from "./context-fixture";
 import { isolatedRunner, repoWithOrigin, type TestRepo, type WorkingCopy } from "./git-repo";
 import { joinedRepo } from "./joined-repo";
 
@@ -30,7 +33,6 @@ describe("session register (real git)", () => {
   }, REAL_GIT_MS);
 
   test("a later write by that session keeps the registration", async () => {
-    const { phaseCommand } = await import("../commands/phase");
     await phaseCommand(tree.dir, ["park", "alpha", "3", "Ship?"], undefined, deps("s1"));
     expect(doc("s1")).toMatchObject({ mode: "review", spec: "alpha", title: "review alpha" });
   }, REAL_GIT_MS);
@@ -58,5 +60,33 @@ describe("session register where the board is off (real git)", () => {
     } finally {
       repo.cleanup();
     }
+  }, REAL_GIT_MS);
+});
+
+describe("the pack lists the other sessions on its spec (real git)", () => {
+  let repo: TestRepo;
+  let tree: WorkingCopy;
+  const as = (id: string) => ({ runner: isolatedRunner, env: { CLAUDE_CODE_SESSION_ID: id }, now: () => NOW });
+  const packFor = (env: Record<string, string>) => contextPack(tree.dir, { mode: "execute", name: "alpha" }, contextDeps({ runner: isolatedRunner, now: () => NOW, env }));
+
+  beforeAll(async () => {
+    repo = joinedRepo("spec-session-pack-");
+    tree = repo.clone("pr-a");
+    await sessionCommand(tree.dir, ["register", "review", "alpha"], as("rev"));
+    await phaseCommand(tree.dir, ["park", "alpha", "3", "Ship?"], undefined, as("exe"));
+  }, REAL_GIT_MS);
+  afterAll(() => repo.cleanup());
+
+  test("a session sees the other one, with its mode, and not itself", async () => {
+    const pack = await packFor({ CLAUDE_CODE_SESSION_ID: "exe" });
+    expect(pack).toContain("Session: review by spec-tests on ");
+    expect(pack).toContain("a review can change this spec's plan");
+    expect(pack.match(/^Session: /gm)).toHaveLength(1);
+  }, REAL_GIT_MS);
+
+  test("the review sees the execute session", async () => {
+    const pack = await packFor({ CLAUDE_CODE_SESSION_ID: "rev" });
+    expect(pack).toContain("Session: execute by spec-tests on ");
+    expect(pack.match(/^Session: /gm)).toHaveLength(1);
   }, REAL_GIT_MS);
 });
