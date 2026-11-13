@@ -8,6 +8,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `gotcha-readers-outside-the-spec-state-funnel.md` — [phase 2a+] — five readers bypass SpecState; move each or it reads frozen files
 - `docs/specs/_ledger/gotcha-codex-packaged-entry-test-runs-near-its-timeout.md` — [general] — Codex packaged-entry test runs at its 5 s limit under load; rerun with --timeout
 - `docs/specs/_ledger/gotcha-workspace-scan-skips-trees-with-no-commits-off-base.md` — [general] — scanWorkspaces skips trees with no commits off base; force them live
+- `docs/specs/_ledger/gotcha-phase-tick-hash-n-counts-open-items.md` — [general] — phase tick #N counts open items; numbers shift after each tick
 
 ## Principles
 - `principle-record-reuses-the-house-loop-and-cache.md` — [phase 1+] — reuse land-on-main loop, claim lease, base cache, field readers
@@ -30,6 +31,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-plan-notice-as-built.md` — [phase 4+] — plan-changed memory holds shapes; notice before result; hook only for seen specs
 - `decision-phase-4-tools-as-built.md` — [phase 4+] — plan apply draft, stub, tidy holders and edge keys, export without ids
 - `decision-phase-6-fields-and-prs-as-built.md` — [phase 6+] — four fields move; upgrade on touch; PR sync by branch+head; built rows
+- `decision-phase-7-questions-and-notes-as-built.md` — [phase 8+] — question docs, gate approvals, phase note, layout steps 2/3
 
 ## Workarounds
 - `docs/specs/_ledger/workaround-test-a-hanging-origin-with-a-blackhole-address.md` — [general] — Test a hanging origin with http://10.255.255.1/…; a missing path fails at once

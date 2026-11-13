@@ -43,7 +43,7 @@ describe("spec.ts join (real git)", () => {
     const head = repo.git("rev-parse", "HEAD");
     const output = await joinIn(repo);
     expect(output).toMatch(new RegExp(`^join: ${SPEC} is on the board \\(2 phases, 3 tasks, 0 worktrees read\\) · banner landed on main \\([0-9a-f]{7}\\)$`));
-    expect(onRecord(`specs/${SPEC}/spec.json`)).toMatchObject({ name: SPEC, planVersion: 1, phases: ["1", "2"], joinedFrom: head, layout: 2, status: "active" });
+    expect(onRecord(`specs/${SPEC}/spec.json`)).toMatchObject({ name: SPEC, planVersion: 1, phases: ["1", "2"], joinedFrom: head, layout: 3, status: "active" });
     expect(onRecord(`specs/${SPEC}/phases/2.json`)).toMatchObject({ needs: ["1"], tasks: [{ id: "2.1", text: "Alpha", done: false }, { id: "2.2", text: "Beta", done: false }] });
     expect(recordLog()).toEqual([`record: join ${SPEC}`]);
     expect(progressOnMain()).toContain(bannerLine("2026-11-11"));
@@ -57,8 +57,17 @@ describe("spec.ts join (real git)", () => {
     repo.commitAll("fields");
     repo.git("push", "-q", "origin", "main");
     await joinIn(repo);
-    expect(onRecord(`specs/${SPEC}/spec.json`)).toMatchObject({ layout: 2, status: "active", owner: "Taras", focus: "must", ship: "auto" });
+    expect(onRecord(`specs/${SPEC}/spec.json`)).toMatchObject({ layout: 3, status: "active", owner: "Taras", focus: "must", ship: "auto" });
     expect(onRecord(`specs/${SPEC}/prs/default.json`)).toEqual({ group: "default", branch: `feat/${SPEC}`, state: "merged", number: 37, mergedAt: "2026-11-10", mergedSha: "9392c3f", method: "squash" });
+  });
+
+  test("a phase's in-flight note comes over as its hand-off note, and its parks as questions", async () => {
+    repo.write(`${SPEC_DIR}/in-flight/phase-2.md`, "# In-flight — phase 2\n\nPick up at Beta.\n\n## Needs you\n- Parked 2026-11-10T09:00:00Z: Ship Beta today? · recommend: yes\n");
+    repo.commitAll("note");
+    repo.git("push", "-q", "origin", "main");
+    await joinIn(repo);
+    expect(onRecord(`specs/${SPEC}/phases/2.json`).handoff).toEqual({ at: "2026-11-11T12:00:00+00:00", by: "unknown", note: "# In-flight — phase 2\n\nPick up at Beta.\n" });
+    expect(onRecord(`specs/${SPEC}/questions/q1.json`)).toEqual({ id: "q1", about: `${SPEC}#2`, kind: "question", askedAt: "2026-11-10T09:00:00Z", askedBy: "unknown", question: "Ship Beta today?", recommend: "yes" });
   });
 
   test("a tick made in a worktree is recorded as done with that tree's head", async () => {

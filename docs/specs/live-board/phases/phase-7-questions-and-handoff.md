@@ -17,6 +17,8 @@ instead of asked again. An agent that needs you leaves its question and moves on
 - `skills/spec/tools/phases/park.ts`, `core/park.ts`, `board/parked.ts`, `board/attention.ts`, `context/packs.ts`
 - `skills/spec/tools/crew/run-state.ts`, `crew/pick.ts`, `commands/crew/tick.ts`
 - `skills/spec/tools/core/in-flight.ts`, `phases/tick.ts` (gate evidence)
+- As built also: `commands/phase/note.ts` + `phases/note.ts` (`phase note`), `record/layout.ts` (per-step layouts),
+  `plan/upgrade-notes.ts`, `mainline/base-cache.ts` (in-flight notes in the cache), `commands/crew/tick.ts`
 - `skills/spec/handoff.md`, `execute.md` (*Crew worker*), `oversee-crew.md`, `crew-brief.md`, `babysit.md`,
   `SKILL.md`
 
@@ -47,13 +49,13 @@ Answers are quotes: store the person's words, who and when, as `phase tick --evi
 
 ## Deliverables
 
-- [ ] `question-doc` reader; `spec.ts question ask | answer | list`, with `list` across every joined spec
-- [ ] `phase park` and `unpark` write a question document for a joined spec; packs and the board's `question` rows read them
-- [ ] `Gate:` approval recorded as an answered `gate` question about its task; the tick takes its evidence from it
-- [ ] The crew reads open questions from the record (answers change a value someone read: `question answer` carries `ifVersion`); the copy step in `oversee-crew.md` is removed for joined specs; `crew tick` lists them
-- [ ] Hand-off note on the phase document: handoff writes it, packs show it whole, join carries an existing in-flight note over
-- [ ] Layout 3: a spec joined earlier gets its in-flight notes and park entries copied on its next touch; until then packs read the files; an older plugin refuses to write
-- [ ] `handoff.md`, `execute.md`, `oversee-crew.md`, `crew-brief.md`, `babysit.md`, `SKILL.md` updated; ROADMAP row and version bump for PR D
+- [x] `question-doc` reader; `spec.ts question ask | answer | list`, with `list` across every joined spec
+- [x] `phase park` and `unpark` write a question document for a joined spec; packs and the board's `question` rows read them
+- [x] `Gate:` approval recorded as an answered `gate` question about its task; the tick takes its evidence from it — built in 0478848 (skills/spec/tools/questions/gate.ts)
+- [x] The crew reads open questions from the record (answers change a value someone read: `question answer` carries `ifVersion`); the copy step in `oversee-crew.md` is removed for joined specs; `crew tick` lists them
+- [x] Hand-off note on the phase document: handoff writes it, packs show it whole, join carries an existing in-flight note over
+- [x] Layout 3: a spec joined earlier gets its in-flight notes and park entries copied on its next touch; until then packs read the files; an older plugin refuses to write
+- [x] `handoff.md`, `execute.md`, `oversee-crew.md`, `crew-brief.md`, `babysit.md`, `SKILL.md` updated; ROADMAP row and version bump for PR D
 
 ## Phase-local notes
 

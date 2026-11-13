@@ -3,7 +3,7 @@ import type { Runner } from "../core/run";
 import { loadSettings } from "../playbook/settings";
 import type { FieldsSource, MarksSource } from "../graph/nodes";
 import type { RecordFields } from "../graph/spec-fields";
-import { RECORD_LAYOUT } from "../record/layout";
+import { FIELDS_LAYOUT } from "../record/layout";
 import type { PrDoc } from "./docs/pr-doc";
 import type { SpecDoc } from "./docs/spec-doc";
 import { readSpecPrDocs } from "./pr-sync";
@@ -53,11 +53,11 @@ export function planSourceOf(record: RecordRead, pending = 0): PlanSource {
     },
     fields: (spec) => {
       const joined = plan(spec)?.spec;
-      return joined && joined.layout >= RECORD_LAYOUT ? recordFieldsOf(joined) : undefined;
+      return joined && joined.layout >= FIELDS_LAYOUT ? recordFieldsOf(joined) : undefined;
     },
     prs: (spec) => {
       const joined = plan(spec)?.spec;
-      return view && joined && joined.layout >= RECORD_LAYOUT ? readSpecPrDocs(view, spec) : undefined;
+      return view && joined && joined.layout >= FIELDS_LAYOUT ? readSpecPrDocs(view, spec) : undefined;
     },
     isJoined: (spec) => plan(spec) !== undefined,
     joined: plan,

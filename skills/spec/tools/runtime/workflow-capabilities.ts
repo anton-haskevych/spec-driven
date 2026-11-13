@@ -9,7 +9,7 @@ export interface LocalPilot {
 export const PILOT_MODES = new Set(["resume", "execute", "update", "handoff", "status"]);
 const LOCAL_REPORTS = new Set(["doctor", "graph", "ready", "playbooks"]);
 const LOCAL_LESSONS = new Set(["recall", "similar", "candidates", "add"]);
-const LOCAL_PHASE_ACTIONS = new Set(["tick", "park", "unpark"]);
+const LOCAL_PHASE_ACTIONS = new Set(["tick", "park", "unpark", "note"]);
 
 export function pilotModeRefusal(mode: string): string | undefined {
   return PILOT_MODES.has(mode) ? undefined : `${mode || "mode"} unavailable in local-pilot; full interactive parity remains pending`;

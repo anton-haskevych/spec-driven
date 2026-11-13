@@ -86,7 +86,7 @@ Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts wi
 
 `crew tick` fills free worker slots itself (§3): the first ready rows with `next: execute`, no busy
 tree, not worktree- or branch-only, not a `code: false` task phase, no other launched worker on the
-spec, no unanswered question in `## Questions`, not owned by someone else (its spec's `owner:` is the
+spec, no unanswered question in `## Questions` (a spec in files), not owned by someone else (its spec's `owner:` is the
 runner or unset; a malformed owner goes to no one). A parked phase is off the ready lane already. prep, create and
 review never go to a worker.
 
@@ -122,7 +122,8 @@ prints only what needs you:
 | `Close-out <title> · <id>: missing … → SendMessage "<title>" once` | SendMessage the title once, naming what's missing; still missing at a later tick → *Needs you* |
 | `Needs you: <title> · <id> is gone; close-out missing …` | *Needs you*, never a silent relaunch |
 | `PR group ready: <spec> <group> → the PR moment` | §4 |
-| `Needs you: <spec> <phase> asks <n> …` | §5: its `question` row on the board; the phase stays parked until they answer |
+| `Needs you: <spec> <phase> asks <n> …` | §5: its `Question:` line (a spec on the board) or its `question` row; the phase stays parked until they answer |
+| `Question: <q-id> · <spec> · phase <id> — "<question>" …` | §5 *Needs you*, once per question |
 | `Say if wrong: <spec> <phase> lists <n> …` | its items join the next *Needs you* batch as FYI |
 | `Babysitter <title> · <id>: <final line>` | report it as one line (§4 step 6) |
 | `<spec> <phase> not launched: …` | as `crew launch`'s refusals above |
@@ -176,16 +177,18 @@ every `board --for me --json` read:
 
 ## 5. Needs you
 
-Sources: the board's `question` rows, `board you --json` after a fetch: each is one worker's park entry
-(`phase park`) with `spec`, `phase`, `question`, `recommend` and `since`, read from its tree's committed
-in-flight note. A parked phase is not in the ready lane, so no slot picks it. A worker whose tree isn't on
-this machine shows only once its branch's docs land; until then read
-`git show origin/<branch>:docs/specs/<spec>/in-flight/phase-<id>.md` (its `## Needs you`). Also: a session
-`blocked` on a prompt; a refused launch; a failed close-out; a babysitter's stop-and-ask; a ship mode to
-choose.
+Sources: for a spec on the board, the `Question:` lines `crew tick` prints: the record's open questions
+(`phase park` asks them), from every machine at once, each with its id and the command that answers it.
+For a spec in files, the board's `question` rows (`board you --json` after a fetch): one worker's park
+entry with `spec`, `phase`, `question`, `recommend` and `since`, read from its tree's committed in-flight
+note; a worker whose tree isn't on this machine shows only once its branch's docs land, until then read
+`git show origin/<branch>:docs/specs/<spec>/in-flight/phase-<id>.md` (its `## Needs you`). A parked phase
+is not in the ready lane, so no slot picks it. Also: a session `blocked` on a prompt; a refused launch; a
+failed close-out; a babysitter's stop-and-ask; a ship mode to choose.
 
-- Give each item an id in `## Questions` with the time asked. Ask it **once**: never repeat an asked
-  item unless they ask what's open.
+- A question on the board is already recorded: don't copy it into `## Questions`. Give every other item
+  (a spec in files' park, a blocked session, a ship mode) an id in `## Questions` with the time asked.
+  Ask each **once**: never repeat an asked item unless they ask what's open.
 - One batch message, numbered, recommendation first:
   ```
   Needs you (3)
@@ -195,10 +198,15 @@ choose.
   ```
 - A session stuck on a prompt also gets a push notification (PushNotification, when this session has it).
   Its slot stays held until it moves.
-- **An answer**: quote it with its time under the question, then relaunch the parked phase:
-  `crew launch execute <spec> <phase> --note "<name> answered <q-id> at <time>: \"<their words>\""` (`<name>`: the runner). The
-  worker records it with `phase unpark` before anything else (execute.md §0.2), which takes the `question`
-  row off the board; never write in its tree yourself. Ship-mode answers go through `ship <spec> <mode>` (§4).
+- **An answer** to a question on the board: record it with
+  `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts question answer <spec> <q-id> "<their words>"` (their words, as
+  said; it keeps who and when, and refuses when someone answered first or the question changed since the
+  tick read it), then relaunch the parked phase: `crew launch execute <spec> <phase>`. Its pack shows the
+  answer. A park of a spec in files: quote the answer with its time under the question in `## Questions`,
+  then `crew launch execute <spec> <phase> --note "<name> answered <q-id> at <time>: \"<their words>\""`
+  (`<name>`: the runner); the worker records it with `phase unpark` before anything else (execute.md §0.2),
+  which takes the `question` row off the board. Never write in a worker's tree yourself. Ship-mode answers
+  go through `ship <spec> <mode>` (§4).
 
 ## 6. Pause, resume, rotate
 

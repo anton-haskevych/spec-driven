@@ -141,7 +141,7 @@ describe("phase set on the record", () => {
   });
 
   test("a field this version doesn't know survives the write", () => {
-    const phases = defaultPhases().map((p) => (p.id === "3" ? ({ ...p, handoff: { note: "later" } } as PhaseDoc) : p));
+    const phases = defaultPhases().map((p) => (p.id === "3" ? ({ ...p, laterField: { note: "later" } } as PhaseDoc) : p));
     const { ops } = run(change(setEdit({ spec: SPEC, phase: "3", fields: { pr: "C" } })), record(phases));
     expect(ops?.find((op) => op.path === phaseDocPath(SPEC, "3"))).toEqual({ op: "update", path: phaseDocPath(SPEC, "3"), patch: { pr: "C" } });
   });

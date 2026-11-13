@@ -14,11 +14,12 @@ import { boardBase } from "../plan/board-base";
 import type { PhaseDoc } from "../plan/docs/phase-doc";
 import type { SpecDoc } from "../plan/docs/spec-doc";
 import { planJoin, type JoinInput, type JoinPlan } from "../plan/join";
+import type { QuestionDoc } from "../questions/question-doc";
 import { copyFromFolder } from "../plan/upgrade-read";
 import { ghClient, type GhClient } from "../pr/gh";
 import { readTreeCopies } from "../plan/join-copies";
 import { missingPrDocs, type PrDoc } from "../plan/docs/pr-doc";
-import { phaseDocPath, prDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
+import { phaseDocPath, prDocPath, questionDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
 import { landBanner } from "../plan/land-banner";
 import { joinFromTree } from "./join-from-tree";
 import { joinTidy } from "./join-tidy";
@@ -96,7 +97,7 @@ async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<Copi
 }
 
 // `spec.json` is a create: of two machines writing a spec at once, the second finds it and changes nothing.
-export function newSpecPlan({ spec, phases, prs }: { spec: SpecDoc; phases: readonly PhaseDoc[]; prs?: readonly PrDoc[] }, verb: string, seen: (doc: unknown) => void): RecordPlan {
+export function newSpecPlan({ spec, phases, prs, questions }: { spec: SpecDoc; phases: readonly PhaseDoc[]; prs?: readonly PrDoc[]; questions?: readonly QuestionDoc[] }, verb: string, seen: (doc: unknown) => void): RecordPlan {
   return (view) => {
     const current = view.doc(specDocPath(spec.name));
     seen(current);
@@ -106,6 +107,7 @@ export function newSpecPlan({ spec, phases, prs }: { spec: SpecDoc; phases: read
         { op: "create", path: specDocPath(spec.name), doc: spec },
         ...phases.map((phase) => ({ op: "create" as const, path: phaseDocPath(spec.name, phase.id), doc: phase })),
         ...(prs ?? missingPrDocs(spec.name, phases, () => false)).map((doc) => ({ op: "create" as const, path: prDocPath(spec.name, doc.group), doc })),
+        ...(questions ?? []).map((doc) => ({ op: "create" as const, path: questionDocPath(spec.name, doc.id), doc })),
       ],
       message: `record: ${verb} ${spec.name}`,
     };

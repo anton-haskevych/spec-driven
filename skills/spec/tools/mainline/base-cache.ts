@@ -3,11 +3,13 @@ import { join } from "node:path";
 import { stateDirIn, type Git } from "../core/git";
 import type { Result } from "../core/result";
 
-export const READ_SET = ["docs/specs/*/*.md", "docs/specs/*/phases/**/*.md", "*/docs/specs/*/*.md", "*/docs/specs/*/phases/**/*.md"];
+// In-flight notes too: a park on the default branch is a question on the board, and join and the layout-3
+// upgrade copy a phase's note from there.
+export const READ_SET = ["docs/specs/*/*.md", "docs/specs/*/phases/**/*.md", "docs/specs/*/in-flight/*.md", "*/docs/specs/*/*.md", "*/docs/specs/*/phases/**/*.md", "*/docs/specs/*/in-flight/*.md"];
 // A spec's reviews/ reaches the cache as an empty folder: the board needs only that it exists.
 const REVIEWS_DIR = /^(?:[^/]+\/)?docs\/specs\/[^/]+\/reviews\//;
 // Bump when the cache's contents change, so a folder made by an older version is never reused.
-export const BASE_LAYOUT = 2;
+export const BASE_LAYOUT = 3;
 export const BASE_CACHE_KEEP = 2;
 const TEMP_PREFIX = ".tmp-";
 

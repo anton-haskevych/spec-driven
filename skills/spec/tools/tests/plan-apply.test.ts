@@ -8,7 +8,7 @@ describe("planApply", () => {
   test("a draft becomes the spec and its phases, task ids <phase>.<n>, Gate: tasks marked", () => {
     const planned = planApply("alpha", { phases: [phase(), phase({ id: "2", title: "API", file: "phases/phase-2-api.md", needs: ["1"], pr: "A", tasks: ["Route"] })] }, AT);
     if ("problems" in planned) throw new Error(planned.problems.join("; "));
-    expect(planned.spec).toEqual({ name: "alpha", planVersion: 1, phases: ["1", "2"], ...AT, layout: 2 });
+    expect(planned.spec).toEqual({ name: "alpha", planVersion: 1, phases: ["1", "2"], ...AT, layout: 3 });
     expect(planned.phases[0]?.tasks).toEqual([{ id: "1.1", text: "Write it", done: false }, { id: "1.2", text: "Gate: design agreed with Anton", done: false, gate: true }]);
     expect(planned.phases[1]).toMatchObject({ id: "2", needs: ["1"], pr: "A", code: true, tasks: [{ id: "2.1", text: "Route", done: false }] });
   });

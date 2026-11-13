@@ -91,7 +91,7 @@ describe("phase tick refusals before anything is written (real git)", () => {
 
   test("a Gate: task keeps the evidence rule and needs no push", async () => {
     const mine = session(repo.clone("gate"), "sg");
-    expect(await mine.tick("2", "2.4")).toBe('phase tick: "Gate: design agreed with Anton" records an approval; tick it with --evidence "<who approved, when>"');
+    expect(await mine.tick("2", "2.4")).toBe('phase tick: "Gate: design agreed with Anton" records an approval; answer its gate question (phase unpark) or tick it with --evidence "<who approved, when>"');
     expect(await mine.tick("2", "2.4", "--evidence", "Anton, 2026-11-12")).toBe("tick: phase 2 · 2.4 done (Anton, 2026-11-12)");
   }, REAL_GIT_MS);
 });

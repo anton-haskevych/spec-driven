@@ -6,6 +6,7 @@ import { planAdd } from "../phases/add";
 import { planDeployed } from "../phases/deployed";
 import { planMove } from "../phases/move";
 import { planSet } from "../phases/set";
+import { planNote } from "../phases/note";
 import { planPark, planUnpark } from "../phases/park";
 import { refsToPhase } from "../phases/review-refs";
 import { planSplit, type Split } from "../phases/split";
@@ -78,6 +79,14 @@ export function fileWriter(projectDir: string, spec: SpecFolder, deps: PhaseDeps
       if (result.kind === "invalid") return { kind: "invalid", reason: result.reason };
       applyEdits(result.plan);
       return landed(result.line);
+    },
+    note(request) {
+      const result = planNote(spec, request);
+      if (result.plan.kind === "invalid") return { kind: "invalid", reason: result.plan.reason };
+      if (result.plan.kind === "unchanged") return { kind: "unchanged", line: result.plan.reason };
+      applyEdits(result.plan);
+      const removed = (result.plan.removes ?? []).length > 0;
+      return landed(`note: phase ${result.phaseId} · ${result.file} ${removed ? "removed" : "written"}${removed ? "" : "; commit it with the hand-off"}`);
     },
   };
 }

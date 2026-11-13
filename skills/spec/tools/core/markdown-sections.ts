@@ -15,6 +15,14 @@ export function withSection(text: string, heading: string, body: readonly string
   return `${[...lines.slice(0, range.start), ...block, ...lines.slice(range.end)].join("\n").trimEnd()}\n`;
 }
 
+export function withoutSection(text: string, heading: string): string {
+  const lines = text.split("\n");
+  const range = sectionRange(lines, heading);
+  if (!range) return text;
+  const kept = [...lines.slice(0, range.start), ...lines.slice(range.end)].join("\n").trimEnd();
+  return kept === "" ? "" : `${kept}\n`;
+}
+
 // The indented lines right under a list item.
 export function childLines(lines: readonly string[], parent: number): readonly string[] {
   const following = lines.slice(parent + 1);

@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import { questionCommand, QUESTION_USAGE } from "./commands/question";
 import { contextPack } from "./commands/context";
 import { parseContextRequest } from "./context/request";
 import { doctorCommand, DOCTOR_USAGE } from "./commands/doctor";
@@ -67,6 +68,7 @@ export const COMMANDS: Record<string, Command> = {
   record: { usage: RECORD_USAGE, run: (dir, args) => recordCommand(dir, args) },
   join: { usage: JOIN_USAGE, run: (dir, args) => joinCommand(dir, args) },
   plan: { usage: PLAN_USAGE, run: (dir, args) => planCommand(dir, args) },
+  question: { usage: QUESTION_USAGE, run: questionCommand },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)

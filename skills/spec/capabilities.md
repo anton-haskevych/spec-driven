@@ -10,7 +10,7 @@ The entry declares the workflow profile before a mode runs. Existing Claude entr
 |---|---|
 | Context, implementation/spec edits, focused checks | Allowed in the verified exclusive separate clone |
 | Recall, doctor, graph, named readiness, gates/playbooks/settings | Existing local tools; execute gate text only within this profile |
-| Exact-phase tick/park/unpark, ledger/in-flight edits, local commits | Allowed; validate spec edits explicitly while native hooks are pending |
+| Exact-phase tick/park/unpark/note, ledger/in-flight edits, local commits | Allowed; validate spec edits explicitly while native hooks are pending |
 | Claims, takeover/release, remote mirrors, board/list allocation | Unavailable; no ownership acquired or released |
 | Placement, worktree cleanup/prune | Unavailable; remain in the verified checkout |
 | Push, PR/deployment/publication, next-session/worker launches, crew | Unavailable; report local work and leave these pending |

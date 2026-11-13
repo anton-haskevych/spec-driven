@@ -87,7 +87,7 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
 
 ## Rules
 
-- **No docs pushes while CI runs.** This session writes no spec docs: no ticks, no in-flight notes, no
+- **No docs pushes while CI runs.** This session writes no spec docs: no ticks, no hand-off notes (`phase note`), no
   ledger. The merge line lands on main through `pr merge`; for a joined spec `pr merge` writes the PR document on the record, never main. Lessons go in the final report.
 - **Limits:** 2 re-runs per run (the tool refuses the third), 3 fix pushes and 3 hours, both counted from
   the latest `babysit-start` (`pr log <n>`'s header). Hitting one → §4.

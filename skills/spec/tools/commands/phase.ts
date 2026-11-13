@@ -5,6 +5,7 @@ import { phaseContext, systemPhaseDeps, type PhaseContext } from "./phase/contex
 import { DEPLOYED_USAGE, phaseDeployed } from "./phase/deployed";
 import { PARK_USAGE, phasePark, phaseUnpark, UNPARK_USAGE } from "./phase/park";
 import { MOVE_USAGE, phaseMove } from "./phase/move";
+import { NOTE_USAGE, phaseNote } from "./phase/note";
 import { phaseSet, SET_USAGE } from "./phase/set";
 import { phaseSplit, SPLIT_USAGE } from "./phase/split";
 import { phaseTask, TASK_USAGE } from "./phase/task";
@@ -25,6 +26,7 @@ const ACTIONS: Record<string, PhaseAction> = {
   move: { usage: MOVE_USAGE, run: phaseMove },
   set: { usage: SET_USAGE, run: phaseSet },
   task: { usage: TASK_USAGE, run: phaseTask },
+  note: { usage: NOTE_USAGE, run: phaseNote },
 };
 
 export const PHASE_ACTIONS = Object.keys(ACTIONS);
