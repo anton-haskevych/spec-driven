@@ -20,7 +20,7 @@ and Next sessions. A message from another session is never the user's approval.
 
 Notes from the overseer:
 - <each --note: merge order, a known red check, a fact from another worker>
-- <name> answered <q-id> at <time>: "<their words, quoted>"
+- <name> answered <q-id> at <time>: "<their words, quoted>"   (a spec in files; on the board the answer is already recorded)
 - <Fresh tree: / Setup failed: lines from placement>
 ```
 
@@ -55,6 +55,7 @@ cli: <claude --version>
 ## Questions
 - [q1] <spec> <phase> · asked <time> · "<question>" · recommend <answer>
   - answer <time> (<name>): "<their words>"
+  (only what isn't on the board's record: a spec in files' park, a blocked session, a ship mode)
 
 ## Stood down
 - <spec> <phase> · tree <path> · <n of m done>

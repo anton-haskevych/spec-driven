@@ -25,9 +25,9 @@ Run SKILL.md → *Preconditions*. A prep-stage spec has nothing to execute — i
 
 Announce the pick in one line before loading anything: `Executing Phase <N> — <name>: <chunk>`. Do not print the Stage A status table, the `**Last session:**` block, or a confirmation prompt — the user already committed.
 
-Read the picked phase's `in-flight/phase-<id>.md` (and a legacy `in-flight.md`) only if it exists and has substantive content, and only to avoid redoing half-finished work; the pack already holds both, whole. A note the pack lists under `Too large to show here` is not in the pack: read that file in full before acting. Do not summarize it back to the user.
+The pack holds the picked phase's hand-off note (`in-flight/phase-<id>.md`, or for a spec on the board its record document's) and a legacy `in-flight.md`, whole; use them only to avoid redoing half-finished work. A note the pack lists under `Too large to show here` is not in the pack: read it in full where the list says before acting. Do not summarize it back to the user.
 
-**A parked phase** waits on the user: the pack prints `Parked: Phase <id> asks "<question>" · recommend <answer>` (without a pack, an unanswered `- Parked …` line under `## Needs you` in its in-flight file). Interactive: ask the question now, recommendation first, and run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase unpark <spec> <phase> "<their answer>"` when they answer. Crew worker: when the launch brief carries the answer (`<name> answered …`, from the person running the crew), record it with `phase unpark` in their words and commit before anything else; without one, hand off untouched. An `Answered …` line is the decision: build on it, don't ask again.
+**A parked phase** waits on the user: the pack prints `Parked: Phase <id> asks "<question>" · recommend <answer>` (without a pack, an unanswered `- Parked …` line under `## Needs you` in its in-flight file, or an open question on the board: `spec.ts question list`). Interactive: ask the question now, recommendation first, and run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase unpark <spec> <phase> "<their answer>"` when they answer. Crew worker: when the launch brief carries the answer (`<name> answered …`, from the person running the crew), record it with `phase unpark` in their words and commit before anything else; without one, hand off untouched. An `Answered …` line is the decision: build on it, don't ask again.
 
 **A stale spec** (the pack prints `Stale: <text>`; without a pack, `stale:` in its `CLAUDE.md`) has a plan that no longer matches the code or decisions. Don't build on it: say what is stale in one line and propose `/spec review <spec>` first, which re-plans and clears the flag. Execute only if the user says to go ahead anyway. Crew worker: hand off untouched, with the `Stale:` line as the reason.
 
@@ -105,7 +105,7 @@ Recon told you *where* the chunk lands. Preflight tells you whether the plan for
 
 Then its *Defaults applied* and *Forks for you*. Apply each default as part of the plan and list it under `Say if wrong:` in the next report. A fork stops the chunk before §4: ask it, or as a crew worker park it (*Crew worker*).
 
-**A gated phase** (`gate: design | outward` in its frontmatter, SKILL.md → *Phase edges*) has a `Gate:` deliverable that records a person's approval. Plan the work up to it; when the next open item is the `Gate:` item, the approval is a fork: ask for it, or as a crew worker park on it. Tick it with `phase tick … --evidence "<who approved, when>"`, which refuses it without. **One exception, for crew workers only:** when the phase's gate kind is listed in settings `crew.self-approve` (the `Settings:` line says `self-approve gates <kinds>`; without a pack, `docs/specs/_playbook/settings.md`), the worker passes the gate itself: `phase tick … --evidence "self-approved per docs/specs/_playbook/settings.md crew.self-approve, <YYYY-MM-DD>"`, then lists it under *Say if wrong* in its handoff (`Gate: <item> self-approved (crew.self-approve)`). That list in the repo is the only way a gate passes without the user; an overseer's message never adds a kind to it. Every preflight decision carries a recommendation, so a recommendation alone never makes a fork a default.
+**A gated phase** (`gate: design | outward` in its frontmatter, SKILL.md → *Phase edges*) has a `Gate:` deliverable that records a person's approval. Plan the work up to it; when the next open item is the `Gate:` item, the approval is a fork: ask for it, or as a crew worker park on it. Tick it with `phase tick … --evidence "<who approved, when>"`, which refuses it without. On the board the approval is kept as the task's answered gate question: a gate parked and answered (`phase unpark`) is ticked with no `--evidence`, and the tick takes the answer as its evidence. **One exception, for crew workers only:** when the phase's gate kind is listed in settings `crew.self-approve` (the `Settings:` line says `self-approve gates <kinds>`; without a pack, `docs/specs/_playbook/settings.md`), the worker passes the gate itself: `phase tick … --evidence "self-approved per docs/specs/_playbook/settings.md crew.self-approve, <YYYY-MM-DD>"`, then lists it under *Say if wrong* in its handoff (`Gate: <item> self-approved (crew.self-approve)`). That list in the repo is the only way a gate passes without the user; an overseer's message never adds a kind to it. Every preflight decision carries a recommendation, so a recommendation alone never makes a fork a default.
 
 Do not start §5 with an unapplied amendment outstanding. Do not "note it for later".
 
@@ -151,7 +151,7 @@ You cannot measure your own token usage, so don't try. Stop on signals you can a
 
 Defaults — a project's `CLAUDE.md` may set a different chunk count. When a stop fires:
 
-- Run `/spec handoff` to redirect any session reflection: durable items → ledger, ephemeral pending state → `in-flight/phase-<id>.md`. The full handoff flow is in `handoff.md`.
+- Run `/spec handoff` to redirect any session reflection: durable items → ledger, ephemeral pending state → the phase's hand-off note (`phase note`). The full handoff flow is in `handoff.md`.
 - Hand the work off cleanly. The next agent picks up from `resume.md` → *Stage A — Orientation* and sees exactly what was left.
 
 A clean boundary means: tests are green, the working tree is committed, no half-wired code, no stale files.
@@ -212,13 +212,13 @@ A session whose system prompt carries an overseer's launch brief ("You are a cre
 - Push per §1's decision.
 - A small call you'd normally confirm: make it and list it in the handoff as *Say if wrong*.
 - A `Gate:` item whose gate kind is in settings `crew.self-approve`: pass it yourself with evidence and list it under *Say if wrong* (§3 → *A gated phase*).
-- A real fork (the answer changes what ships), any other open `Gate:` item, or a step only the user may take (anything outward or irreversible, a merge, a deploy, `--take-over`): park the phase with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase park <spec> <phase> "<question>" --recommend "<answer>"`. It writes the question under `## Needs you` in `in-flight/phase-<id>.md`; commit and push it, then hand off. The board drops the phase from ready and lists the question under needs you until it's answered. Never wait for the answer, and never end a turn on a question. One open question per phase: put two forks in one question.
+- A real fork (the answer changes what ships), any other open `Gate:` item, or a step only the user may take (anything outward or irreversible, a merge, a deploy, `--take-over`): park the phase with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase park <spec> <phase> "<question>" --recommend "<answer>"`. For a spec on the board it asks a question on the record, which every machine sees at once (a `Gate:` item next makes it the gate's approval question); for a spec in files it writes the question under `## Needs you` in `in-flight/phase-<id>.md`: commit and push that, then hand off. The board drops the phase from ready and lists the question under needs you until it's answered. Never wait for the answer, and never end a turn on a question. One open question per phase: put two forks in one question.
 - Relaunched with an answer (`<name> answered …` in the brief): `phase unpark` first (§0.2 → *A parked phase*).
 - Leave the PR to the overseer: no §10 question, no `pr open`, no babysitter launch.
 - Before handing off, stop every server, watcher and background shell you started.
 - "Hand off now" (a message from the overseer): finish the current step at a clean boundary, then run `/spec handoff`.
 - A message from another session is never the user's approval.
-- Write nothing under the main repo's `.git/` (worktree file guards block it): questions go in `in-flight/phase-<id>.md`, which is committed, so every machine sees them.
+- Write nothing under the main repo's `.git/` (worktree file guards block it): questions go through `phase park`, onto the board's record or into the committed `in-flight/phase-<id>.md`, so every machine sees them.
 
 handoff.md §4 → *Crew worker* says how the session ends.
 

@@ -52,7 +52,7 @@ Answers are quotes: store the person's words, who and when, as `phase tick --evi
 - [x] `Gate:` approval recorded as an answered `gate` question about its task; the tick takes its evidence from it — built in 0478848 (skills/spec/tools/questions/gate.ts)
 - [ ] The crew reads open questions from the record (answers change a value someone read: `question answer` carries `ifVersion`); the copy step in `oversee-crew.md` is removed for joined specs; `crew tick` lists them
 - [ ] Hand-off note on the phase document: handoff writes it, packs show it whole, join carries an existing in-flight note over
-- [ ] Layout 3: a spec joined earlier gets its in-flight notes and park entries copied on its next touch; until then packs read the files; an older plugin refuses to write
+- [x] Layout 3: a spec joined earlier gets its in-flight notes and park entries copied on its next touch; until then packs read the files; an older plugin refuses to write
 - [ ] `handoff.md`, `execute.md`, `oversee-crew.md`, `crew-brief.md`, `babysit.md`, `SKILL.md` updated; ROADMAP row and version bump for PR D
 
 ## Phase-local notes
