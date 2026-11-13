@@ -78,4 +78,12 @@ describe("writeRecord", () => {
     record.offline = true;
     expect((await writeRecord(record, addItem("a"), options)).kind).toBe("offline");
   });
+
+  test("a plan's alongside ops land in the same commit", async () => {
+    const record = fakeRecord();
+    const plan: RecordPlan = () => ({ ops: [{ op: "replace", path: LIST, doc: { items: ["a"] } }], alongside: [{ op: "replace", path: "sessions/s1.json", doc: { at: 1 } }] });
+    expect((await writeRecord(record, plan, options)).kind).toBe("landed");
+    expect(docAtTip(record, "sessions/s1.json")).toEqual({ at: 1 });
+    expect(record.commits.size).toBe(1);
+  });
 });

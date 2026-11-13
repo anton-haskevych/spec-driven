@@ -21,10 +21,23 @@ type OpOutcome = { kind: "write"; text: string | undefined } | { kind: "same" } 
 export const MAX_OPS = 50;
 const RECORD_PATH = /^(?:[A-Za-z0-9][A-Za-z0-9._-]*\/)*[A-Za-z0-9][A-Za-z0-9._-]*\.json$/;
 
-export function planWrites(view: RecordView, ops: readonly RecordOp[], validate: Validate): PlannedWrites {
-  const shapeProblems = batchProblems(ops);
+// `alongside` ops ride in the batch outside the op limit and yield to an op the batch already has for their
+// path. They are written only when the batch itself changes something.
+export function planWrites(view: RecordView, ops: readonly RecordOp[], validate: Validate, alongside: readonly RecordOp[] = []): PlannedWrites {
+  const shapeProblems = [...batchProblems(ops), ...pathProblems(alongside)];
   if (shapeProblems.length > 0) return { kind: "invalid", problems: shapeProblems };
+  const planned = planOps(view, ops, validate);
+  if (planned.kind !== "planned" || planned.changes.length === 0) return planned;
+  const own = new Set(ops.map(({ path }) => path));
+  return mergePlanned(planned, planOps(view, alongside.filter(({ path }) => !own.has(path)), validate));
+}
 
+function mergePlanned(first: PlannedWrites & { kind: "planned" }, second: PlannedWrites): PlannedWrites {
+  if (second.kind !== "planned") return second;
+  return { kind: "planned", changes: [...first.changes, ...second.changes], versions: { ...first.versions, ...second.versions } };
+}
+
+function planOps(view: RecordView, ops: readonly RecordOp[], validate: Validate): PlannedWrites {
   const changes: FileChange[] = [];
   const versions: Record<string, string> = {};
   const problems: string[] = [];
@@ -41,6 +54,10 @@ export function planWrites(view: RecordView, ops: readonly RecordOp[], validate:
 
 function batchProblems(ops: readonly RecordOp[]): string[] {
   if (ops.length > MAX_OPS) return [`one write takes at most ${MAX_OPS} changes; got ${ops.length}`];
+  return pathProblems(ops);
+}
+
+function pathProblems(ops: readonly RecordOp[]): string[] {
   const problems: string[] = [];
   const seen = new Set<string>();
   for (const { path } of ops) {
