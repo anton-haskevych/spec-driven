@@ -2,6 +2,7 @@ import type { Env } from "../core/env";
 import type { Runner } from "../core/run";
 import { FIELD_COMMAND, fieldPlan, type FieldIntent } from "../plan/ops/field";
 import { readPlansAt } from "../plan/read-plans";
+import { OLDER_PLUGIN } from "../record/write";
 import { recordWorld, sendRecordIntent } from "../plan/record-send";
 import { upgradeIfBehind } from "../plan/upgrade-send";
 
@@ -22,8 +23,11 @@ export type FieldWritten =
   | { kind: "refused"; reason: string; notes: string[] };
 
 // A joined spec's field is a record write; `undefined` means the spec is in files and the caller lands on main.
+// A record on a newer layout may hold the field: landing it on main would hide it, so it refuses.
 export async function writeJoinedField(projectDir: string, intent: FieldIntent, deps: FieldWriteDeps): Promise<FieldWritten | undefined> {
-  const joined = readPlansAt(projectDir, deps.runner, deps.now()).joined(intent.spec);
+  const plans = readPlansAt(projectDir, deps.runner, deps.now());
+  if (plans.record.kind === "newer") return { kind: "refused", reason: OLDER_PLUGIN, notes: [] };
+  const joined = plans.joined(intent.spec);
   if (!joined) return undefined;
   const world = recordWorld(projectDir, deps);
   const notes = await upgradeIfBehind(world, projectDir, joined, deps.runner);
