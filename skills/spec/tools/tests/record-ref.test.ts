@@ -29,6 +29,17 @@ describe("gitRecordPort (real git, two clones)", () => {
     expect(gitRecordPort(gitAt(repo.dir, isolatedRunner))).toBeUndefined();
   });
 
+  test("a commit of many documents writes their blobs in one git call, each at its path", () => {
+    const calls: string[] = [];
+    const counting = gitRecordPort(gitAt(repo.dir, { run: (argv, options) => (calls.push(argv.join(" ")), isolatedRunner.run(argv, options)) }));
+    const changes = Array.from({ length: 40 }, (_, index) => ({ path: `cards/0/c${index + 1}.json`, text: serializeDoc({ id: `c${index + 1}` }) }));
+    const commit = counting?.commit({ kind: "absent" }, [...changes, { path: "gone.json", text: undefined }], "record: many");
+    if (!commit?.ok) throw new Error(commit?.reason ?? "no port");
+    expect(calls.filter((call) => call.includes("hash-object")).length).toBe(1);
+    expect(repo.git("show", `${commit.value}:cards/0/c7.json`)).toBe(serializeDoc({ id: "c7" }).trimEnd());
+    expect(repo.git("ls-tree", "-r", "--name-only", commit.value).split("\n").length).toBe(40);
+  });
+
   test("a record that doesn't exist yet is absent, not offline", () => {
     expect(laptop.fetchTip()).toEqual({ kind: "absent" });
   });
