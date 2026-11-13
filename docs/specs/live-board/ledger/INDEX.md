@@ -34,6 +34,8 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-phase-7-questions-and-notes-as-built.md` — [phase 8+] — question docs, gate approvals, phase note, layout steps 2/3
 - `decision-phase-8-cards-as-built.md` — [phase 8+] — card docs, plans, intent, cover, board rows, ideas, spec cards, layout 4
 - `decision-phase-9-sessions-as-built.md` — [phase 10+] — session docs, stamp as alongside ops, register/end, unsaved-work row
+- `decision-the-page-shows-and-takes-one-answer.md` — [phase 10+] — page is for looking; one edit (an answer); build to the saved mock
+- `decision-phase-10-page-as-built.md` — [phase 11] — page model, render, server, process and preview as built
 
 ## Workarounds
 - `docs/specs/_ledger/workaround-test-a-hanging-origin-with-a-blackhole-address.md` — [general] — Test a hanging origin with http://10.255.255.1/…; a missing path fails at once

@@ -29,5 +29,5 @@
 - [x] Phase 7 — Questions and hand-off notes → `phases/phase-7-questions-and-handoff.md`
 - [x] Phase 8 — Cards, sources and tags → `phases/phase-8-cards-sources-tags.md`
 - [x] Phase 9 — Sessions and work not on the remote → `phases/phase-9-sessions.md`
-- [ ] Phase 10 — The page → `phases/phase-10-page.md`
+- [x] Phase 10 — The page → `phases/phase-10-page.md`
 - [ ] Phase 11 — Academy's board moves over → `phases/phase-11-academy-moves-over.md`

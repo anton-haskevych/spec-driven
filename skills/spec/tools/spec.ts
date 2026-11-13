@@ -15,6 +15,7 @@ import { CREW_USAGE, crewCommand } from "./commands/crew";
 import { FOCUS_USAGE, focusCommand } from "./commands/focus";
 import { LIST_USAGE, listCommand } from "./commands/list";
 import { OWNER_USAGE, ownerCommand } from "./commands/owner";
+import { PAGE_USAGE, pageCommand } from "./commands/page";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
 import { PR_USAGE, prCommand } from "./commands/pr";
@@ -73,6 +74,7 @@ export const COMMANDS: Record<string, Command> = {
   plan: { usage: PLAN_USAGE, run: (dir, args) => planCommand(dir, args) },
   question: { usage: QUESTION_USAGE, run: questionCommand },
   card: { usage: CARD_USAGE, run: (dir, args) => cardCommand(dir, args) },
+  page: { usage: PAGE_USAGE, run: (dir, args) => pageCommand(dir, args) },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)

@@ -49,6 +49,7 @@ the business reason for a spec sits next to its progress. Spec prose stays in fi
 | Questions | One record with the question, a recommendation and the answer | Leave parked notes, crew questions and gate items as three shapes | "Two open questions exist only in this chat" (session S63); answers are lost and asked again |
 | Sessions | A session document on the record, named by the whole session key of the `SessionRef` type already in the code; it says who, where and in which mode, and what a session holds stays its claim; claims stay as they are; no dependency on `codex-runtime-support` | Wait for `codex-runtime-support` 2b to rewire claims first; invent a new identity | The type exists today, so nothing has to land first. Anton, 2026-11-11: "Not waiting on codex-runitime support at all!!!" A new identity would be the third model |
 | The page | A small local page a tool starts, on Bun's own server, showing the board model the tools already compute | A published Artifact; no page; computing the board in page script as the Academy page does | Must update within seconds and reach Taras; an Artifact can't be reached by another person's Claude and doesn't refresh. Two copies of the board's rules would disagree |
+| What a person can do on the page | Answer a waiting question; nothing else | Editing priority, due date, tags and assignee there (the first design) | Nobody edits cards by hand; each edit is a write path, a version check and a form on a page whose job is display. An answer is the one click that unblocks a session. Anton, 2026-11-13 |
 | Codex sessions | A Codex pilot reads a joined spec from the record and is refused when it tries to tick, park or unpark one | A phase here that lets Codex write the board; specs with a Codex session don't join | Shared writes break the pilot's isolation rule, which `codex-runtime-support` owns and can lift in its own phase. Anton, 2026-11-11: "Refuse for now" |
 | Validation | Hand-written readers that collect problems, calling the field readers the plugin already has; each reader lives with its domain and is handed to the store | A schema library; readers inside the store | The plugin ships zero dependencies. A store that imports every document type is edited by every later phase |
 | Build order | Phases on the record first, then PRs and fields, questions, cards, sessions, the page | Cards first | The clashes are the daily cost; Academy's cards keep working on their current board meanwhile |
@@ -132,26 +133,42 @@ written and what to do.
 
 ## The page
 
-Read-mostly, for people. Two views; the tag view is where a customer's work is seen alone.
+For looking. Anton, 2026-11-13: "no one is going to add or update those cards manually … Human board is just a
+fast visual way for us to understand what is going on. It needs to be adhd-friendly and visual." The agreed
+design, with the five-voice council behind it and the approved mock, is in
+`research/phase-10/2026-11-13-page-council-and-design.md` and `2026-11-13-page-design-mock.html` beside it.
 
 ```
- Live board · crm                       [ By status ] [ By tag ]      updated 3 s ago
- ───────────────────────────────────────────────────────────────────────────────────
- NEEDS YOU (3)
-  q12  schedule-clarity-fixes · 5   Reset the Teachers pick each morning?   rec: no
-  PR A schedule-clarity-fixes       built, not opened · phases 1–2
-  c83  Anna Falotico's lesson       due tomorrow · nothing covers it
+ Live board · crm   [ Now 2 ] [ Plan ]   51 of 99 done                  ● live · 3 s ago
+ ───────────────────────────────────────────────────────────────────────────────────────
+ NOW    ┌ 2 ───────┐  Q   Reset the Teachers pick each morning?  [No reset] [Reset daily]  42m
+        │ need you │  PR  Open PR A · schedule fixes · phases 1–2 built                    2h
+        └ Taras 1 ─┘  !   Private lessons held until paid · overdue Nov 12 · nobody has it
+        Sessions   (A) schedule fixes 2 · now   (A) import 2 · 47m · 3 commits not pushed   (T) …
+        Moving     P0  Featured row keeps events visible   ■■▣□   (A)  now
 
- BY TAG ▸ Academy Ballroom  P0 · 14 open · 3 doing · 29 done
-  c87  Featured row keeps events visible      p0  doing   schedule-clarity-fixes#1-2
-        ▸ phase 1 merged · phase 2 built (PR A not opened) · Anton, tree pr-a
-        “I like having the Upcoming Events … now it doesn't show” — Chasity, Nov 11
-  c90  Filters say what they hide             p0  open    schedule-clarity-fixes#4-9
-        ▸ waits on q12 (design approval)
+ PLAN   P0 ─────────────────────────────────────────────────────────────────────────────
+        P0  Pass sync        Students can't use passes they paid for   ▰▰▰▱▱▱▱  (T)  overdue Nov 12
+              ├ mindbody-pass-fixes (T) 14m   Pass edits reach the studio  ■■▣□
+              ├ Open · nobody has these       Private lessons held until paid · overdue Nov 12
+              └ Done 2 ▸
+        P0  Schedule fixes   1 waits on your answer                    ▰▰▰▰▰▱▱  (A)  today
 ```
 
-Edits allowed on the page: priority, due date, tags, who has it, answering a question. Everything else goes
-through Claude. The page writes with the same version check as the tools.
+- **Now** answers "what needs me and is anything stuck": the count of things waiting on the viewer, up to three
+  rows, the live sessions, the cards that are moving.
+- **Plan** answers "what is coming and in what order": one row per project (a tag), P0 first, with the reason
+  for its priority, a done / moving / to-do bar, who is on it and the nearest deadline. A row folds open to one
+  panel per covering spec, an *Open* panel for cards nobody holds, and *Done* as a count. It comes from the
+  Academy board's *By scope* view.
+- **An opened card** (`/#c<id>`) holds the words: the origin quote, phase names and stages, the waiting question.
+- **One colour, one meaning:** orange, blue, green for to do, moving, done; red for trouble (overdue, a silent
+  session, a dead feed); yellow for "waits on you"; a hue per person; priority by weight.
+- **A dead feed looks dead:** the board greys out under a banner when no update has arrived for 15 s.
+
+The only thing a person can do on the page is answer a waiting question, with the version the page showed.
+Priority, due date, tags and who has it are set by telling a session. `spec.ts page --json` prints the model
+the page shows, so a person and a session talk about the same board.
 
 ## Edge cases
 

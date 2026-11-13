@@ -25,7 +25,7 @@ export function cardAttention(cards: readonly CardDoc[], phasesOf: (spec: string
   });
 }
 
-function coveredPhases(ref: string, phasesOf: (spec: string) => readonly CoveredPhase[] | undefined): { spec: string; phase: CoveredPhase }[] {
+export function coveredPhases(ref: string, phasesOf: (spec: string) => readonly CoveredPhase[] | undefined): { spec: string; phase: CoveredPhase }[] {
   const { target, phases } = parseRef(ref);
   const all = phasesOf(target) ?? [];
   const ids = phases ? new Set(phasesInRef(phases, all.map((phase) => phase.id))) : undefined;

@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
-import { mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, openSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { livePid, readText } from "../core/pid-file";
 
 export type Spawner = (argv: readonly string[], options: { cwd: string; logFile: string }) => number | undefined;
 
@@ -27,8 +28,7 @@ export function startBackgroundPrune(projectDir: string, dir: string, spawner: S
   const { pid, last, log } = files(dir);
   const previous = readText(last);
   const lastRun = previous ? ` · last run: ${previous}` : "";
-  const running = Number(readText(pid));
-  if (Number.isInteger(running) && running > 0 && isAlive(running)) return `Pruning merged trees: still running from an earlier handoff${lastRun}`;
+  if (livePid(pid) !== undefined) return `Pruning merged trees: still running from an earlier handoff${lastRun}`;
   const started = spawner(argv, { cwd: projectDir, logFile: log });
   if (started === undefined) return `trees: could not start the background prune${lastRun}`;
   writeFileSync(pid, String(started));
@@ -41,21 +41,4 @@ export function recordPruneRun(dir: string, summary: string): void {
   writeFileSync(`${last}.tmp`, summary);
   renameSync(`${last}.tmp`, last);
   rmSync(pid, { force: true });
-}
-
-function readText(path: string): string | undefined {
-  try {
-    return readFileSync(path, "utf8").trim() || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function isAlive(pid: number): boolean {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (cause) {
-    return cause instanceof Error && "code" in cause && cause.code === "EPERM";
-  }
 }

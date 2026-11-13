@@ -13,7 +13,7 @@ export function cardRows(inputs: Pick<BoardInputs, "plans" | "prDocs" | "nodes">
 }
 
 // A joined phase by its stage; a phase in files by its mark on the default branch, where a tick lands at merge.
-function coveredPhasesOf(inputs: Pick<BoardInputs, "plans" | "prDocs" | "nodes">, spec: string): CoveredPhase[] | undefined {
+export function coveredPhasesOf(inputs: Pick<BoardInputs, "plans" | "prDocs" | "nodes">, spec: string): CoveredPhase[] | undefined {
   const joined = inputs.plans.joined(spec);
   if (!joined) return inputs.nodes.get(spec)?.phases.map((mark) => ({ id: mark.id, stage: mark.done ? "merged" : "open", finished: mark.done }));
   const docs = inputs.prDocs.get(spec);
