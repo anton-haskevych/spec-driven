@@ -60,6 +60,20 @@ describe("the rendered page", () => {
     expect(html.split('<section class="sheet" id="c94"')[1]?.split("</section>")[0]).toContain(`<p class="end dropped"><b>Dropped</b> Nov 10 by Anton: no</p>`);
   });
 
+  test("a card covering a whole spec shows the spec's progress, not a square per phase", () => {
+    const docs = { ...pageDocs(), [cardDocPath("c96")]: cardDoc({ id: "c96", title: "All of it", status: "doing", tags: ["Schedule fixes"], coveredBy: ["schedule-fixes"] }) };
+    const page = renderPage(pageModel(pageInputs(docs)));
+    const row = page.split(`<a class="row" href="#c96"`)[1]?.split("</a>")[0] ?? "";
+    const bar = `<span class="spec-bar" title="schedule-fixes: 1 done, 1 moving, 1 to do"><span class="pbar"><i class="d" style="flex:1"></i><i class="m" style="flex:1"></i><i class="t" style="flex:1"></i></span><span class="n">1/3</span></span>`;
+    expect(row).toContain(bar);
+    expect(row).not.toContain(`<i class="sq`);
+    const panel = page.split(`<a class="pc" href="#c96"`)[1]?.split("</a>")[0] ?? "";
+    expect(panel).toContain(bar);
+    const sheet = page.split(`<section class="sheet" id="c96"`)[1]?.split("</section>")[0] ?? "";
+    expect(sheet).toContain(`<div class="h">Covered by <code>schedule-fixes</code>, the whole spec</div>`);
+    expect(sheet).toContain(`<details class="folded" data-id="c96:schedule-fixes"><summary class="fold">${bar}3 phases<i class="chev"></i></summary>`);
+  });
+
   test("words from the record are escaped", () => {
     const docs = { ...pageDocs(), [cardDocPath("c99")]: cardDoc({ id: "c99", title: `<img src=x onerror="alert(1)">`, status: "doing" }) };
     const page = renderPage(pageModel(pageInputs(docs)));

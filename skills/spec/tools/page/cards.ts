@@ -37,6 +37,7 @@ function pageCard(doc: CardDoc, inputs: CardInputs): PageCard {
     covers: doc.coveredBy,
     stage: stageOf(doc, phases),
     phases,
+    whole: [...new Set(doc.coveredBy.filter((ref) => !parseRef(ref).phases).map((ref) => parseRef(ref).target))],
     ...(origin ? { origin: sourceOf(origin) } : {}),
     otherSources: sources.length - (origin ? 1 : 0),
     ...(question ? { question } : {}),

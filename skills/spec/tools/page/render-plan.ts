@@ -1,6 +1,6 @@
 import { samePerson } from "../core/people";
 import { PRIORITIES } from "../core/schedule";
-import { disc, discs, due, esc, pbar, pcount, pri, sessionChip, strip, waits } from "./marks";
+import { coverStrip, disc, discs, due, esc, pbar, pcount, pri, sessionChip, waits } from "./marks";
 import type { PageCard, PageModel, PlanRow, SpecPanel } from "./model";
 
 const SORT_CHIPS = `<span class="grp"><span class="more">Sort</span><button class="chip on" type="button" data-sort="rank">Priority</button><button class="chip" type="button" data-sort="due">Deadline</button></span>`;
@@ -48,7 +48,7 @@ function specPanel(model: PageModel, panel: SpecPanel, now: Date): string {
 }
 
 function panelCard(card: PageCard, covered: boolean): string {
-  const meta = [covered ? strip(card.phases) : "", card.due.kind === "none" && covered ? "" : due(card.due, true), card.question ? waits("waits on your answer") : ""].join("");
+  const meta = [covered ? coverStrip(card) : "", card.due.kind === "none" && covered ? "" : due(card.due, true), card.question ? waits("waits on your answer") : ""].join("");
   return `<a class="pc" href="#${esc(card.id)}" data-id="${esc(card.id)}" data-kind="card" data-stage="${card.stage}"><b>${esc(card.title)}</b><span class="pmeta">${meta}</span></a>`;
 }
 

@@ -1,5 +1,5 @@
 import { monthDay } from "./due";
-import { disc, due, esc, pri, sessionChip, since, waits } from "./marks";
+import { disc, due, esc, pri, sessionChip, since, specBar, waits } from "./marks";
 import type { PageCard, PageModel, PagePhase } from "./model";
 import { answerForm } from "./render-now";
 
@@ -38,8 +38,11 @@ function coveredBy(card: PageCard): string[] {
   if (card.covers.length === 0) return [`<div class="lane"><div class="h">Covered by nothing yet</div><p class="fine">No spec covers this card. Tell a session to prep one.</p></div>`];
   const specs = [...new Set(card.phases.map((phase) => phase.spec))];
   return specs.map((spec) => {
-    const rows = card.phases.filter((phase) => phase.spec === spec).map((phase) => phaseLine(card, phase)).join("");
-    return `<div class="lane"><div class="h">Covered by <code>${esc(spec)}</code></div><div class="phases">${rows}</div></div>`;
+    const phases = card.phases.filter((phase) => phase.spec === spec);
+    const rows = `<div class="phases">${phases.map((phase) => phaseLine(card, phase)).join("")}</div>`;
+    if (!card.whole.includes(spec)) return `<div class="lane"><div class="h">Covered by <code>${esc(spec)}</code></div>${rows}</div>`;
+    const fold = `<details class="folded" data-id="${esc(`${card.id}:${spec}`)}"><summary class="fold">${specBar(spec, phases)}${phases.length} ${phases.length === 1 ? "phase" : "phases"}<i class="chev"></i></summary>${rows}</details>`;
+    return `<div class="lane"><div class="h">Covered by <code>${esc(spec)}</code>, the whole spec</div>${fold}</div>`;
   });
 }
 

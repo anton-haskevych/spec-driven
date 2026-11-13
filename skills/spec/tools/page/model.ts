@@ -83,6 +83,8 @@ export interface PageCard {
   covers: string[];
   stage: CardStage;
   phases: PagePhase[];
+  // Specs the card covers whole: they show as one progress bar, not a square per phase.
+  whole: string[];
   origin?: PageSource;
   otherSources: number;
   question?: PageQuestion;

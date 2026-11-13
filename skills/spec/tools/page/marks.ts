@@ -1,7 +1,7 @@
 import { ago } from "../board/cells";
 import type { Priority } from "../core/schedule";
 import type { DueWord } from "./due";
-import type { PagePhase, PageSession, Who } from "./model";
+import type { PageCard, PagePhase, PageSession, Square, Who } from "./model";
 import { personOf, type PagePerson } from "./people";
 import { HUES } from "./styles";
 
@@ -23,9 +23,29 @@ export function discs(people: readonly PagePerson[], who: readonly Who[], small 
   return who.length > 0 ? who.map((each) => disc(people, each, small)).join("") : disc(people, undefined, small);
 }
 
+// A card's covers: a bar per spec it covers whole, then a square per phase it names.
+export function coverStrip(card: Pick<PageCard, "phases" | "whole">): string {
+  const bars = card.whole.map((spec) => specBar(spec, card.phases.filter((phase) => phase.spec === spec)));
+  return `<span class="strip">${bars.join("")}${squares(card.phases.filter((phase) => !card.whole.includes(phase.spec)))}</span>`;
+}
+
+export function specBar(spec: string, phases: readonly PagePhase[]): string {
+  const counts = phaseCounts(phases);
+  const words = [`${counts.done} done`, `${counts.moving} moving`, `${counts.todo} to do`].filter((word) => !word.startsWith("0 "));
+  return `<span class="spec-bar" title="${esc(`${spec}: ${words.join(", ")}`)}">${pbar(counts)}<span class="n">${counts.done}/${phases.length}</span></span>`;
+}
+
+function phaseCounts(phases: readonly PagePhase[]): { done: number; moving: number; todo: number } {
+  const count = (kinds: readonly Square[]) => phases.filter((phase) => kinds.includes(phase.square)).length;
+  return { done: count(["live"]), moving: count(["doing", "built"]), todo: count(["todo"]) };
+}
+
 export function strip(phases: readonly PagePhase[]): string {
-  const squares = phases.map((phase) => `<i class="sq${phase.square === "todo" ? "" : ` ${phase.square}`}" title="${esc(`${phase.id}${phase.title ? ` · ${phase.title}` : ""}: ${phase.stage}`)}"></i>`);
-  return `<span class="strip">${squares.join("")}</span>`;
+  return `<span class="strip">${squares(phases)}</span>`;
+}
+
+function squares(phases: readonly PagePhase[]): string {
+  return phases.map((phase) => `<i class="sq${phase.square === "todo" ? "" : ` ${phase.square}`}" title="${esc(`${phase.id}${phase.title ? ` · ${phase.title}` : ""}: ${phase.stage}`)}"></i>`).join("");
 }
 
 export function due(word: DueWord, small = false): string {

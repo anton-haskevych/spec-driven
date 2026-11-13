@@ -56,6 +56,8 @@ button:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px soli
 .pbar { display: flex; gap: 2px; height: 14px; border-radius: 7px; overflow: hidden; background: var(--soft); }
 .pbar i { display: block; min-width: 5px; }
 .pbar .d { background: var(--done); } .pbar .m { background: var(--move); } .pbar .t { background: var(--todo); }
+.spec-bar { display: inline-flex; align-items: center; gap: 6px; min-width: 96px; flex: 1 1 96px; font: 600 13px/1 var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; }
+.spec-bar .pbar { flex: 1; min-width: 48px; height: 10px; } .fold .spec-bar { flex: 0 1 160px; }
 .pbar.empty { background: none; border: 1.5px dashed var(--faint); box-sizing: border-box; }
 .chev { flex: none; display: inline-block; width: 8px; height: 8px; border: solid var(--faint); border-width: 0 2.5px 2.5px 0; transform: rotate(-45deg); transition: transform .15s; }
 /* session chips */

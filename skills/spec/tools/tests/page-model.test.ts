@@ -34,6 +34,14 @@ describe("the page model", () => {
     expect(model.totals).toEqual({ done: 1, all: 4 });
   });
 
+  test("a card covering a whole spec says so; a spec it also names by phase is still whole", () => {
+    const docs = { ...pageDocs(), [cardDocPath("c96")]: cardDoc({ id: "c96", title: "All of it", status: "doing", coveredBy: ["schedule-fixes", "schedule-fixes#2"] }) };
+    const whole = pageModel(pageInputs(docs)).cards.find((each) => each.id === "c96");
+    expect(whole).toMatchObject({ whole: ["schedule-fixes"] });
+    expect(whole?.phases.map((phase) => phase.id)).toEqual(["1", "2", "3"]);
+    expect(card("c90")?.whole).toEqual([]);
+  });
+
   test("an ended card carries how it ended and its note; it has no deadline", () => {
     expect(card("c92")).toMatchObject({ closed: { at: "2026-11-13T09:00:00-08:00", by: "Anton", why: "merged" }, note: "Spec: schedule-fixes | Items: featured row", due: { kind: "none" } });
     expect(card("c94")).toMatchObject({ status: "dropped", closed: { at: "2026-11-10", by: "Anton", why: "no" } });

@@ -1,5 +1,5 @@
 import { samePerson } from "../core/people";
-import { disc, due, esc, pri, sessionChip, since, strip } from "./marks";
+import { coverStrip, disc, due, esc, pri, sessionChip, since } from "./marks";
 import type { NeedRow, PageCard, PageModel, PageQuestion } from "./model";
 import { personOf } from "./people";
 
@@ -59,7 +59,7 @@ export function cardRow(model: PageModel, card: PageCard, now: Date): string {
   const dueChip = card.due.kind === "none" ? "" : due(card.due, true);
   const sub = `<span class="sub">${esc(card.tags.join(", "))}${dueChip}</span>`;
   const p0 = card.priority === "p0" ? " p0" : "";
-  return `<a class="row" href="#${esc(card.id)}" data-id="${esc(card.id)}" data-kind="card" data-stage="${card.stage}" data-tags="${esc(card.tags.join("|"))}">${pri(card.priority)}<span class="title${p0}"><b>${esc(card.title)}</b>${sub}</span>${strip(card.phases)}${disc(model.people, card.who[0])}${age}</a>`;
+  return `<a class="row" href="#${esc(card.id)}" data-id="${esc(card.id)}" data-kind="card" data-stage="${card.stage}" data-tags="${esc(card.tags.join("|"))}">${pri(card.priority)}<span class="title${p0}"><b>${esc(card.title)}</b>${sub}</span>${coverStrip(card)}${disc(model.people, card.who[0])}${age}</a>`;
 }
 
 function finishedToday(model: PageModel, now: Date): string {
