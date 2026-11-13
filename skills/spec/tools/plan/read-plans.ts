@@ -1,9 +1,10 @@
 import { gitAt, gitCommonDir, type Git } from "../core/git";
 import type { Runner } from "../core/run";
 import { loadSettings } from "../playbook/settings";
-import type { FieldsSource, MarksSource } from "../graph/nodes";
+import type { FieldsSource, MarksSource, ScheduleSource } from "../graph/nodes";
+import { cardSchedules, type CardSchedule } from "../cards/spec-card";
 import type { RecordFields } from "../graph/spec-fields";
-import { FIELDS_LAYOUT } from "../record/layout";
+import { CARDS_LAYOUT, FIELDS_LAYOUT } from "../record/layout";
 import type { PrDoc } from "./docs/pr-doc";
 import type { SpecDoc } from "./docs/spec-doc";
 import { readSpecPrDocs } from "./pr-sync";
@@ -18,6 +19,7 @@ export interface PlanSource {
   state: SpecSource;
   marks: MarksSource;
   fields: FieldsSource;
+  schedule: ScheduleSource;
   isJoined(spec: string): boolean;
   joined(spec: string): JoinedPlan | undefined;
   // A spec's PR documents once it is on layout 2; before that its PR lines are in pr-opening.md.
@@ -45,6 +47,7 @@ function queuedIntents(git: Git): OutboxEntry[] {
 export function planSourceOf(record: RecordRead, pending = 0): PlanSource {
   const view = recordViewOf(record);
   const plan = (spec: string) => (view ? readJoinedPlan(view, spec) : undefined);
+  let schedules: Map<string, CardSchedule> | undefined;
   return {
     state: stateSourceFor(view),
     marks: (spec) => {
@@ -54,6 +57,12 @@ export function planSourceOf(record: RecordRead, pending = 0): PlanSource {
     fields: (spec) => {
       const joined = plan(spec)?.spec;
       return joined && joined.layout >= FIELDS_LAYOUT ? recordFieldsOf(joined) : undefined;
+    },
+    // A spec joined before layout 4 still reads CLAUDE.md until its upgrade makes its card.
+    schedule: (spec) => {
+      if (!view || (plan(spec)?.spec.layout ?? CARDS_LAYOUT) < CARDS_LAYOUT) return undefined;
+      schedules ??= cardSchedules(view);
+      return schedules.get(spec);
     },
     prs: (spec) => {
       const joined = plan(spec)?.spec;

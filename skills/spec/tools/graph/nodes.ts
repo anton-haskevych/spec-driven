@@ -4,6 +4,7 @@ import { parsePhaseTitle } from "../core/phase-title";
 import { parsePhaseLines } from "../core/progress";
 import { listSpecs, type SpecFolder } from "../core/spec-folders";
 import type { SpecMeta } from "../core/spec-meta";
+import type { CardSchedule } from "../cards/spec-card";
 import type { Relation } from "./relations";
 import { readSpecFields, type RecordFields } from "./spec-fields";
 
@@ -32,9 +33,13 @@ export type MarksSource = (spec: string) => PhaseMark[] | undefined;
 // An upgraded spec's four fields come from the record; one not yet upgraded still reads its CLAUDE.md.
 export type FieldsSource = (spec: string) => RecordFields | undefined;
 
+// A spec's priority and due date from the cards that cover it; undefined leaves CLAUDE.md's.
+export type ScheduleSource = (spec: string) => CardSchedule | undefined;
+
 export interface JoinedReads {
   marks: MarksSource;
   fields?: FieldsSource;
+  schedule?: ScheduleSource;
 }
 
 const FILES_ONLY: JoinedReads = { marks: () => undefined };
@@ -47,8 +52,10 @@ export function loadNodes(projectDir: string, joined: JoinedReads = FILES_ONLY):
   return nodes;
 }
 
-function loadNode(spec: SpecFolder, { marks, fields }: JoinedReads): SpecNode {
-  const { status, meta, relations, title } = readSpecFields(spec.dir, fields?.(spec.name));
+function loadNode(spec: SpecFolder, { marks, fields, schedule }: JoinedReads): SpecNode {
+  const { status, meta: fileMeta, relations, title } = readSpecFields(spec.dir, fields?.(spec.name));
+  const fromCards = schedule?.(spec.name);
+  const meta = fromCards ? { ...withoutSchedule(fileMeta), ...fromCards } : fileMeta;
   return {
     spec,
     ...(status ? { status } : {}),
@@ -58,6 +65,10 @@ function loadNode(spec: SpecFolder, { marks, fields }: JoinedReads): SpecNode {
     meta,
     ...(title ? { title } : {}),
   };
+}
+
+function withoutSchedule({ priority: _priority, due: _due, ...rest }: SpecMeta): SpecMeta {
+  return rest;
 }
 
 function progressMarks(spec: SpecFolder): PhaseMark[] {

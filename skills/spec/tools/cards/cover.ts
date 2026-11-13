@@ -49,6 +49,6 @@ export function coverLines(rows: readonly CardRow[], spec: string): string[] {
   });
 }
 
-function refsTo(refs: readonly string[], spec: string): string[] {
+export function refsTo(refs: readonly string[], spec: string): string[] {
   return refs.filter((ref) => parseRef(ref).target === spec);
 }
