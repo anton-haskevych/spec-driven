@@ -57,6 +57,14 @@ describe("stampSession", () => {
     expect(op?.op === "replace" && op.doc).toMatchObject({ mode: "execute" });
   });
 
+  test("registration sets the mode, spec and title, and a later stamp keeps them", () => {
+    const registered = stampSession(viewOf({}), facts("s1"), NOW, { mode: "prep", spec: "checkout", title: "prep checkout" })[0];
+    const doc = registered?.op === "replace" ? registered.doc : undefined;
+    expect(doc).toMatchObject({ mode: "prep", spec: "checkout", title: "prep checkout" });
+    const [later] = stampSession(viewOf({ [sessionDocPath(facts("s1").ref)]: doc }), facts("s1"), NOW);
+    expect(later?.op === "replace" && later.doc).toMatchObject({ mode: "prep", spec: "checkout", title: "prep checkout" });
+  });
+
   test("what the tree holds is stamped when known and left off when not", () => {
     const known = stampSession(viewOf({}), facts("s1", { work: { ahead: 3, edited: 5 } }), NOW)[0];
     expect(known?.op === "replace" && known.doc).toMatchObject({ ahead: 3, edited: 5 });
@@ -89,6 +97,21 @@ describe("withStamp", () => {
     const stamps = [...record.filesAt(record.tip).keys()].filter((path) => path.startsWith("sessions/"));
     expect(stamps).toHaveLength(2);
     expect(docAt(record, sessionDocPath(facts("s1").ref))).toMatchObject({ who: "Anton" });
+  });
+
+  test("a session that never registered is placed on the one spec its write touched", async () => {
+    const record = fakeRecord();
+    await writeRecord(record, withStamp(setItem("specs/checkout/phases/2.json", "x"), () => facts("s1"), NOW), options);
+    expect(docAt(record, sessionDocPath(facts("s1").ref))).toMatchObject({ spec: "checkout" });
+    await writeRecord(record, withStamp(setItem("cards/0/c1.json", "x"), () => facts("s1"), NOW), options);
+    expect(docAt(record, sessionDocPath(facts("s1").ref))).toMatchObject({ spec: "checkout" });
+  });
+
+  test("a write touching two specs places the session on neither", async () => {
+    const record = fakeRecord();
+    const two: RecordPlan = () => ({ ops: [{ op: "replace", path: "specs/a/phases/1.json", doc: {} }, { op: "replace", path: "specs/b/phases/1.json", doc: {} }] });
+    await writeRecord(record, withStamp(two, () => facts("s1"), NOW), options);
+    expect(docAt(record, sessionDocPath(facts("s1").ref))).not.toHaveProperty("spec");
   });
 
   test("a plan that changes nothing or refuses leaves no heartbeat", async () => {

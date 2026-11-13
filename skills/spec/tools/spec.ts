@@ -24,6 +24,7 @@ import { readyReport } from "./commands/ready";
 import { PLAN_USAGE, planCommand } from "./commands/plan";
 import { RECORD_USAGE, recordCommand } from "./commands/record";
 import { settingsReport } from "./commands/settings";
+import { SESSION_USAGE, sessionCommand } from "./commands/session";
 import { SHIP_USAGE, shipCommand } from "./commands/ship";
 import { SPEC_STATUS_USAGE, specStatusCommand } from "./commands/spec-status";
 import { TREES_USAGE, treesCommand } from "./commands/trees";
@@ -62,6 +63,7 @@ export const COMMANDS: Record<string, Command> = {
   crew: { usage: CREW_USAGE, run: (dir, args) => crewCommand(dir, args) },
   focus: { usage: FOCUS_USAGE, run: (dir, args) => focusCommand(dir, args) },
   ship: { usage: SHIP_USAGE, run: (dir, args) => shipCommand(dir, args) },
+  session: { usage: SESSION_USAGE, run: (dir, args) => sessionCommand(dir, args) },
   owner: { usage: OWNER_USAGE, run: (dir, args) => ownerCommand(dir, args) },
   "spec-status": { usage: SPEC_STATUS_USAGE, run: (dir, args) => specStatusCommand(dir, args) },
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },
