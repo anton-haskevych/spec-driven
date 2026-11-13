@@ -43,4 +43,4 @@ Check against CRM's board (`spec.ts page` from `~/IdeaProjects/crm`) with the ch
 - [x] Now shows one chip per person (people matched as owners are), and the chips never overlap
 - [x] The count on Now matches its rows: the rows shown plus 'N more' add up to it
 - [x] Plan clamps a long tag summary to three lines, and hides a tag no open or done card carries
-- [ ] Checked in a real browser at 1440 and 390 px on CRM's board with Academy's cards: screenshots in the phase's research
+- [x] Checked in a real browser at 1440 and 390 px on CRM's board with Academy's cards: screenshots in the phase's research — docs/specs/live-board/research/phase-10aa/2026-11-13-10aa-browser-check.md + 7 screenshots
