@@ -40,9 +40,15 @@ export function needRows(board: Pick<Board, "lanes" | "me">, questions: readonly
   const fromBoard = board.lanes.needsYou.filter((row) => row.kind !== "question" || !asked.has(`${row.spec}#${row.phase}`)).map((row) => boardRow(row, owners));
   const rows = [...questions.map((question) => questionRow(question, owners)), ...fromBoard].toSorted((a, b) => ORDER.indexOf(a.mark) - ORDER.indexOf(b.mark));
   const mine = rows.filter((row) => isMine(row.owner, board.me));
-  const others = new Map<string, number>();
-  for (const row of rows) if (row.owner && !isMine(row.owner, board.me)) others.set(row.owner, (others.get(row.owner) ?? 0) + 1);
-  return { rows, mine: mine.length, others: [...others].map(([person, count]) => ({ person, count })) };
+  const others: { person: string; count: number }[] = [];
+  for (const row of rows) {
+    if (!row.owner || isMine(row.owner, board.me)) continue;
+    const owner = row.owner;
+    const known = others.find(({ person }) => person === owner || samePerson(person, owner));
+    if (known) known.count += 1;
+    else others.push({ person: owner, count: 1 });
+  }
+  return { rows, mine: mine.length, others };
 }
 
 function questionRow(question: PageQuestion, owners: NeedOwners): NeedRow {

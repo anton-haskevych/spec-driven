@@ -1,14 +1,30 @@
 import { monthDay } from "./due";
-import { disc, due, esc, pri, sessionChip, since, waits } from "./marks";
+import { disc, due, esc, pri, sessionChip, since, specBar, waits } from "./marks";
 import type { PageCard, PageModel, PagePhase } from "./model";
 import { answerForm } from "./render-now";
 
 const STAGE_WORDS: Record<string, string> = { todo: "to do", open: "to do", doing: "doing", built: "built", merged: "live", deployed: "live", done: "done" };
 
 export function cardSheet(model: PageModel, card: PageCard, now: Date): string {
-  const head = `<div class="lane"><h4>${esc(card.title)}</h4><div class="kv">${pri(card.priority)}${card.tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join("")}<span class="tag${card.stage === "done" ? "" : " todo"}">${esc(card.commitment)}</span>${due(card.due)}</div></div>`;
-  const parts = [head, quote(card), question(card, now), ...coveredBy(card), sessions(model, card, now), copy(card)];
+  const dueChip = card.due.kind === "none" && card.closed ? "" : due(card.due);
+  const head = `<div class="lane"><h4>${esc(card.title)}</h4>${ended(card)}<div class="kv">${pri(card.priority)}${card.tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join("")}<span class="tag${card.stage === "done" ? "" : " todo"}">${esc(card.commitment)}</span>${dueChip}</div></div>`;
+  const parts = [head, quote(card), noteOf(card), question(card, now), ...coveredBy(card), sessions(model, card, now), copy(card)];
   return `<section class="sheet" id="${esc(card.id)}" data-view="card" data-id="${esc(card.id)}" data-kind="card" data-stage="${card.stage}" hidden>${parts.join("")}</section>`;
+}
+
+function ended(card: PageCard): string {
+  if (!card.closed || (card.status !== "done" && card.status !== "dropped")) return "";
+  const { at, by, why } = card.closed;
+  return `<p class="end ${card.status}"><b>${card.status === "done" ? "Done" : "Dropped"}</b> ${esc(monthDay(at.slice(0, 10)))} by ${esc(by)}: ${esc(why)}</p>`;
+}
+
+// Academy's notes run to thousands of characters: a long one opens from its first lines.
+const NOTE_FOLDED_OVER = 280;
+
+function noteOf(card: PageCard): string {
+  if (!card.note) return "";
+  if (card.note.length <= NOTE_FOLDED_OVER) return `<p class="note">${esc(card.note)}</p>`;
+  return `<details class="note" data-id="${esc(`note:${card.id}`)}"><summary>${esc(card.note)}</summary></details>`;
 }
 
 function quote(card: PageCard): string {
@@ -30,8 +46,11 @@ function coveredBy(card: PageCard): string[] {
   if (card.covers.length === 0) return [`<div class="lane"><div class="h">Covered by nothing yet</div><p class="fine">No spec covers this card. Tell a session to prep one.</p></div>`];
   const specs = [...new Set(card.phases.map((phase) => phase.spec))];
   return specs.map((spec) => {
-    const rows = card.phases.filter((phase) => phase.spec === spec).map((phase) => phaseLine(card, phase)).join("");
-    return `<div class="lane"><div class="h">Covered by <code>${esc(spec)}</code></div><div class="phases">${rows}</div></div>`;
+    const phases = card.phases.filter((phase) => phase.spec === spec);
+    const rows = `<div class="phases">${phases.map((phase) => phaseLine(card, phase)).join("")}</div>`;
+    if (!card.whole.includes(spec)) return `<div class="lane"><div class="h">Covered by <code>${esc(spec)}</code></div>${rows}</div>`;
+    const fold = `<details class="folded" data-id="${esc(`${card.id}:${spec}`)}"><summary class="fold">${specBar(spec, phases)}${phases.length} ${phases.length === 1 ? "phase" : "phases"}<i class="chev"></i></summary>${rows}</details>`;
+    return `<div class="lane"><div class="h">Covered by all of <code>${esc(spec)}</code></div>${fold}</div>`;
   });
 }
 

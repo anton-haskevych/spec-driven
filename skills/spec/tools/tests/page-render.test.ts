@@ -41,6 +41,7 @@ describe("the rendered page", () => {
     expect(html).toContain(`<div class="gh" data-rank="0">P0 <span class="more">1 project</span></div>`);
     expect(html).toMatch(/<details class="proj p0" [^>]*data-due="2026-11-12"[^>]* open><summary><span class="pri p0">P0<\/span><span class="pn"><b>Schedule fixes<\/b><span class="waits">1 waits on an answer<\/span>/);
     expect(html).toContain(`<span class="due late">overdue Nov 12</span>`);
+    expect(html).not.toContain("Card fee");
     expect(html).toContain(`<summary class="ph"><b><i class="sq live"></i>Done</b><span class="n">1<i class="chev"></i></span></summary>`);
   });
 
@@ -50,6 +51,31 @@ describe("the rendered page", () => {
     expect(html).toContain(`<div class="phase"><i class="sq doing"></i><span>2 · Filter labels</span><span class="st doing">doing</span></div>`);
     expect(html).toContain(`<span class="waits">waits on q12</span>`);
     expect(html).toContain(`data-copy="Card c90 &quot;Filters say what they hide&quot;`);
+  });
+
+  test("a done card's page says so at the top, with when, who and why, and shows its note under the quote", () => {
+    const sheet = html.split('<section class="sheet" id="c92"')[1]?.split("</section>")[0] ?? "";
+    expect(sheet).toContain(`<p class="end done"><b>Done</b> Nov 13 by Anton: merged</p>`);
+    expect(sheet).toContain(`<p class="note">Spec: schedule-fixes | Items: featured row</p>`);
+    expect(sheet).not.toContain("no deadline");
+    const long = "Spec: one-attendance-engine. ".repeat(12);
+    const folded = renderApp({ ...model, cards: model.cards.map((each) => (each.id === "c92" ? { ...each, note: long } : each)) }).html;
+    expect(folded).toContain(`<details class="note" data-id="note:c92"><summary>${long}</summary></details>`);
+    expect(html.split('<section class="sheet" id="c94"')[1]?.split("</section>")[0]).toContain(`<p class="end dropped"><b>Dropped</b> Nov 10 by Anton: no</p>`);
+  });
+
+  test("a card covering a whole spec shows the spec's progress, not a square per phase", () => {
+    const docs = { ...pageDocs(), [cardDocPath("c96")]: cardDoc({ id: "c96", title: "All of it", status: "doing", tags: ["Schedule fixes"], coveredBy: ["schedule-fixes"] }) };
+    const page = renderPage(pageModel(pageInputs(docs)));
+    const row = page.split(`<a class="row" href="#c96"`)[1]?.split("</a>")[0] ?? "";
+    const bar = `<span class="spec-bar" title="schedule-fixes: 1 done, 1 moving, 1 to do"><span class="pbar"><i class="d" style="flex:1"></i><i class="m" style="flex:1"></i><i class="t" style="flex:1"></i></span><span class="n">1/3</span></span>`;
+    expect(row).toContain(bar);
+    expect(row).not.toContain(`<i class="sq`);
+    const panel = page.split(`<a class="pc" href="#c96"`)[1]?.split("</a>")[0] ?? "";
+    expect(panel).toContain(bar);
+    const sheet = page.split(`<section class="sheet" id="c96"`)[1]?.split("</section>")[0] ?? "";
+    expect(sheet).toContain(`<div class="h">Covered by all of <code>schedule-fixes</code></div>`);
+    expect(sheet).toContain(`<details class="folded" data-id="c96:schedule-fixes"><summary class="fold">${bar}3 phases<i class="chev"></i></summary>`);
   });
 
   test("words from the record are escaped", () => {
@@ -76,6 +102,14 @@ test("with no record: an honest empty page", () => {
   expect(html).toContain("<title>Live board · crm</title>");
 });
 
+test("Plan clamps a tag's summary to three lines and keeps the whole of it on hover", () => {
+  const model = pageModel();
+  const long = "Pass sync ".repeat(80).trim();
+  const html = renderApp({ ...model, plan: model.plan.map((row, index) => (index === 0 ? { ...row, waits: 0, reason: long } : row)) }).html;
+  expect(html).toContain(`<span class="reason" title="${long}">${long}</span>`);
+  expect(STYLES).toMatch(/\.pn \.reason \{[^}]*-webkit-line-clamp: 3;/);
+});
+
 test("every style block is closed, so no rule hides inside a phone-only query", () => {
   const css = STYLES.replace(/\/\*[\s\S]*?\*\//g, "");
   let depth = 0;
@@ -85,6 +119,25 @@ test("every style block is closed, so no rule hides inside a phone-only query", 
     lowest = Math.min(lowest, depth);
   }
   expect({ depth, lowest }).toEqual({ depth: 0, lowest: 0 });
+});
+
+test("Now: the box lists the viewer's rows, so the shown rows and 'N more' add up to its count; others' rows fold apart", () => {
+  const model = pageModel();
+  const row = (title: string, owner?: string) => ({ kind: "overdue" as const, mark: "!" as const, title, detail: "", late: true, spec: "checkout", ...(owner ? { owner } : {}) });
+  const rows = [row("t1", "Taras"), row("a1"), row("a2", "Anton"), row("a3"), row("a4"), row("a5"), row("t2", "Taras")];
+  const html = renderApp({ ...model, needs: { rows, mine: 5, others: [{ person: "Taras", count: 2 }] } }).html;
+  const box = html.split(`<div class="needs">`)[1]?.split(`<div class="lane">`)[0] ?? "";
+  expect(box).toContain(`<b>5</b><span>need you</span>`);
+  expect(box.split(`data-id="needs-more"`)[0]?.match(/class="ny late"/g)).toHaveLength(3);
+  expect(box).toContain(`<summary class="fold">2 more<i class="chev"></i></summary>`);
+  expect(box).toContain(`<details class="folded others" data-id="needs-others"><summary class="fold">Waiting on others · 2<i class="chev"></i></summary>`);
+  expect(box.split(`data-id="needs-others"`)[0]).not.toContain("t1");
+});
+
+test("Now: a box with only other people's rows says nothing waits on you", () => {
+  const model = pageModel();
+  const html = renderApp({ ...model, needs: { rows: [{ kind: "overdue", mark: "!", title: "t1", detail: "", late: true, owner: "Taras" }], mine: 0, others: [{ person: "Taras", count: 1 }] } }).html;
+  expect(html).toContain(`<p class="empty">Nothing waits on you.</p>`);
 });
 
 test("only a question on the record gets answer buttons: a park in files has nothing to save to", () => {

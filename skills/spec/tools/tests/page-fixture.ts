@@ -27,7 +27,7 @@ export function pageDocs(): Record<string, unknown> {
     [sourceDocPath("c90", "a")]: sourceDoc({ card: "c90", person: "Chasity", quote: "I like having the Upcoming Events … now it doesn't show." }),
     [sourceDocPath("c90", "b")]: sourceDoc({ card: "c90", role: "mention", person: "Chasity", quote: "Still missing" }),
     [cardDocPath("c91")]: cardDoc({ id: "c91", title: "Private lessons held until paid", priority: "p0", due: "2026-11-12", tags: ["Schedule fixes"] }),
-    [cardDocPath("c92")]: cardDoc({ id: "c92", title: "Featured row keeps events visible", status: "done", tags: ["Schedule fixes"], coveredBy: ["schedule-fixes#1"], closed: { at: "2026-11-13T09:00:00-08:00", by: "Anton", why: "merged" } }),
+    [cardDocPath("c92")]: cardDoc({ id: "c92", title: "Featured row keeps events visible", status: "done", tags: ["Schedule fixes"], coveredBy: ["schedule-fixes#1"], note: "Spec: schedule-fixes | Items: featured row", closed: { at: "2026-11-13T09:00:00-08:00", by: "Anton", why: "merged" } }),
     [cardDocPath("c93")]: cardDoc({ id: "c93", title: "Studio-wide events", assignee: "Taras" }),
     [cardDocPath("c94")]: cardDoc({ id: "c94", title: "Dropped idea", status: "dropped", tags: ["Schedule fixes"], closed: { at: "2026-11-10", by: "Anton", why: "no" } }),
   };

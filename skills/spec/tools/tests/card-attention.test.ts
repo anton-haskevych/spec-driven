@@ -20,12 +20,23 @@ describe("cardAttention", () => {
 
   test("a done card with an open covering phase is flagged; uncovered or still-open work says nothing", () => {
     const cards = [
-      cardDoc({ id: "c2", title: "B", status: "done", closed: CLOSED, coveredBy: ["checkout"] }),
+      cardDoc({ id: "c2", title: "B", status: "done", closed: CLOSED, coveredBy: ["checkout#1-2"] }),
       cardDoc({ id: "c3", coveredBy: ["checkout#1-2"] }),
       cardDoc({ id: "c4" }),
       cardDoc({ id: "c5", coveredBy: ["elsewhere"] }),
     ];
     expect(cardAttention(cards, phasesOf)).toEqual([{ kind: "card-open", card: "c2", title: "B", open: ["checkout#2 is built"] }]);
+  });
+
+  test("a done card covering a whole spec isn't flagged; its phase-naming cover still is", () => {
+    const whole = cardDoc({ id: "c30", status: "done", closed: CLOSED, coveredBy: ["checkout"] });
+    const both = cardDoc({ id: "c31", title: "C", status: "done", closed: CLOSED, coveredBy: ["checkout", "checkout#2"] });
+    expect(cardAttention([whole, both], phasesOf)).toEqual([{ kind: "card-open", card: "c31", title: "C", open: ["checkout#2 is built"] }]);
+  });
+
+  test("an open card covering a whole spec still proposes a close once every phase shipped", () => {
+    const shipped = (spec: string) => (spec === "done-spec" ? [{ id: "1", stage: "merged", finished: true }] : undefined);
+    expect(cardAttention([cardDoc({ id: "c5", title: "E", coveredBy: ["done-spec"] })], shipped)).toEqual([{ kind: "card-close", card: "c5", title: "E", covers: ["done-spec"] }]);
   });
 });
 
