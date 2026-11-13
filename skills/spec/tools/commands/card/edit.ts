@@ -1,10 +1,13 @@
+import { coverRefProblem } from "../../cards/cover";
 import { cardDocPath } from "../../cards/paths";
+import { loadNodes } from "../../graph/nodes";
 import { resolveAssignee } from "../../cards/people";
 import type { CardFields } from "../../cards/plans";
 import { SOURCE_ROLES, type SourceRole } from "../../cards/source-doc";
 import { oneOf } from "../../core/read-fields";
 import type { PhaseDeps } from "../../plan/phase-writer";
 import { loadSettings } from "../../playbook/settings";
+import { parseFlags } from "../phase/args";
 import { cardFlags, choices, originOf, type CardFlags } from "./flags";
 import { refusedLine, sendCardIntent } from "./send";
 
@@ -65,4 +68,17 @@ function removable(value: string | undefined): string | null | undefined {
 
 function withoutUnset(fields: CardFields): CardFields {
   return Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined));
+}
+
+// `card cover <id> <spec | spec#phases>… [--remove <ref>]…`: each ref must name a spec and phases it has.
+export async function coverCard(projectDir: string, args: readonly string[], deps: PhaseDeps, usage: string): Promise<string> {
+  const parsed = parseFlags(args, { remove: { type: "string", multiple: true } });
+  const [id, ...add] = parsed?.positionals ?? [];
+  const remove = parsed?.values.remove ?? [];
+  if (!id || (add.length === 0 && remove.length === 0)) return `usage: ${usage}`;
+  return sendCardIntent(projectDir, deps, "cover", (_view, plans) => {
+    const nodes = loadNodes(projectDir, plans);
+    const problems = add.flatMap((ref) => coverRefProblem(ref, nodes) ?? []);
+    return problems.length > 0 ? problems.join("; ") : { action: "cover", id, add, remove };
+  });
 }

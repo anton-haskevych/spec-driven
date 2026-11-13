@@ -39,7 +39,7 @@ export function doctorReport(projectDir: string, specName?: string, runner: Runn
   const context = { projectDir, statuses, nodes, gates, today: isoDay(new Date()), playbooks, plans };
   const specIssues = specs.flatMap((spec) => runDoctor(spec, context));
   const repo = repoIssues(projectDir, gates, runner);
-  const projectIssues = [...projectLedgerIssues(projectDir), ...backlogIssues(projectDir), ...playbookIssues(projectDir), ...cardIssues(projectDir, recordViewOf(plans.record))];
+  const projectIssues = [...projectLedgerIssues(projectDir), ...backlogIssues(projectDir), ...playbookIssues(projectDir), ...cardIssues(projectDir, recordViewOf(plans.record), nodes)];
   const issues = specName ? [...specIssues, ...repo] : [...projectIssues, ...repo, ...specIssues];
   if (issues.length === 0) return `doctor: clean (${specs.length} spec${specs.length === 1 ? "" : "s"})`;
 

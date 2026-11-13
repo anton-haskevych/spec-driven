@@ -1,5 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { cardCommand } from "../commands/card";
+import { contextPack } from "../commands/context";
+import { contextDeps } from "./context-fixture";
+import { joinedRepo } from "./joined-repo";
 import { INTENT_PLANNERS } from "../plan/intents";
 import { isolatedRunner, repoWithOrigin, type TestRepo, type WorkingCopy } from "./git-repo";
 import { viewOf } from "./fake-record";
@@ -73,4 +76,26 @@ describe("the card intent", () => {
     const unreadable = INTENT_PLANNERS.card?.({ action: "burn" });
     expect(typeof unreadable === "function" ? unreadable(view) : unreadable).toEqual({ refused: "this queued change can't be read; drop it" });
   });
+});
+
+describe("card cover on a joined spec, and the pack that shows it (real git)", () => {
+  let repo: TestRepo;
+  let tree: WorkingCopy;
+  const deps = { runner: isolatedRunner, env: { CLAUDE_CODE_SESSION_ID: "s1" }, now: () => NOW };
+  const card = (...args: string[]) => Promise.resolve(cardCommand(tree.dir, args, deps));
+
+  beforeAll(() => {
+    repo = joinedRepo("spec-card-cover-");
+    tree = repo.clone("pr-a");
+  });
+  afterAll(() => repo.cleanup());
+
+  test("a cover names phases the spec has; the spec's pack lists the card with its origin quote", async () => {
+    expect(await card("add", "Featured row keeps events visible", ...QUOTE, "--priority", "p0")).toBe("card: c1 added (asked · p0)");
+    expect(await card("cover", "c1", "alpha#9")).toBe("card cover: refused, nothing written. alpha has no phase 9 (phases: 2, 3)");
+    expect(await card("cover", "c1", "nope")).toBe("card cover: refused, nothing written. no spec named nope");
+    expect(await card("cover", "c1", "alpha#2")).toBe("card: c1 covered by alpha#2");
+    const pack = await contextPack(tree.dir, { mode: "execute", name: "alpha" }, contextDeps({ runner: isolatedRunner, now: () => NOW }));
+    expect(pack).toContain("Card c1 (p0 · asked) covers phase 2: Featured row keeps events visible\n  “I like having the Upcoming Events, now it doesn't show” — Chasity, imessage, 2026-11-11");
+  }, REAL_GIT_MS);
 });

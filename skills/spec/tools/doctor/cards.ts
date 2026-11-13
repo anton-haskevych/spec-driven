@@ -9,6 +9,6 @@ export function recordDocFile(projectDir: string, path: string): string {
   return join(projectDir, RECORD_REF, path);
 }
 
-export function cardIssues(projectDir: string, view: RecordView | undefined): Issue[] {
-  return view ? cardProblems(view).map(({ path, problem }) => error(recordDocFile(projectDir, path), problem)) : [];
+export function cardIssues(projectDir: string, view: RecordView | undefined, specs?: Parameters<typeof cardProblems>[1]): Issue[] {
+  return view ? cardProblems(view, specs).map(({ path, problem }) => error(recordDocFile(projectDir, path), problem)) : [];
 }

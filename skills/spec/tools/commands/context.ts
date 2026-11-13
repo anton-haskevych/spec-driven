@@ -24,6 +24,8 @@ import { defaultClaudeHome } from "../sessions/live";
 import { systemClaimsHere, type ClaimsHereReader } from "../context/claims-here";
 import { loadPackReferences } from "../context/references";
 import { selectExecutePhase } from "../context/select-phase";
+import { coverLines, coveringCards } from "../cards/cover";
+import { recordViewOf } from "../record/read";
 import type { LocalPilot } from "../runtime/workflow-capabilities";
 
 const DOCTOR_LINES = 6;
@@ -111,8 +113,15 @@ function withBoardLines(plans: PlanSource, spec: SpecFolder, body: string, memor
     boardLine(plans.record, joined, plans.pending),
     joined && memory ? noticePlanChange(memory, spec.name, planShapeOf(joined)) : undefined,
     joined ? treeAheadLine(joined, diskReader(spec.dir)) : undefined,
+    ...cardLinesFor(plans, spec.name),
   ].filter((line) => line !== undefined);
   return lines.length === 0 ? body : `${lines.join("\n")}\n\n${body}`;
+}
+
+// Why the work exists, in the customer's words: the open cards that cover this spec.
+function cardLinesFor(plans: PlanSource, spec: string): string[] {
+  const view = recordViewOf(plans.record);
+  return view ? coverLines(coveringCards(view, spec), spec) : [];
 }
 
 function packBlock(spec: string, mode: string, inferredFrom: string | undefined, body: string): string {

@@ -1,4 +1,5 @@
 import { validateRecordDoc } from "../plan/kinds";
+import { coverRefProblem } from "./cover";
 import type { RecordView } from "../record/view";
 import { CARDS_FOLDER, SOURCES_FOLDER, TAGS_FOLDER, cardDocPath } from "./paths";
 import { readCards } from "./read";
@@ -11,8 +12,11 @@ export interface CardProblem {
 
 const FOLDERS = [CARDS_FOLDER, SOURCES_FOLDER, TAGS_FOLDER];
 
-// What no single document can see: each source's card exists, and each card has exactly one origin.
-export function cardProblems(view: RecordView): CardProblem[] {
+type Phased = Parameters<typeof coverRefProblem>[1];
+
+// What no single document can see: each source's card exists, each card has exactly one origin, and with
+// the specs at hand, what an open card's cover names still exists.
+export function cardProblems(view: RecordView, specs?: Phased): CardProblem[] {
   const paths = view.paths().filter((path) => FOLDERS.some((folder) => path.startsWith(folder)));
   const cards = new Set(readCards(view).map((card) => card.id));
   const origins = new Map<string, number>();
@@ -21,7 +25,11 @@ export function cardProblems(view: RecordView): CardProblem[] {
     const count = origins.get(id) ?? 0;
     return count === 1 ? [] : [{ path: cardDocPath(id), problem: `has ${count} origin sources, needs exactly 1` }];
   });
-  return [...problems, ...originProblems].toSorted((a, b) => a.path.localeCompare(b.path));
+  const coverProblems = specs ? readCards(view).filter((card) => card.status === "open" || card.status === "doing").flatMap((card) => card.coveredBy.flatMap((ref) => {
+    const problem = coverRefProblem(ref, specs);
+    return problem ? [{ path: cardDocPath(card.id), problem: `covered by ${ref}: ${problem}` }] : [];
+  })) : [];
+  return [...problems, ...originProblems, ...coverProblems].toSorted((a, b) => a.path.localeCompare(b.path));
 }
 
 function documentProblems(view: RecordView, path: string, cards: ReadonlySet<string>, origins: Map<string, number>): CardProblem[] {

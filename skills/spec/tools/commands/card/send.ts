@@ -1,7 +1,7 @@
 import { isoTimestamp } from "../../core/schedule";
 import { validateRecordDoc } from "../../plan/kinds";
 import type { PhaseDeps } from "../../plan/phase-writer";
-import { readPlansAt } from "../../plan/read-plans";
+import { readPlansAt, type PlanSource } from "../../plan/read-plans";
 import { recordWorld, sendRecordIntent } from "../../plan/record-send";
 import { planWrites } from "../../record/plan-writes";
 import { recordViewOf } from "../../record/read";
@@ -17,13 +17,14 @@ export const refusedLine = (action: string, reason: string) => `card ${action}: 
 
 // A card edit is planned on this machine's read first, so a change that can't hold says so before
 // anything is sent or queued; the send plans it again at the tip.
-// `intentAt` builds the intent from that read, so an edit names the version it was read at.
-export async function sendCardIntent(projectDir: string, deps: PhaseDeps, action: string, intentAt: (view: RecordView) => CardIntent): Promise<string> {
+// `intentAt` builds the intent from that read (an edit names the version it was read at), or says why not.
+export async function sendCardIntent(projectDir: string, deps: PhaseDeps, action: string, intentAt: (view: RecordView, plans: PlanSource) => CardIntent | string): Promise<string> {
   const plans = readPlansAt(projectDir, deps.runner, deps.now());
   if (plans.record.kind === "newer") return `card ${action}: ${OLDER_PLUGIN}`;
   const view = recordViewOf(plans.record);
   if (!view) return refusedLine(action, "There is no board record here yet; card add starts one.");
-  const intent = intentAt(view);
+  const intent = intentAt(view, plans);
+  if (typeof intent === "string") return refusedLine(action, intent);
   const dry = dryRun(view, cardIntentPlan(intent));
   if (dry) return refusedLine(action, dry);
   let line: string | undefined;
