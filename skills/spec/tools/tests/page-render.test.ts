@@ -58,6 +58,9 @@ describe("the rendered page", () => {
     expect(sheet).toContain(`<p class="end done"><b>Done</b> Nov 13 by Anton: merged</p>`);
     expect(sheet).toContain(`<p class="note">Spec: schedule-fixes | Items: featured row</p>`);
     expect(sheet).not.toContain("no deadline");
+    const long = "Spec: one-attendance-engine. ".repeat(12);
+    const folded = renderApp({ ...model, cards: model.cards.map((each) => (each.id === "c92" ? { ...each, note: long } : each)) }).html;
+    expect(folded).toContain(`<details class="note" data-id="note:c92"><summary>${long}</summary></details>`);
     expect(html.split('<section class="sheet" id="c94"')[1]?.split("</section>")[0]).toContain(`<p class="end dropped"><b>Dropped</b> Nov 10 by Anton: no</p>`);
   });
 
@@ -71,7 +74,7 @@ describe("the rendered page", () => {
     const panel = page.split(`<a class="pc" href="#c96"`)[1]?.split("</a>")[0] ?? "";
     expect(panel).toContain(bar);
     const sheet = page.split(`<section class="sheet" id="c96"`)[1]?.split("</section>")[0] ?? "";
-    expect(sheet).toContain(`<div class="h">Covered by <code>schedule-fixes</code>, the whole spec</div>`);
+    expect(sheet).toContain(`<div class="h">Covered by all of <code>schedule-fixes</code></div>`);
     expect(sheet).toContain(`<details class="folded" data-id="c96:schedule-fixes"><summary class="fold">${bar}3 phases<i class="chev"></i></summary>`);
   });
 

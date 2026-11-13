@@ -42,5 +42,5 @@ Check against CRM's board (`spec.ts page` from `~/IdeaProjects/crm`) with the ch
 - [x] A card covering a whole spec shows that spec's progress, not a square for each of its phases
 - [x] Now shows one chip per person (people matched as owners are), and the chips never overlap
 - [x] The count on Now matches its rows: the rows shown plus 'N more' add up to it
-- [ ] Plan clamps a long tag summary to three lines, and hides a tag no open or done card carries
+- [x] Plan clamps a long tag summary to three lines, and hides a tag no open or done card carries
 - [ ] Checked in a real browser at 1440 and 390 px on CRM's board with Academy's cards: screenshots in the phase's research
