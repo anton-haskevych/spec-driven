@@ -10,6 +10,7 @@ One minor version per PR, picked at merge (main's minor + 1). PR B ships with `b
 and E each raise the record's layout number and carry the upgrade step for specs that joined earlier.
 PR #37 merged 2026-11-11 as 9392c3f (squash).
 PR #38 merged 2026-11-12 as 0aaa216 (squash).
+PR #39 merged 2026-11-13 as e21190b (squash).
 
 ## Pre-PR checks
 
