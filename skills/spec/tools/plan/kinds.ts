@@ -1,8 +1,13 @@
+import { cardDocPath } from "../cards/paths";
 import type { DocRead } from "./docs/read";
 import { readPhaseDoc } from "./docs/phase-doc";
 import { readPrDoc } from "./docs/pr-doc";
 import { readSpecDoc } from "./docs/spec-doc";
 import { readQuestionDoc } from "../questions/question-doc";
+import { readCardDoc } from "../cards/card-doc";
+import { tagSlug } from "../cards/paths";
+import { readSourceDoc } from "../cards/source-doc";
+import { readTagDoc } from "../cards/tag-doc";
 
 // Where each document kind lives on the record, and its reader. The store is handed `validateRecordDoc`
 // and never imports a reader; later phases add rows here.
@@ -34,6 +39,21 @@ const KINDS: readonly RecordKind[] = [
     read: readQuestionDoc,
     identity: (doc, match) => mismatch("id", (doc as { id: string }).id, match[2]),
   },
+  {
+    path: /^cards\/(\d+)\/(c\d+)\.json$/,
+    read: readCardDoc,
+    identity: (doc, match) => notAt("id", (doc as { id: string }).id, cardDocPath((doc as { id: string }).id) === match[0]),
+  },
+  {
+    path: /^sources\/([^/]+)\/[a-z]+\.json$/,
+    read: readSourceDoc,
+    identity: (doc, match) => mismatch("card", (doc as { card: string }).card, match[1]),
+  },
+  {
+    path: /^tags\/([^/]+)\.json$/,
+    read: readTagDoc,
+    identity: (doc, match) => notAt("name", (doc as { name: string }).name, tagSlug((doc as { name: string }).name) === match[1]),
+  },
 ];
 
 export function validateRecordDoc(path: string, value: unknown): string[] {
@@ -48,7 +68,11 @@ export function validateRecordDoc(path: string, value: unknown): string[] {
 }
 
 function mismatch(field: string, carried: string, fromPath: string | undefined): string | undefined {
-  return carried === fromPath ? undefined : `${field} ${carried} does not match the path`;
+  return notAt(field, carried, carried === fromPath);
+}
+
+function notAt(field: string, carried: string, matches: boolean): string | undefined {
+  return matches ? undefined : `${field} ${carried} does not match the path`;
 }
 
 export function specDocPath(spec: string): string {
