@@ -30,7 +30,7 @@ describe("parseSettings", () => {
         checks: { external: ["Vercel*"] },
         gates: { afterMergeMain: "merge-main", bootstrap: "bootstrap", perCommit: "quick", ciTriage: "ci-triage" },
         crew: DEFAULT_SETTINGS.crew,
-        board: { record: false },
+        board: { record: false, people: [] },
       },
       problems: [],
     });
@@ -38,7 +38,7 @@ describe("parseSettings", () => {
 
   test("missing keys take the defaults", () => {
     expect(parseSettings("---\ndocs: branch\n---\n")).toEqual({ settings: DEFAULT_SETTINGS, problems: [] });
-    expect(DEFAULT_SETTINGS).toEqual({ docs: "branch", pr: { draft: true }, checks: { external: [] }, gates: {}, crew: { workers: 3, babysitters: 2, selfApprove: [] }, board: { record: false } });
+    expect(DEFAULT_SETTINGS).toEqual({ docs: "branch", pr: { draft: true }, checks: { external: [] }, gates: {}, crew: { workers: 3, babysitters: 2, selfApprove: [] }, board: { record: false, people: [] } });
   });
 
   test("wrong types and unknown keys become problems and fall back to defaults", () => {
@@ -148,15 +148,22 @@ describe("board.record", () => {
   test("off by default, on when the project says so, and named on the line only when on", () => {
     expect(DEFAULT_SETTINGS.board.record).toBe(false);
     const on = parseSettings("---\ndocs: main\nboard:\n  record: on\n---\n");
-    expect(on).toEqual({ settings: { ...DEFAULT_SETTINGS, docs: "main", board: { record: true } }, problems: [] });
+    expect(on).toEqual({ settings: { ...DEFAULT_SETTINGS, docs: "main", board: { record: true, people: [] } }, problems: [] });
     expect(describeSettings(on.settings)).toBe("docs on main · PRs draft · merge: ask the user · board record on");
     expect(parseSettings("---\nboard: { record: off }\n---\n").settings.board.record).toBe(false);
   });
 
   test("a wrong value or key is a problem and leaves the board off", () => {
-    expect(parseSettings("---\nboard: { record: yes, people: [Anton] }\n---\n")).toEqual({
+    expect(parseSettings("---\nboard: { record: yes, owners: [Anton] }\n---\n")).toEqual({
       settings: DEFAULT_SETTINGS,
-      problems: ["board has an unknown key: people", 'board.record must be on or off, not "yes"'],
+      problems: ["board has an unknown key: owners", 'board.record must be on or off, not "yes"'],
     });
+  });
+
+  test("board.people names who a card can be assigned to, and the line lists them", () => {
+    const parsed = parseSettings("---\ndocs: main\nboard: { record: on, people: [Anton, Taras] }\n---\n");
+    expect(parsed).toEqual({ settings: { ...DEFAULT_SETTINGS, docs: "main", board: { record: true, people: ["Anton", "Taras"] } }, problems: [] });
+    expect(describeSettings(parsed.settings)).toBe("docs on main · PRs draft · merge: ask the user · board record on · people Anton, Taras");
+    expect(parseSettings("---\nboard: { people: Anton }\n---\n").problems).toEqual(['board.people must be a list of strings, e.g. board.people: ["Vercel*"]']);
   });
 });

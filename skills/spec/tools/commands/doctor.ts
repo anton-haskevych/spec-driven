@@ -2,6 +2,7 @@ import { findSpecs, listSpecs } from "../core/spec-folders";
 import { isoDay } from "../core/schedule";
 import { allowedStatuses } from "../core/taxonomy";
 import { backlogIssues } from "../doctor/backlog";
+import { cardIssues } from "../doctor/cards";
 import { playbookIssues } from "../doctor/playbooks";
 import { loadPlaybooks } from "../playbook/playbooks";
 import { formatIssues, type Issue } from "../doctor/issue";
@@ -15,6 +16,7 @@ import { loadNodes } from "../graph/nodes";
 import { loadGates } from "../playbook/gates";
 import { doctorFileReport } from "./doctor-file";
 import { readLocalPlans, type PlanSource } from "../plan/read-plans";
+import { recordViewOf } from "../record/read";
 
 export const DOCTOR_USAGE = "doctor [<spec-name>] | doctor <spec-name> --file <path-relative-to-spec>";
 
@@ -37,7 +39,7 @@ export function doctorReport(projectDir: string, specName?: string, runner: Runn
   const context = { projectDir, statuses, nodes, gates, today: isoDay(new Date()), playbooks, plans };
   const specIssues = specs.flatMap((spec) => runDoctor(spec, context));
   const repo = repoIssues(projectDir, gates, runner);
-  const projectIssues = [...projectLedgerIssues(projectDir), ...backlogIssues(projectDir), ...playbookIssues(projectDir)];
+  const projectIssues = [...projectLedgerIssues(projectDir), ...backlogIssues(projectDir), ...playbookIssues(projectDir), ...cardIssues(projectDir, recordViewOf(plans.record), nodes)];
   const issues = specName ? [...specIssues, ...repo] : [...projectIssues, ...repo, ...specIssues];
   if (issues.length === 0) return `doctor: clean (${specs.length} spec${specs.length === 1 ? "" : "s"})`;
 

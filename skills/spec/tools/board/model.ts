@@ -1,3 +1,4 @@
+import type { CardAttention } from "../cards/attention";
 import type { Priority } from "../core/schedule";
 import type { PrReview } from "../pr/checks/rollup";
 import type { VerdictKind } from "../pr/checks/verdict";
@@ -110,7 +111,9 @@ export type AttentionRow =
   // A phase parked on a question for the user (`phase park`); it leaves the ready lane until answered.
   | { kind: "question"; spec: string; phase: string; question: string; recommend?: string; since: string }
   // Merged worktrees by ancestry; `trees prune` also finds squash-merged ones by their PR's head.
-  | { kind: "prune"; trees: number };
+  | { kind: "prune"; trees: number }
+  // A card every covering phase of has merged (close it with evidence), or a done card with one still open.
+  | CardAttention;
 
 // What a focus spec is doing now: the first kind that applies, in this order.
 export type FocusNow =

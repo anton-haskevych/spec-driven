@@ -27,7 +27,7 @@
 - [ ] Phase 5 — CRM turns the board on → `phases/phase-5-crm-turns-it-on.md`
 - [x] Phase 6 — PRs and spec fields on the record → `phases/phase-6-prs-and-spec-fields.md`
 - [x] Phase 7 — Questions and hand-off notes → `phases/phase-7-questions-and-handoff.md`
-- [ ] Phase 8 — Cards, sources and tags → `phases/phase-8-cards-sources-tags.md`
+- [x] Phase 8 — Cards, sources and tags → `phases/phase-8-cards-sources-tags.md`
 - [ ] Phase 9 — Sessions and work not on the remote → `phases/phase-9-sessions.md`
 - [ ] Phase 10 — The page → `phases/phase-10-page.md`
 - [ ] Phase 11 — Academy's board moves over → `phases/phase-11-academy-moves-over.md`

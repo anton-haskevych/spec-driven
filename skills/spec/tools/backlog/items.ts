@@ -6,8 +6,10 @@ import { readSchedule, type Priority } from "../core/schedule";
 export const BACKLOG_DIR = join("docs", "specs", "_backlog");
 export const CLOSED_DIR = "_closed";
 
+// A backlog file, or with the board on an open card that nothing covers (`card` is its id, `file` empty).
 export interface BacklogItem {
   file: string;
+  card?: string;
   slug: string;
   title: string;
   body: string;

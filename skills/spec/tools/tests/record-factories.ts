@@ -1,3 +1,6 @@
+import type { CardDoc } from "../cards/card-doc";
+import type { SourceDoc } from "../cards/source-doc";
+import type { TagDoc } from "../cards/tag-doc";
 import type { PrDoc } from "../plan/docs/pr-doc";
 import type { PhaseDoc, Task } from "../plan/docs/phase-doc";
 import type { SpecDoc } from "../plan/docs/spec-doc";
@@ -48,4 +51,33 @@ export function questionDoc(overrides: Partial<QuestionDoc> = {}): QuestionDoc {
     question: "Reset the Teachers pick each morning?",
     ...overrides,
   };
+}
+
+export function cardDoc(overrides: Partial<CardDoc> = {}): CardDoc {
+  return {
+    id: "c96",
+    title: "Featured row keeps events visible",
+    status: "open",
+    commitment: "asked",
+    tags: [],
+    coveredBy: [],
+    createdAt: "2026-11-13T09:00:00-08:00",
+    ...overrides,
+  };
+}
+
+export function sourceDoc(overrides: Partial<SourceDoc> = {}): SourceDoc {
+  return {
+    card: "c96",
+    role: "origin",
+    app: "imessage",
+    occurredAt: "2026-11-11T18:02:00-08:00",
+    quote: "I like having the Upcoming Events, now it doesn't show",
+    ref: "msg 4821",
+    ...overrides,
+  };
+}
+
+export function tagDoc(overrides: Partial<TagDoc> = {}): TagDoc {
+  return { name: "Academy Ballroom", kind: "customer", ...overrides };
 }
