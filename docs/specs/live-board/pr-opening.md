@@ -12,6 +12,7 @@ PR #37 merged 2026-11-11 as 9392c3f (squash).
 PR #38 merged 2026-11-12 as 0aaa216 (squash).
 PR #39 merged 2026-11-13 as e21190b (squash).
 PR #40 merged 2026-11-13 as 75b669a (squash).
+PR #41 merged 2026-11-13 as cfde02a (squash).
 
 ## Pre-PR checks
 
