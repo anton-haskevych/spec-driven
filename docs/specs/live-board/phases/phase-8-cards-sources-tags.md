@@ -68,8 +68,8 @@ then the spec's own fields are read.
 - [x] `card close` with evidence and `card drop`; the board proposes a close when every covering phase is merged and flags a done card with an open phase
 - [x] `card tag`; one priority scale `p0`–`p3` (`PRIORITIES`) on cards and tags; the list view groups by tag
 - [x] With the board on, `/spec idea` writes a card; a `_backlog` file becomes a card when next touched; the list shows cards and remaining files together; with it off nothing changes
-- [ ] Prep and join make a card for a spec that none covers; a spec's priority and due date come from its cards
-- [ ] Layout 4: a spec joined earlier gets its card on its next touch; until then its own priority and due date are read
+- [x] Prep and join make a card for a spec that none covers; a spec's priority and due date come from its cards
+- [x] Layout 4: a spec joined earlier gets its card on its next touch; until then its own priority and due date are read
 - [ ] `idea.md`, `list.md`, `prep.md`, `create.md`, `SKILL.md` updated; ROADMAP row and version bump for PR E
 
 ## Phase-local notes
