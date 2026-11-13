@@ -1,8 +1,28 @@
-import { phaseInFlightFile, type InFlightNote } from "../core/in-flight";
+import { phaseInFlightFile, readInFlight, type InFlightNote } from "../core/in-flight";
+import type { ReadSpecFile } from "../core/spec-state";
+import { NOTES_LAYOUT, RECORD_TRACKING_REF } from "../record/layout";
 import { withAnswer, withPark, type ParkEntry } from "../core/park";
 import { questionsOn } from "../questions/on-phase";
 import type { QuestionDoc } from "../questions/question-doc";
 import type { JoinedPlan } from "./state-source";
+import { phaseDocPath } from "./kinds";
+
+// A joined spec's notes. From layout 3 a phase's hand-off note is its record document's, whatever an
+// in-flight file in this tree says; before that, the files. PR-group and legacy notes stay files.
+export function joinedNotes(read: ReadSpecFile, phases: readonly { id: string; edges: { pr?: string } }[], plan: JoinedPlan): InFlightNote[] {
+  const files = readInFlight(read, phases);
+  if (plan.spec.layout < NOTES_LAYOUT) return withRecordQuestions(files, plan);
+  const phaseFiles = new Set(plan.phases.map((phase) => phaseInFlightFile(phase.id)));
+  return withRecordQuestions([...files.filter((note) => !phaseFiles.has(note.file)), ...recordNotes(plan)], plan);
+}
+
+function recordNotes(plan: JoinedPlan): InFlightNote[] {
+  return plan.phases.flatMap((phase) => {
+    if (!phase.handoff) return [];
+    const where = `the board: git show ${RECORD_TRACKING_REF}:${phaseDocPath(plan.spec.name, phase.id)} (its handoff.note)`;
+    return [{ file: phaseInFlightFile(phase.id), text: phase.handoff.note, where }];
+  });
+}
 
 // A joined spec's waiting questions read as each phase's `## Needs you` entries, after any its in-flight
 // file holds, so every reader of parks (board, packs, crew) sees them unchanged: parks left on the phase

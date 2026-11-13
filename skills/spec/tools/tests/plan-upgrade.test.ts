@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { prDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
+import { phaseDocPath, prDocPath, questionDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
 import { prDocsFromFiles, specFieldsFromFiles, upgradePlan } from "../plan/upgrade";
 import { planWrites } from "../record/plan-writes";
 import { viewOf } from "./fake-record";
@@ -75,25 +75,42 @@ describe("prDocsFromFiles", () => {
   });
 });
 
+const AT = "2026-11-13T10:00:00.000Z";
+
 describe("upgradePlan", () => {
   const copied = { fields: { status: "active", owner: "Taras" }, prs: [prDoc({ group: "A", number: 37, state: "merged" }), prDoc({ group: "B" })] };
 
-  test("a layout-1 spec gets its fields, layout 2 and its PR documents in one batch", () => {
+  test("a layout-1 spec gets its fields, its PR documents and layout 3 in one batch", () => {
     const view = viewOf({ [specDocPath("checkout")]: specDoc({ layout: 1 }), [prDocPath("checkout", "B")]: prDoc({ group: "B", number: 50, state: "open" }) });
-    const planned = upgradePlan("checkout", copied)(view);
+    const planned = upgradePlan("checkout", copied, AT)(view);
     expect(planned).toEqual({
       ops: [
-        { op: "update", path: specDocPath("checkout"), patch: { status: "active", owner: "Taras", layout: 2 } },
+        { op: "update", path: specDocPath("checkout"), patch: { status: "active", owner: "Taras", layout: 3 } },
         { op: "create", path: prDocPath("checkout", "A"), doc: copied.prs[0] },
       ],
-      message: "record: upgrade checkout to layout 2",
+      message: "record: upgrade checkout to layout 3",
     });
     if (!("ops" in planned)) throw new Error("expected ops");
     expect(planWrites(view, planned.ops, validateRecordDoc).kind).toBe("planned");
   });
 
   test("an upgraded spec is left alone, and a spec off the board is refused", () => {
-    expect(upgradePlan("checkout", copied)(viewOf({ [specDocPath("checkout")]: specDoc({ layout: 2 }) }))).toEqual({ unchanged: true });
-    expect(upgradePlan("checkout", copied)(viewOf({}))).toEqual({ refused: "checkout is not on the board" });
+    expect(upgradePlan("checkout", copied, AT)(viewOf({ [specDocPath("checkout")]: specDoc({ layout: 3 }) }))).toEqual({ unchanged: true });
+    expect(upgradePlan("checkout", copied, AT)(viewOf({}))).toEqual({ refused: "checkout is not on the board" });
+  });
+
+  test("a layout-2 spec gets only its notes and questions: fields and PRs are already on the record", () => {
+    const phase = phaseDoc({ id: "1", parks: [{ parkedAt: "T0", question: "Old?", answer: { at: "T0b", text: "yes" } }] });
+    const view = viewOf({ [specDocPath("checkout")]: specDoc({ layout: 2 }), [phaseDocPath("checkout", "1")]: phase });
+    const notes = { notes: { "1": "# In-flight — phase 1\n\nPick up here.\n" }, parks: { "1": [{ parkedAt: "T1", question: "Ship?", recommend: "yes" }] } };
+    const planned = upgradePlan("checkout", { ...copied, notes }, AT)(view);
+    if (!("ops" in planned)) throw new Error(JSON.stringify(planned));
+    expect(planned.ops).toEqual([
+      { op: "update", path: specDocPath("checkout"), patch: { layout: 3 } },
+      { op: "update", path: phaseDocPath("checkout", "1"), patch: { parks: null, handoff: { at: AT, by: "unknown", note: notes.notes["1"] } } },
+      { op: "create", path: questionDocPath("checkout", "q1"), doc: { id: "q1", about: "checkout#1", kind: "question", askedAt: "T0", askedBy: "unknown", question: "Old?", answer: { text: "yes", by: "unknown", at: "T0b" } } },
+      { op: "create", path: questionDocPath("checkout", "q2"), doc: { id: "q2", about: "checkout#1", kind: "question", askedAt: "T1", askedBy: "unknown", question: "Ship?", recommend: "yes" } },
+    ]);
+    expect(planWrites(view, planned.ops, validateRecordDoc).kind).toBe("planned");
   });
 });

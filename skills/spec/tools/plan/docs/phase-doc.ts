@@ -37,8 +37,16 @@ export interface PhaseDoc {
   shape?: string;
   deployed?: string;
   tasks: Task[];
-  // Questions a session parked the phase on; phase 7 moves them to question documents.
+  // Questions parked before layout 3, which moves them to question documents.
   parks?: ParkEntry[];
+  // What the next session picks up: written by `phase note` at hand-off.
+  handoff?: Handoff;
+}
+
+export interface Handoff {
+  at: string;
+  by: string;
+  note: string;
 }
 
 export function readPhaseDoc(value: unknown): DocRead<PhaseDoc> {
@@ -63,6 +71,7 @@ function readPhaseFields(fields: FrontmatterData, problems: string[]): PhaseDoc 
     deployed: deployedDay(fields.deployed, problems),
     tasks: readTasks(fields.tasks, problems),
     parks: readParks(fields.parks, problems),
+    handoff: readHandoff(fields.handoff, problems),
   });
 }
 
@@ -116,4 +125,13 @@ function readTask(value: unknown, index: number, problems: string[]): Task {
   });
   problems.push(...own.map((problem) => `task ${id ?? `#${index + 1}`}: ${problem}`));
   return task;
+}
+
+function readHandoff(value: unknown, problems: string[]): Handoff | undefined {
+  if (value === undefined) return undefined;
+  const fields = typeof value === "object" && value !== null && !Array.isArray(value) ? (value as FrontmatterData) : {};
+  const own: string[] = [];
+  const handoff = { at: requiredText(fields.at, "at", own) ?? "", by: requiredText(fields.by, "by", own) ?? "", note: typeof fields.note === "string" && fields.note.trim() !== "" ? fields.note : (own.push("note must be text"), "") };
+  problems.push(...own.map((problem) => `handoff: ${problem}`));
+  return own.length === 0 ? handoff : undefined;
 }

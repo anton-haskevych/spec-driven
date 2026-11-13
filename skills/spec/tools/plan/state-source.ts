@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { parseFrontmatter } from "../core/frontmatter";
-import { readInFlight } from "../core/in-flight";
 import { allTasksDone, countTasks, summarizePhaseEntry, type PhaseEntrySummary } from "../core/phase-entry";
 import type { SpecFolder } from "../core/spec-folders";
 import { diskReader, loadSpecStateFromFiles, type PhaseState, type ReadSpecFile, type SpecState } from "../core/spec-state";
@@ -11,7 +10,7 @@ import { readPhaseDoc, type PhaseDoc, type Task } from "./docs/phase-doc";
 import { readSpecDoc, type SpecDoc } from "./docs/spec-doc";
 import { deliverablesSection, isCheckboxLine, linesOutsideFences } from "./deliverables";
 import { phaseDocPath, specDocPath } from "./kinds";
-import { withRecordQuestions } from "./phase-notes";
+import { joinedNotes } from "./phase-notes";
 import type { QuestionDoc } from "../questions/question-doc";
 import { readSpecQuestions } from "../questions/read";
 
@@ -48,7 +47,7 @@ export function readJoinedPlan(view: RecordView, name: string): JoinedPlan | und
 
 export function joinedSpecState(spec: SpecFolder, read: ReadSpecFile, plan: JoinedPlan): SpecState {
   const phases = plan.phases.map((doc) => joinedPhase(read, doc));
-  return { spec, hasProgress: true, phases, inFlight: withRecordQuestions(readInFlight(read, phases), plan) };
+  return { spec, hasProgress: true, phases, inFlight: joinedNotes(read, phases, plan) };
 }
 
 export function joinedPhaseMarks(plan: JoinedPlan): PhaseMark[] {

@@ -2,7 +2,9 @@ import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import type { GhClient } from "../pr/gh";
 import type { PhaseDoc } from "./docs/phase-doc";
+import { diskReader } from "../core/spec-state";
 import { prSeenOf } from "./pr-observed";
+import { notesFromFiles } from "./upgrade-notes";
 import { prDocsFromFiles, specFieldsFromFiles, type CopiedFromFiles } from "./upgrade";
 
 // `left`: PR numbers the files link that no group could take.
@@ -13,5 +15,5 @@ export function copyFromFolder(dir: string, spec: string, phases: readonly Phase
     return view?.ok ? prSeenOf(view.value) : undefined;
   };
   const { prs, left } = prDocsFromFiles(spec, phases, readTextIfExists(join(dir, "pr-opening.md")) ?? "", seen);
-  return { fields, prs, left };
+  return { fields, prs, notes: notesFromFiles(diskReader(dir), phases), left };
 }

@@ -13,6 +13,7 @@ const SAMPLES: Record<PlanCommand, object> = {
   unpark: { spec: "s", phase: "1", answer: "A", at: "T2" },
   ask: { spec: "s", phase: "1", question: "Q?", recommend: "no", at: "T1", by: "session-1" },
   answer: { spec: "s", id: "q3", text: "A", by: "Anton", at: "T2", ifVersion: "abc" },
+  note: { spec: "s", phase: "1", note: "# In-flight\n\nPick up here.\n", at: "T3", by: "session-1" },
 };
 
 describe("plan intents", () => {

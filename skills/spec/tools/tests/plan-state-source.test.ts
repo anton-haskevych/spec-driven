@@ -125,6 +125,19 @@ describe("joinedSpecState", () => {
     expect(parkOf(notes, "2")).toEqual({ parkedAt: "T3", question: "Design ok?" });
   });
 
+  test("from layout 3 a phase's hand-off note is the record's; group notes stay files; before, the files", () => {
+    const files = { "in-flight/phase-1.md": "stale file note\n", "in-flight/pr-A.md": "group note\n" };
+    const phases = [phaseDoc({ id: "1", pr: "A", handoff: { at: "T1", by: "s1", note: "# In-flight — phase 1\n\nPick up here.\n" } }), phaseDoc({ id: "2", pr: "A" })];
+    const upgraded = joinedSpecState(SPEC, read(files), { spec: specDoc({ phases: ["1", "2"], layout: 3 }), phases }).inFlight ?? [];
+    expect(upgraded.map(({ file, text }) => ({ file, text }))).toEqual([
+      { file: "in-flight/pr-A.md", text: "group note\n" },
+      { file: "in-flight/phase-1.md", text: "# In-flight — phase 1\n\nPick up here.\n" },
+    ]);
+    expect(upgraded[1]?.where).toBe("the board: git show refs/spec-board-remote/record:specs/checkout/phases/1.json (its handoff.note)");
+    const before = joinedSpecState(SPEC, read(files), { spec: specDoc({ phases: ["1", "2"], layout: 2 }), phases }).inFlight ?? [];
+    expect(before.find((note) => note.file === "in-flight/phase-1.md")?.text).toBe("stale file note\n");
+  });
+
   test("a phase with no tasks is open unless it was deployed", () => {
     const state = joinedSpecState(SPEC, read({}), { spec: specDoc({ phases: ["1", "2"] }), phases: [phaseDoc({ id: "1", tasks: [] }), phaseDoc({ id: "2", tasks: [], deployed: "2026-11-01" })] });
     expect(state.phases.map((phase) => phase.done)).toEqual([false, true]);

@@ -4,7 +4,7 @@ import type { RecordPlan } from "../record/write";
 import { addEdit, type AddIntent } from "./ops/add";
 import { planChangePlan, phaseStatePlan, type ChangeSeen } from "./ops/change";
 import { moveEdit, type MoveIntent } from "./ops/move";
-import { deployedEdit, parkEdit, unparkEdit, type DeployedIntent, type ParkIntent, type UnparkIntent } from "./ops/phase-state";
+import { deployedEdit, noteEdit, parkEdit, unparkEdit, type DeployedIntent, type NoteIntent, type ParkIntent, type UnparkIntent } from "./ops/phase-state";
 import type { PhaseFields } from "../phases/set";
 import { setEdit, type SetIntent } from "./ops/set";
 import { splitEdit, type SplitIntent } from "./ops/split";
@@ -31,6 +31,7 @@ export interface PlanIntents {
   unpark: PlanIntent<UnparkIntent>;
   ask: PlanIntent<AskIntent>;
   answer: PlanIntent<AnswerIntent>;
+  note: PlanIntent<NoteIntent>;
 }
 
 export type PlanCommand = keyof PlanIntents;
@@ -75,6 +76,10 @@ export const PLAN_INTENTS: PlanIntents = {
   answer: {
     read: (a) => withSpec(a, { id: optional(a.id, text), phase: optional(a.phase, text), text: text(a.text), by: text(a.by), at: text(a.at), ifVersion: optional(a.ifVersion, text) }),
     plan: (i, see) => answerPlan(i, see),
+  },
+  note: {
+    read: (a) => withSpec(a, { phase: text(a.phase), note: optional(a.note, text), at: text(a.at), by: text(a.by) }),
+    plan: (i, see) => phaseStatePlan(i.spec, "note", i.phase, noteEdit(i), see),
   },
 };
 

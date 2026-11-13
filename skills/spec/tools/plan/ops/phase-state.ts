@@ -1,4 +1,5 @@
 import { allTasksDone, countTasks } from "../../core/phase-entry";
+import { noteBody } from "../../core/handoff-note";
 import type { ParkEntry } from "../../core/park";
 import type { PhaseDoc } from "../docs/phase-doc";
 import type { Edit, PhaseStateChange } from "./change";
@@ -22,6 +23,15 @@ export interface UnparkIntent {
   phase: string;
   answer: string;
   at: string;
+}
+
+// `note` absent clears it.
+export interface NoteIntent {
+  spec: string;
+  phase: string;
+  note?: string;
+  at: string;
+  by: string;
 }
 
 export function deployedEdit(intent: DeployedIntent): (phase: PhaseDoc) => Edit<PhaseStateChange> {
@@ -51,6 +61,20 @@ export function unparkEdit(intent: UnparkIntent): (phase: PhaseDoc) => Edit<Phas
     const answer = oneLine(intent.answer);
     const answered = parks.map((park, index) => (index === open ? { ...park, answer: { at: intent.at, text: answer } } : park));
     return { phase: { ...phase, parks: answered }, line: `answered Phase ${phase.id}: "${answer}"` };
+  };
+}
+
+export function noteEdit(intent: NoteIntent): (phase: PhaseDoc) => Edit<PhaseStateChange> {
+  return (phase) => {
+    const note = intent.note === undefined ? "" : noteBody(intent.note);
+    if (note === "") {
+      if (!phase.handoff) return { unchanged: `note: phase ${phase.id} has no hand-off note` };
+      const { handoff: _cleared, ...rest } = phase;
+      return { phase: rest, line: `note: phase ${phase.id} · hand-off note cleared` };
+    }
+    if (phase.handoff?.note === note) return { unchanged: `note: phase ${phase.id} · the board already has this note` };
+    const lines = note.trimEnd().split("\n").length;
+    return { phase: { ...phase, handoff: { at: intent.at, by: intent.by, note } }, line: `note: phase ${phase.id} · hand-off note on the board (${lines} ${lines === 1 ? "line" : "lines"})` };
   };
 }
 

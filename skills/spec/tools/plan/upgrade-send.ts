@@ -1,3 +1,4 @@
+import { isoTimestamp } from "../core/schedule";
 import { findSpecs, resolveSpec } from "../core/spec-folders";
 import type { Runner } from "../core/run";
 import { baseProject } from "../mainline/load";
@@ -20,7 +21,7 @@ export async function upgradeIfBehind(world: RecordWorld, projectDir: string, jo
   if (dir === undefined) return [`upgrade: no files for ${spec} here; it stays on layout ${joined.spec.layout}`];
   if (!world.port) return [];
   const { left, ...copied } = copyFromFolder(dir, spec, joined.phases, ghClient(projectDir, runner));
-  const written = await writeRecord(world.port, upgradePlan(spec, copied), { validate: validateRecordDoc });
+  const written = await writeRecord(world.port, upgradePlan(spec, copied, isoTimestamp(world.now)), { validate: validateRecordDoc });
   const failed = !["landed", "unchanged", "offline"].includes(written.kind);
   return [...left.map((line) => `upgrade: ${line}`), ...(failed ? [`upgrade: ${spec} stays on layout ${joined.spec.layout} (${written.kind}); the next write tries again`] : [])];
 }

@@ -1,14 +1,16 @@
 import { parseFrontmatter, stringField } from "../core/frontmatter";
 import { readFocusFields, readShipField } from "../core/spec-meta";
 import { withoutUndefined } from "../core/read-fields";
-import { RECORD_LAYOUT } from "../record/layout";
+import { FIELDS_LAYOUT, NOTES_LAYOUT, RECORD_LAYOUT } from "../record/layout";
 import type { RecordOp } from "../record/plan-writes";
 import type { RecordPlan } from "../record/write";
 import { MERGE_METHODS, type MergeMethod } from "../playbook/settings";
 import { specPrNumbers } from "../pr/resolve";
 import type { PhaseDoc } from "./docs/phase-doc";
 import { missingPrDocs, type PrDoc, type PrState } from "./docs/pr-doc";
-import { readSpecDoc, type SpecDoc } from "./docs/spec-doc";
+import type { SpecDoc } from "./docs/spec-doc";
+import { readJoinedPlan } from "./state-source";
+import { notesStepOps, type NotesFromFiles } from "./upgrade-notes";
 import { prDocPath, specDocPath } from "./kinds";
 
 // The spec fields layout 2 moves onto the record: the ones a command writes. Relations, `stale` and
@@ -18,6 +20,8 @@ export type MovedFields = Pick<SpecDoc, "status" | "owner" | "focus" | "ship">;
 export interface CopiedFromFiles {
   fields: MovedFields;
   prs: PrDoc[];
+  // Absent: the files had no in-flight notes to copy.
+  notes?: NotesFromFiles;
 }
 
 // What GitHub says about a PR number the files link.
@@ -84,16 +88,21 @@ function fileLinks(prOpening: string): FileLinks {
 }
 
 // Planned at the tip like any write: a spec another session already upgraded is left alone, and a PR
-// document a plan change created meanwhile is kept.
-export function upgradePlan(spec: string, copied: CopiedFromFiles): RecordPlan {
+// document a plan change created meanwhile is kept. Each step the spec is behind on runs, in one batch.
+export function upgradePlan(spec: string, copied: CopiedFromFiles, at: string): RecordPlan {
   return (view) => {
-    const current = readSpecDoc(view.doc(specDocPath(spec))).doc;
-    if (!current) return { refused: `${spec} is not on the board` };
-    if (current.layout >= RECORD_LAYOUT) return { unchanged: true };
-    const prs: RecordOp[] = copied.prs.filter((doc) => view.doc(prDocPath(spec, doc.group)) === undefined).map((doc) => ({ op: "create", path: prDocPath(spec, doc.group), doc }));
+    const plan = readJoinedPlan(view, spec);
+    if (!plan) return { refused: `${spec} is not on the board` };
+    const { layout } = plan.spec;
+    if (layout >= RECORD_LAYOUT) return { unchanged: true };
+    const fields = layout < FIELDS_LAYOUT ? copied.fields : {};
+    const prs: RecordOp[] = layout < FIELDS_LAYOUT ? copied.prs.filter((doc) => view.doc(prDocPath(spec, doc.group)) === undefined).map((doc) => ({ op: "create", path: prDocPath(spec, doc.group), doc })) : [];
+    const notes = layout < NOTES_LAYOUT ? notesStepOps(plan, copied.notes ?? NO_NOTES, at) : [];
     return {
-      ops: [{ op: "update", path: specDocPath(spec), patch: { ...copied.fields, layout: RECORD_LAYOUT } }, ...prs],
+      ops: [{ op: "update", path: specDocPath(spec), patch: { ...fields, layout: RECORD_LAYOUT } }, ...prs, ...notes],
       message: `record: upgrade ${spec} to layout ${RECORD_LAYOUT}`,
     };
   };
 }
+
+const NO_NOTES: NotesFromFiles = { notes: {}, parks: {} };

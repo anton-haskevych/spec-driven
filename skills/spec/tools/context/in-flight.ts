@@ -7,7 +7,7 @@ const INLINE_LIMIT = 8000;
 export function inFlightBlock(specDir: string, own: readonly InFlightNote[], others: readonly InFlightNote[] = []): string {
   const { whole, tooLarge } = fitWhole(own.filter(hasText));
   const elsewhere = others.filter(hasText);
-  const paths = (notes: readonly InFlightNote[]) => notes.map((note) => `- ${join(specDir, note.file)}`);
+  const paths = (notes: readonly InFlightNote[]) => notes.map((note) => `- ${note.where ?? join(specDir, note.file)}`);
   return [
     `### In-flight (raw)\n${whole.length > 0 ? whole.map((note) => `#### ${note.file}\n${note.text.trim()}`).join("\n\n") : "(none)"}`,
     ...(tooLarge.length > 0 ? [["Too large to show here. Read each in full before acting:", ...paths(tooLarge)].join("\n")] : []),

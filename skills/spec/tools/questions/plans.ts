@@ -109,7 +109,7 @@ function targetOf(plan: JoinedPlan, intent: AnswerIntent): { question: QuestionD
   return question ? { question, phase: phase.id } : `Phase ${phase.id} is not parked`;
 }
 
-function nextGateTask(phase: PhaseDoc): string | undefined {
+export function nextGateTask(phase: PhaseDoc): string | undefined {
   const next = phase.tasks.find((task) => !task.done);
   return next && (next.gate || isGateItem(next.text)) ? next.id : undefined;
 }

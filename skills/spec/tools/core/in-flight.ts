@@ -9,6 +9,8 @@ export const LEGACY_IN_FLIGHT = "in-flight.md";
 export interface InFlightNote {
   file: string;
   text: string;
+  // Where to read it whole when it isn't a file in the spec folder (a note on the board's record).
+  where?: string;
 }
 
 interface InFlightOwner {

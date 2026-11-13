@@ -62,6 +62,10 @@ export function recordWriter(projectDir: string, spec: SpecFolder, joined: Joine
       const intent = { spec: name, phase: request.phase, question: request.question, ...(request.recommend ? { recommend: request.recommend } : {}), at: request.at, by: askerOf(deps.env, projectDir) };
       return send("ask", intent, (see) => PLAN_INTENTS.ask.plan(intent, see));
     },
+    note(request) {
+      const intent = { spec: name, phase: request.phase, ...(request.note === undefined ? {} : { note: request.note }), at: request.at, by: askerOf(deps.env, projectDir) };
+      return send("note", intent, (see) => PLAN_INTENTS.note.plan(intent, see));
+    },
     unpark(request): PhaseOutcome | Promise<PhaseOutcome> {
       const phase = findPhaseDoc(joined, request.phase);
       if (typeof phase !== "string" && !openQuestionOn(joined, phase.id)) {
