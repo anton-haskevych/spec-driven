@@ -31,3 +31,17 @@ What later phases call, and where it differs from `technical.md`:
   add/move/drop rules on the record.
 - **`landOnMain`** runs through `landOnRef` with a branch port; `pushDeclined` (`core/remote-push.ts`) tells a
   server hook's refusal from a lost race, and `RefPort.push` may return `failed`.
+- **PR sync** (`plan/pr-sync.ts`): `prSyncPlan(sightings)` matches a sighting to its group's document by
+  branch, then `headRefOid`, and replaces the document when number, state, head or merge fields differ; a new
+  number starts it over. `githubPrState` is the one GitHub → state map. A sighting that didn't read CI
+  (`ready`: the board's lists, an already-open PR) keeps a green document green while PR and head are the
+  same; only `pr status` sets or clears green. `recordPr` (`plan/pr-sync-send.ts`) is a direct write after
+  `upgradeIfBehind`, never queued; its failure is a note line, and the next `pr status` repeats it.
+- **Readers:** `PlanSource.prs(spec)` is the PR documents of a layout-2 spec, else `undefined` (files);
+  `linkedPrNumbers` in `pr/resolve.ts` chooses. `resolvePr` takes `SpecPlans` (`plansOnDemandAt`).
+- **Board:** `BoardInputs.prDocs` holds the documents as synced by this load; `joinedActivity` takes them.
+  A built phase is in flight only with a PR document that is opened, or not opened with a task pushed on a
+  branch: phases finished before the join stay off the lane. Built rows bypass `isFinished` (every phase
+  built reads finished) unless the spec's status ended it. The *Needs you* row is `open-pr`, one per group.
+- **Not changed:** `isWip` (ready-lane order) still counts any done task; done-for-edges is still "every task
+  done", so a phase needing a built one can start.
