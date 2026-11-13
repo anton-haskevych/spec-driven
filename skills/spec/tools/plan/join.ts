@@ -4,10 +4,12 @@ import { RECORD_LAYOUT } from "../record/layout";
 import { phaseNeeds } from "../ready/ready-set";
 import { withoutUndefined } from "../core/read-fields";
 import type { PhaseDoc } from "./docs/phase-doc";
+import { missingPrDocs, type PrDoc } from "./docs/pr-doc";
 import type { SpecDoc } from "./docs/spec-doc";
 import { specPlanProblems } from "./docs/spec-plan";
 import { entryTasks } from "./entry-tasks";
 import { matchPhaseTasks, type TaskCopy } from "./join-tasks";
+import type { CopiedFromFiles } from "./upgrade";
 
 // One copy of a spec: the default branch's, or a worktree's (`tree` is its folder name).
 export interface JoinCopy {
@@ -23,12 +25,16 @@ export interface JoinInput {
   // Whether a phase's prose file exists on the default branch.
   onBase(pointer: string): boolean;
   joinedAt: string;
+  // The default branch's spec fields and PR numbers for the planned phases; without it, no field is set and
+  // every group is not opened.
+  copy?: (phases: readonly PhaseDoc[]) => CopiedFromFiles & { left: string[] };
 }
 
 // `recorded`: what a tree added that main lacked; `left`: disagreements nothing was written for.
 export interface JoinPlan {
   spec: SpecDoc;
   phases: PhaseDoc[];
+  prs: PrDoc[];
   recorded: string[];
   left: string[];
 }
@@ -54,10 +60,14 @@ export function planJoin(input: JoinInput): JoinPlan | { refused: string } {
     left.push(...matched.left);
     return phaseDocOf(copies, phaseNeeds(order, primary.phase, index), matched.tasks, input.joinedAt);
   });
-  const spec: SpecDoc = { name: input.spec, planVersion: 1, phases: phases.map((phase) => phase.id), joinedAt: input.joinedAt, joinedFrom: input.base.head, layout: RECORD_LAYOUT };
+  const copied = input.copy?.(phases);
+  left.push(...(copied?.left ?? []));
+  const fields = copied?.fields ?? {};
+  const spec: SpecDoc = { name: input.spec, planVersion: 1, phases: phases.map((phase) => phase.id), joinedAt: input.joinedAt, joinedFrom: input.base.head, layout: RECORD_LAYOUT, ...fields };
   const problems = specPlanProblems(spec, phases);
   if (problems.length > 0) return { refused: `${input.spec}'s plan has problems: ${problems.join("; ")}` };
-  return { spec, phases, recorded, left: [...new Set(left)] };
+  const prs = copied?.prs ?? missingPrDocs(input.spec, phases, () => false);
+  return { spec, phases, prs, recorded, left: [...new Set(left)] };
 }
 
 // Main's phases in main's order; a phase only in a tree goes after the phase it follows there, when its

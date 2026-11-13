@@ -13,9 +13,11 @@ import { writeRecord, type RecordPlan, type StoreWrite } from "../record/write";
 import { boardBase } from "../plan/board-base";
 import type { PhaseDoc } from "../plan/docs/phase-doc";
 import type { SpecDoc } from "../plan/docs/spec-doc";
-import { planJoin, type JoinCopy, type JoinPlan } from "../plan/join";
+import { planJoin, type JoinInput, type JoinPlan } from "../plan/join";
+import { copyFromFolder } from "../plan/upgrade-read";
+import { ghClient, type GhClient } from "../pr/gh";
 import { readTreeCopies } from "../plan/join-copies";
-import { missingPrDocs } from "../plan/docs/pr-doc";
+import { missingPrDocs, type PrDoc } from "../plan/docs/pr-doc";
 import { phaseDocPath, prDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
 import { landBanner } from "../plan/land-banner";
 import { joinFromTree } from "./join-from-tree";
@@ -38,6 +40,7 @@ interface Joining {
   branch: string;
   port: RecordPort;
   spec: string;
+  gh: GhClient;
 }
 
 export function systemJoinDeps(): JoinDeps {
@@ -54,7 +57,7 @@ export async function joinCommand(projectDir: string, args: readonly string[], d
   const git = gitAt(projectDir, deps.runner);
   const port = gitRecordPort(git);
   if (!port) return "join: this repo has no origin; the board's record lives there";
-  const joining = { git, branch, port, spec };
+  const joining = { git, branch, port, spec, gh: ghClient(projectDir, deps.runner) };
   const copies = await readCopies(joining, deps);
   if (!copies.ok) return `join: refused, nothing written. ${copies.reason}`;
   const planned = planJoin({ spec, ...copies.value, joinedAt: isoTimestamp(deps.now()) });
@@ -65,7 +68,9 @@ export async function joinCommand(projectDir: string, args: readonly string[], d
   return [...lines, await resultLine(joining, planned, written, existing, copies.value.trees.length)].join("\n");
 }
 
-async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<{ base: JoinCopy; trees: JoinCopy[]; onBase(pointer: string): boolean }>> {
+type Copies = Pick<JoinInput, "base" | "trees" | "onBase" | "copy">;
+
+async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<Copies>> {
   const { git, branch, spec } = joining;
   const base = await boardBase(git, branch, "a join");
   if (!base.ok) return base;
@@ -78,11 +83,20 @@ async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<{ ba
   if (!state.hasProgress) return { ok: false, reason: `${spec} is still in prep; it has no phases to put on the board.` };
   const trees = await readTreeCopies(git, deps.asyncRunner, tip, spec);
   if (!trees.ok) return trees;
-  return { ok: true, value: { base: { tree: branch, head: tip, state }, trees: trees.value, onBase: (pointer) => existsSync(join(folder.dir, pointer)) } };
+  const { gh } = joining;
+  return {
+    ok: true,
+    value: {
+      base: { tree: branch, head: tip, state },
+      trees: trees.value,
+      onBase: (pointer) => existsSync(join(folder.dir, pointer)),
+      copy: (phases) => copyFromFolder(folder.dir, spec, phases, gh),
+    },
+  };
 }
 
 // `spec.json` is a create: of two machines writing a spec at once, the second finds it and changes nothing.
-export function newSpecPlan({ spec, phases }: { spec: SpecDoc; phases: readonly PhaseDoc[] }, verb: string, seen: (doc: unknown) => void): RecordPlan {
+export function newSpecPlan({ spec, phases, prs }: { spec: SpecDoc; phases: readonly PhaseDoc[]; prs?: readonly PrDoc[] }, verb: string, seen: (doc: unknown) => void): RecordPlan {
   return (view) => {
     const current = view.doc(specDocPath(spec.name));
     seen(current);
@@ -91,7 +105,7 @@ export function newSpecPlan({ spec, phases }: { spec: SpecDoc; phases: readonly 
       ops: [
         { op: "create", path: specDocPath(spec.name), doc: spec },
         ...phases.map((phase) => ({ op: "create" as const, path: phaseDocPath(spec.name, phase.id), doc: phase })),
-        ...missingPrDocs(spec.name, phases, () => false).map((doc) => ({ op: "create" as const, path: prDocPath(spec.name, doc.group), doc })),
+        ...(prs ?? missingPrDocs(spec.name, phases, () => false)).map((doc) => ({ op: "create" as const, path: prDocPath(spec.name, doc.group), doc })),
       ],
       message: `record: ${verb} ${spec.name}`,
     };

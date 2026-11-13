@@ -65,6 +65,14 @@ describe("writeRecord", () => {
     expect(await writeRecord(record, addItem("a"), options)).toEqual({ kind: "refused", reason: OLDER_PLUGIN });
   });
 
+  // A PR B plugin (layout 1) reads this meta.json as newer and refuses, by the rule the test above pins.
+  test("the first write to an older layout's record raises meta.json to this plugin's layout", async () => {
+    const record = fakeRecord();
+    record.landFromAnotherMachine([{ path: META_PATH, text: serializeDoc({ layout: RECORD_LAYOUT - 1 }) }]);
+    expect((await writeRecord(record, addItem("a"), options)).kind).toBe("landed");
+    expect(docAtTip(record, META_PATH)).toEqual({ layout: RECORD_LAYOUT });
+  });
+
   test("an unreachable origin comes back offline for the outbox to queue", async () => {
     const record = fakeRecord();
     record.offline = true;

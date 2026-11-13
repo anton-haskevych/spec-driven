@@ -44,8 +44,9 @@ function planEdit(port: RecordPort, tip: Tip, plan: RecordPlan, validate: Valida
   return { kind: "commit", changes: withMeta(planned.changes, layout), message: intent.message ?? DEFAULT_MESSAGE, landed: planned.versions };
 }
 
+// Raising the layout is what makes an older plugin stop writing to homes this one no longer reads.
 function withMeta(changes: FileChange[], layout: number | undefined): FileChange[] {
-  return layout === undefined ? [{ path: META_PATH, text: serializeDoc({ layout: RECORD_LAYOUT }) }, ...changes] : changes;
+  return layout === RECORD_LAYOUT ? changes : [{ path: META_PATH, text: serializeDoc({ layout: RECORD_LAYOUT }) }, ...changes];
 }
 
 function stop(outcome: Stopped): RefEdit<Record<string, string>, Stopped> {
