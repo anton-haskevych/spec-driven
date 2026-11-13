@@ -1,8 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { parseFrontmatter } from "../core/frontmatter";
-import { phaseInFlightFile, readInFlight, type InFlightNote } from "../core/in-flight";
-import { withAnswer, withPark } from "../core/park";
+import { readInFlight } from "../core/in-flight";
 import { allTasksDone, countTasks, summarizePhaseEntry, type PhaseEntrySummary } from "../core/phase-entry";
 import type { SpecFolder } from "../core/spec-folders";
 import { diskReader, loadSpecStateFromFiles, type PhaseState, type ReadSpecFile, type SpecState } from "../core/spec-state";
@@ -12,12 +11,17 @@ import { readPhaseDoc, type PhaseDoc, type Task } from "./docs/phase-doc";
 import { readSpecDoc, type SpecDoc } from "./docs/spec-doc";
 import { deliverablesSection, isCheckboxLine, linesOutsideFences } from "./deliverables";
 import { phaseDocPath, specDocPath } from "./kinds";
+import { withRecordQuestions } from "./phase-notes";
+import type { QuestionDoc } from "../questions/question-doc";
+import { readSpecQuestions } from "../questions/read";
 
 export type SpecSource = (spec: SpecFolder) => SpecState;
 
 export interface JoinedPlan {
   spec: SpecDoc;
   phases: PhaseDoc[];
+  // Absent: none asked.
+  questions?: QuestionDoc[];
 }
 
 const RUN_LIMIT = 5;
@@ -38,12 +42,13 @@ export function readJoinedPlan(view: RecordView, name: string): JoinedPlan | und
     const doc = readPhaseDoc(view.doc(phaseDocPath(name, id))).doc;
     return doc ? [doc] : [];
   });
-  return { spec, phases };
+  const questions = readSpecQuestions(view, name);
+  return questions.length > 0 ? { spec, phases, questions } : { spec, phases };
 }
 
 export function joinedSpecState(spec: SpecFolder, read: ReadSpecFile, plan: JoinedPlan): SpecState {
   const phases = plan.phases.map((doc) => joinedPhase(read, doc));
-  return { spec, hasProgress: true, phases, inFlight: withRecordParks(readInFlight(read, phases), plan.phases) };
+  return { spec, hasProgress: true, phases, inFlight: withRecordQuestions(readInFlight(read, phases), plan) };
 }
 
 export function joinedPhaseMarks(plan: JoinedPlan): PhaseMark[] {
@@ -103,26 +108,4 @@ function firstOpenRun(tasks: readonly Task[]): string[] {
 function bodyOf(prose: string): string {
   const parsed = parseFrontmatter(prose);
   return parsed.kind === "invalid" ? prose : parsed.body;
-}
-
-// Parks on the record read as the phase's in-flight note, after any the file already holds, so every park
-// reader (board, packs, crew) sees them unchanged.
-function withRecordParks(notes: readonly InFlightNote[], phases: readonly PhaseDoc[]): InFlightNote[] {
-  const merged = [...notes];
-  for (const phase of phases) {
-    if (!phase.parks?.length) continue;
-    const file = phaseInFlightFile(phase.id);
-    const at = merged.findIndex((note) => note.file === file);
-    const text = phase.parks.reduce((note: string | undefined, park) => parkText(note, phase.id, park), merged[at]?.text);
-    if (text === undefined) continue;
-    if (at === -1) merged.push({ file, text });
-    else merged[at] = { file, text };
-  }
-  return merged;
-}
-
-function parkText(note: string | undefined, phaseId: string, park: NonNullable<PhaseDoc["parks"]>[number]): string {
-  const { answer, ...asked } = park;
-  const parked = withPark(note, phaseId, asked);
-  return answer ? (withAnswer(parked, answer.text, answer.at) ?? parked) : parked;
 }

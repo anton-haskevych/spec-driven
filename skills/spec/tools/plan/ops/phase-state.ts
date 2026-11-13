@@ -58,6 +58,6 @@ export function openRecordPark(phase: PhaseDoc): ParkEntry | undefined {
   return phase.parks?.find((park) => park.answer === undefined);
 }
 
-function oneLine(text: string): string {
+export function oneLine(text: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
