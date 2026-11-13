@@ -25,9 +25,9 @@
 - [x] Phase 3b — A session hears that the plan changed → `phases/phase-3b-plan-changed-notice.md`
 - [x] Phase 4 — The modes use the commands → `phases/phase-4-modes-use-commands.md`
 - [ ] Phase 5 — CRM turns the board on → `phases/phase-5-crm-turns-it-on.md`
-- [ ] Phase 6 — PRs and spec fields on the record → `phases/phase-6-prs-and-spec-fields.md`
-- [ ] Phase 7 — Questions and hand-off notes → `phases/phase-7-questions-and-handoff.md`
-- [ ] Phase 8 — Cards, sources and tags → `phases/phase-8-cards-sources-tags.md`
-- [ ] Phase 9 — Sessions and work not on the remote → `phases/phase-9-sessions.md`
-- [ ] Phase 10 — The page → `phases/phase-10-page.md`
+- [x] Phase 6 — PRs and spec fields on the record → `phases/phase-6-prs-and-spec-fields.md`
+- [x] Phase 7 — Questions and hand-off notes → `phases/phase-7-questions-and-handoff.md`
+- [x] Phase 8 — Cards, sources and tags → `phases/phase-8-cards-sources-tags.md`
+- [x] Phase 9 — Sessions and work not on the remote → `phases/phase-9-sessions.md`
+- [x] Phase 10 — The page → `phases/phase-10-page.md`
 - [ ] Phase 11 — Academy's board moves over → `phases/phase-11-academy-moves-over.md`

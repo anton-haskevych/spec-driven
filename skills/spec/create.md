@@ -4,6 +4,8 @@ You are guiding a full product spec session for `$ARGUMENTS`. The output is a st
 
 ## Process
 
+**Register the session first**, so the sessions executing this spec see a plan is being written: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts session register create $ARGUMENTS --title "create $ARGUMENTS"` (SKILL.md → *Tools* → Sessions). `The board is off here` or an unreachable origin means nothing to do: carry on.
+
 Work through these 6 stages **interactively**. Ask clarifying questions at each stage — don't generate boilerplate. Use AskUserQuestion for key decisions.
 
 ### 1. Discover
@@ -143,8 +145,8 @@ status: <draft, or the closest value the project allows (SKILL.md → Stage vs. 
 area: [<from taxonomy>]
 domain: [<from taxonomy>]
 scope: [<from taxonomy>]
-priority: <p1 | p2 | p3, only if the user set one>
-due: <YYYY-MM-DD, only if there is a real date>
+priority: <p0 | p1 | p2 | p3, only if the user set one; board on and prep gave the spec a card: set it there, below>
+due: <YYYY-MM-DD, only if there is a real date; same rule as priority>
 part-of: <parent spec, only if one exists>
 needs: [<spec or spec#phase that must land first>]
 supersedes: [<spec#phases this spec replaces>]
@@ -175,6 +177,8 @@ related:
 This spec is a *design document*, not a live mirror. For ground-truth architecture, see:
 - [relevant CLAUDE.md files and feature docs in this project]
 ```
+
+**Priority and due date with the board on.** A spec's priority and due date are read from the cards that cover it. When prep gave the spec a card (`spec.ts card list` shows one `covered by <name>`), set them with `spec.ts card update <id> --priority … --due …` and leave them out of `CLAUDE.md`. With no card yet, write them here: `plan apply` makes the spec's card from this file.
 
 #### `docs/specs/$ARGUMENTS/design.md`
 

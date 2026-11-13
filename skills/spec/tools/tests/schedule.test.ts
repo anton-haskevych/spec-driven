@@ -20,7 +20,7 @@ describe("readSchedule", () => {
     expect(priority).toBeUndefined();
     expect(due).toBeUndefined();
     expect(problems).toEqual([
-      'priority "high" is not one of p1, p2, p3',
+      'priority "high" is not one of p0, p1, p2, p3',
       'due "next week" is not a date; use YYYY-MM-DD',
     ]);
   });
@@ -46,7 +46,7 @@ describe("isoDay", () => {
 
 describe("priorityRank", () => {
   test("orders p1 first and unprioritized last", () => {
-    expect([priorityRank("p1"), priorityRank("p2"), priorityRank("p3"), priorityRank(undefined)]).toEqual([1, 2, 3, 4]);
+    expect([priorityRank("p0"), priorityRank("p1"), priorityRank("p2"), priorityRank("p3"), priorityRank(undefined)]).toEqual([1, 2, 3, 4, 5]);
   });
 });
 

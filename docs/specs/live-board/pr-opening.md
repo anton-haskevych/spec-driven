@@ -10,6 +10,11 @@ One minor version per PR, picked at merge (main's minor + 1). PR B ships with `b
 and E each raise the record's layout number and carry the upgrade step for specs that joined earlier.
 PR #37 merged 2026-11-11 as 9392c3f (squash).
 PR #38 merged 2026-11-12 as 0aaa216 (squash).
+PR #39 merged 2026-11-13 as e21190b (squash).
+PR #40 merged 2026-11-13 as 75b669a (squash).
+PR #41 merged 2026-11-13 as cfde02a (squash).
+PR #42 merged 2026-11-13 as ea15598 (squash).
+PR #43 merged 2026-11-13 as 2f1f7bf (squash).
 
 ## Pre-PR checks
 
@@ -20,11 +25,26 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   completes … fresh-process pickup" timed out at 5906 ms against the 5 s default; alone with `--timeout 30000`:
   `4 pass · 0 fail`, as at the branch base (`docs/specs/_ledger/gotcha-codex-packaged-entry-test-runs-near-its-timeout.md`).
   PR B, 2026-11-12: `1805 pass · 0 fail`; typecheck clean; `bun install --frozen-lockfile` no changes.
+  PR C, 2026-11-13: `1901 pass · 0 fail` across 269 files (272 s) before the newer-layout fix; then the
+  write-command suites (`410 pass · 0 fail`) and the new `record-newer-layout.test.ts`; typecheck clean;
+  `bun install --frozen-lockfile` no changes.
+  PR D, 2026-11-13: `1938 pass · 2 fail` across 276 files (300 s); `spec-field-commands.test.ts` expected
+  layout 2 (fixed: `4 pass`), `land-on-main.test.ts` "tries five times" is load timing (`11 pass · 0 fail`
+  alone); typecheck clean; `bun install --frozen-lockfile` no changes.
+  PR E, 2026-11-13: `2006 pass · 0 fail` across 287 files after the layout-4 commit; after the docs and
+  version commit the doc and version suites (`353 pass · 0 fail`, 45 files); typecheck clean;
+  `bun install --frozen-lockfile` no changes.
+  PR F, 2026-11-13: `2080 pass · 1 fail` across 295 files (337 s): the same `codex-packaged-entry` "source fixture
+  completes …" timing failure (5446 ms against 5 s); alone with `--timeout 60000`: `1 pass · 0 fail`; typecheck
+  clean; `bun install --frozen-lockfile` no changes.
+  PR G, 2026-11-13: `2125 pass · 1 fail` across 302 files (385 s): the same `codex-packaged-entry` "source fixture
+  completes …" timing failure (5385 ms against 5 s); alone with `--timeout 30000`: `4 pass · 0 fail`; typecheck clean;
+  `bun install --frozen-lockfile` no changes.
 - [x] `bun run typecheck` clean (PR A, 2026-11-11)
 - [x] `bun install --frozen-lockfile` clean (no new runtime dependencies) (PR A, 2026-11-11)
-- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*)
-- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143)
-- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`)
+- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`; PR D: 2.55.0, `All version declarations match: 2.55.0`; PR E: 2.56.0, `All version declarations match: 2.56.0`; PR F: 2.57.0, `All version declarations match: 2.57.0`, row under *Live board (2.53–2.57)*; PR G: 2.58.0, `All version declarations match: 2.58.0`, row under *Live board (2.53–2.58)*)
+- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230; PR F: largest touched `board/model.ts`, 243; PR G: largest new `page/styles.ts`, 225, `page/model.ts`, 196; `startPageServer` 45 lines)
+- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D, E, F and G: `doctor: clean (1 spec)`)
 - [x] With the board off, a file-based spec behaves as before: the pre-existing suites pass unchanged
   PR A: nothing reads the record yet; the same one timing failure as `bun test` above.
   PR B, 2026-11-12: full suite green; the only edited expectation is the frozen-plan hook naming `phase task`.
@@ -105,5 +125,136 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
 
   PR A: phases 1 ✓
   PR B: phases 2
+  ```
+  PR C, 2026-11-13, bare origin + clones `laptop` (released 2.53.0) and `desktop` (this branch), script
+  `pr-c-scenario.sh` in the session scratchpad. The upgrade works; **2.53.0 does not refuse**: it reads the
+  layout-2 record as no record and writes its files (`ledger/gotcha-2-53-writes-files-on-a-newer-record.md`).
+  Fixed forward (2.54 refuses a newer layout, `tests/record-newer-layout.test.ts`); for 2.53 → 2.54 every
+  install must update before the first 2.54 write in CRM.
+  ```
+  $ laptop: spec.ts (2.53.0) join demo
+  join: demo is on the board (2 phases, 2 tasks, 0 worktrees read) · banner landed on main (e95b144)
+  --- record after the 2.53.0 join
+  meta.json: { "layout": 1 }
+  $ desktop: spec.ts (this branch) phase set demo 2 --title Writes
+  set: phase 2 · title "Writes" (plan v2)
+  --- record after this branch's first write
+  meta.json: { "layout": 2 }
+  spec.json: {…,"layout":2,"status":"active","owner":"Taras","ship":"auto"}
+  prs/A.json: {"group":"A","branch":"feat/demo-pr-a","state":"merged","number":5,"mergedAt":"2026-11-10","mergedSha":"abc1234","method":"squash"}
+  prs/B.json: {"group":"B","branch":"feat/demo-pr-b","state":"not-opened"}
+  record: set demo (plan v2)
+  record: upgrade demo to layout 2
+  record: join demo
+  $ laptop: spec.ts (2.53.0) phase set demo 2 --title Again
+  set: phase 2 · title "Again"            ← a file write: 2.53.0 should have refused
+  $ desktop: spec.ts (this branch) owner demo Anton
+  owner: demo is Anton (351768e)          ← on the record; main still has 2 commits
+  ```
+  PR D, 2026-11-13, bare origin + clones `laptop` (2.54.0 from origin/main) and `desktop` (this branch),
+  script `pr-d-scenario.sh` in the session scratchpad. A spec joined and parked on 2.54 is upgraded to layout 3
+  by the next write: phase 1's in-flight note becomes its hand-off note, the park on the record becomes q1 (a
+  gate question, since phase 2's next task is its `Gate:`), the answer is the gate tick's evidence, and 2.54
+  then refuses to write.
+  ```
+  $ laptop: spec.ts (2.54) join demo
+  join: demo is on the board (2 phases, 3 tasks, 0 worktrees read) · banner landed on main (cfe44e5)
+  $ laptop: spec.ts (2.54) phase park demo 2 "Is the design agreed?" --recommend yes
+  parked Phase 2 on the board: "Is the design agreed?" · recommend: yes
+  --- record on 2.54: meta {"layout":2}
+  $ desktop: spec.ts phase set demo 1 --title Reads
+  set: phase 1 · title "Reads" (plan v2)
+  --- record after this branch's first write
+  meta.json: {"layout":3}
+  phases/1.json handoff: {'at': '2026-11-13T01:13:18-08:00', 'by': 'unknown', 'note': '# In-flight — phase 1\n\nPick up at the parser.\n'}
+  phases/2.json parks: None
+  record: set demo (plan v2)
+  record: upgrade demo to layout 3
+  record: park demo 2
+  record: join demo
+  $ desktop: spec.ts question list
+  q1 · demo · phase 2 · task 2.1 (approval) — "Is the design agreed?" · recommend: yes · asked 2026-11-13T01:13:17-08:00 by unknown
+  question: 1 open across 1 spec
+  $ desktop: spec.ts question answer demo q1 "agreed, go"
+  question: q1 answered on phase 2: "agreed, go" (Anton)
+  $ desktop: spec.ts phase tick demo 2 2.1
+  tick: phase 2 · 2.1 done ("agreed, go" — Anton, 2026-11-13T01:13:19-08:00)
+  $ desktop: spec.ts context execute demo 1   (In-flight block)
+  #### in-flight/phase-1.md
+  # In-flight — phase 1
+  $ laptop: spec.ts (2.54) phase set demo 2 --title Again
+  phase set: record: this plugin is older than the board's layout; update it
+  ```
+  PR E, 2026-11-13, bare origin + clones `laptop` (released 2.55.0) and `desktop` (this branch), script
+  `pr-e-scenario.sh` in the session scratchpad. A spec joined on 2.55 reads its `CLAUDE.md` priority until the
+  next write upgrades it to layout 4, which makes its card with that priority and due date; from then on the
+  card sets them; an idea is a card in the list; 2.55 then refuses to write.
+  ```
+  $ laptop: spec.ts (2.55) join demo
+  join: demo is on the board (2 phases, 2 tasks, 0 worktrees read) · banner landed on main (a3b0169)
+  --- record on 2.55: meta { "layout": 3}
+  $ desktop: spec.ts list table demo  (before the upgrade: CLAUDE.md priority)
+  | demo | active | p1 | 2026-12-01 | tools | demo | 2026-11-01 | 0/2 |
+  $ desktop: spec.ts phase set demo 2 --title Writes
+  set: phase 2 · title "Writes" (plan v2)
+  --- record after this branch's first write
+  meta.json: { "layout": 4}
+  cards/0/c1.json: { "id": "c1", "title": "Demo Spec", "status": "open", "commitment": "asked", "priority": "p1", "due": "2026-12-01", "tags": [], "coveredBy": [ "demo" ], "createdAt": "2026-11-13T03:03:25-08:00"}
+  sources/c1/a.json: { "card": "c1", "role": "origin", "app": "spec", "occurredAt": "2026-11-01T09:00:00-08:00", "quote": "Demo Spec", "ref": "spec:demo"}
+  record: set demo (plan v2)
+  record: upgrade demo to layout 4
+  record: join demo
+  $ desktop: spec.ts card update c1 --priority p0
+  card: c1 updated (priority p0)
+  $ desktop: spec.ts list table demo  (priority from the card)
+  | demo | active | p0 | 2026-12-01 | tools | demo | 2026-11-01 | 0/2 |
+  $ desktop: spec.ts card add "Export to CSV" --quote "can we get this as a spreadsheet" --app claude-code --commitment idea --priority p2
+  card: c2 added (idea · p2)
+  $ desktop: spec.ts list table   (Backlog section)
+  | c2 | p2 | — | — | Export to CSV |
+  $ laptop: spec.ts (2.55) phase set demo 2 --title Again
+  phase set: record: this plugin is older than the board's layout; update it
+  ```
+  PR F, 2026-11-13, bare origin + clones `laptop` and `desktop` (one machine, so no "other host" here; the
+  cross-machine join is covered by `board-session-docs.test.ts`), this branch's `spec.ts`, and the previous
+  release (origin/main, 2.56.0) for the compatibility step; script `pr-f-scenario.sh` in the session
+  scratchpad. No layout change: 2.56.0 keeps writing with sessions on the record.
+  ```
+  $ laptop: spec.ts join demo
+  join: demo is on the board (2 phases, 2 tasks, 0 worktrees read) · banner landed on main (d08ee2f)
+  $ laptop: a review session registers
+  session: review demo registered (rev in laptop)
+  $ desktop: an execute session ticks 1.1, with an uncommitted file in its tree
+  tick: phase 1 · 1.1 done (b9d13fb on origin/feat/demo-pr-b) · 1 edited file is not in this commit
+  $ desktop: the execute pack lists the review
+  Board: live · plan v1
+  Session: review by Anton on Antons-Laptop.local (tree laptop), last wrote <1m ago — a review can change this spec's plan
+  $ laptop: the review session sees the execute session
+  Board: live · plan v1
+  Session: execute by Anton on Antons-Laptop.local (tree desktop), last wrote <1m ago
+  --- the documents on the record (host and time left out)
+  {'ref': {'source': {'runtime': 'claude', 'key': 'claude-code'}, 'id': 'exe'}, 'who': 'Anton', 'tree': 'desktop', 'mode': 'execute', 'spec': 'demo', 'branch': 'feat/demo-pr-b', 'planVersion': 1, 'ahead': 0, 'edited': 1}
+  {'ref': {'source': {'runtime': 'claude', 'key': 'claude-code'}, 'id': 'rev'}, 'who': 'Anton', 'tree': 'laptop', 'mode': 'review', 'spec': 'demo', 'branch': 'feat/demo-pr-a', 'title': 'review demo', 'planVersion': 1, 'ahead': 0, 'edited': 0}
+  $ desktop: the previous release (origin/main) still writes after sessions exist
+  set: phase 2 · title "Writes" (plan v2)
+  $ laptop: the review ends at handoff
+  session: rev ended; its document is removed
+  documents left: 1
+  ```
+  PR G, 2026-11-13: no record here (this repo has the board off), so the page ran two ways. The real server from
+  this branch on this repo (`page --serve`): an honest empty page, `running.json` written and removed on SIGTERM,
+  about 54 MB resident and 0.0% CPU idle. The page on factory data over an in-memory record
+  (`tests/page-preview.ts`), driven in headless Chrome: answering "No reset" landed on the record, the count went
+  1 → 0 and the question left; screenshots at 1440 px, phone width and 125% dark, and a dead feed, in
+  `research/phase-10/`.
+  ```
+  $ spec.ts page --serve --port 41950   (this repo, board off)
+  page: serving http://127.0.0.1:41950
+  $ curl /health
+  {"ok":true,"pid":82131,"version":"2.57.0"}
+  $ ps -o rss,%cpu -p 82131 (after 18 s)
+  54224   0.0
+  $ preview: click "No reset" on q12
+  toast: question: q12 answered on phase 3: "No reset" (Anton) · title "Live board · crm" · count 0 · question rows 0
   ```
 - [x] The claims suites pass unchanged after `core/remote-push.ts` is lifted out (PR A: no diff in `tests/claims-*.ts`, 93 pass)

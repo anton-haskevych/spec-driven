@@ -8,6 +8,9 @@ import type { LiveSession } from "../sessions/live";
 import type { BoardInputs } from "./inputs";
 import type { AttentionRow, FlightNext, FlightRow } from "./model";
 import { deployWaits } from "./deploy-waits";
+import { cardRows } from "./card-rows";
+import { unopenedPrs } from "./record-rows";
+import { unsavedWork } from "./unsaved-work";
 import type { ParkedPhase } from "./parked";
 import { rowKey, splitKey } from "./phase-keys";
 
@@ -17,7 +20,7 @@ export const IDLE_CLAIM_DAYS = 2;
 export function needsYou(active: readonly SpecNode[], inputs: BoardInputs, now: Date, inFlight: readonly FlightRow[], parked: Iterable<ParkedPhase> = []): AttentionRow[] {
   const today = isoDay(now);
   const states = active.flatMap((node) => inputs.states.get(node.spec.name) ?? []);
-  return [...questions(parked), ...prAttention(inFlight), ...closedClaims(inputs, inFlight), ...oldRemoteClaims(inputs, inFlight, now), ...idleClaims(inputs, inFlight, now), ...active.flatMap((node) => overdue(node, inputs.states.get(node.spec.name), today)), ...awaitingDeploy(states, inputs.nodes), ...mergedTrees(inputs)];
+  return [...questions(parked), ...cardRows(inputs), ...unopenedPrs(inFlight), ...prAttention(inFlight), ...closedClaims(inputs, inFlight), ...oldRemoteClaims(inputs, inFlight, now), ...idleClaims(inputs, inFlight, now), ...active.flatMap((node) => overdue(node, inputs.states.get(node.spec.name), today)), ...awaitingDeploy(states, inputs.nodes), ...unsavedWork(inputs, now), ...mergedTrees(inputs)];
 }
 
 function questions(parked: Iterable<ParkedPhase>): AttentionRow[] {

@@ -11,6 +11,9 @@ import { specPrNumbers } from "../pr/resolve";
 import { isolatedRunner, repoWithOrigin, type TestRepo, type WorkingCopy } from "./git-repo";
 import { check, ghPrViewJson, phasedSpecFiles } from "./pr-factories";
 import { routeGh, sequencedRunner } from "./stub-runner";
+import { joinedRepo } from "./joined-repo";
+import { prDocPath } from "../plan/kinds";
+import { RECORD_REF } from "../record/layout";
 
 const BRANCH = "feat/billing-pr-a";
 const HEAD = "1a2b3c4d5e6f";
@@ -128,4 +131,25 @@ describe("pr merge", () => {
     expect(await prMerge(tree.dir, ["a", "b", "c"])).toBe(`usage: ${PR_MERGE_USAGE}`);
     expect(await prCommand(tree.dir, ["merge", "a", "b", "c"])).toBe(`usage: ${PR_MERGE_USAGE}`);
   });
+});
+
+describe("pr merge on a joined spec (real git)", () => {
+  let repo: TestRepo;
+  afterEach(() => repo?.cleanup());
+  const onRecord = (path: string) => JSON.parse(repo.git("--git-dir", repo.origin, "show", `${RECORD_REF}:${path}`));
+
+  test("writes the merge onto the PR document and lands nothing on main", async () => {
+    repo = joinedRepo("spec-pr-merge-joined-");
+    const tree = repo.addWorktree("tree", "feat/alpha");
+    const before = Number(repo.git("--git-dir", repo.origin, "rev-list", "--count", "main"));
+    const stub = sequencedRunner([
+      [["gh", "repo", "view"], [{ stdout: "main\n" }]],
+      [["gh", "pr", "view"], [{ stdout: ghPrViewJson({ number: 31, headRefOid: HEAD, headRefName: "feat/alpha", checks: [check({ name: "Backend Tests" })] }) }]],
+      [["gh", "api", "-X", "PUT"], [{ stdout: fixture("gh-merge-200.json") }]],
+    ]);
+    const line = await prMerge(tree.dir, ["alpha", "--method", "squash", "--date", "2026-11-12"], { runner: routeGh(stub, isolatedRunner), now: () => new Date("2026-11-12T10:00:00Z"), env: {} });
+    expect(line).toBe("Merged: #31 · squash · 9b0c1d2");
+    expect(onRecord(prDocPath("alpha", "default"))).toEqual({ group: "default", branch: "feat/alpha", state: "merged", number: 31, headRefOid: HEAD, mergedAt: "2026-11-12", mergedSha: MERGE_SHA, method: "squash" });
+    expect(Number(repo.git("--git-dir", repo.origin, "rev-list", "--count", "main"))).toBe(before);
+  }, 30_000);
 });

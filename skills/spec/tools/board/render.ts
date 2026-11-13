@@ -94,12 +94,14 @@ function blockedCells(board: Board): string[][] {
   return board.lanes.blocked.map((row) => [rowName(row), row.reasons.join("; ")]);
 }
 
-function attentionCells(row: AttentionRow, now: Date): string[] {
+export function attentionCells(row: AttentionRow, now: Date): string[] {
   switch (row.kind) {
     case "question":
       return [`${rowName(row)} asks: ${row.question}`, row.recommend ? `I'd say ${row.recommend}` : "answer it"];
     case "merge":
       return [`#${row.pr} checks pass → merge`, rowName(row)];
+    case "open-pr":
+      return ["built, PR not opened → open it", `${row.spec}${row.prGroup ? ` PR ${row.prGroup}` : ""} · phases ${row.phases.join(", ")}`];
     case "fix":
       return [`#${row.pr} ${row.failing} ${row.failing === 1 ? "check" : "checks"} failing → fix`, rowName(row)];
     case "pr-review":
@@ -114,15 +116,25 @@ function attentionCells(row: AttentionRow, now: Date): string[] {
       return ["claim by a closed session", `${rowName(row)} → resume or release`];
     case "prune":
       return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "the next handoff removes them (trees prune --auto)"];
+    case "unsaved-work":
+      return [`${plural(row.ahead, "commit")} and ${plural(row.edited, "edited file")} not on origin`, `${row.tree} · ${row.who} on ${row.host}, last wrote ${ago(new Date(row.since), now)} ago → ${row.here ? "push it" : "ask them to push it"}`];
     case "idle-claim":
       return [`claim idle ${ago(new Date(row.since), now)}`, `${row.spec} · ${row.phases.join(", ")} → switch to ${row.session} or take it over`];
     case "remote-claim":
       return [`remote claim ${ago(new Date(row.since), now)} old`, `${rowName(row)} → ask ${row.holder} or take it over`];
     case "deploy":
       return ["not deployed → deploy", rowName(row), `needed by ${row.waiting.join(", ")}`];
+    case "card-close":
+      return [`Card ${row.card} can close: ${row.covers.join(", ")} merged`, `${row.title} → say what the customer was told`];
+    case "card-open":
+      return [`Card ${row.card} is done, but ${row.open.join(", ")}`, `${row.title} → check it`];
     default:
       return unrendered(row);
   }
+}
+
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
 function unrendered(row: never): never {

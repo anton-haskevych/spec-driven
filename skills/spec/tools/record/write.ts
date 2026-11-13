@@ -5,7 +5,7 @@ import { planWrites, type Conflict, type RecordOp, type Validate } from "./plan-
 import type { RecordPort } from "./ref";
 import { openRecordView, recordLayout, type RecordView } from "./view";
 
-export type RecordPlan = (view: RecordView) => { ops: RecordOp[]; message?: string } | { refused: string } | { unchanged: true };
+export type RecordPlan = (view: RecordView) => { ops: RecordOp[]; alongside?: RecordOp[]; message?: string } | { refused: string } | { unchanged: true };
 
 type Stopped = { kind: "unchanged" } | { kind: "refused"; reason: string } | Conflict | { kind: "invalid"; problems: string[] } | { kind: "failed"; reason: string };
 
@@ -38,14 +38,15 @@ function planEdit(port: RecordPort, tip: Tip, plan: RecordPlan, validate: Valida
   const intent = plan(view.value);
   if ("refused" in intent) return stop({ kind: "refused", reason: intent.refused });
   if ("unchanged" in intent) return stop({ kind: "unchanged" });
-  const planned = planWrites(view.value, intent.ops, validate);
+  const planned = planWrites(view.value, intent.ops, validate, intent.alongside);
   if (planned.kind !== "planned") return stop(planned);
   if (planned.changes.length === 0) return stop({ kind: "unchanged" });
   return { kind: "commit", changes: withMeta(planned.changes, layout), message: intent.message ?? DEFAULT_MESSAGE, landed: planned.versions };
 }
 
+// Raising the layout is what makes an older plugin stop writing to homes this one no longer reads.
 function withMeta(changes: FileChange[], layout: number | undefined): FileChange[] {
-  return layout === undefined ? [{ path: META_PATH, text: serializeDoc({ layout: RECORD_LAYOUT }) }, ...changes] : changes;
+  return layout === RECORD_LAYOUT ? changes : [{ path: META_PATH, text: serializeDoc({ layout: RECORD_LAYOUT }) }, ...changes];
 }
 
 function stop(outcome: Stopped): RefEdit<Record<string, string>, Stopped> {

@@ -1,4 +1,6 @@
 #!/usr/bin/env bun
+import { questionCommand, QUESTION_USAGE } from "./commands/question";
+import { CARD_USAGE, cardCommand } from "./commands/card";
 import { contextPack } from "./commands/context";
 import { parseContextRequest } from "./context/request";
 import { doctorCommand, DOCTOR_USAGE } from "./commands/doctor";
@@ -13,6 +15,7 @@ import { CREW_USAGE, crewCommand } from "./commands/crew";
 import { FOCUS_USAGE, focusCommand } from "./commands/focus";
 import { LIST_USAGE, listCommand } from "./commands/list";
 import { OWNER_USAGE, ownerCommand } from "./commands/owner";
+import { PAGE_USAGE, pageCommand } from "./commands/page";
 import { PHASE_USAGE, phaseCommand } from "./commands/phase";
 import { playbooksReport } from "./commands/playbooks";
 import { PR_USAGE, prCommand } from "./commands/pr";
@@ -22,7 +25,9 @@ import { readyReport } from "./commands/ready";
 import { PLAN_USAGE, planCommand } from "./commands/plan";
 import { RECORD_USAGE, recordCommand } from "./commands/record";
 import { settingsReport } from "./commands/settings";
+import { SESSION_USAGE, sessionCommand } from "./commands/session";
 import { SHIP_USAGE, shipCommand } from "./commands/ship";
+import { SPEC_STATUS_USAGE, specStatusCommand } from "./commands/spec-status";
 import { TREES_USAGE, treesCommand } from "./commands/trees";
 import { findProjectDir, findSpecs } from "./core/spec-folders";
 import { pilotCommandRefusal, type LocalPilot } from "./runtime/workflow-capabilities";
@@ -59,12 +64,17 @@ export const COMMANDS: Record<string, Command> = {
   crew: { usage: CREW_USAGE, run: (dir, args) => crewCommand(dir, args) },
   focus: { usage: FOCUS_USAGE, run: (dir, args) => focusCommand(dir, args) },
   ship: { usage: SHIP_USAGE, run: (dir, args) => shipCommand(dir, args) },
+  session: { usage: SESSION_USAGE, run: (dir, args) => sessionCommand(dir, args) },
   owner: { usage: OWNER_USAGE, run: (dir, args) => ownerCommand(dir, args) },
+  "spec-status": { usage: SPEC_STATUS_USAGE, run: (dir, args) => specStatusCommand(dir, args) },
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },
   trees: { usage: TREES_USAGE, run: (dir, args) => treesCommand(dir, args) },
   record: { usage: RECORD_USAGE, run: (dir, args) => recordCommand(dir, args) },
   join: { usage: JOIN_USAGE, run: (dir, args) => joinCommand(dir, args) },
   plan: { usage: PLAN_USAGE, run: (dir, args) => planCommand(dir, args) },
+  question: { usage: QUESTION_USAGE, run: questionCommand },
+  card: { usage: CARD_USAGE, run: (dir, args) => cardCommand(dir, args) },
+  page: { usage: PAGE_USAGE, run: (dir, args) => pageCommand(dir, args) },
 };
 
 export const USAGE = `usage: bun spec.ts ${Object.values(COMMANDS)

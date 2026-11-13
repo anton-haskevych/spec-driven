@@ -11,6 +11,9 @@ import { fakeClock } from "./fake-clock";
 import { isolatedRunner, repoWithOrigin, type TestRepo, type WorkingCopy } from "./git-repo";
 import { phasedSpecFiles, prView, type PhaseSketch } from "./pr-factories";
 import { routeGh, sequencedRunner } from "./stub-runner";
+import { joinedRepo } from "./joined-repo";
+import { prDocPath } from "../plan/kinds";
+import { RECORD_REF } from "../record/layout";
 
 const PHASES: PhaseSketch[] = [
   { id: "1", title: "Invoices", pr: "A", outcome: "Studios send invoices without a spreadsheet. Low risk." },
@@ -149,4 +152,25 @@ describe("pr open", () => {
     const { runner } = gh([noPr(), [["gh", "pr", "create"], [{ code: 1, stdout: JSON.stringify({ message: "Validation Failed: No commits between main and feat/billing-pr-a" }) }]]]);
     expect(await open(tree.dir, ["billing", "A"], runner)).toBe("pr open: Validation Failed: No commits between main and feat/billing-pr-a");
   });
+});
+
+describe("pr open on a joined spec (real git)", () => {
+  let repo: TestRepo;
+  afterEach(() => repo?.cleanup());
+  const onRecord = (path: string) => JSON.parse(repo.git("--git-dir", repo.origin, "show", `${RECORD_REF}:${path}`));
+
+  test("records the new PR's number, state and head on the group's document", async () => {
+    repo = joinedRepo("spec-pr-open-joined-");
+    const tree = repo.addWorktree("tree", "feat/alpha");
+    tree.write("src/alpha.ts", "export {};\n");
+    tree.commitAll("alpha");
+    const stub = sequencedRunner([
+      [["gh", "repo", "view"], [{ stdout: "main\n" }]],
+      [["gh", "pr", "view", "feat/alpha"], [{ code: 1, stderr: 'no pull requests found for branch "feat/alpha"' }]],
+      [["gh", "pr", "create"], [{ stdout: "https://github.com/acme/app/pull/33\n" }]],
+    ]);
+    const line = await prOpen(tree.dir, ["alpha", "--draft"], { runner: routeGh(stub, isolatedRunner), clock: fakeClock(), now: () => new Date("2026-11-12T10:00:00Z"), env: {} });
+    expect(line).toBe("PR: #33 opened as a draft · https://github.com/acme/app/pull/33");
+    expect(onRecord(prDocPath("alpha", "default"))).toEqual({ group: "default", branch: "feat/alpha", state: "draft", number: 33, headRefOid: tree.git("rev-parse", "HEAD") });
+  }, 30_000);
 });

@@ -1,0 +1,562 @@
+<title>Live Board Page Options</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap">
+<style>
+/* Layout: one column up to 1120px, prose capped near 64ch; each mock is a framed "screen" with an ink band on top and white slabs on a tinted ground.
+   Colour code, one meaning each: orange / blue / green = to do / moving / done; red = trouble (overdue, gone silent); yellow = waits on you;
+   violet and pink = the two people; ink weight = priority. */
+:root {
+  --bg: #f4f2f9; --surface: #ffffff; --sunk: #ebe8f3; --ink: #1c1830; --muted: #5d5672; --faint: #8a849e; --line: #d9d4e6; --soft: #ece9f4;
+  --todo: #ee7d11; --todo-ink: #9c4a00; --todo-bg: #ffefdc;
+  --move: #2877e6; --move-ink: #1a5bc0; --move-bg: #e2edff;
+  --done: #1e9c56; --done-ink: #127040; --done-bg: #dcf5e6;
+  --late: #d42c20; --late-ink: #b32318; --late-bg: #fde7e4; --on-late: #ffffff;
+  --you: #ffd02e; --you-ink: #2a2000; --you-bg: #fff5cc;
+  --anton: #6a3fe0; --anton-bg: #ece5ff; --taras: #c0257c; --taras-bg: #fce3f0; --on-who: #ffffff;
+  --p0-bg: #1c1830; --p0-fg: #ffffff;
+  --band: #1c1830; --band-fg: #f4f2f9; --band-muted: #b4aec8; --band-pill: #37314f;
+  --on-solid: #ffffff;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --sans: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Atkinson Hyperlegible Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #14121c; --surface: #1d1a29; --sunk: #0e0c15; --ink: #ece9f5; --muted: #a8a2bc; --faint: #746e8c; --line: #343048; --soft: #272337;
+  --todo: #ff9a3d; --todo-ink: #ffb671; --todo-bg: #3a2410;
+  --move: #5aa2ff; --move-ink: #94c2ff; --move-bg: #15294a;
+  --done: #3ccb7f; --done-ink: #77e2a8; --done-bg: #10331f;
+  --late: #d93a30; --late-ink: #ff948a; --late-bg: #3b1513; --on-late: #ffffff;
+  --you: #ffd02e; --you-ink: #2a2000; --you-bg: #322a09;
+  --anton: #a98bff; --anton-bg: #2a2149; --taras: #ff7cc0; --taras-bg: #40172f; --on-who: #16121f;
+  --p0-bg: #ece9f5; --p0-fg: #14121c;
+  --band: #2b2642; --band-fg: #f4f2f9; --band-muted: #b4aec8; --band-pill: #423c5e;
+  --on-solid: #0e0c15; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #14121c; --surface: #1d1a29; --sunk: #0e0c15; --ink: #ece9f5; --muted: #a8a2bc; --faint: #746e8c; --line: #343048; --soft: #272337;
+  --todo: #ff9a3d; --todo-ink: #ffb671; --todo-bg: #3a2410;
+  --move: #5aa2ff; --move-ink: #94c2ff; --move-bg: #15294a;
+  --done: #3ccb7f; --done-ink: #77e2a8; --done-bg: #10331f;
+  --late: #d93a30; --late-ink: #ff948a; --late-bg: #3b1513; --on-late: #ffffff;
+  --you: #ffd02e; --you-ink: #2a2000; --you-bg: #322a09;
+  --anton: #a98bff; --anton-bg: #2a2149; --taras: #ff7cc0; --taras-bg: #40172f; --on-who: #16121f;
+  --p0-bg: #ece9f5; --p0-fg: #14121c;
+  --band: #2b2642; --band-fg: #f4f2f9; --band-muted: #b4aec8; --band-pill: #423c5e;
+  --on-solid: #0e0c15; color-scheme: dark }
+
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 36px 72px; }
+.page { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1 { font: 800 clamp(32px, 5vw, 46px)/1.08 var(--display); letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+h2 { font: 700 28px/1.15 var(--display); letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+h3 { font: 700 19px/1.2 var(--display); margin: 0; }
+p { margin: 0; }
+b, strong { font-weight: 700; }
+.lede { color: var(--muted); font-size: 19px; max-width: 62ch; }
+.fine { color: var(--muted); font-size: 15.5px; max-width: 70ch; }
+code { font: 600 0.9em var(--mono); background: var(--soft); border-radius: 5px; padding: 2px 6px; }
+.tab:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--move); outline-offset: 2px; }
+
+/* ---- the document around the mocks ---- */
+.head { display: flex; flex-direction: column; gap: 16px; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tags span { font: 600 13.5px var(--sans); color: var(--muted); background: var(--soft); border-radius: 6px; padding: 4px 10px; }
+.verdict { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; max-width: 78ch; }
+.verdict p { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 12px; align-items: start; }
+.verdict .sq { margin-top: 4px; }
+section { display: flex; flex-direction: column; gap: 20px; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.box.left { background: none; border: 1.5px dashed var(--faint); }
+.box ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 16px; }
+.box li { padding-left: 22px; position: relative; }
+.box li::before { content: ""; position: absolute; left: 0; top: 0.5em; width: 9px; height: 9px; border-radius: 3px; background: var(--done); }
+.box.left li::before { background: none; border: 2px solid var(--faint); box-sizing: border-box; }
+.box.plain li::before { background: var(--ink); }
+.box li span { color: var(--muted); }
+.legend { display: flex; flex-direction: column; gap: 16px; font-size: 15.5px; }
+.lg { display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 16px; align-items: center; }
+.lg > span:first-child { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.lg em { font-style: normal; color: var(--muted); }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tab { font: 600 16px var(--sans); color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 999px; padding: 10px 20px; min-height: 44px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.rec { font: 700 12px var(--sans); background: var(--soft); color: var(--muted); border-radius: 5px; padding: 2px 7px; margin-left: 8px; }
+.tab[aria-selected="true"] .rec { background: var(--bg); color: var(--ink); }
+.stack { display: flex; flex-direction: column; gap: 20px; }
+
+/* ---- shared marks ---- */
+/* priority: weight, not hue */
+.pri { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 46px; height: 30px; border-radius: 8px; box-sizing: border-box; font: 800 15px/1 var(--display); }
+.pri.p0 { background: var(--p0-bg); color: var(--p0-fg); }
+.pri.p1 { border: 2px solid var(--ink); color: var(--ink); }
+.pri.p2 { border: 2px solid var(--line); color: var(--muted); }
+/* people: violet is Anton, pink is Taras; solid = a session is writing now, tinted = has it, dashed = nobody */
+.who { flex: none; display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; box-sizing: border-box; font: 800 14px/1 var(--display);
+  border: 2px solid var(--c, var(--faint)); background: var(--cb, transparent); color: var(--c, var(--faint)); }
+.who.a { --c: var(--anton); --cb: var(--anton-bg); }
+.who.t { --c: var(--taras); --cb: var(--taras-bg); }
+.who.on { background: var(--c); color: var(--on-who); box-shadow: 0 0 0 3px var(--cb); }
+.who.none { border-style: dashed; }
+.who.sm { width: 24px; height: 24px; font-size: 12px; }
+.who.sm.on { box-shadow: 0 0 0 2px var(--cb); }
+/* phase squares: hollow orange = to do, half blue = doing, full blue = built, green with a tick = live */
+.strip { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.sq { position: relative; flex: none; display: inline-block; width: 18px; height: 18px; border-radius: 5px; box-sizing: border-box; border: 2px solid var(--todo); background: var(--todo-bg); }
+.sq.doing { border-color: var(--move); background: linear-gradient(90deg, var(--move) 50%, var(--move-bg) 50%); }
+.sq.built { border-color: var(--move); background: var(--move); }
+.sq.live { border-color: var(--done); background: var(--done); }
+.sq.live::after { content: ""; position: absolute; left: 4.5px; top: 1px; width: 4px; height: 8px; border: solid var(--on-solid); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); box-sizing: content-box; }
+/* deadline chips: never wrap */
+.due { display: inline-flex; align-items: center; white-space: nowrap; height: 30px; padding: 0 12px; border-radius: 8px; box-sizing: border-box; font: 600 14px/1 var(--sans); font-variant-numeric: tabular-nums;
+  background: var(--soft); color: var(--ink); border: 1.5px solid transparent; }
+.due.late { background: var(--late); color: var(--on-late); font-weight: 700; }
+.due.soon { background: var(--late-bg); color: var(--late-ink); border-color: var(--late); font-weight: 700; }
+.due.none { background: none; border: 1.5px dashed var(--faint); color: var(--muted); font-weight: 500; }
+.due.sm { height: 24px; padding: 0 8px; border-radius: 6px; font-size: 13px; }
+/* waits on you */
+.waits { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; height: 26px; padding: 0 10px 0 8px; border-radius: 6px; background: var(--you); color: var(--you-ink); font: 700 13.5px/1 var(--sans); }
+.waits::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--you-ink); }
+/* progress bar */
+.pbar { display: flex; gap: 2px; height: 14px; border-radius: 7px; overflow: hidden; background: var(--soft); }
+.pbar i { display: block; min-width: 5px; }
+.pbar .d { background: var(--done); } .pbar .m { background: var(--move); } .pbar .t { background: var(--todo); }
+.pbar.empty { background: none; border: 1.5px dashed var(--faint); box-sizing: border-box; }
+.chev { flex: none; display: inline-block; width: 8px; height: 8px; border: solid var(--faint); border-width: 0 2.5px 2.5px 0; transform: rotate(-45deg); transition: transform .15s; }
+/* session chips */
+.sess { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; max-width: 100%; min-height: 36px; padding: 4px 14px 4px 5px; border-radius: 18px; box-sizing: border-box;
+  background: var(--surface); border: 1.5px solid var(--line); font: 500 14.5px/1.2 var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; }
+.sess b { color: var(--ink); font-weight: 600; }
+.sess .now { color: var(--move-ink); font-weight: 700; }
+.sess.silent { border-color: var(--late); background: var(--late-bg); color: var(--late-ink); font-weight: 600; }
+.sess.silent b { color: var(--late-ink); font-weight: 700; }
+.sess.mini { min-height: 30px; padding: 2px 10px 2px 3px; font-size: 13.5px; }
+.btn { font: 600 14.5px var(--sans); min-height: 36px; padding: 0 14px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; cursor: pointer; }
+.btn.pick { background: var(--p0-bg); color: var(--p0-fg); border-color: var(--p0-bg); }
+.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.grp { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-right: 16px; }
+.chip { display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px; border-radius: 999px; box-sizing: border-box; font: 600 14px var(--sans); border: 1.5px solid var(--line); color: var(--muted); background: var(--surface); }
+button.chip { cursor: pointer; }
+.chip.on { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.more { font: 500 14.5px var(--sans); color: var(--muted); }
+.fold { display: inline-flex; align-items: center; gap: 9px; min-height: 34px; padding: 0 14px; border-radius: 8px; box-sizing: border-box; border: 1.5px solid var(--line); color: var(--muted); font: 600 14px var(--sans); }
+.folds { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+/* ---- the mock screen ---- */
+.screen { container-type: inline-size; background: var(--sunk); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 14px 24px; background: var(--band); color: var(--band-muted); font: 500 14.5px var(--sans); }
+.bar .name { color: var(--band-fg); font: 700 18px var(--display); margin-right: 6px; }
+.nav { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 999px; background: var(--band-pill); color: var(--band-fg); font-weight: 600; }
+.nav.on { background: var(--band-fg); color: var(--band); }
+.nav i { font: 800 13px/22px var(--display); min-width: 22px; height: 22px; border-radius: 11px; background: var(--you); color: var(--you-ink); text-align: center; }
+.cid { font: 600 14px var(--mono); color: var(--band-fg); background: var(--band-pill); border-radius: 6px; padding: 4px 9px; }
+.total { display: inline-flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+.total .pbar { width: 90px; height: 8px; background: var(--band-pill); }
+.beat { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; color: var(--band-fg); font-variant-numeric: tabular-nums; }
+.beat i { width: 10px; height: 10px; border-radius: 50%; background: var(--band-fg); }
+.deadline { display: none; padding: 12px 24px; background: var(--late); color: var(--on-late); font-weight: 700; font-size: 16px; }
+.screen.dead .deadline { display: block; }
+.screen.dead .beat i { background: var(--late); box-shadow: 0 0 0 3px var(--band-pill); }
+.screen.dead .body { filter: grayscale(1); opacity: 0.45; }
+.body { padding: 24px; display: flex; flex-direction: column; gap: 28px; transition: opacity .2s; }
+.lane { display: flex; flex-direction: column; gap: 12px; }
+.lane > .h { font: 700 19px/1.2 var(--display); display: flex; align-items: baseline; gap: 10px; }
+.slab { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 18px; }
+
+/* Plan */
+.plan { display: flex; flex-direction: column; gap: 10px; }
+.gh { display: flex; align-items: center; gap: 12px; margin-top: 26px; font: 800 26px/1 var(--display); }
+.gh:first-child { margin-top: 0; }
+.gh::after { content: ""; flex: 1; height: 2px; border-radius: 1px; background: var(--line); }
+details.proj { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; min-width: 0; }
+details.proj > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 46px minmax(0, 1fr) minmax(190px, 250px) 32px 150px 12px; gap: 8px 20px; align-items: center; padding: 15px 22px; border-radius: 14px; }
+details.proj.p0 > summary { padding-block: 20px; }
+details.proj > summary::-webkit-details-marker { display: none; }
+details.proj[open] > summary .chev { transform: rotate(45deg); }
+.pn { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.pn b { font: 700 18px/1.2 var(--display); }
+details.p0 .pn b { font-size: 21px; font-weight: 800; }
+.pn > span:not(.waits) { color: var(--muted); font-size: 15px; line-height: 1.35; }
+.pprog { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.pcount { display: flex; flex-wrap: wrap; gap: 3px 12px; font: 500 13.5px/1.2 var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; }
+.pcount span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.pcount span::before { content: ""; width: 9px; height: 9px; border-radius: 3px; }
+.pcount .d::before { background: var(--done); } .pcount .m::before { background: var(--move); } .pcount .t::before { background: var(--todo); }
+.pcount .z::before { display: none; }
+.whos { display: inline-flex; gap: 4px; justify-content: center; }
+.pdue { display: flex; justify-content: flex-end; }
+.panels { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; align-items: start; padding: 2px 22px 22px 88px; }
+.panel { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; min-width: 0; }
+.panel.open { background: none; border: 1.5px dashed var(--faint); }
+.panel.done { background: var(--done-bg); border-color: transparent; color: var(--done-ink); }
+.ph { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; min-height: 30px; }
+.ph b { font: 600 14.5px var(--mono); overflow-wrap: anywhere; min-width: 0; }
+.panel.open .ph b, .panel.done .ph b { font: 700 17px var(--display); display: inline-flex; align-items: center; gap: 9px; }
+.ph .nobody { display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: var(--muted); }
+.ph .n { display: inline-flex; align-items: center; gap: 9px; font: 700 15px var(--sans); }
+.panel.done .chev { border-color: var(--done-ink); }
+.pc { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); }
+.ph + .pc { margin-top: 12px; }
+.pc:last-child { padding-bottom: 2px; }
+.pc b { font-weight: 600; font-size: 15.5px; line-height: 1.3; }
+.pmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* Now */
+.needs { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 14px; background: var(--you-bg); border-radius: 18px; padding: 14px; }
+.count { background: var(--you); color: var(--you-ink); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 4px; font-variant-numeric: tabular-nums; }
+.count b { font: 800 88px/0.82 var(--display); }
+.count span { font: 700 18px var(--display); }
+.count small { margin-top: auto; padding-top: 16px; display: flex; align-items: center; gap: 7px; font: 600 14px var(--sans); }
+.rows { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ny { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: var(--surface); border-radius: 12px; padding: 12px 16px 12px 12px; min-width: 0; }
+.ny .k { flex: none; width: 40px; height: 40px; border-radius: 10px; background: var(--you); color: var(--you-ink); font: 700 16px/40px var(--sans); text-align: center; }
+.ny.late .k { background: var(--late); color: var(--on-late); }
+.ny .t { flex: 1 1 240px; min-width: 0; font-weight: 600; font-size: 16.5px; line-height: 1.3; }
+.ny .t span { display: block; color: var(--muted); font-weight: 400; font-size: 14.5px; margin-top: 3px; }
+.ny .t em { font-style: normal; font-weight: 700; color: var(--late-ink); }
+.ny .acts { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.ny .age { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; font: 500 14px var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; }
+.fleet { display: flex; flex-wrap: wrap; gap: 8px; }
+.row { display: grid; grid-template-columns: 46px minmax(0, 1fr) 106px 32px 40px; gap: 8px 18px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.title { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.title b { font-weight: 600; font-size: 16.5px; line-height: 1.3; }
+.title.p0 b { font-weight: 700; }
+.sub { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--muted); font-size: 14.5px; }
+.age2 { font: 500 14px var(--sans); color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.age2.now { color: var(--move-ink); font-weight: 700; }
+.demo { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 15.5px; color: var(--muted); }
+
+/* opened card */
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 28px; display: flex; flex-direction: column; gap: 24px; }
+.sheet h4 { margin: 0; font: 800 30px/1.12 var(--display); letter-spacing: -0.01em; text-wrap: balance; }
+.sheet .ny { background: var(--you-bg); }
+.kv { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tag { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 8px; box-sizing: border-box; font: 600 14px/1 var(--sans); background: var(--soft); color: var(--ink); white-space: nowrap; }
+.tag.todo { background: var(--todo-bg); color: var(--todo-ink); border: 1.5px solid var(--todo); }
+blockquote { margin: 0; background: var(--bg); border-radius: 12px; padding: 20px 22px; font-size: 20px; line-height: 1.4; }
+blockquote footer { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14.5px; color: var(--muted); margin-top: 12px; }
+.phases { display: flex; flex-direction: column; }
+.phase { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+.phase:first-child { border-top: 0; }
+.st { font: 600 14px var(--sans); color: var(--todo-ink); white-space: nowrap; }
+.last { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; color: var(--muted); font-size: 15.5px; }
+.copy { align-self: flex-start; font: 700 16.5px var(--display); min-height: 46px; padding: 0 22px; background: var(--p0-bg); color: var(--p0-fg); border: 0; border-radius: 10px; cursor: pointer; }
+
+/* narrow screens: the mock restacks on its own width, so it also holds at 125% zoom */
+@container (max-width: 800px) {
+  .bar { padding: 12px 14px; }
+  .deadline { padding: 12px 14px; }
+  .body { padding: 14px; gap: 24px; }
+  .grp { margin-right: 0; }
+  details.proj > summary, details.proj.p0 > summary { grid-template-columns: 46px minmax(0, 1fr) auto; grid-template-areas: "pri name who" "prog prog prog" "due due chev"; gap: 14px; padding: 16px; }
+  details.proj > summary > .pri { grid-area: pri; align-self: start; }
+  details.proj > summary > .pn { grid-area: name; }
+  details.proj > summary > .whos { grid-area: who; align-self: start; }
+  details.proj > summary > .pprog { grid-area: prog; }
+  details.proj > summary > .pdue { grid-area: due; justify-content: flex-start; }
+  details.proj > summary > .chev { grid-area: chev; justify-self: end; margin-right: 4px; }
+  .panels { padding: 0 12px 12px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .needs { grid-template-columns: minmax(0, 1fr); padding: 10px; }
+  .count { flex-direction: row; align-items: center; gap: 12px; padding: 12px 16px; }
+  .count b { font-size: 52px; line-height: 0.9; }
+  .count small { margin: 0 0 0 auto; padding: 0; }
+  .slab { padding: 2px 14px; }
+  .row { grid-template-columns: 46px minmax(0, 1fr) 32px 40px; gap: 10px 12px; }
+  .row .title { grid-column: 2 / -1; grid-row: 1; }
+  .row .pri { grid-row: 1; align-self: start; }
+  .row .strip { grid-column: 2; grid-row: 2; }
+  .row .who { grid-column: 3; grid-row: 2; }
+  .row .age2 { grid-column: 4; grid-row: 2; }
+  .ny { padding: 12px; }
+  .ny .t { flex-basis: 170px; }
+  .sheet { padding: 18px; gap: 20px; }
+  .sheet h4 { font-size: 25px; }
+  blockquote { font-size: 18px; padding: 16px; }
+}
+@media (max-width: 520px) {
+  body { font-size: 16px; }
+  .page { gap: 44px; }
+  h2 { font-size: 24px; }
+  .lede { font-size: 17px; }
+  .box { padding: 18px; }
+  .lg { grid-template-columns: 104px minmax(0, 1fr); gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .body, .chev { transition: none; } }
+</style>
+
+<div class="page">
+  <header class="head">
+    <div class="tags"><span>live-board</span><span>phase 10</span><span>iteration 2</span></div>
+    <h1>The board page, after the Academy board</h1>
+    <p class="lede">I went through the board on port 4777: By status, By scope, an opened card and the client export. This is the design redrawn with what works there, at the size your real board has (26 projects, 99 cards).</p>
+    <div class="verdict">
+      <p><i class="sq live"></i><span><strong>Settled on 2026-11-13:</strong> the Now screen (triage + sessions), one click (answer a waiting question), agents read the same board.</span></p>
+      <p><i class="sq doing"></i><span><strong>New here:</strong> the Plan view, by project and priority, and what a card shows when you open it.</span></p>
+      <p><i class="sq doing"></i><span><strong>Changed after "too tight and too monotone":</strong> the Academy board's colours are back, each with one meaning, and every row has room.</span></p>
+    </div>
+  </header>
+
+  <section>
+    <h2>What I took, what I left</h2>
+    <div class="two">
+      <div class="box"><h3>Taken from By scope</h3><ul>
+        <li>One row per project, P0 first. <span>A project is a tag.</span></li>
+        <li>The reason next to the priority. <span>"Booking widget stops when Mindbody ends."</span></li>
+        <li>The count line and bar: to do, moving, done.</li>
+        <li>The colours: orange to do, blue moving, green done, and coloured deadline chips.</li>
+        <li>Panels inside a row: who has what, then <b>Open</b> with a dashed edge for asks nobody holds.</li>
+        <li>Deadline words: overdue, today or tomorrow, a date, no deadline yet.</li>
+        <li>Done as a count you can open.</li>
+      </ul></div>
+      <div class="box left"><h3>Left behind</h3><ul>
+        <li>Every form: Edit, tags, Claimed by, Assignee, move, Delete, Add a card. <span>Sessions write those.</span></li>
+        <li>The hand-written status paragraph per project. <span>It is replaced by phase squares that are computed, so they can't go stale.</span></li>
+        <li>Every row open at once. <span>By scope is 9,800 px tall today. Rows start folded.</span></li>
+        <li>Red on P0. <span>Red means trouble only: overdue, or a session gone silent. P0 is the heaviest badge.</span></li>
+        <li>By status as three full columns. <span>Now covers it.</span></li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The three screens</h2>
+    <p class="fine">Example data in the shape of your board. Rows and buttons work.</p>
+    <div class="tabs" role="tablist" aria-label="Screens">
+      <button class="tab" role="tab" id="tab-p" aria-controls="panel-p" aria-selected="true">Plan<span class="rec">new</span></button>
+      <button class="tab" role="tab" id="tab-n" aria-controls="panel-n" aria-selected="false">Now</button>
+      <button class="tab" role="tab" id="tab-c" aria-controls="panel-c" aria-selected="false">An opened card</button>
+    </div>
+
+    <!-- Plan -->
+    <div id="panel-p" role="tabpanel" aria-labelledby="tab-p" class="stack">
+      <div class="screen">
+        <div class="bar"><span class="name">Live board · crm</span><span class="nav">Now<i>2</i></span><span class="nav on">Plan</span><span class="total"><span class="pbar"><i class="d" style="flex:51"></i><i style="flex:48"></i></span>51 of 99 done</span><span class="beat"><i></i>live · 3 s ago</span></div>
+        <div class="body">
+          <div class="chips"><span class="grp"><span class="more">Sort</span><button class="chip on" type="button" id="sort-pri">Priority</button><button class="chip" type="button" id="sort-due">Deadline</button></span><span class="grp"><span class="more">Show</span><span class="chip on">Everyone</span><span class="chip">Mine</span><span class="chip">Nobody has it</span></span></div>
+          <div class="plan" id="plan">
+            <div class="gh" data-rank="0">P0 <span class="more">5 projects</span></div>
+            <details class="proj p0" open data-rank="1" data-due="2026-11-12">
+              <summary><span class="pri p0">P0</span><span class="pn"><b>Pass sync</b><span>Students can't use passes they paid for</span></span><span class="pprog"><span class="pbar"><i class="d" style="flex:2"></i><i class="m" style="flex:2"></i><i class="t" style="flex:4"></i></span><span class="pcount"><span class="d">2 done</span><span class="m">2 moving</span><span class="t">4 to do</span></span></span><span class="whos"><span class="who t">T</span></span><span class="pdue"><span class="due late">overdue Nov 12</span></span><i class="chev"></i></summary>
+              <div class="panels">
+                <div class="panel"><div class="ph"><b>mindbody-pass-fixes</b><span class="sess mini"><span class="who t sm">T</span>14m</span></div>
+                  <div class="pc"><b>Pass edits reach the studio</b><span class="pmeta"><span class="strip"><i class="sq live"></i><i class="sq live"></i><i class="sq doing"></i><i class="sq"></i></span></span></div>
+                  <div class="pc"><b>Pass activities for three students</b><span class="pmeta"><span class="strip"><i class="sq doing"></i></span></span></div>
+                </div>
+                <div class="panel open"><div class="ph"><b>Open</b><span class="nobody"><span class="who none sm"></span>nobody has these</span></div>
+                  <div class="pc"><b>Private lessons held until paid</b><span class="pmeta"><span class="due sm late">overdue Nov 12</span></span></div>
+                  <div class="pc"><b>Final sync before access ends</b><span class="pmeta"><span class="due sm none">no deadline yet</span></span></div>
+                  <div class="pc"><b>Shared account for two students</b><span class="pmeta"><span class="due sm none">no deadline yet</span></span></div>
+                  <div class="pc"><b>182 passes get their class set</b><span class="pmeta"><span class="waits">waits on your go</span></span></div>
+                </div>
+                <div class="panel done"><div class="ph"><b><i class="sq live"></i>Done</b><span class="n">2<i class="chev"></i></span></div></div>
+              </div>
+            </details>
+            <details class="proj p0" data-rank="2" data-due="2026-11-13">
+              <summary><span class="pri p0">P0</span><span class="pn"><b>Schedule fixes</b><span class="waits">1 waits on your answer</span></span><span class="pprog"><span class="pbar"><i class="d" style="flex:5"></i><i class="m" style="flex:1"></i><i class="t" style="flex:2"></i></span><span class="pcount"><span class="d">5 done</span><span class="m">1 moving</span><span class="t">2 to do</span></span></span><span class="whos"><span class="who a on">A</span></span><span class="pdue"><span class="due soon">today</span></span><i class="chev"></i></summary>
+              <div class="panels">
+                <div class="panel"><div class="ph"><b>schedule-clarity-fixes</b><span class="sess mini"><span class="who a on sm">A</span><span class="now">now</span></span></div>
+                  <div class="pc"><b>Featured row keeps events visible</b><span class="pmeta"><span class="strip"><i class="sq live"></i><i class="sq built"></i><i class="sq doing"></i><i class="sq"></i></span><span class="due sm soon">today</span></span></div>
+                  <div class="pc"><b>Filters say what they hide</b><span class="pmeta"><span class="strip"><i class="sq"></i><i class="sq"></i><i class="sq"></i><i class="sq"></i><i class="sq"></i></span><span class="waits">waits on your answer</span></span></div>
+                </div>
+                <div class="panel open"><div class="ph"><b>Open</b><span class="nobody"><span class="who none sm"></span>nobody has these</span></div>
+                  <div class="pc"><b>Studio-wide events with no teacher</b><span class="pmeta"><span class="due sm none">no deadline yet</span></span></div>
+                </div>
+                <div class="panel done"><div class="ph"><b><i class="sq live"></i>Done</b><span class="n">5<i class="chev"></i></span></div></div>
+              </div>
+            </details>
+            <details class="proj p0" data-rank="3" data-due="2026-11-10">
+              <summary><span class="pri p0">P0</span><span class="pn"><b>Website</b><span>Their booking widget stops when Mindbody ends (~Nov 25)</span></span><span class="pprog"><span class="pbar"><i class="d" style="flex:2"></i><i class="m" style="flex:1"></i><i class="t" style="flex:2"></i></span><span class="pcount"><span class="d">2 done</span><span class="m">1 moving</span><span class="t">2 to do</span></span></span><span class="whos"><span class="who a">A</span></span><span class="pdue"><span class="due late">overdue Nov 10</span></span><i class="chev"></i></summary>
+              <div class="panels">
+                <div class="panel"><div class="ph"><b>public-teacher-booking</b><span class="sess mini"><span class="who a sm">A</span>2h</span></div>
+                  <div class="pc"><b>Teacher widget and calendar embed</b><span class="pmeta"><span class="strip"><i class="sq live"></i><i class="sq live"></i><i class="sq live"></i><i class="sq doing"></i><i class="sq"></i></span><span class="due sm late">overdue Nov 10</span></span></div>
+                </div>
+                <div class="panel open"><div class="ph"><b>Open</b><span class="nobody"><span class="who none sm"></span>nobody has these</span></div>
+                  <div class="pc"><b>Widget editor says why a class is missing</b><span class="pmeta"><span class="due sm">Nov 17</span></span></div>
+                  <div class="pc"><b>Intro class listing shows "from $75"</b><span class="pmeta"><span class="due sm none">no deadline yet</span></span></div>
+                </div>
+                <div class="panel done"><div class="ph"><b><i class="sq live"></i>Done</b><span class="n">2<i class="chev"></i></span></div></div>
+              </div>
+            </details>
+            <details class="proj p0" data-rank="4" data-due="9999">
+              <summary><span class="pri p0">P0</span><span class="pn"><b>Student messaging</b><span>Almost no student can get texts</span></span><span class="pprog"><span class="pbar"><i class="t" style="flex:1"></i></span><span class="pcount"><span class="t">1 to do</span></span></span><span class="whos"><span class="who none"></span></span><span class="pdue"><span class="due none">no deadline yet</span></span><i class="chev"></i></summary>
+              <div class="panels"><div class="panel open"><div class="ph"><b>Open</b><span class="nobody"><span class="who none sm"></span>nobody has these</span></div><div class="pc"><b>SMS number for the studio</b><span class="pmeta"><span class="due sm none">no deadline yet</span></span></div></div></div>
+            </details>
+            <details class="proj p0" data-rank="5" data-due="9999">
+              <summary><span class="pri p0">P0</span><span class="pn"><b>Card fee</b><span>Every online card sale at a studio that pays its own fee</span></span><span class="pprog"><span class="pbar empty"></span><span class="pcount"><span class="z">no cards yet</span></span></span><span class="whos"><span class="who none"></span></span><span class="pdue"><span class="due none">no deadline yet</span></span><i class="chev"></i></summary>
+              <div class="panels"><div class="panel open"><div class="ph"><b>Open</b><span class="nobody">no cards yet</span></div></div></div>
+            </details>
+            <div class="gh" data-rank="6">P1 <span class="more">14 projects</span></div>
+            <details class="proj" data-rank="7" data-due="2026-11-17">
+              <summary><span class="pri p1">P1</span><span class="pn"><b>Class types</b><span>Guard specs, so no studio can strand lessons and passes</span></span><span class="pprog"><span class="pbar"><i class="t" style="flex:1"></i></span><span class="pcount"><span class="t">5 to do</span></span></span><span class="whos"><span class="who none"></span></span><span class="pdue"><span class="due">Nov 17</span></span><i class="chev"></i></summary>
+              <div class="panels"><div class="panel open"><div class="ph"><b>Open</b><span class="nobody"><span class="who none sm"></span>nobody has these</span></div>
+                <div class="pc"><b>Retiring a class type warns about its lessons</b><span class="pmeta"><span class="due sm">Nov 17</span></span></div>
+                <div class="pc"><b>A double-length lesson offers double credits</b><span class="pmeta"><span class="due sm">Nov 20</span></span></div>
+                <div class="pc"><b>Three more</b><span class="pmeta"><span class="due sm none">no deadline yet</span></span></div></div></div>
+            </details>
+            <details class="proj" data-rank="8" data-due="9999">
+              <summary><span class="pri p1">P1</span><span class="pn"><b>Family billing</b><span>Couples and families share cards and autopays</span></span><span class="pprog"><span class="pbar"><i class="d" style="flex:3"></i><i class="m" style="flex:1"></i></span><span class="pcount"><span class="d">3 done</span><span class="m">1 moving</span></span></span><span class="whos"><span class="who t on">T</span></span><span class="pdue"><span class="due none">no deadline yet</span></span><i class="chev"></i></summary>
+              <div class="panels"><div class="panel"><div class="ph"><b>family-billing</b><span class="sess mini"><span class="who t on sm">T</span><span class="now">now</span></span></div><div class="pc"><b>Hint: the spouse has a card on file</b><span class="pmeta"><span class="strip"><i class="sq live"></i><i class="sq built"></i><i class="sq doing"></i></span></span></div></div><div class="panel done"><div class="ph"><b><i class="sq live"></i>Done</b><span class="n">3<i class="chev"></i></span></div></div></div>
+            </details>
+            <details class="proj" data-rank="9" data-due="2026-12-01">
+              <summary><span class="pri p1">P1</span><span class="pn"><b>Autopays</b><span>Before Dec 1 charging</span></span><span class="pprog"><span class="pbar"><i class="d" style="flex:2"></i><i class="t" style="flex:3"></i></span><span class="pcount"><span class="d">2 done</span><span class="t">3 to do</span></span></span><span class="whos"><span class="who none"></span></span><span class="pdue"><span class="due">Dec 1</span></span><i class="chev"></i></summary>
+              <div class="panels"><div class="panel open"><div class="ph"><b>Open</b><span class="nobody"><span class="who none sm"></span>nobody has these</span></div><div class="pc"><b>Imported autopays land on closed accounts</b><span class="pmeta"><span class="due sm">Dec 1</span></span></div><div class="pc"><b>Two more</b><span class="pmeta"><span class="due sm none">no deadline yet</span></span></div></div><div class="panel done"><div class="ph"><b><i class="sq live"></i>Done</b><span class="n">2<i class="chev"></i></span></div></div></div>
+            </details>
+            <div class="folds" data-rank="10"><span class="fold">11 more P1<i class="chev"></i></span><span class="fold">P2 · 4 projects<i class="chev"></i></span><span class="fold">Closed · 3<i class="chev"></i></span><span class="fold">No tag · 2<i class="chev"></i></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="box"><h3>How to read a row</h3><div class="legend">
+          <div class="lg"><span><span class="pbar" style="width:112px"><i class="d" style="flex:2"></i><i class="m" style="flex:1"></i><i class="t" style="flex:2"></i></span></span><span><b>Bar.</b> Green is done, blue is moving, orange is to do.</span></div>
+          <div class="lg"><span><i class="sq"></i><i class="sq doing"></i><i class="sq built"></i><i class="sq live"></i></span><span><b>Squares.</b> One per phase: to do, doing, built, live.</span></div>
+          <div class="lg"><span><span class="who a on sm">A</span><span class="who t sm">T</span><span class="who none sm"></span></span><span><b>Disc.</b> Violet is Anton, pink is Taras. Solid means a session is writing now; dashed means nobody.</span></div>
+          <div class="lg"><span><span class="due sm late">overdue</span><span class="due sm soon">today</span></span><span><b>Red.</b> Trouble: overdue, due today, or a session gone silent.</span></div>
+          <div class="lg"><span><span class="waits">waits on you</span></span><span><b>Yellow.</b> Waits on you, and nothing else.</span></div>
+          <div class="lg"><span><span class="pri p0">P0</span><span class="pri p1">P1</span></span><span><b>Badge.</b> Priority by weight: P0 is solid, P1 an outline.</span></div>
+        </div></div>
+        <div class="box plain"><h3>Where each part comes from</h3><ul>
+          <li>Project, priority and the reason: the tag. <span>A session writes the reason when you give it.</span></li>
+          <li>A panel: the spec that covers those cards, with its live session.</li>
+          <li>Open: cards no spec covers, or no session holds.</li>
+          <li>Counts, squares and "who": computed. <span>Nobody types them.</span></li>
+        </ul></div>
+      </div>
+    </div>
+
+    <!-- Now -->
+    <div id="panel-n" role="tabpanel" aria-labelledby="tab-n" class="stack" hidden>
+      <div class="screen" id="screen-now">
+        <div class="bar"><span class="name">Live board · crm</span><span class="nav on">Now<i>2</i></span><span class="nav">Plan</span><span class="beat"><i></i><span id="beat-now">live · 3 s ago</span></span></div>
+        <div class="deadline">No update for 40 s. This board may be wrong.</div>
+        <div class="body">
+          <div class="needs">
+            <div class="count"><b>2</b><span>need you</span><small><span class="who t sm">T</span>Taras 1</small></div>
+            <div class="rows">
+              <div class="ny"><span class="k">Q</span><span class="t">Reset the Teachers pick each morning? <span>Schedule fixes · phase 5</span></span><span class="acts"><button class="btn pick" type="button">No reset</button><button class="btn" type="button">Reset daily</button></span><span class="age">42m</span></div>
+              <div class="ny"><span class="k">PR</span><span class="t">Open PR A <span>Schedule fixes · phases 1–2 built</span></span><span class="age">2h</span></div>
+              <div class="ny late"><span class="k">!</span><span class="t">Private lessons held until paid <span><em>overdue Nov 12</em> · nobody has it</span></span><span class="age"><span class="who t sm">T</span>Taras</span></div>
+            </div>
+          </div>
+          <div class="lane">
+            <div class="h">Sessions <span class="more">5 live</span></div>
+            <div class="fleet">
+              <span class="sess"><span class="who a on sm">A</span><b>schedule fixes 2</b><span class="now">now</span></span>
+              <span class="sess"><span class="who a on sm">A</span><b>live board 10</b>2m</span>
+              <span class="sess"><span class="who a sm">A</span><b>teacher booking 13</b>2h</span>
+              <span class="sess silent"><span class="who a sm">A</span><b>import 2</b>47m · 3 commits not pushed</span>
+              <span class="sess"><span class="who t on sm">T</span><b>family billing 3</b><span class="now">now</span></span>
+            </div>
+          </div>
+          <div class="lane">
+            <div class="h">Moving <span class="more">4</span></div>
+            <div class="chips"><span class="chip on">All</span><span class="chip">Pass sync</span><span class="chip">Schedule fixes</span><span class="chip">Website</span><span class="chip">+ 22</span></div>
+            <div class="slab">
+              <div class="row"><span class="pri p0">P0</span><span class="title p0"><b>Featured row keeps events visible</b><span class="sub">Schedule fixes<span class="due sm soon">today</span></span></span><span class="strip"><i class="sq live"></i><i class="sq built"></i><i class="sq doing"></i><i class="sq"></i></span><span class="who a on">A</span><span class="age2 now">now</span></div>
+              <div class="row"><span class="pri p0">P0</span><span class="title p0"><b>Teacher widget and calendar embed</b><span class="sub">Website<span class="due sm late">overdue Nov 10</span></span></span><span class="strip"><i class="sq live"></i><i class="sq live"></i><i class="sq live"></i><i class="sq doing"></i><i class="sq"></i></span><span class="who a">A</span><span class="age2">2h</span></div>
+              <div class="row"><span class="pri p0">P0</span><span class="title p0"><b>Pass edits reach the studio</b><span class="sub">Pass sync</span></span><span class="strip"><i class="sq live"></i><i class="sq live"></i><i class="sq doing"></i><i class="sq"></i></span><span class="who t">T</span><span class="age2">14m</span></div>
+              <div class="row"><span class="pri p1">P1</span><span class="title"><b>Hint: the spouse has a card on file</b><span class="sub">Family billing</span></span><span class="strip"><i class="sq live"></i><i class="sq built"></i><i class="sq doing"></i></span><span class="who t on">T</span><span class="age2 now">now</span></div>
+            </div>
+          </div>
+          <div><span class="fold"><i class="sq live"></i>Finished today (3)<i class="chev"></i></span></div>
+        </div>
+      </div>
+      <div class="demo"><button class="btn" type="button" id="kill">Show a dead feed</button><span>What the board does when the server or the connection dies.</span></div>
+      <p class="fine">The parts are the ones you approved; the deadline words match the Academy board and the colours follow the code under Plan. Now answers "what needs me and is anything stuck"; Plan answers "what is coming and in what order".</p>
+    </div>
+
+    <!-- Card -->
+    <div id="panel-c" role="tabpanel" aria-labelledby="tab-c" class="stack" hidden>
+      <div class="screen">
+        <div class="bar"><span class="name">Live board · crm</span><span class="cid">c90</span><span class="beat"><i></i>live · 3 s ago</span></div>
+        <div class="body">
+          <div class="sheet">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <h4>Filters say what they hide</h4>
+              <div class="kv"><span class="pri p0">P0</span><span class="tag">Schedule fixes</span><span class="tag todo">asked</span><span class="due none">no deadline yet</span></div>
+            </div>
+            <blockquote>"I like having the Upcoming Events … now it doesn't show."<footer><span>Chasity · iMessage · Nov 11</span><span>4 more sources ▸</span></footer></blockquote>
+            <div class="ny"><span class="k">Q</span><span class="t">Reset the Teachers pick each morning? <span>recommended: no reset</span></span><span class="acts"><button class="btn pick" type="button">No reset</button><button class="btn" type="button">Reset daily</button></span><span class="age">42m</span></div>
+            <div class="lane"><div class="h">Covered by <code>schedule-clarity-fixes</code></div>
+              <div class="phases">
+                <div class="phase"><i class="sq"></i><span>4 · Filter labels</span><span class="st">to do</span></div>
+                <div class="phase"><i class="sq"></i><span>5 · Teachers pick</span><span class="waits">waits on q12</span></div>
+                <div class="phase"><i class="sq"></i><span>6 · Location filter</span><span class="st">to do</span></div>
+                <div class="phase"><i class="sq"></i><span>7–9 · three more</span><span class="st">to do</span></div>
+              </div>
+            </div>
+            <div class="lane"><div class="h">Sessions</div><div class="last"><span class="who none sm"></span><span>Nobody on it now.</span><span class="who a sm">A</span><span>Last: Anton, tree pr-a, 42 min ago.</span></div></div>
+            <button class="copy" type="button" id="copy">Copy for Claude</button>
+            <p class="fine" id="copied" aria-live="polite">Copies the card's id and where it stands, ready to paste into a session.</p>
+          </div>
+        </div>
+      </div>
+      <p class="fine">Everything wordy lives here, one click away: the customer's own words, phase names, the question with its answer buttons. The address is <code>/#c90</code>, so a session can hand you the link.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Choices I made; say if any is wrong</h2>
+    <div class="box plain" style="max-width:78ch"><ul>
+      <li>A card with two tags shows in both projects, as on the Academy board.</li>
+      <li>Rows start folded. A row opens by itself when something in it is overdue or waits on you.</li>
+      <li>Sort by priority, with a switch to sort by deadline. Inside a project: moving first, then by date.</li>
+      <li>Done cards are a count until you click.</li>
+      <li>P0 is the heaviest badge, not a red one, so red only ever means trouble. <span>Say so if you want the red P0 stripe back.</span></li>
+      <li>Today and tomorrow are a red outline, not orange, because orange means to do.</li>
+      <li>No client export in this phase. <span>The Academy board has one; I'll log it as a card with the session-tab jump.</span></li>
+      <li>The Academy board keeps running as it is until phase 11 moves its cards over.</li>
+    </ul></div>
+    <p>Say <strong>"build it"</strong>, or tell me what to change.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (each) {
+        var on = each === tab;
+        each.setAttribute('aria-selected', on ? 'true' : 'false');
+        document.getElementById(each.getAttribute('aria-controls')).hidden = !on;
+      });
+    });
+  });
+
+  var plan = document.getElementById('plan');
+  var byPri = document.getElementById('sort-pri');
+  var byDue = document.getElementById('sort-due');
+  function sortPlan(key) {
+    var nodes = Array.prototype.slice.call(plan.children);
+    var value = function (node) { return key === 'rank' ? Number(node.dataset.rank) : (node.dataset.due || 'zzzz' + node.dataset.rank); };
+    nodes.sort(function (a, b) { var x = value(a), y = value(b); return x < y ? -1 : x > y ? 1 : Number(a.dataset.rank) - Number(b.dataset.rank); });
+    nodes.forEach(function (node) {
+      if (node.classList.contains('gh')) node.hidden = key !== 'rank';
+      plan.appendChild(node);
+    });
+    byPri.classList.toggle('on', key === 'rank');
+    byDue.classList.toggle('on', key !== 'rank');
+  }
+  byPri.addEventListener('click', function () { sortPlan('rank'); });
+  byDue.addEventListener('click', function () { sortPlan('due'); });
+
+  var screen = document.getElementById('screen-now');
+  var kill = document.getElementById('kill');
+  var beat = document.getElementById('beat-now');
+  kill.addEventListener('click', function () {
+    var dead = screen.classList.toggle('dead');
+    beat.textContent = dead ? 'no signal · 40 s' : 'live · 3 s ago';
+    kill.textContent = dead ? 'Bring it back' : 'Show a dead feed';
+  });
+
+  var copied = document.getElementById('copied');
+  document.getElementById('copy').addEventListener('click', function () {
+    var text = 'Card c90 "Filters say what they hide" (Schedule fixes, p0), covered by schedule-clarity-fixes phases 4-9, waits on question q12. Tell me where it stands and what is next.';
+    var done = function () { copied.textContent = 'Copied. Paste it into a session.'; };
+    var failed = function () { copied.textContent = text; };
+    try { navigator.clipboard.writeText(text).then(done, failed); } catch (error) { failed(); }
+  });
+})();
+</script>

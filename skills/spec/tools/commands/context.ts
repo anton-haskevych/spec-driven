@@ -24,6 +24,11 @@ import { defaultClaudeHome } from "../sessions/live";
 import { systemClaimsHere, type ClaimsHereReader } from "../context/claims-here";
 import { loadPackReferences } from "../context/references";
 import { selectExecutePhase } from "../context/select-phase";
+import { coverLines, coveringCards } from "../cards/cover";
+import type { Env } from "../core/env";
+import { sessionLine, sessionsOnSpec } from "../sessions/list";
+import { claudeSessionRef } from "../sessions/session-doc";
+import { recordViewOf } from "../record/read";
 import type { LocalPilot } from "../runtime/workflow-capabilities";
 
 const DOCTOR_LINES = 6;
@@ -41,6 +46,7 @@ export interface ContextDeps {
   readHeld: HeldReader;
   readClaimsHere: ClaimsHereReader;
   workflow?: LocalPilot;
+  env?: Env;
   now?: () => Date;
   memory?: PlanMemory;
 }
@@ -51,6 +57,7 @@ export function systemContextDeps(): ContextDeps {
     runner: systemRunner,
     readHeld: (projectDir) => heldByOthers(projectDir, { runner: systemRunner, claudeHome: defaultClaudeHome(), env: process.env }),
     readClaimsHere: systemClaimsHere,
+    env: process.env,
     ...(memory ? { memory } : {}),
   };
 }
@@ -90,9 +97,9 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
 
   const doctor = doctorReport(projectDir, name, deps.runner, plans).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
-  const block = (body: string) => packBlock(state.spec.name, mode, inferredFrom, withBoardLines(plans, state.spec, body, deps.memory));
+  const block = (body: string) => packBlock(state.spec.name, mode, inferredFrom, withBoardLines(plans, state.spec, body, deps));
   if (mode === "babysit") return block(babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
-  const nodes = loadNodes(projectDir, plans.marks);
+  const nodes = loadNodes(projectDir, plans);
   const held = await deps.readHeld(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir, specsInFlight(held, state.spec.name));
   const ready = readySet(state, nodes);
@@ -105,14 +112,33 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   return block(body);
 }
 
-function withBoardLines(plans: PlanSource, spec: SpecFolder, body: string, memory: PlanMemory | undefined): string {
+function withBoardLines(plans: PlanSource, spec: SpecFolder, body: string, deps: ContextDeps): string {
+  const { memory } = deps;
   const joined = plans.joined(spec.name);
   const lines = [
     boardLine(plans.record, joined, plans.pending),
     joined && memory ? noticePlanChange(memory, spec.name, planShapeOf(joined)) : undefined,
     joined ? treeAheadLine(joined, diskReader(spec.dir)) : undefined,
+    ...cardLinesFor(plans, spec.name),
+    ...sessionLinesFor(plans, spec.name, deps),
   ].filter((line) => line !== undefined);
   return lines.length === 0 ? body : `${lines.join("\n")}\n\n${body}`;
+}
+
+// Why the work exists, in the customer's words: the open cards that cover this spec.
+function cardLinesFor(plans: PlanSource, spec: string): string[] {
+  const view = recordViewOf(plans.record);
+  return view ? coverLines(coveringCards(view, spec), spec) : [];
+}
+
+// Who else is on this spec, from the sessions' own documents: a review or prep takes no claim.
+function sessionLinesFor(plans: PlanSource, spec: string, deps: ContextDeps): string[] {
+  const view = recordViewOf(plans.record);
+  if (!view) return [];
+  const now = deps.now?.() ?? new Date();
+  const own = deps.env ? claudeSessionRef(deps.env) : undefined;
+  const planVersion = plans.joined(spec)?.spec.planVersion;
+  return sessionsOnSpec(view, spec, own, now).map((doc) => sessionLine(doc, now, planVersion));
 }
 
 function packBlock(spec: string, mode: string, inferredFrom: string | undefined, body: string): string {

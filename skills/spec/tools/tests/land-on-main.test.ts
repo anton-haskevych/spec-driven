@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { chmodSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { gitAt } from "../core/git";
@@ -64,6 +65,58 @@ describe("landOnMain (real git)", () => {
     };
     expect(await land(appendLine("mine"), racing)).toMatchObject({ kind: "landed" });
     expect(onOrigin()).toBe("one\nraced\nmine");
+  });
+
+  const racingTimes = (times: number): Runner => {
+    const other = repo.clone("other");
+    let raced = 0;
+    return {
+      run(argv, options) {
+        if (raced < times && argv[1] === "push") {
+          raced += 1;
+          other.git("pull", "-q", "--rebase", "origin", "main");
+          other.write(NOTE, `${readFileSync(join(other.dir, NOTE), "utf8")}raced ${raced}\n`);
+          other.commitAll(`raced ${raced}`);
+          other.git("push", "-q", "origin", "main");
+        }
+        return isolatedRunner.run(argv, options);
+      },
+    };
+  };
+
+  test("it tries five times before giving up", async () => {
+    expect(await land(appendLine("mine"), racingTimes(4))).toMatchObject({ kind: "landed" });
+    expect(onOrigin()).toEndWith("raced 4\nmine");
+  });
+
+  test("a branch that moves on every try fails and pushes nothing", async () => {
+    const outcome = await land(appendLine("mine"), racingTimes(5));
+    expect(outcome).toEqual({ kind: "failed", reason: "main moved 5 times while writing; nothing written — run it again" });
+    expect(onOrigin()).not.toContain("mine");
+  }, 20_000);
+
+  test("the push skips pre-push hooks, never prompts and has a time limit", async () => {
+    repo.write(".git/hooks/pre-push", "#!/bin/sh\nexit 1\n");
+    chmodSync(join(repo.dir, ".git/hooks/pre-push"), 0o755);
+    const seen: { argv: readonly string[]; prompt?: string; timeoutMs?: number }[] = [];
+    const recording: Runner = {
+      run(argv, options) {
+        if (argv[1] === "push" || argv[1] === "fetch") seen.push({ argv, prompt: options?.env?.GIT_TERMINAL_PROMPT, timeoutMs: options?.timeoutMs });
+        return isolatedRunner.run(argv, options);
+      },
+    };
+    expect(await land(appendLine("hooked"), recording)).toMatchObject({ kind: "landed" });
+    expect(onOrigin()).toBe("one\nhooked");
+    expect(seen.map((call) => call.argv[1])).toEqual(["fetch", "push"]);
+    for (const call of seen) expect(call).toMatchObject({ prompt: "0", timeoutMs: 10_000 });
+    expect(seen[1]?.argv).toContain("--no-verify");
+  });
+
+  test("an unreachable origin fails with git's reason and writes nothing", async () => {
+    repo.git("remote", "set-url", "origin", join(repo.dir, "no-such-origin"));
+    const outcome = await land(appendLine("lost"));
+    expect(outcome.kind).toBe("failed");
+    expect(outcome.kind === "failed" && outcome.reason).toStartWith("can't read origin/main:");
   });
 
   test("one plan can write several files in one commit", async () => {

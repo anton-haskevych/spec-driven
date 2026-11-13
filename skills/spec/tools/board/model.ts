@@ -1,3 +1,4 @@
+import type { CardAttention } from "../cards/attention";
 import type { Priority } from "../core/schedule";
 import type { PrReview } from "../pr/checks/rollup";
 import type { VerdictKind } from "../pr/checks/verdict";
@@ -46,6 +47,7 @@ export type FlightNext =
   | "approved"
   | "changes requested"
   | "ticked on branch, not merged"
+  | "built, PR not opened"
   | "uncommitted";
 
 export interface FlightRow extends RowBase {
@@ -97,6 +99,8 @@ export type AttentionRow =
   | { kind: "overdue"; spec: string; phase?: string; due: string }
   | { kind: "deploy"; spec: string; phase: string; waiting: string[] }
   | { kind: "merge"; spec: string; phase?: string; prGroup?: string; pr: number }
+  // A PR group whose phases are built and whose PR nobody opened.
+  | { kind: "open-pr"; spec: string; prGroup?: string; phases: string[] }
   | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number }
   // A held PR: waiting for the user's review, approved (merge it), or sent back (relaunch execute).
   | { kind: "pr-review" | "pr-approved" | "pr-changes"; spec: string; phase?: string; prGroup?: string; pr: number }
@@ -106,8 +110,12 @@ export type AttentionRow =
   | { kind: "idle-claim"; spec: string; phases: string[]; session: string; since: string }
   // A phase parked on a question for the user (`phase park`); it leaves the ready lane until answered.
   | { kind: "question"; spec: string; phase: string; question: string; recommend?: string; since: string }
+  // A tree holding commits or edits no remote has, quiet for hours: its latest session document says so.
+  | { kind: "unsaved-work"; who: string; host: string; tree: string; ahead: number; edited: number; since: string; here: boolean }
   // Merged worktrees by ancestry; `trees prune` also finds squash-merged ones by their PR's head.
-  | { kind: "prune"; trees: number };
+  | { kind: "prune"; trees: number }
+  // A card every covering phase of has merged (close it with evidence), or a done card with one still open.
+  | CardAttention;
 
 // What a focus spec is doing now: the first kind that applies, in this order.
 export type FocusNow =
@@ -140,6 +148,17 @@ export interface FocusWork {
   mine: boolean;
   claims: FocusClaim[];
   prs: PrCell[];
+  // Sessions on another machine, from their documents; `phase` is what their claim holds.
+  sessions?: FocusRemoteSession[];
+}
+
+export interface FocusRemoteSession {
+  mode: string;
+  host: string;
+  tree: string;
+  phase?: string;
+  // When the session last wrote.
+  since: string;
 }
 
 export interface FocusRow {

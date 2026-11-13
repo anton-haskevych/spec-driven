@@ -1,12 +1,11 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { prClaimId } from "../../claims/pr-claim";
-import { parseFrontmatter } from "../../core/frontmatter";
-import { readTextIfExists } from "../../core/files";
 import { normalizePhaseHint } from "../../context/request";
 import { isoTimestamp } from "../../core/schedule";
 import { findSpecs } from "../../core/spec-folders";
-import { readShipField } from "../../core/spec-meta";
+import { readSpecFields } from "../../graph/spec-fields";
+import { readLocalPlans } from "../../plan/read-plans";
 import { launchedLine, launchInBackground } from "../../launch/background";
 import { sessionLaunch } from "../../launch/command-line";
 import { freshTreeNotes, placeForLaunch, type PlaceFn } from "../../launch/place-for-launch";
@@ -49,7 +48,7 @@ export async function launchCrewSession(request: CrewLaunchRequest, store: RunFi
   if (!inTree.ok) return { text: `crew launch: ${inTree.reason}` };
 
   const target = request.subCommand === "babysit" ? { group: request.target } : { phase: normalizePhaseHint(request.target) };
-  const ship: BriefRequest["ship"] = request.hold ? { mode: "hold-for-review", from: "spec" } : shipOf(tree, request.spec);
+  const ship: BriefRequest["ship"] = request.hold ? { mode: "hold-for-review", from: "spec" } : shipOf(tree, request.spec, deps);
   const brief = briefPath(store.path, request);
   mkdirSync(dirname(brief), { recursive: true });
   writeFileSync(brief, renderBrief({ overseer, spec: request.spec, target, tree, ...(ship ? { ship } : {}), notes: [...request.notes, ...freshTreeNotes(placement)] }));
@@ -71,11 +70,11 @@ function briefPath(runPath: string, request: CrewLaunchRequest): string {
 
 // The placed tree's copy: a fresh tree is cut from origin's default branch, where `spec.ts ship` lands.
 // The spec's ship: wins; settings pr.ship is the project's default.
-function shipOf(tree: string, spec: string): BriefRequest["ship"] {
+// An upgraded spec's ship mode is on the record, as last fetched: the overseer's tick fetched it.
+function shipOf(tree: string, spec: string, deps: CrewDeps): BriefRequest["ship"] {
   if (!existsSync(tree)) return undefined;
   const [folder] = findSpecs(tree, spec);
-  const meta = folder ? parseFrontmatter(readTextIfExists(join(folder.dir, "CLAUDE.md")) ?? "") : undefined;
-  const own = meta?.kind === "ok" ? readShipField(meta.data).ship : undefined;
+  const own = folder ? readSpecFields(folder.dir, readLocalPlans(tree, deps.runner, deps.now()).fields(spec)).meta.ship : undefined;
   if (own) return { mode: own, from: "spec" };
   const fallback = loadSettings(tree).pr.ship;
   return fallback ? { mode: fallback, from: "settings" } : undefined;

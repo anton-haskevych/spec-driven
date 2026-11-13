@@ -32,9 +32,11 @@ See `SKILL.md` for layout rules, `product-brief.md` / `research/` semantics, and
 
 **Spin-off check first.** If this session already works another spec (a `/spec` command for a different name ran here, or you have been executing, reviewing or creating another spec), do not prep inline: follow *Spin-off* below. Prep here only when the user explicitly asks for it in this session.
 
+**Register the session** once the name is settled, so the sessions executing or reviewing this spec see a prep is under way: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts session register prep <name> --title "prep <name>"` (SKILL.md → *Tools* → Sessions). Its line is the report; `The board is off here` or an unreachable origin means nothing to do, so carry on. A spin-off's fresh session registers the same way.
+
 Resolve the target folder `docs/specs/<name>/`:
 
-- **Does not exist** → fresh prep. Start at Stage 0 (Frame). If `docs/specs/_backlog/<name>.md` exists, or the user names an idea from the backlog, that idea is the starting ask: read it first and frame from its title and body.
+- **Does not exist** → fresh prep. Start at Stage 0 (Frame). If `docs/specs/_backlog/<name>.md` exists, or the user names an idea from the backlog (a file, or with the board on an idea card: `spec.ts card list`), that idea is the starting ask: read it first and frame from its title and body or quote.
 - **Exists, seeded** (has `seed.md`, no `product-brief.md`) → another session spun this spec off. Read `seed.md`, every file under its *Evidence*, and `research/*-wave-0-*.md`. The seed replaces Stages 0–1: state the real change in one sentence, then write the brief (Stage 2.2) from the seed, using the user's quoted words and the recorded decisions rather than re-asking them. Keep the existing stub `CLAUDE.md` (refresh it with `spec-bump.sh <name>`). Stop at 2.3 as usual, listing the seed's *Open questions* under the brief path. After the brief is confirmed, wave 0 counts as recon: Wave 1 aims only at what it left open. `seed.md` stays as the origin record.
 - **Exists, prep-stage only** (has `product-brief.md` and/or `research/`, but no `progress.md`) → prep was already started. Read the brief and any `research/` snapshots, print one line (`prep in progress — brief ✓, N research snapshot(s)`), and resume at the right point: no research yet → Stage 3; implementation waves done but no craft snapshot → Stage 5; both lenses covered → Stage 6 lock check / handoff.
 - **Exists as a full spec** (has `progress.md` or `phases/`) → not a prep target. Print `Spec '<name>' already exists at docs/specs/<name>/. Use /spec <name> to resume or /spec <name> review.` and stop.
@@ -94,11 +96,19 @@ Reconnaissance in progress. See `product-brief.md` for the business intent and
 body once recon is locked, and finalizes this metadata.
 ```
 
-`area`/`domain`/`scope` are best-guess at this stage; `create.md` finalizes them. Carry an idea's `priority` and `due` into the stub when prep started from one.
+`area`/`domain`/`scope` are best-guess at this stage; `create.md` finalizes them. Board off: carry an idea's `priority` and `due` into the stub when prep started from one (board on, they live on the spec's card, below).
 
 **Project playbooks.** With the stub written, run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts playbooks <name>`. If it prints playbooks, they are the project's rules for this kind of work: follow them for the brief and aim recon at what they make load-bearing. Fix the stub's tags first if the wrong playbook (or none) comes back.
 
-**Started from a backlog idea?** Close it now: add `resolution: promoted → docs/specs/<name>/` to its frontmatter and `git mv` it into `docs/specs/_backlog/_closed/` (idea.md → *Close or drop*). Run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <name>` any time you re-touch the stub to refresh `updated`.
+**Started from a backlog idea?** Board off: close it now: add `resolution: promoted → docs/specs/<name>/` to its frontmatter and `git mv` it into `docs/specs/_backlog/_closed/` (idea.md → *Close or drop a file*). Run `bash ${CLAUDE_SKILL_DIR}/scripts/spec-bump.sh <name>` any time you re-touch the stub to refresh `updated`.
+
+**The spec's card (board on).** Every spec has a card: the reason for the work, in the asker's words, and the one place its priority and due date are set. With the stub written, give it one, once:
+
+- Started from an idea card: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts card cover <id> <name>`, then `card update <id> --commitment asked`.
+- Started from an idea file: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts card import <slug> --cover <name>`, then move the file as idea.md → *Touching an idea file* says.
+- Otherwise: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts card add "<one-line title>" --quote "<the user's ask, verbatim>" --app claude-code --cover <name> [--priority p0-p3] [--due YYYY-MM-DD]`.
+
+Print its `card:` line. From here the spec's priority and due date are read from its cards: change them with `card update`, and leave them out of the stub. A refusal (offline, board unreachable) leaves the spec without a card; say so in one line, and its join makes one later from the stub. Board off: nothing here; the stub carries `priority` and `due` as before.
 
 ### 2.2 Write the product brief
 

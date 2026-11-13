@@ -23,8 +23,10 @@ export interface ProjectSettings {
 }
 
 // Whether specs may join the board's shared record. Read from the default branch, so every tree agrees.
+// `people`: the display names a card can be assigned to; an assignee is matched to one with `samePerson`.
 export interface BoardSetting {
   record: boolean;
+  people: string[];
 }
 
 // The standing go: how many sessions the overseer runs, and which gate kinds a worker passes itself.
@@ -51,7 +53,7 @@ export const DEFAULT_SETTINGS: ProjectSettings = {
   checks: { external: [] },
   gates: {},
   crew: { workers: 3, babysitters: 2, selfApprove: [] },
-  board: { record: false },
+  board: { record: false, people: [] },
 };
 
 const SWITCH = ["on", "off"] as const;
@@ -62,7 +64,7 @@ const SECTION_KEYS: Record<string, readonly string[]> = {
   gates: ["after-merge-main", "bootstrap", "per-commit", "ci-triage"],
   deploy: ["paths", "gate"],
   crew: ["workers", "babysitters", "self-approve"],
-  board: ["record"],
+  board: ["record", "people"],
 };
 const TOP_KEYS = new Set(["docs", ...Object.keys(SECTION_KEYS)]);
 
@@ -100,7 +102,7 @@ export function parseSettings(text: string): ParsedSettings {
     },
     ...optional("deploy", deploy),
     crew: crewSetting(section("crew"), problems),
-    board: { record: oneOf(section("board").record, SWITCH, "board.record", problems) === "on" },
+    board: boardSetting(section("board"), problems),
   };
   problems.push(...Object.keys(data).filter((key) => !TOP_KEYS.has(key)).map((key) => `unknown key: ${key}`));
   return { settings, problems };
@@ -123,6 +125,7 @@ export function describeSettings(settings: ProjectSettings): string {
     ...(gates.ciTriage ? [`CI triage: gate ${gates.ciTriage}`] : []),
     ...(deploy ? [`deploy: gate ${deploy.gate} for ${deploy.paths.length} ${deploy.paths.length === 1 ? "path" : "paths"}`] : []),
     ...(settings.board.record ? ["board record on"] : []),
+    ...(settings.board.people.length > 0 ? [`people ${settings.board.people.join(", ")}`] : []),
   ].join(" · ");
 }
 
@@ -137,6 +140,10 @@ function deploySetting(section: FrontmatterData, present: boolean, problems: str
 // Words that aren't gate kinds are dropped here and reported as errors by the doctor.
 export function selfApproveKinds(words: readonly string[]): { kinds: GateKind[]; unknown: string[] } {
   return { kinds: words.filter(isGateKind), unknown: words.filter((word) => !isGateKind(word)) };
+}
+
+function boardSetting(section: FrontmatterData, problems: string[]): BoardSetting {
+  return { record: oneOf(section.record, SWITCH, "board.record", problems) === "on", people: stringArray(section.people, "board.people", problems) };
 }
 
 function crewSetting(section: FrontmatterData, problems: string[]): CrewSetting {

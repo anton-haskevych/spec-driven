@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { phaseDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
+import { phaseDocPath, prDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
 import { addEdit } from "../plan/ops/add";
 import { planChangePlan, phaseStatePlan, type ChangeSeen } from "../plan/ops/change";
 import { listIds } from "../plan/ops/id-list";
@@ -12,7 +12,7 @@ import { planWrites } from "../record/plan-writes";
 import type { RecordView } from "../record/view";
 import type { RecordPlan } from "../record/write";
 import { viewOf, viewOfTexts } from "./fake-record";
-import { phaseDoc, specDoc, task } from "./record-factories";
+import { phaseDoc, prDoc, specDoc, task } from "./record-factories";
 import type { PhaseDoc } from "../plan/docs/phase-doc";
 
 const SPEC = "checkout";
@@ -45,6 +45,21 @@ function run(plan: (see: (seen: ChangeSeen) => void) => RecordPlan, view = recor
 }
 
 const change = (edit: Parameters<typeof planChangePlan>[2]) => (see: (seen: ChangeSeen) => void) => planChangePlan(SPEC, "test", edit, see);
+
+describe("a PR group that first appears", () => {
+  test("a phase added to a new group creates that group's PR document, not opened", () => {
+    const { ops } = run(change(addEdit({ spec: SPEC, title: "Ship it", edges: { needs: ["5"], pr: "C" }, tasks: [] })));
+    expect(ops?.filter((op) => op.path.includes("/prs/"))).toEqual([{ op: "create", path: prDocPath(SPEC, "C"), doc: prDoc({ group: "C" }) }]);
+  });
+
+  test("a group the plan already had, or that already has a document, creates nothing", () => {
+    const { ops } = run(change(setEdit({ spec: SPEC, phase: "5", fields: { pr: "B" } })));
+    expect(ops?.filter((op) => op.path.includes("/prs/"))).toEqual([]);
+    const withDoc = viewOf({ [specDocPath(SPEC)]: specDoc({ phases: ["2", "3", "5"], planVersion: 4 }), ...Object.fromEntries(defaultPhases().map((phase) => [phaseDocPath(SPEC, phase.id), phase])), [prDocPath(SPEC, "C")]: prDoc({ group: "C", number: 7, state: "open" }) });
+    const again = run(change(addEdit({ spec: SPEC, title: "Ship it", edges: { needs: ["5"], pr: "C" }, tasks: [] })), withDoc);
+    expect(again.ops?.filter((op) => op.path.includes("/prs/"))).toEqual([]);
+  });
+});
 
 describe("phase add on the record", () => {
   test("adds the next integer at the end, raises the plan version, and gives its tasks fresh ids", () => {
@@ -126,7 +141,7 @@ describe("phase set on the record", () => {
   });
 
   test("a field this version doesn't know survives the write", () => {
-    const phases = defaultPhases().map((p) => (p.id === "3" ? ({ ...p, handoff: { note: "later" } } as PhaseDoc) : p));
+    const phases = defaultPhases().map((p) => (p.id === "3" ? ({ ...p, laterField: { note: "later" } } as PhaseDoc) : p));
     const { ops } = run(change(setEdit({ spec: SPEC, phase: "3", fields: { pr: "C" } })), record(phases));
     expect(ops?.find((op) => op.path === phaseDocPath(SPEC, "3"))).toEqual({ op: "update", path: phaseDocPath(SPEC, "3"), patch: { pr: "C" } });
   });

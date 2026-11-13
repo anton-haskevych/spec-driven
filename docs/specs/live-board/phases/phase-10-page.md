@@ -7,48 +7,69 @@ gate: design
 
 # Phase 10 — The page
 
-**Goal:** a read-mostly page that Claude starts and opens, showing the board by status and by tag and updating
-within seconds, on which a person can answer a question and make small edits.
+**Goal:** a page for looking that Claude starts and opens: what needs a person and which sessions are alive
+(Now), every project by priority (Plan), and one card in full. It updates within seconds, and the only thing a
+person can do on it is answer a waiting question.
 
-**Outcome:** one place to look at everything, including one customer's work alone under its tag. For looking,
-not for doing the work · medium · low risk: it reads the local copy and writes through the same version check.
+**Outcome:** one screen that says in two seconds what needs you, which sessions are alive and whether each
+customer ask is moving, and a second that shows every project by priority. For looking, not for doing the
+work · medium · low risk: it reads the record and its one write goes through the same version check.
 
 **Files to touch:**
-- `skills/spec/tools/page/server.ts`, `page/page.html` (new), `commands/page.ts` (new), `spec.ts`
+- `skills/spec/tools/page/` (new): `model.ts`, `render.ts`, `styles.ts`, `refresh.ts`, `answer.ts`, `server.ts`,
+  `process.ts`; `commands/page.ts` (new), `spec.ts`, `core/pid-file.ts` (new, shared with `trees/prune-background.ts`)
+- `board/card-rows.ts` and `board/render.ts` (export what the model reuses)
 - `skills/spec/list.md`, `SKILL.md`
 
 ## Implementation guidance
 
+**The design is agreed** (Anton, 2026-11-13): `research/phase-10/2026-11-13-page-council-and-design.md` says what
+each screen shows and why; `research/phase-10/2026-11-13-page-design-mock.html` is the look to build (its
+`<style>` block is the token set and the components; its three mock screens are the markup to produce). Read
+both before writing any code. `design.md` → *The page* is the summary.
+
 The plugin has no server, HTML or port today (wave 2 → *What the plugin can ship*), so this phase sets the
-precedent; keep it small. `Bun.serve` is built in, which keeps the zero-dependency rule. The page is one HTML
-file with inline CSS and script.
+precedent; keep it small. `Bun.serve` is built in, which keeps the zero-dependency rule:
+`research/phase-10/2026-11-13-bun-built-ins.md` lists what Bun 1.4.4 gives and its traps (`development` is on by
+default; never import the `.html` file in `routes`; never `Bun.sleep` in the event stream).
 
-The Academy board's page in the CRM repo (`ops/src/academy-board/server.ts`, `page/board.html`,
-`page/db-shim.js`) is the working exemplar for the loop: poll for a new tip every 5 s, push a snapshot to open
-pages over server-sent events. Here the server refreshes the local copy (`record/mirror.ts`) and serves the
-**computed board model**: `buildBoard` → `Board`, the versioned model `board --json` already prints
-(`board/model.ts`), extended with cards and tags, plus the record version of each editable field. The page
-only renders. The Academy page computes in the browser (`db-shim.js`) because it had no server-side model;
-copying that would put a second copy of `phaseStage` and the *Needs you* rules in page script, and the page
-and the CLI board would disagree. Do not copy its unpinned writes either: every edit from the page goes
-through `writeRecord` with `ifVersion` set to the version the page last showed, and a conflict re-renders with
-the current document.
+**The server builds the HTML.** A pure `renderPage(model) → string` (template strings and `Bun.escapeHTML`), so
+`bun test` and `curl` check the page and a session with no browser can verify it. Page script only swaps each
+new render in, folds rows, sorts, filters and posts an answer. No board rule is computed in page script: the
+Academy page does that (`db-shim.js`) and its page and CLI disagree.
 
-The server is started detached with a pid file, as `trees/prune-background.ts:8-35` does, binds 127.0.0.1 only,
-and a second `spec.ts page` reuses the running one and just opens the browser. It is offered by the list mode;
-the user never types a command.
+**The model** is pure and built from what the board already loads (`recon` → *The seam*): `buildBoard`'s `Board`
+untouched, plus cards with their origin quote, covering phases and stage (`coveredPhasesOf`,
+`board/card-rows.ts:16`, exported), tags with priority and reason, question rows with id and version
+(`questions/list.ts:16`), sessions. `board/model.ts` is at 243 of 250 lines: add nothing to it. Wording for
+needs-you rows comes from `attentionCells` (`board/render.ts:97`, exported), not from new text.
 
-Agree the design before building: `design.md` → *The page* is the starting sketch. The gate covers the two
-views, what a card shows (covering phases, who is on them, origin quote), and exactly which edits are allowed.
+**Refresh.** A full `loadBoard` fetches the base branch, runs `gh pr list` and scans worktrees: too heavy for
+5 s. The tick fetches the record tip (`fetchRecordTip`, one round trip); the model is rebuilt when the tip
+moved, after 60 s, or right after an answer. Every tick is sent to open pages even when nothing changed, so
+the page can tell a dead feed from a quiet board.
+
+**The one write.** `answerPlan` with `ifVersion` (`questions/plans.ts:42`) sent through `sendRecordIntent`
+(`plan/record-send.ts:55`), which returns the structured result; the command paths turn a conflict into a
+string and drop the current document. The POST is accepted only when `Host` is the server's own
+`127.0.0.1:<port>` or `localhost:<port>`, `Origin` matches when present, and the body is JSON.
+
+**The process.** Started detached with a state file (pid, port, plugin version) in `stateDir(git, "page")`, as
+`trees/prune-background.ts:8-36` does; move its `isAlive` and pid read to `core/pid-file.ts` and share them.
+One server per clone, served from the main checkout (a worktree can be pruned under it), on a port derived
+from the clone path so a link survives a restart; it exits after 2 h with no page open. A second `spec.ts page`
+reuses it, replaces one started by an older plugin version, and opens the browser. It is offered by the list
+mode; the user never types a command, and a crew worker never starts it.
 
 ## Deliverables
 
-- [ ] Gate: the page's design (two views, card contents, allowed edits) agreed with Anton
-- [ ] `page/server.ts`: serves the page and the `Board` model (with cards, tags and field versions) built from the local copy, refreshes every 5 s, pushes changes over server-sent events; 127.0.0.1 only; no board rule is computed in page script
-- [ ] `page.html`: by status and by tag, a *Needs you* strip, cards with covering phases, sessions and origin quote; light and dark
-- [ ] Edits from the page (priority, due date, tags, who has it, answering a question) go through `writeRecord` with the shown version; a conflict re-renders
-- [ ] `spec.ts page`: starts the server detached with a pid file, reuses a running one, opens the browser; `list.md` offers it
-- [ ] `SKILL.md` updated; ROADMAP row and version bump for PR G
+- [x] Gate: the page design (Now and Plan screens, the opened card, one edit: answering a question) agreed with Anton — Anton, 2026-11-13: "Page design approved … answer a waiting question only", then on the redrawn mock "I love the font the views the styles, everything is perfect" (research/phase-10/2026-11-13-page-design-mock.html)
+- [x] `page/server.ts`: 127.0.0.1 only; serves the page and the model; checks the record tip every 5 s, rebuilds the model on a moved tip, after 60 s or after an answer, and pushes each render over server-sent events with a tick every cycle; the page greys out with a banner after 15 s without a tick; the needs-you count in the tab title; `/#c<id>` opens a card
+- [x] `page/render.ts` and `page/styles.ts`: the server builds the HTML for Now, Plan and an opened card from the model, as in the approved mock (`research/phase-10/2026-11-13-page-design-mock.html`); light and dark; `data-id`, `data-kind` and `data-stage` on rows; page script only swaps the render in, folds rows, sorts, filters and posts an answer
+- [x] Answering a waiting question from the page goes through `answerPlan` with the shown version; a conflict re-renders with the current question; the request is accepted only from the origin the page was served from; no other edit exists
+- [x] `spec.ts page [<card-id>] [--json]`: starts the server detached with a state file (pid, port, plugin version) on a port that stays the same per clone, reuses a running one, replaces one from an older version, opens the browser; `--json` prints the model the page shows; `list.md` offers it
+- [x] `SKILL.md` updated; ROADMAP row and version bump for PR G
+- [x] `page/model.ts`: the pure page model built from the board inputs and the record view: needs-you rows with question ids and versions, live sessions, moving cards with phase squares, Plan rows per tag (priority, reason, counts, a panel per covering spec, Open, Done), and each card in full for the opened view
 
 ## Phase-local notes
 

@@ -6,7 +6,7 @@ import { mergePr, type MergeDeps, type MergeRequest } from "../../pr/actions/mer
 export const PR_MERGE_USAGE = "pr merge [<pr> | <spec-name> [<group>]] [--now] [--method squash|merge|rebase]";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const systemDeps: MergeDeps = { runner: systemRunner, now: () => new Date() };
+const systemDeps: MergeDeps = { runner: systemRunner, now: () => new Date(), env: process.env };
 
 export async function prMerge(projectDir: string, args: readonly string[], deps: MergeDeps = systemDeps): Promise<string> {
   const request = parseMergeArgs(args);

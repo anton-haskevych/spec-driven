@@ -1,4 +1,4 @@
-import { mkdirSync, renameSync, writeFileSync } from "node:fs";
+import { mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { diskReader, type ReadSpecFile } from "./spec-state";
 
@@ -13,7 +13,7 @@ export interface FileRename {
 }
 
 export type EditPlan =
-  | { kind: "ok"; edits: FileEdit[]; renames?: FileRename[] }
+  | { kind: "ok"; edits: FileEdit[]; renames?: FileRename[]; removes?: string[] }
   | { kind: "unchanged"; reason: string }
   | { kind: "invalid"; reason: string };
 
@@ -26,6 +26,7 @@ export function applyEdits(plan: Extract<EditPlan, { kind: "ok" }>): void {
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, text);
   }
+  for (const file of plan.removes ?? []) rmSync(file, { force: true });
 }
 
 export function readThroughEdits(dir: string, edits: readonly FileEdit[]): ReadSpecFile {

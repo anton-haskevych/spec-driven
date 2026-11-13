@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { joinedActivity } from "../board/joined-activity";
-import { phaseDoc, specDoc, task } from "./record-factories";
+import { phaseDoc, prDoc, specDoc, task } from "./record-factories";
 
 const SHA = "0651e4e0651e4e0651e4e0651e4e0651e4e0651e";
 const trees = [
@@ -29,5 +29,25 @@ describe("joinedActivity", () => {
       task({ id: "2.3" }),
     ] });
     expect(joinedActivity([plan(phase)], trees).get("alpha#2")?.wipIn).toEqual(["/trees/pr-a"]);
+  });
+
+  describe("a built phase (every task done)", () => {
+    const built = phaseDoc({ id: "2", pr: "A", tasks: [task({ id: "2.1", done: true, evidence: `${SHA} on origin/feat/alpha-pr-a` })] });
+    const docs = (doc: ReturnType<typeof prDoc>) => () => [doc];
+
+    test("with its PR not opened, stays in flight in its group's tree and asks for the PR", () => {
+      expect(joinedActivity([plan(built)], trees, docs(prDoc({ group: "A", branch: "feat/alpha-pr-a" }))).get("alpha#2")).toEqual({ tickedIn: ["/trees/pr-a"], wipIn: [], built: { prGroup: "A", prNotOpened: true } });
+    });
+
+    test("with its PR open, stays in flight until the PR merges", () => {
+      const open = prDoc({ group: "A", branch: "feat/alpha-pr-a", number: 9, state: "green" });
+      expect(joinedActivity([plan(built)], trees, docs(open)).get("alpha#2")?.built).toEqual({ prGroup: "A", prNotOpened: false });
+      expect(joinedActivity([plan(built)], trees, docs({ ...open, state: "merged" })).size).toBe(0);
+    });
+
+    test("finished at join (bare sha, nothing opened) is history, not in flight", () => {
+      const atJoin = phaseDoc({ id: "2", pr: "A", tasks: [task({ id: "2.1", done: true, evidence: SHA })] });
+      expect(joinedActivity([plan(atJoin)], trees, docs(prDoc({ group: "A", branch: "feat/alpha-pr-a" }))).size).toBe(0);
+    });
   });
 });

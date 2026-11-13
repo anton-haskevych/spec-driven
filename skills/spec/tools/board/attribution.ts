@@ -2,23 +2,24 @@ import { parseLaunchTitle } from "../launch/title";
 import type { LiveSession } from "../sessions/live";
 import { ownerOf } from "../workspaces/owner";
 import type { BoardInputs } from "./inputs";
+import { docOf } from "./session-docs";
 
 export interface Attribution {
   bySpec: Map<string, LiveSession[]>;
   unattributed: LiveSession[];
 }
 
-type AttributionInputs = Pick<BoardInputs, "nodes" | "claims" | "workspaces" | "worktreePaths">;
+type AttributionInputs = Pick<BoardInputs, "nodes" | "claims" | "workspaces" | "worktreePaths" | "sessionDocs">;
 
 // Ordered and conservative (ledger: principle-session-attribution-scope-and-order): this repo's
-// sessions only; then claim → launch title → a non-main tree touching exactly one focus spec.
+// sessions only; then claim → the session's own document → launch title → a non-main tree touching exactly one focus spec.
 export function attributeSessions(sessions: readonly LiveSession[], inputs: AttributionInputs, focusSpecs: ReadonlySet<string>): Attribution {
   const treeSpecs = singleFocusTrees(inputs, focusSpecs);
   const attribution: Attribution = { bySpec: new Map(), unattributed: [] };
   for (const session of sessions) {
     const tree = ownerOf(session.cwd, inputs.worktreePaths);
     if (tree === undefined) continue;
-    const spec = claimedSpec(session, inputs) ?? launchedSpec(session, inputs) ?? treeSpecs.get(tree);
+    const spec = claimedSpec(session, inputs) ?? docSpec(session, inputs) ?? launchedSpec(session, inputs) ?? treeSpecs.get(tree);
     if (spec !== undefined && focusSpecs.has(spec)) attribution.bySpec.set(spec, [...(attribution.bySpec.get(spec) ?? []), session]);
     else attribution.unattributed.push(session);
   }
@@ -27,6 +28,10 @@ export function attributeSessions(sessions: readonly LiveSession[], inputs: Attr
 
 function claimedSpec(session: LiveSession, { claims }: AttributionInputs): string | undefined {
   return claims.find((held) => held.status !== "remote" && held.claim.sessionId === session.sessionId)?.claim.spec;
+}
+
+function docSpec(session: LiveSession, inputs: AttributionInputs): string | undefined {
+  return docOf(inputs, session.sessionId)?.spec;
 }
 
 function launchedSpec(session: LiveSession, { nodes }: AttributionInputs): string | undefined {

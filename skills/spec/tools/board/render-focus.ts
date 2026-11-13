@@ -1,14 +1,14 @@
 import { alignColumns } from "../core/columns";
 import { personKey } from "../core/people";
 import { ago, EMPTY, lane, monthDay, prCell } from "./cells";
-import type { Board, FlightNext, FocusClaim, FocusNow, FocusRow, FocusSession, FocusWork } from "./model";
+import type { Board, FlightNext, FocusClaim, FocusNow, FocusRemoteSession, FocusRow, FocusSession, FocusWork } from "./model";
 import { ME } from "./people";
 
 const READY_SHOWN = 3;
 const OTHER_SESSIONS_SHOWN = 5;
 const CLAIMS_SHOWN = 2;
 const STAGE: Record<NonNullable<FocusRow["stage"]>, string> = { prep: "prep", create: "draft" };
-const FLIGHT_SHORT: Partial<Record<FlightNext, string>> = { "ticked on branch, not merged": "on branch" };
+const FLIGHT_SHORT: Partial<Record<FlightNext, string>> = { "ticked on branch, not merged": "on branch", "built, PR not opened": "built, no PR" };
 
 export function focusSection(board: Board, now: Date, who?: string): string {
   const me = board.me ? personKey(board.me) : ME;
@@ -78,7 +78,7 @@ function withMySessions(row: FocusRow, me: string): { work: FocusWork; sessions:
 }
 
 function workText(work: FocusWork, sessions: readonly FocusSession[], now: Date): string {
-  const parts = [sessions.map((session) => sessionText(session, now)).join(", "), claimsText(work.claims, now), work.prs.map(prCell).join(" ")];
+  const parts = [sessions.map((session) => sessionText(session, now)).join(", "), (work.sessions ?? []).map((session) => remoteSessionText(session, now)).join(", "), claimsText(work.claims, now), work.prs.map(prCell).join(" ")];
   return parts.filter(Boolean).join(" · ");
 }
 
@@ -93,6 +93,10 @@ function claimsText(claims: readonly FocusClaim[], now: Date): string {
 function sessionText(session: FocusSession, now: Date): string {
   const who = session.sub ? [session.sub, ...(session.phase ? [session.phase] : [])].join(" ") : session.label;
   return `${who} ${session.status} ${ago(new Date(session.since), now)}`;
+}
+
+function remoteSessionText(session: FocusRemoteSession, now: Date): string {
+  return `${[session.mode, session.phase].filter(Boolean).join(" ")} on ${session.host} ${ago(new Date(session.since), now)}`;
 }
 
 function otherSessionsCell(sessions: readonly FocusSession[], now: Date): string {

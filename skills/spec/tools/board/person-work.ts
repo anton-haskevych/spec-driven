@@ -62,6 +62,6 @@ function authoredPrs({ prs }: BoardInputs, theirs: Matches): PersonPr[] {
 function mySessions(sessions: Result<LiveSession[]>, inputs: BoardInputs): PersonSession[] {
   if (!sessions.ok) return [];
   const { bySpec, unattributed } = attributeSessions(sessions.value, inputs, new Set(inputs.nodes.keys()));
-  const placed = [...bySpec].flatMap(([spec, found]) => found.map((session) => ({ ...focusSession(session, spec), spec })));
-  return [...placed, ...unattributed.map((session) => focusSession(session))];
+  const placed = [...bySpec].flatMap(([spec, found]) => found.map((session) => ({ ...focusSession(session, spec, inputs), spec })));
+  return [...placed, ...unattributed.map((session) => focusSession(session, undefined, inputs))];
 }

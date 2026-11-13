@@ -1,3 +1,4 @@
+import { questionDoc } from "./record-factories";
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -61,6 +62,16 @@ describe("crew tick", () => {
     const { fake, calls } = ports({ claims, ready: [readyRow({ spec: "other", phase: "1" })] }, [agent("b1", "done"), agent("w1", "working")]);
     expect(await crewTick(repo.dir, [], crewDeps({ env }), fake)).toBe("Tick: 0 closed out · 0 launched · 0 for you");
     expect(calls).toEqual({ stopped: [], launched: [] });
+  });
+
+  test("open questions on the board are listed after what needs the overseer, with how to answer each", async () => {
+    setUp([]);
+    const question = { ...questionDoc({ id: "q3", about: "alpha#5", question: "Ship today?", recommend: "yes" }), spec: "alpha", version: "v1" };
+    const { fake } = ports({ questions: [question] }, []);
+    expect((await crewTick(repo.dir, [], crewDeps({ env }), fake)).split("\n")).toEqual([
+      'Question: q3 · alpha · phase 5 — "Ship today?" · recommend: yes · asked 2026-11-13T09:00:00-08:00 by session-1 · answer: question answer alpha q3 "<their words>"',
+      "Tick: 0 closed out · 0 launched · 0 for you · 1 question open",
+    ]);
   });
 
   test("sessions not in ## Launched are never touched", async () => {

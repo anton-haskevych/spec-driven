@@ -11,10 +11,13 @@ export interface FileChange {
   text: string | undefined;
 }
 
+// `failed`: origin turned the push down for a reason a retry can't change.
+export type RefPush = PushOutcome | { kind: "failed"; reason: string };
+
 export interface RefPort {
   fetchTip(): TipRead;
   commit(base: Tip, changes: readonly FileChange[], message: string): Result<string>;
-  push(commit: string, lease: Tip): PushOutcome;
+  push(commit: string, lease: Tip): RefPush;
 }
 
 export type RefEdit<T, S> = { kind: "commit"; changes: readonly FileChange[]; message: string; landed: T } | { kind: "stop"; outcome: S };
@@ -59,6 +62,6 @@ async function landAttempt<T, S>(port: RefPort, plan: (tip: Tip) => RefEdit<T, S
   if (!commit.ok) return { kind: "failed", reason: commit.reason };
   const pushed = port.push(commit.value, tip);
   if (pushed.kind === "refused") return { kind: "retry" };
-  if (pushed.kind === "offline") return pushed;
+  if (pushed.kind === "offline" || pushed.kind === "failed") return pushed;
   return { kind: "landed", sha: commit.value, landed: edit.landed };
 }

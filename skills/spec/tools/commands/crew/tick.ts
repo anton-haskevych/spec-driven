@@ -13,6 +13,8 @@ import { pickRows } from "../../crew/pick";
 import { parseRunFile, withLaunched, withLog, withOverseer, type LaunchedEntry, type RunFile } from "../../crew/run-state";
 import { actionLines, afterCloseOut, nextAction } from "../../crew/tick-step";
 import { parseLaunchTitle } from "../../launch/title";
+import { questionLine, questionRows, type QuestionRow } from "../../questions/list";
+import { recordViewOf } from "../../record/read";
 import { loadAgents, type Agent } from "../../sessions/agents";
 import type { LiveSession } from "../../sessions/live";
 import { ownSessionId } from "../../sessions/own";
@@ -29,6 +31,8 @@ export interface TickWorld {
   claims: readonly HeldClaim[];
   ready: readonly ReadyRow[];
   states: ReadonlyMap<string, SpecState>;
+  // Open questions of joined specs, from the record; parks of specs in files show as their phases leave ready.
+  questions?: readonly QuestionRow[];
 }
 
 export interface TickPorts {
@@ -75,7 +79,10 @@ export async function crewTick(projectDir: string, args: readonly string[], deps
   if (held === "no runner") report.forYou.push(NO_RUNNER);
   if (held) report.forYou.push(...passed.relaunches.map((relaunch) => `Relaunch held (${held}): ${relaunch.spec} ${relaunch.phase}`));
   const launched = held || runner === undefined ? 0 : await fillSlots(remaining, agents.value, passed.relaunches, world.value, { ...run, runner }, ports, report);
-  return [...report.done, ...report.forYou, `Tick: ${passed.removed.size} closed out · ${launched} launched · ${report.forYou.length} for you`].join("\n");
+  const questions = world.value.questions ?? [];
+  const asked = questions.map((row) => `Question: ${questionLine(row)} · answer: question answer ${row.spec} ${row.id} "<their words>"`);
+  const open = questions.length === 0 ? "" : ` · ${questions.length} ${questions.length === 1 ? "question" : "questions"} open`;
+  return [...report.done, ...report.forYou, ...asked, `Tick: ${passed.removed.size} closed out · ${launched} launched · ${report.forYou.length} for you${open}`].join("\n");
 }
 
 interface ClosedOut {
@@ -140,7 +147,9 @@ function systemTickPorts(projectDir: string, store: RunFileStore, deps: CrewDeps
       const inputs = await loadBoardInputs(projectDir, { local: false, ...(own ? { ownSessionId: own } : {}) }, deps);
       if (!inputs.ok) return inputs;
       const sessions: Result<LiveSession[]> = inputs.value.sessions === "local" ? { ok: false, reason: "sessions not read" } : inputs.value.sessions;
-      return { ok: true, value: { sessions, claims: inputs.value.claims, ready: buildBoard(inputs.value, deps.now()).lanes.ready, states: inputs.value.states } };
+      const view = recordViewOf(inputs.value.plans.record);
+      const questions = view ? questionRows(view) : [];
+      return { ok: true, value: { sessions, claims: inputs.value.claims, ready: buildBoard(inputs.value, deps.now()).lanes.ready, states: inputs.value.states, questions } };
     },
     agents: () => loadAgents(deps.runner),
     closeOut: (entry, agents, claims) => closeOut(entry, { agents, claims, claudeHome: deps.claudeHome, runner: deps.runner }),

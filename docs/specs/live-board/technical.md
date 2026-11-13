@@ -90,7 +90,10 @@ type TagDoc = { name: string; kind: "customer" | "area" | "other"; priority?: "p
 
 type SessionDoc = { ref: SessionRef; who: string; host: string; tree: string; branch?: string; title?: string;
   mode: "prep" | "create" | "review" | "execute" | "babysit" | "overseer";
+  spec?: string;                                 // the spec it works on: set by `session register`, else the one spec its writes touch
   planVersion?: number; lastWriteAt: string; ahead?: number; edited?: number };
+                                                 // path: sessions/<base64url of sessionKey(ref)>.json; every Claude session
+                                                 // shares one SourceRef (CLAUDE_CODE_SOURCE), the id makes the file unique
 ```
 
 Rules carried from the Academy board's schema and skill (`research/…wave-1…` → *The Academy board as built*): a
@@ -131,8 +134,8 @@ tip and re-checks edges and cycles there. Two sessions ticking different tasks o
 splitting different phases of one spec, both land: the second simply plans again. A plan *refuses* when its
 intent no longer holds (`2.3 was closed 4 min ago by …`).
 
-`ifVersion` is optional and used only where a value someone looked at is being changed: edits from the page,
-`card update`, `tag set`, answering a question. A stale `ifVersion` returns `conflict` with the current
+`ifVersion` is optional and used only where a value someone looked at is being changed: `card update`,
+`tag set`, answering a question (from the tools or from the page, which has no other edit). A stale `ifVersion` returns `conflict` with the current
 document.
 
 - A document's version is its git blob id at the tip.
@@ -343,7 +346,8 @@ skills/spec/tools/
 ├── sessions/session-doc.ts    type + reader, the stamp op                         (phase 9)
 ├── context/board-lines.ts     every pack line that comes from the record          (phase 2a)
 ├── board/record-rows.ts       attention rows that come from the record            (phase 6)
-├── page/                      server.ts, page.html                                (phase 10)
+├── page/                      model.ts (pure), render.ts + styles.ts (server-built HTML), refresh.ts,
+│                              answer.ts (the one write), server.ts, process.ts    (phase 10)
 ├── hooks/plan-changed.ts      the before-edit check                               (phase 3b)
 └── commands/                  record.ts, join.ts, plan.ts, spec-status.ts, question.ts, page.ts,
                                phase.ts + phase/<action>.ts, card.ts + card/<action>.ts
@@ -399,6 +403,7 @@ restarted their sessions.
 
 PR C, D and E each move data that joined specs already have in files (spec fields and PR numbers; parked
 questions and hand-off notes; priority and due date). Each raises `RECORD_LAYOUT`, so a session still on the
-previous release refuses to write and says to update. A spec whose `SpecDoc.layout` is behind is upgraded by
+previous release refuses to write and says to update (from 2.54 on: 2.53.0 reads a newer record as no record
+and writes the files, `ledger/gotcha-2-53-writes-files-on-a-newer-record.md`). A spec whose `SpecDoc.layout` is behind is upgraded by
 the next command that touches it, in one batch (`plan/kinds.ts` holds one upgrade step per layout); until then
 its readers fall back to the file home for the fields that step moves.

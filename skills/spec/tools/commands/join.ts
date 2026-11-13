@@ -8,14 +8,20 @@ import { isoTimestamp } from "../core/schedule";
 import { findSpecs } from "../core/spec-folders";
 import { loadSpecStateFromFiles } from "../core/spec-state";
 import { isPlainObject } from "../record/document";
+import { stampedBy } from "../sessions/facts";
 import { gitRecordPort, type RecordPort } from "../record/ref";
 import { writeRecord, type RecordPlan, type StoreWrite } from "../record/write";
 import { boardBase } from "../plan/board-base";
 import type { PhaseDoc } from "../plan/docs/phase-doc";
 import type { SpecDoc } from "../plan/docs/spec-doc";
-import { planJoin, type JoinCopy, type JoinPlan } from "../plan/join";
+import { planJoin, type JoinInput, type JoinPlan } from "../plan/join";
+import type { QuestionDoc } from "../questions/question-doc";
+import { specCard, type SpecCardSeed } from "../cards/spec-card";
+import { copyFromFolder } from "../plan/upgrade-read";
+import { ghClient, type GhClient } from "../pr/gh";
 import { readTreeCopies } from "../plan/join-copies";
-import { phaseDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
+import { missingPrDocs, type PrDoc } from "../plan/docs/pr-doc";
+import { phaseDocPath, prDocPath, questionDocPath, specDocPath, validateRecordDoc } from "../plan/kinds";
 import { landBanner } from "../plan/land-banner";
 import { joinFromTree } from "./join-from-tree";
 import { joinTidy } from "./join-tidy";
@@ -37,6 +43,7 @@ interface Joining {
   branch: string;
   port: RecordPort;
   spec: string;
+  gh: GhClient;
 }
 
 export function systemJoinDeps(): JoinDeps {
@@ -53,18 +60,21 @@ export async function joinCommand(projectDir: string, args: readonly string[], d
   const git = gitAt(projectDir, deps.runner);
   const port = gitRecordPort(git);
   if (!port) return "join: this repo has no origin; the board's record lives there";
-  const joining = { git, branch, port, spec };
+  const joining = { git, branch, port, spec, gh: ghClient(projectDir, deps.runner) };
   const copies = await readCopies(joining, deps);
   if (!copies.ok) return `join: refused, nothing written. ${copies.reason}`;
   const planned = planJoin({ spec, ...copies.value, joinedAt: isoTimestamp(deps.now()) });
   if ("refused" in planned) return `join: refused, nothing written. ${planned.refused}`;
   let existing: unknown;
-  const written = await writeRecord(port, newSpecPlan(planned, "join", (doc) => (existing = doc)), { validate: validateRecordDoc });
+  const stamp = stampedBy(git, deps.env, projectDir, deps.now());
+  const written = await writeRecord(port, stamp(newSpecPlan(planned, "join", (doc) => (existing = doc))), { validate: validateRecordDoc });
   const lines = [...planned.recorded, ...planned.left].map((line) => `join: ${line}`);
   return [...lines, await resultLine(joining, planned, written, existing, copies.value.trees.length)].join("\n");
 }
 
-async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<{ base: JoinCopy; trees: JoinCopy[]; onBase(pointer: string): boolean }>> {
+type Copies = Pick<JoinInput, "base" | "trees" | "onBase" | "copy">;
+
+async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<Copies>> {
   const { git, branch, spec } = joining;
   const base = await boardBase(git, branch, "a join");
   if (!base.ok) return base;
@@ -77,17 +87,41 @@ async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<{ ba
   if (!state.hasProgress) return { ok: false, reason: `${spec} is still in prep; it has no phases to put on the board.` };
   const trees = await readTreeCopies(git, deps.asyncRunner, tip, spec);
   if (!trees.ok) return trees;
-  return { ok: true, value: { base: { tree: branch, head: tip, state }, trees: trees.value, onBase: (pointer) => existsSync(join(folder.dir, pointer)) } };
+  const { gh } = joining;
+  return {
+    ok: true,
+    value: {
+      base: { tree: branch, head: tip, state },
+      trees: trees.value,
+      onBase: (pointer) => existsSync(join(folder.dir, pointer)),
+      copy: (phases) => copyFromFolder(folder.dir, spec, phases, gh),
+    },
+  };
+}
+
+export interface NewSpec {
+  spec: SpecDoc;
+  phases: readonly PhaseDoc[];
+  prs?: readonly PrDoc[];
+  questions?: readonly QuestionDoc[];
+  card?: SpecCardSeed;
 }
 
 // `spec.json` is a create: of two machines writing a spec at once, the second finds it and changes nothing.
-export function newSpecPlan({ spec, phases }: { spec: SpecDoc; phases: readonly PhaseDoc[] }, verb: string, seen: (doc: unknown) => void): RecordPlan {
+// The spec's card lands in the same batch when no card covers it, so a spec on layout 4 always has one.
+export function newSpecPlan({ spec, phases, prs, questions, card }: NewSpec, verb: string, seen: (doc: unknown) => void): RecordPlan {
   return (view) => {
     const current = view.doc(specDocPath(spec.name));
     seen(current);
     if (current !== undefined) return { unchanged: true };
     return {
-      ops: [{ op: "create", path: specDocPath(spec.name), doc: spec }, ...phases.map((phase) => ({ op: "create" as const, path: phaseDocPath(spec.name, phase.id), doc: phase }))],
+      ops: [
+        { op: "create", path: specDocPath(spec.name), doc: spec },
+        ...phases.map((phase) => ({ op: "create" as const, path: phaseDocPath(spec.name, phase.id), doc: phase })),
+        ...(prs ?? missingPrDocs(spec.name, phases, () => false)).map((doc) => ({ op: "create" as const, path: prDocPath(spec.name, doc.group), doc })),
+        ...(questions ?? []).map((doc) => ({ op: "create" as const, path: questionDocPath(spec.name, doc.id), doc })),
+        ...(card ? (specCard(view, spec.name, card, spec.joinedAt)?.ops ?? []) : []),
+      ],
       message: `record: ${verb} ${spec.name}`,
     };
   };

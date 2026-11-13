@@ -55,7 +55,7 @@ printed, pinned for the whole babysit (a spec with two groups has two PRs).
 | `PR #<n>: none · no checks on <sha> …` | `git fetch origin` and `git merge-tree --write-tree origin/<default> HEAD`: a conflict → *Conflict*; a draft → `pr open <spec> <group>`; else *Retrigger* |
 | `PR #<n>: none · CI skipped itself …` | *Retrigger* (a re-run doesn't fix a skip) |
 | `PR #<n>: timeout · …` | `pr status <n>` for what is still running, then one more wait; a second timeout in a row → §4 |
-| `PR #<n>: merged · …` / `closed` | Someone else finished it: `pr merge <n>` lands a missing merge line on a merged PR; report (§3) and end |
+| `PR #<n>: merged · …` / `closed` | Someone else finished it: `pr merge <n>` lands a missing merge line (a joined spec: the PR document) on a merged PR; report (§3) and end |
 
 After every action, wait again (background `pr wait <n>`).
 
@@ -87,8 +87,8 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
 
 ## Rules
 
-- **No docs pushes while CI runs.** This session writes no spec docs: no ticks, no in-flight notes, no
-  ledger. The merge line lands on main through `pr merge`. Lessons go in the final report.
+- **No docs pushes while CI runs.** This session writes no spec docs: no ticks, no hand-off notes (`phase note`), no
+  ledger. The merge line lands on main through `pr merge`; for a joined spec `pr merge` writes the PR document on the record, never main. Lessons go in the final report.
 - **Limits:** 2 re-runs per run (the tool refuses the third), 3 fix pushes and 3 hours, both counted from
   the latest `babysit-start` (`pr log <n>`'s header). Hitting one → §4.
 - **Settings come from this tree** (`docs/specs/_playbook/settings.md`). In a `docs: main` project a
@@ -99,7 +99,7 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
 
 1. `pr merge <n>` → `Merged: #<n> · <method> · <sha>`. Refusals: `not green — …` → wait again;
    `pr.merge is not set` → ask the user for the method once and pass `--method`; a 405 → *Conflict*.
-   A trailing `merge line not landed — …` doesn't undo the merge: say it in the report.
+   A trailing `merge line not landed — …` or `PR #<n> not recorded on the board: …` doesn't undo the merge: say it in the report (the next `pr status` records it).
 2. Infra PR? Run *Deploy only for infra* (below) before reporting. Then `pr log <n>` for the timeline, then `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts ready <spec>` for what's next.
 3. Release: `claim release <spec> pr-<group>`.
 4. One message, then the session is done:

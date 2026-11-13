@@ -23,7 +23,7 @@ describe("planJoin on the Nov 11 copies", () => {
       phases: ["1", "2", "3", "4", "5", "6", "6a", "7", "8", "9", "10"],
       joinedAt: JOINED_AT,
       joinedFrom: base.head,
-      layout: 1,
+      layout: 4,
     });
   });
 
