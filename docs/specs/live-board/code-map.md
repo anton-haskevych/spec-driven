@@ -88,6 +88,9 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/plan/phase-stage.ts` | `phaseStage`: todo, doing, built, merged, deployed, done | 6 |
 | `skills/spec/tools/board/joined-activity.ts`, `board/record-rows.ts` | Joined phases in flight by stage; the `open-pr` *Needs you* row | 6 |
 | `skills/spec/tools/core/land-on-main.ts` | Branch port over `landOnRef`; `pushDeclined` in `core/remote-push.ts` | 6 |
+| `skills/spec/tools/cards/` | Card, source and tag documents, pure plans, `card` intent, cover, check, attention rows | 8 |
+| `skills/spec/tools/commands/card.ts` + `commands/card/` | `spec.ts card …`; `send.ts` dry-runs then sends the `card` intent | 8 |
+| `skills/spec/tools/board/card-rows.ts` | Needs-you rows for cards: can close, done over an open phase | 8 |
 | `skills/spec/SKILL.md` | Layout rules and the *Tools* section | |
 
 ## External references
