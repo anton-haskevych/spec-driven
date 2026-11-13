@@ -28,7 +28,7 @@ describe("checkSpecMeta", () => {
   test("rejects a priority or due it cannot read", () => {
     const text = "---\nstatus: active\ncreated: a\nupdated: b\npriority: high\ndue: 2026-13-01\n---\n";
     expect(checkSpecMeta("CLAUDE.md", text, STATUSES).map((i) => i.problem)).toEqual([
-      'priority "high" is not one of p1, p2, p3',
+      'priority "high" is not one of p0, p1, p2, p3',
       'due "2026-13-01" is not a date; use YYYY-MM-DD',
     ]);
   });

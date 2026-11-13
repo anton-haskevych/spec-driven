@@ -49,7 +49,7 @@ describe("checkBacklogItem", () => {
     expect(problems("just text")).toEqual(["error: backlog item has no frontmatter (needs at least title)"]);
     expect(problems("---\npriority: urgent\n---\n")).toEqual([
       "error: frontmatter has no title",
-      'error: priority "urgent" is not one of p1, p2, p3',
+      'error: priority "urgent" is not one of p0, p1, p2, p3',
     ]);
   });
 

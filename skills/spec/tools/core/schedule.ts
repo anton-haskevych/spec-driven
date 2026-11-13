@@ -1,6 +1,6 @@
 import { stringField, type FrontmatterData } from "./frontmatter";
 
-export const PRIORITIES = ["p1", "p2", "p3"] as const;
+export const PRIORITIES = ["p0", "p1", "p2", "p3"] as const;
 export type Priority = (typeof PRIORITIES)[number];
 
 export interface Schedule {
