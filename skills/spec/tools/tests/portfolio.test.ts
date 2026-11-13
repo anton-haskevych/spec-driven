@@ -7,6 +7,8 @@ import { matchesItem, matchesSpec, orderBacklog, orderSpecs } from "../portfolio
 import { renderPortfolio } from "../portfolio/render";
 import { specRow, specSummary } from "../portfolio/rows";
 import { backlogItem, specMeta, specNode, specRowOf } from "./factories";
+import { viewOf } from "./fake-record";
+import { cardDoc, sourceDoc } from "./record-factories";
 
 const TODAY = "2026-09-23";
 
@@ -150,5 +152,21 @@ describe("portfolioTable", () => {
     const [idea] = JSON.parse(portfolioTable(project, ["growth", "--json"], TODAY)).backlog;
     expect(idea).toMatchObject({ slug: "organizer-accounts", file: "docs/specs/_backlog/organizer-accounts.md", overdue: false });
     expect(json.today).toBe(TODAY);
+  });
+
+  test("with the board's cards, open cards that cover nothing list beside the files no card came from", () => {
+    write("docs/specs/_backlog/imported.md", "---\ntitle: Already a card\n---\nOld words.\n");
+    const cards = viewOf({
+      "cards/0/c7.json": cardDoc({ id: "c7", title: "Loose idea", commitment: "idea", priority: "p0", tags: ["growth"] }),
+      "cards/0/c8.json": cardDoc({ id: "c8", title: "Already a card", coveredBy: ["checkout"] }),
+      "sources/c8/a.json": sourceDoc({ card: "c8", app: "backlog", ref: "docs/specs/_backlog/imported.md" }),
+    });
+    const output = portfolioTable(project, ["growth"], TODAY, undefined, cards);
+    expect(output).toContain("## Backlog (2)");
+    expect(output.indexOf("| c7 | p0 | — | growth | Loose idea |")).toBeLessThan(output.indexOf("| organizer-accounts |"));
+    expect(portfolioTable(project, ["Already"], TODAY, undefined, cards)).not.toContain("| imported |");
+    expect(portfolioTable(project, ["Already"], TODAY)).toContain("| imported |");
+    const [card] = JSON.parse(portfolioTable(project, ["growth", "--json"], TODAY, undefined, cards)).backlog;
+    expect(card).toEqual({ file: "", card: "c7", slug: "c7", title: "Loose idea", body: "", tags: ["growth"], priority: "p0", overdue: false });
   });
 });
