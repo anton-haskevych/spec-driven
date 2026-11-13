@@ -11,4 +11,4 @@ Pass `isolatedRunner` from `tests/git-repo.ts` to any code under test that runs 
 
 Why it bites: `commit-tree`, `merge` and `commit` need an identity. On a laptop `systemRunner` picks up the global git config and the test passes; on CI (no identity) it fails with "Please tell me who you are", and a developer's global hooks or signing config can leak into the run. Seen when publish tests first called `systemRunner`.
 
-Also: each real-git test costs ~0.5–1 s (publish's 10 tests ≈ 10 s). Keep the logic in pure parsers with fast unit tests, and use real repos for the paths only git can prove.
+Which tests may use real git at all: `principle-tests-use-real-git-only-for-code-that-runs-git.md`.
