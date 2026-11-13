@@ -1,4 +1,5 @@
-import { compareSchedule } from "../core/schedule";
+import { compareSchedule, priorityRank } from "../core/schedule";
+import { readTags, tagLabel } from "./tags";
 import type { RecordView } from "../record/view";
 import type { CardDoc } from "./card-doc";
 import { cardNumber } from "./paths";
@@ -21,6 +22,26 @@ export function cardRows(view: RecordView, options: { all?: boolean; tag?: strin
       const origin = originOf(view, card.id);
       return origin ? { card, origin } : { card };
     });
+}
+
+export interface TagGroup {
+  heading: string;
+  rows: CardRow[];
+}
+
+const NO_TAG = "No tag";
+
+// The list by tag: a card sits under each of its tags; tags by their priority, then name; untagged last.
+export function groupByTag(rows: readonly CardRow[], view: RecordView): TagGroup[] {
+  const details = new Map(readTags(view).map((tag) => [tag.name.toLowerCase(), tag]));
+  const names = [...new Set(rows.flatMap((row) => row.card.tags))];
+  const ranked = names.toSorted((a, b) => priorityRank(details.get(a.toLowerCase())?.priority) - priorityRank(details.get(b.toLowerCase())?.priority) || a.localeCompare(b));
+  const groups = ranked.map((name) => {
+    const tag = details.get(name.toLowerCase());
+    return { heading: tag ? tagLabel(tag) : name, rows: rows.filter((row) => row.card.tags.includes(name)) };
+  });
+  const untagged = rows.filter((row) => row.card.tags.length === 0);
+  return untagged.length > 0 ? [...groups, { heading: NO_TAG, rows: untagged }] : groups;
 }
 
 export function cardLine({ card, origin }: CardRow): string {

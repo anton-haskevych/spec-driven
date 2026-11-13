@@ -33,7 +33,7 @@ describe("card add, source, update, list and check (real git)", () => {
     expect(await card(a, "add", "Featured row keeps events visible", ...QUOTE, "--priority", "P1", "--tag", "Academy Ballroom", "--tag", "Schedule", "--assignee", "taras")).toBe(
       "card: c1 added (asked · p1 · tags: Academy Ballroom, Schedule)",
     );
-    expect(await card(a, "list")).toBe(
+    expect(await card(a, "list", "--tag", "schedule")).toBe(
       "c1 · p1 · asked · open — Featured row keeps events visible · Academy Ballroom, Schedule · Taras Korpach · nothing covers it\n" +
         "  “I like having the Upcoming Events, now it doesn't show” — Chasity, imessage, 2026-11-11\n" +
         "card: 1 open card",
@@ -65,6 +65,14 @@ describe("card add, source, update, list and check (real git)", () => {
     expect(await card(a, "add", "No words", "--app", "imessage")).toStartWith("card add: refused, nothing written. A card's words come with it");
     expect(await card(a, "update", "c1", "--status", "done")).toStartWith('card update: refused, nothing written. --status (close and drop end a card) must be open or doing, not "done"');
     expect(await card(a, "check")).toBe("card check: clean");
+  }, REAL_GIT_MS);
+
+  test("tags keep the board's spelling, carry details, and group the list", async () => {
+    expect(await card(b, "tag", "c3", "academy ballroom")).toBe("card: c3 tags Academy Ballroom");
+    expect(await card(b, "tag", "Academy Ballroom", "--kind", "customer", "--priority", "p0")).toBe("tag: Academy Ballroom · customer · p0");
+    expect(await card(b, "tag", "Academy Ballroom", "--kind", "studio")).toBe('card tag: refused, nothing written. --kind must be customer, area or other, not "studio"');
+    const heads = (await card(a, "list")).split("\n").filter((line) => !line.startsWith(" "));
+    expect(heads).toEqual(["Academy Ballroom · customer · p0", "Schedule", "No tag", "card: 3 open cards"]);
   }, REAL_GIT_MS);
 
   test("a card ends with why: closed with evidence or dropped with a reason, and leaves the open list", async () => {

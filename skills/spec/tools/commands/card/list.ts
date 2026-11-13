@@ -1,6 +1,6 @@
 import { cardProblems } from "../../cards/check";
 import { loadNodes } from "../../graph/nodes";
-import { cardLine, cardRows, cardsSummary } from "../../cards/list";
+import { cardLine, cardRows, cardsSummary, groupByTag } from "../../cards/list";
 import type { PhaseDeps } from "../../plan/phase-writer";
 import { readPlansAt } from "../../plan/read-plans";
 import { recordViewOf } from "../../record/read";
@@ -19,7 +19,8 @@ export function listCards(projectDir: string, args: readonly string[], deps: Pha
   const rows = view ? cardRows(view, { all, ...(parsed.values.tag ? { tag: parsed.values.tag } : {}) }) : [];
   if (parsed.values.json) return JSON.stringify({ cards: rows });
   if (!view) return NO_RECORD;
-  return [...rows.map(cardLine), cardsSummary(rows, all)].join("\n");
+  const lines = parsed.values.tag ? rows.map(cardLine) : groupByTag(rows, view).flatMap((group) => [group.heading, ...group.rows.map((row) => indent(cardLine(row)))]);
+  return [...lines, cardsSummary(rows, all)].join("\n");
 }
 
 // What no single card can see; the doctor runs the same check on the local copy.
@@ -31,4 +32,8 @@ export function checkCards(projectDir: string, deps: PhaseDeps): string {
   const problems = cardProblems(view, loadNodes(projectDir, plans));
   if (problems.length === 0) return "card check: clean";
   return [...problems.map(({ path, problem }) => `${path}: ${problem}`), `card check: ${problems.length} ${problems.length === 1 ? "problem" : "problems"}`].join("\n");
+}
+
+function indent(text: string): string {
+  return text.split("\n").map((line) => `  ${line}`).join("\n");
 }
