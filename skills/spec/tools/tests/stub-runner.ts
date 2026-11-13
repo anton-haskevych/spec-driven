@@ -57,3 +57,13 @@ export function sequencedRunner(replies: Array<[readonly string[], Partial<RunRe
 export function routeGh(gh: Runner, other: Runner): Runner {
   return { run: (argv, options) => (argv[0] === "gh" ? gh.run(argv, options) : other.run(argv, options)) };
 }
+
+const NOT_A_REPO: RunResult = { code: 128, stdout: "", stderr: "fatal: not a git repository (or any of the parent directories): .git" };
+
+// For code under test that defaults to real git in a temp folder that isn't a repo: same answers, no process.
+export const notARepoRunner: Runner = {
+  run(argv) {
+    if (argv[0] !== "git") throw new Error(`notARepoRunner only answers git, not: ${argv.join(" ")}`);
+    return NOT_A_REPO;
+  },
+};

@@ -5,6 +5,7 @@ import { issuesForWrittenFile } from "../hooks/spec-file-check";
 import { formatIssues } from "../doctor/issue";
 import { run } from "../spec";
 import { createContextFixture } from "./context-fixture";
+import { notARepoRunner } from "./stub-runner";
 
 let fixture: ReturnType<typeof createContextFixture>;
 beforeEach(() => { fixture = createContextFixture(); });
@@ -14,7 +15,7 @@ test("explicit doctor file check uses the existing checker and observes invalid-
   const file = join(fixture.spec(), "ledger/gotcha-a.md");
   const command = ["doctor", "checkout", "--file", "ledger/gotcha-a.md"];
   fixture.write("ledger/gotcha-a.md", "# invalid edit\n");
-  const errors = issuesForWrittenFile(file, fixture.project);
+  const errors = issuesForWrittenFile(file, fixture.project, notARepoRunner);
   expect(errors.length).toBeGreaterThan(0);
   const result = await run(command, fixture.project);
   expect(result).toContain(formatIssues(errors, fixture.project));

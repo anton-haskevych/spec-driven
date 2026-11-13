@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { phaseCommand } from "../commands/phase";
 import { loadSpecStateFromFiles } from "../core/spec-state";
 import { createTree, type Tree } from "./tree";
+import { phaseDeps } from "./command-deps";
 
 const PROGRESS = [
   "## Phases",
@@ -26,7 +27,7 @@ function checkout() {
 }
 
 const read = (dir: string, path: string) => readFileSync(join(dir, path), "utf8");
-const phase = (args: string[]) => phaseCommand(tree.root, args);
+const phase = (args: string[]) => phaseCommand(tree.root, args, undefined, phaseDeps());
 
 describe("phase move on a spec in files", () => {
   test("moves items selected as tick selects them, into the target's Deliverables, reopening a done target", () => {

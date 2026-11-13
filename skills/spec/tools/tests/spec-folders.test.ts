@@ -107,8 +107,11 @@ describe("Claude spec.ts from a subfolder", () => {
     tree.spec("alpha", { "progress.md": "- [ ] Phase 1 — Start → `phases/phase-1.md`\n", "phases/phase-1.md": "- [ ] go\n" });
     tree.write("skills/spec/SKILL.md", "");
     const specTs = join(import.meta.dir, "..", "spec.ts");
-    const output = Bun.spawnSync(["bun", specTs, "ready", "alpha"], {
-      cwd: join(tree.root, "skills/spec"), env: { ...process.env, CODEX_THREAD_ID: "", CLAUDE_CODE_SESSION_ID: "fixture-claude" },
+    const pathWithoutGit = join(tree.root, "empty-bin");
+    tree.write("empty-bin/.keep", "");
+    const output = Bun.spawnSync([process.execPath, specTs, "ready", "alpha"], {
+      cwd: join(tree.root, "skills/spec"),
+      env: { ...process.env, PATH: pathWithoutGit, CODEX_THREAD_ID: "", CLAUDE_CODE_SESSION_ID: "fixture-claude" },
     }).stdout.toString();
     expect(output).not.toContain("no spec named alpha");
     expect(output).toContain("Ready now: 1 Start");

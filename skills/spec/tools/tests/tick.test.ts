@@ -6,6 +6,7 @@ import { loadSpecStateFromFiles } from "../core/spec-state";
 import { taskPhaseIssues } from "../doctor/task-phases";
 import { planTick } from "../phases/tick";
 import { createTree, type Tree } from "./tree";
+import { phaseDeps } from "./command-deps";
 
 const PROGRESS = [
   "## Phases",
@@ -33,7 +34,7 @@ const read = (dir: string, path: string) => readFileSync(join(dir, path), "utf8"
 describe("phase tick (code phase)", () => {
   test("ticks the matching item and leaves the phase open while items remain", () => {
     const spec = checkout();
-    const output = phaseCommand(tree.root, ["tick", "checkout", "2", "core/checkbox"]);
+    const output = phaseCommand(tree.root, ["tick", "checkout", "2", "core/checkbox"], undefined, phaseDeps());
     expect(output).toBe('ticked "core/checkbox.ts patterns" in Phase 2');
     expect(read(spec.dir, "phases/phase-2-tick.md")).toContain("- [x] `core/checkbox.ts` patterns\n- [ ] locator");
     expect(read(spec.dir, "progress.md")).toBe(PROGRESS);
@@ -41,8 +42,8 @@ describe("phase tick (code phase)", () => {
 
   test("ticking the last open item flips the progress box and says to close the phase", () => {
     const spec = checkout();
-    phaseCommand(tree.root, ["tick", "checkout", "2", "#1"]);
-    const output = phaseCommand(tree.root, ["tick", "checkout", "phase 2", "#1"]);
+    phaseCommand(tree.root, ["tick", "checkout", "2", "#1"], undefined, phaseDeps());
+    const output = phaseCommand(tree.root, ["tick", "checkout", "phase 2", "#1"], undefined, phaseDeps());
     expect(output).toBe('ticked "locator" in Phase 2\nPhase 2 complete — run update.md → Close the phase');
     expect(read(spec.dir, "progress.md")).toContain("- [x] Phase 2 — Tick → `phases/phase-2-tick.md` (notes)");
 
@@ -58,14 +59,14 @@ describe("phase tick (code phase)", () => {
       "phases/phase-1-harness.md": "- [x] done\n",
       "phases/phase-2-tick.md": "## Deliverables\n- [ ] locator\n\n## Verification\n- [ ] smoke test\n",
     });
-    expect(phaseCommand(tree.root, ["tick", "checkout", "2", "locator"])).toBe('ticked "locator" in Phase 2\nPhase 2 complete — run update.md → Close the phase');
+    expect(phaseCommand(tree.root, ["tick", "checkout", "2", "locator"], undefined, phaseDeps())).toBe('ticked "locator" in Phase 2\nPhase 2 complete — run update.md → Close the phase');
     expect(read(spec.dir, "progress.md")).toContain("- [x] Phase 2 — Tick");
   });
 
   test("an unknown phase or item is invalid and writes nothing", () => {
     const spec = checkout();
-    expect(phaseCommand(tree.root, ["tick", "checkout", "9", "#1"])).toStartWith("phase tick: no Phase 9 in checkout");
-    expect(phaseCommand(tree.root, ["tick", "checkout", "2", "ghost"])).toStartWith("phase tick: no open item");
+    expect(phaseCommand(tree.root, ["tick", "checkout", "9", "#1"], undefined, phaseDeps())).toStartWith("phase tick: no Phase 9 in checkout");
+    expect(phaseCommand(tree.root, ["tick", "checkout", "2", "ghost"], undefined, phaseDeps())).toStartWith("phase tick: no open item");
     expect(read(spec.dir, "phases/phase-2-tick.md")).toBe(ENTRY);
   });
 
@@ -77,9 +78,9 @@ describe("phase tick (code phase)", () => {
 
   test("an unknown spec or a bad flag prints why", () => {
     tree = createTree("spec-tick-");
-    expect(phaseCommand(tree.root, ["tick", "ghost", "1", "#1"])).toBe("phase tick: no spec named ghost");
-    expect(phaseCommand(tree.root, ["tick", "checkout", "1", "#1", "--bogus"])).toStartWith("usage: phase tick");
-    expect(phaseCommand(tree.root, ["tick"])).toStartWith("usage: phase tick");
+    expect(phaseCommand(tree.root, ["tick", "ghost", "1", "#1"], undefined, phaseDeps())).toBe("phase tick: no spec named ghost");
+    expect(phaseCommand(tree.root, ["tick", "checkout", "1", "#1", "--bogus"], undefined, phaseDeps())).toStartWith("usage: phase tick");
+    expect(phaseCommand(tree.root, ["tick"], undefined, phaseDeps())).toStartWith("usage: phase tick");
   });
 });
 
@@ -94,7 +95,7 @@ describe("phase tick (task phase)", () => {
 
   test("refuses without --evidence and writes nothing", () => {
     const spec = ballroom();
-    expect(phaseCommand(tree.root, ["tick", "ballroom", "1", "#1"])).toBe(
+    expect(phaseCommand(tree.root, ["tick", "ballroom", "1", "#1"], undefined, phaseDeps())).toBe(
       "phase tick: Phase 1 is a task phase; tick it with --evidence <link, date or file>",
     );
     expect(read(spec.dir, "phases/phase-1-record.md")).toContain("- [ ] record the interview");
@@ -102,14 +103,14 @@ describe("phase tick (task phase)", () => {
 
   test("refuses evidence that is not a link, date or file", () => {
     ballroom();
-    expect(phaseCommand(tree.root, ["tick", "ballroom", "1", "#1", "--evidence", "done"])).toStartWith(
+    expect(phaseCommand(tree.root, ["tick", "ballroom", "1", "#1", "--evidence", "done"], undefined, phaseDeps())).toStartWith(
       'phase tick: "done" is not evidence',
     );
   });
 
   test("appends valid evidence to the ticked item, which the doctor then accepts", () => {
     const spec = ballroom();
-    phaseCommand(tree.root, ["tick", "ballroom", "1", "record", "--evidence", "2026-09-30, Drive/rec.mp4"]);
+    phaseCommand(tree.root, ["tick", "ballroom", "1", "record", "--evidence", "2026-09-30, Drive/rec.mp4"], undefined, phaseDeps());
     expect(read(spec.dir, "phases/phase-1-record.md")).toContain("- [x] record the interview — 2026-09-30, Drive/rec.mp4\n");
     expect(taskPhaseIssues(loadSpecStateFromFiles(spec))).toEqual([]);
   });
@@ -127,20 +128,20 @@ describe("phase tick (Gate: items)", () => {
   test("refuses a Gate: item without --evidence, by prefix or by number, and writes nothing", () => {
     const spec = design();
     const refusal = 'phase tick: "Gate: design agreed with Anton" records an approval; tick it with --evidence "<who approved, when>"';
-    expect(phaseCommand(tree.root, ["tick", "studio", "1", "Gate: design"])).toBe(refusal);
-    expect(phaseCommand(tree.root, ["tick", "studio", "1", "#1"])).toBe(refusal);
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "Gate: design"], undefined, phaseDeps())).toBe(refusal);
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "#1"], undefined, phaseDeps())).toBe(refusal);
     expect(read(spec.dir, "phases/phase-1-design.md")).toContain("- [ ] Gate: design agreed with Anton");
   });
 
   test("refuses evidence that names no date, link or file", () => {
     design();
-    expect(phaseCommand(tree.root, ["tick", "studio", "1", "#1", "--evidence", "Anton said yes"])).toStartWith('phase tick: "Anton said yes" is not evidence');
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "#1", "--evidence", "Anton said yes"], undefined, phaseDeps())).toStartWith('phase tick: "Anton said yes" is not evidence');
   });
 
   test("ticks a Gate: item with evidence, and other items of a gated phase without", () => {
     const spec = design();
-    expect(phaseCommand(tree.root, ["tick", "studio", "1", "#1", "--evidence", "Anton, 2026-10-13"])).toBe('ticked "Gate: design agreed with Anton" in Phase 1');
-    expect(phaseCommand(tree.root, ["tick", "studio", "1", "Gateway"])).toStartWith('ticked "Gateway wired"');
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "#1", "--evidence", "Anton, 2026-10-13"], undefined, phaseDeps())).toBe('ticked "Gate: design agreed with Anton" in Phase 1');
+    expect(phaseCommand(tree.root, ["tick", "studio", "1", "Gateway"], undefined, phaseDeps())).toStartWith('ticked "Gateway wired"');
     expect(read(spec.dir, "phases/phase-1-design.md")).toContain("- [x] Gate: design agreed with Anton — Anton, 2026-10-13\n");
   });
 });

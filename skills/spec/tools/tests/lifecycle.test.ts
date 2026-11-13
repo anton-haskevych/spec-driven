@@ -13,6 +13,7 @@ import { matchesSpec } from "../portfolio/order";
 import { renderPortfolio } from "../portfolio/render";
 import { specRow } from "../portfolio/rows";
 import { specMeta, specNode, specRowOf } from "./factories";
+import { notARepoRunner } from "./stub-runner";
 
 const TODAY = "2026-10-16";
 const node = (name: string, overrides: Partial<SpecNode> = {}) => specNode({ spec: { name, dir: `/repo/docs/specs/${name}` }, ...overrides });
@@ -169,7 +170,7 @@ describe("spec-file hook", () => {
     const file = join(project, "docs", "specs", "live", "CLAUDE.md");
     mkdirSync(join(file, ".."), { recursive: true });
     writeFileSync(file, "---\nstatus: active\ncreated: a\nupdated: b\nstale:\n  - a\n  - b\n---\n");
-    const response = hookResponse({ tool_name: "Write", tool_input: { file_path: file }, cwd: project }, project);
+    const response = hookResponse({ tool_name: "Write", tool_input: { file_path: file }, cwd: project }, project, notARepoRunner);
     rmSync(project, { recursive: true, force: true });
     expect(response).toContain("stale must be one line of text");
   });

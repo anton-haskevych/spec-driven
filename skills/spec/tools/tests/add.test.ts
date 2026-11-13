@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { phaseCommand } from "../commands/phase";
 import { loadSpecStateFromFiles } from "../core/spec-state";
 import { createTree, type Tree } from "./tree";
+import { phaseDeps } from "./command-deps";
 
 const PROGRESS = [
   "## Phases",
@@ -37,7 +38,7 @@ const ids = (dir: string) => loadSpecStateFromFiles({ name: "checkout", dir }).p
 describe("phase add", () => {
   test("without --after: next integer, line after the last phase, file from the template", () => {
     const spec = checkout();
-    const output = phaseCommand(tree.root, ["add", "checkout", "Export CSV", "--needs", "2,3", "--pr", "C"]);
+    const output = phaseCommand(tree.root, ["add", "checkout", "Export CSV", "--needs", "2,3", "--pr", "C"], undefined, phaseDeps());
     expect(output).toStartWith("added Phase 4 — Export CSV → phases/phase-4-export-csv.md");
     expect(read(spec.dir, "progress.md")).toContain(
       "- [ ] Phase 3 — Three → `phases/phase-3-three.md`\n- [ ] Phase 4 — Export CSV → `phases/phase-4-export-csv.md`\n\n## Notes",
@@ -53,7 +54,7 @@ describe("phase add", () => {
 
   test("--after: first free letter, inserted after the base's last lettered line", () => {
     const spec = checkout();
-    expect(phaseCommand(tree.root, ["add", "checkout", "Backfill", "--after", "2"])).toStartWith(
+    expect(phaseCommand(tree.root, ["add", "checkout", "Backfill", "--after", "2"], undefined, phaseDeps())).toStartWith(
       "added Phase 2b — Backfill → phases/phase-2b-backfill.md",
     );
     expect(ids(spec.dir)).toEqual(["1", "2", "2a", "2b", "3"]);
@@ -61,17 +62,17 @@ describe("phase add", () => {
 
   test("--code false writes a task phase", () => {
     const spec = checkout();
-    phaseCommand(tree.root, ["add", "checkout", "Record demo", "--code", "false"]);
+    phaseCommand(tree.root, ["add", "checkout", "Record demo", "--code", "false"], undefined, phaseDeps());
     expect(loadSpecStateFromFiles(spec).phases.at(-1)?.code).toBe(false);
   });
 
   test("refuses a needs ref that resolves nowhere, an unknown --after, and a bad --code, writing nothing", () => {
     const spec = checkout();
-    expect(phaseCommand(tree.root, ["add", "checkout", "X", "--needs", "99"])).toBe(
+    expect(phaseCommand(tree.root, ["add", "checkout", "X", "--needs", "99"], undefined, phaseDeps())).toBe(
       "phase add: needs 99: no phase 99 in this spec",
     );
-    expect(phaseCommand(tree.root, ["add", "checkout", "X", "--after", "9"])).toStartWith("phase add: no Phase 9 in checkout");
-    expect(phaseCommand(tree.root, ["add", "checkout", "X", "--code", "maybe"])).toBe(
+    expect(phaseCommand(tree.root, ["add", "checkout", "X", "--after", "9"], undefined, phaseDeps())).toStartWith("phase add: no Phase 9 in checkout");
+    expect(phaseCommand(tree.root, ["add", "checkout", "X", "--code", "maybe"], undefined, phaseDeps())).toBe(
       'phase add: --code must be true or false, not "maybe"',
     );
     expect(read(spec.dir, "progress.md")).toBe(PROGRESS);
@@ -81,7 +82,7 @@ describe("phase add", () => {
   test("a spec with no phases yet gets phase 1 appended", () => {
     tree = createTree("spec-add-");
     const spec = tree.spec("fresh", { "progress.md": "## Phases\n" });
-    phaseCommand(tree.root, ["add", "fresh", "First"]);
+    phaseCommand(tree.root, ["add", "fresh", "First"], undefined, phaseDeps());
     expect(read(spec.dir, "progress.md")).toBe("## Phases\n- [ ] Phase 1 — First → `phases/phase-1-first.md`\n");
   });
 });

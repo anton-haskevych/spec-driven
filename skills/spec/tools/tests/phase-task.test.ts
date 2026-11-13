@@ -11,6 +11,7 @@ import { planWrites } from "../record/plan-writes";
 import { viewOf, viewOfTexts } from "./fake-record";
 import { phaseDoc, specDoc, task } from "./record-factories";
 import { createTree, type Tree } from "./tree";
+import { phaseDeps } from "./command-deps";
 
 const PROGRESS = ["## Phases", "- [ ] Phase 3 — Sync → `phases/phase-3-sync.md`", "- [x] Phase 4 — Report → `phases/phase-4-report.md`", ""].join("\n");
 const SYNC = ["---", "needs: []", "---", "# Phase 3 — Sync", "", "## Deliverables", "", "- [x] schema", "- [ ] read path", "  - [ ] nested step", "- [ ] write path", "", "## Notes", "", "- keep", ""].join("\n");
@@ -25,7 +26,7 @@ function checkout() {
 }
 
 const read = (dir: string, path: string) => readFileSync(join(dir, path), "utf8");
-const phase = (args: string[]) => phaseCommand(tree.root, args);
+const phase = (args: string[]) => phaseCommand(tree.root, args, undefined, phaseDeps());
 
 describe("phase task on a spec in files", () => {
   test("--add appends open items to Deliverables and reopens a done phase", () => {

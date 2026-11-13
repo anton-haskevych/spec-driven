@@ -10,6 +10,7 @@ import { doctorReport } from "../commands/doctor";
 import { lessonsCommand } from "../commands/lessons";
 import { planLessonAdd } from "../lessons/add";
 import { createTree, type Tree } from "./tree";
+import { notARepoRunner } from "./stub-runner";
 
 const NOW = new Date(2026, 8, 30, 18, 5, 0);
 const SPEC_INDEX = "# Ledger Index (layout v1)\n\n## Gotchas\n- `gotcha-local.md` — [phase 1] — local\n\n## Decisions\n";
@@ -132,7 +133,7 @@ describe("doctor on INDEX rows", () => {
     setup();
     tree.write("docs/specs/_ledger/INDEX.md", "# Project Ledger Index\n\n- `gotcha-old.md` — `x/**` — old\n");
     tree.write("docs/specs/alpha/ledger/INDEX.md", `${SPEC_INDEX}- \`docs/specs/_ledger/gotcha-gone.md\` — [general] — gone\n`);
-    const report = doctorReport(tree.root);
+    const report = doctorReport(tree.root, undefined, notARepoRunner);
     expect(report).toContain("alpha/ledger/INDEX.md: points at docs/specs/_ledger/gotcha-gone.md, which does not exist");
     expect(report).toContain("_ledger/INDEX.md: nothing reads or writes this file any more; delete it");
     expect(report).not.toContain("has no row for");

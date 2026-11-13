@@ -8,6 +8,7 @@ import { blockers, neighborhood } from "../graph/neighborhood";
 import { loadNodes } from "../graph/nodes";
 import { parseRelations, phasesInRef } from "../graph/relations";
 import { hookResponse } from "../hooks/spec-file-check";
+import { notARepoRunner } from "./stub-runner";
 
 let project = "";
 
@@ -97,7 +98,7 @@ describe("graphCommand", () => {
 describe("spec-file hook", () => {
   test("blocks a CLAUDE.md whose relation points at a spec that does not exist", () => {
     const file = join(project, "docs", "specs", "broken", "CLAUDE.md");
-    const response = hookResponse({ tool_name: "Write", tool_input: { file_path: file }, cwd: project }, project);
+    const response = hookResponse({ tool_name: "Write", tool_input: { file_path: file }, cwd: project }, project, notARepoRunner);
     expect(response).toContain("no spec named ghost");
   });
 });

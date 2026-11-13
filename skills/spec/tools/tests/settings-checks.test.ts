@@ -3,7 +3,7 @@ import { doctorReport } from "../commands/doctor";
 import { checkSettings } from "../doctor/settings";
 import { hookResponse } from "../hooks/spec-file-check";
 import { SETTINGS_FILE } from "../playbook/settings";
-import { stubRunner } from "./stub-runner";
+import { notARepoRunner, stubRunner } from "./stub-runner";
 import { createTree, type Tree } from "./tree";
 
 const GATES = new Map([["merge-main", ["bun install"]]]);
@@ -57,7 +57,7 @@ describe("settings in the doctor and the spec-file hook", () => {
     tree = createTree();
     tree.spec("alpha", { "CLAUDE.md": "---\nstatus: active\n---\n", "ledger/INDEX.md": "# Ledger\n- `gotcha-x.md` — [general] — x\n" });
     tree.write(SETTINGS_FILE, "---\ngates:\n  bootstrap: setup\n---\n");
-    const lines = doctorReport(tree.root, "alpha").split("\n");
+    const lines = doctorReport(tree.root, "alpha", notARepoRunner).split("\n");
     expect(lines.slice(1, -1).every((line) => line.includes("docs/specs/alpha/"))).toBe(true);
     expect(lines).toContainEqual(expect.stringContaining("alpha/ledger/INDEX.md: lists gotcha-x.md"));
     expect(lines.at(-1)).toContain("settings.md: names gates (setup) but docs/specs/_playbook/gates.md does not exist");
@@ -75,7 +75,7 @@ describe("settings in the doctor and the spec-file hook", () => {
   test("writing settings.md with an unknown gate blocks", () => {
     tree = createTree();
     const file = tree.write(SETTINGS_FILE, "---\ngates:\n  bootstrap: setup\n---\n");
-    const response = hookResponse({ tool_name: "Write", tool_input: { file_path: file }, cwd: tree.root }, tree.root);
+    const response = hookResponse({ tool_name: "Write", tool_input: { file_path: file }, cwd: tree.root }, tree.root, notARepoRunner);
     expect(JSON.parse(response ?? "{}").reason).toContain("names gates (setup)");
   });
 });

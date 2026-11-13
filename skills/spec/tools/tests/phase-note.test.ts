@@ -5,6 +5,7 @@ import { phaseCommand } from "../commands/phase";
 import { noteEdit } from "../plan/ops/phase-state";
 import { phaseDoc } from "./record-factories";
 import { createTree, type Tree } from "./tree";
+import { phaseDeps } from "./command-deps";
 
 
 describe("noteEdit", () => {
@@ -45,9 +46,9 @@ describe("phase note on a spec in files", () => {
   test("overwrites the phase's in-flight file and keeps its questions; clearing keeps only them", async () => {
     const dir = spec().root;
     const file = join(dir, "docs/specs/demo/in-flight/phase-1.md");
-    expect(await phaseCommand(dir, ["note", "demo", "1", "--file", join(dir, "note.md")])).toBe("note: phase 1 · in-flight/phase-1.md written; commit it with the hand-off");
+    expect(await phaseCommand(dir, ["note", "demo", "1", "--file", join(dir, "note.md")], undefined, phaseDeps())).toBe("note: phase 1 · in-flight/phase-1.md written; commit it with the hand-off");
     expect(readFileSync(file, "utf8")).toBe("# In-flight — phase 1\n\nPick up here.\n\n## Needs you\n- Parked T0: Ship?\n");
-    expect(await phaseCommand(dir, ["note", "demo", "1", "--clear"])).toBe("note: phase 1 · in-flight/phase-1.md written; commit it with the hand-off");
+    expect(await phaseCommand(dir, ["note", "demo", "1", "--clear"], undefined, phaseDeps())).toBe("note: phase 1 · in-flight/phase-1.md written; commit it with the hand-off");
     expect(readFileSync(file, "utf8")).toBe("# In-flight — phase 1\n\n## Needs you\n- Parked T0: Ship?\n");
   });
 
@@ -55,8 +56,8 @@ describe("phase note on a spec in files", () => {
     const dir = spec().root;
     const file = join(dir, "docs/specs/demo/in-flight/phase-1.md");
     Bun.write(file, "# old\n\nold\n");
-    expect(await phaseCommand(dir, ["note", "demo", "1", "--clear"])).toBe("note: phase 1 · in-flight/phase-1.md removed");
+    expect(await phaseCommand(dir, ["note", "demo", "1", "--clear"], undefined, phaseDeps())).toBe("note: phase 1 · in-flight/phase-1.md removed");
     expect(existsSync(file)).toBe(false);
-    expect(await phaseCommand(dir, ["note", "demo", "1"])).toBe("usage: phase note <spec> <phase> --file <note.md> | --clear");
+    expect(await phaseCommand(dir, ["note", "demo", "1"], undefined, phaseDeps())).toBe("usage: phase note <spec> <phase> --file <note.md> | --clear");
   });
 });
