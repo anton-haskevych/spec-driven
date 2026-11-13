@@ -399,6 +399,7 @@ restarted their sessions.
 
 PR C, D and E each move data that joined specs already have in files (spec fields and PR numbers; parked
 questions and hand-off notes; priority and due date). Each raises `RECORD_LAYOUT`, so a session still on the
-previous release refuses to write and says to update. A spec whose `SpecDoc.layout` is behind is upgraded by
+previous release refuses to write and says to update (from 2.54 on: 2.53.0 reads a newer record as no record
+and writes the files, `ledger/gotcha-2-53-writes-files-on-a-newer-record.md`). A spec whose `SpecDoc.layout` is behind is upgraded by
 the next command that touches it, in one batch (`plan/kinds.ts` holds one upgrade step per layout); until then
 its readers fall back to the file home for the fields that step moves.

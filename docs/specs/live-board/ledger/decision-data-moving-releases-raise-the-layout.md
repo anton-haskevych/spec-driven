@@ -10,7 +10,8 @@ CRM turns the board on after PR B. PR C (spec fields, PR numbers), PR D (questio
 (priority and due date onto cards) each move data that already-joined specs hold in files. Each one:
 
 1. raises `RECORD_LAYOUT` (2, 3, 4), so a session on the previous release refuses to write and says to update,
-   and can't write an owner or a hand-off note to a home the new side stopped reading;
+   and can't write an owner or a hand-off note to a home the new side stopped reading (true from 2.54 on;
+   2.53.0 doesn't refuse: `gotcha-2-53-writes-files-on-a-newer-record.md`);
 2. adds one upgrade step in `plan/kinds.ts`: the next command that touches a spec whose `SpecDoc.layout` is
    behind copies that step's fields into the record in one batch;
 3. keeps its readers falling back to the file home until the spec is upgraded.

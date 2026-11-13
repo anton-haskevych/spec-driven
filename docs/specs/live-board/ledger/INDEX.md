@@ -4,6 +4,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 `[applies-to]` scope tag. See `SKILL.md` for entry format and filtering rules.
 
 ## Gotchas
+- `gotcha-2-53-writes-files-on-a-newer-record.md` — [phase 6, 7, 8, load-bearing] — 2.53.0 writes files on a layout-2 record; update all installs first
 - `gotcha-readers-outside-the-spec-state-funnel.md` — [phase 2a+] — five readers bypass SpecState; move each or it reads frozen files
 - `docs/specs/_ledger/gotcha-codex-packaged-entry-test-runs-near-its-timeout.md` — [general] — Codex packaged-entry test runs at its 5 s limit under load; rerun with --timeout
 - `docs/specs/_ledger/gotcha-workspace-scan-skips-trees-with-no-commits-off-base.md` — [general] — scanWorkspaces skips trees with no commits off base; force them live
