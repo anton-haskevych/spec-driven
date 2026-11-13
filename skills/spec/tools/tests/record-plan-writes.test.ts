@@ -76,6 +76,12 @@ describe("planWrites", () => {
     }
   });
 
+  test("a caller may raise the op limit for one write", () => {
+    const many: RecordOp[] = Array.from({ length: MAX_OPS + 1 }, (_, index) => ({ op: "create", path: `t/${index}.json`, doc: { title: "t" } }));
+    expect(planWrites(view, many, anything, [], MAX_OPS + 1)).toMatchObject({ kind: "planned" });
+    expect(planWrites(view, many, anything, [], MAX_OPS)).toMatchObject({ kind: "invalid" });
+  });
+
   test("an op that leaves a document as it was writes nothing", () => {
     expect(planWrites(view, [{ op: "update", path: PHASE, patch: { title: "Join" } }], anything)).toEqual({ kind: "planned", changes: [], versions: {} });
   });

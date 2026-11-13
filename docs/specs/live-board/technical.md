@@ -141,7 +141,7 @@ document.
 - A document's version is its git blob id at the tip.
 - `planWrites(view, ops, validate)` is pure: it checks `ifVersion`s, applies patches, validates each resulting
   document with the `validate(path, doc) → problems` it is given, and returns the new files, the first
-  `conflict` or every `invalid` problem. At most 50 ops, no path twice. The store never imports a reader.
+  `conflict` or every `invalid` problem. At most 50 ops (a caller may raise it for a write that must land whole: `card load`, 2000), no path twice. The store never imports a reader.
 - The loop is `core/land-on-ref.ts`: fetch the tip → run the plan → commit onto the tip with a scratch index
   (`publish/commit-onto.ts`, which gains an optional base so the first commit has no parent) → push with
   `--force-with-lease=<ref>:<tip>` → on a rejected lease start again, up to 5 times, then `failed`. Built in
@@ -291,6 +291,7 @@ that change a plan work on both homes**: the tool picks the record or the files,
 | `owner`, `focus`, `ship`, `pr open`, `pr merge` | As today; write the record for a joined spec, no commit on main | 6 |
 | `question ask \| answer \| list` | One list of decisions waiting on a person | 7 |
 | `card add \| update \| source \| cover \| close \| drop \| list \| tag` | Cards, their quotes, what covers them, tags | 8 |
+| `card load --file <docs.json> [--move-taken]` | A prepared board onto the record under its own numbers | 10a |
 | `page` | Starts the local page and opens it | 10 |
 
 Result wording is in `design.md` → *What Claude sees*. Under Codex local-pilot the new commands are refused

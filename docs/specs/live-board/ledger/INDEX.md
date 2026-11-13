@@ -8,6 +8,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `gotcha-readers-outside-the-spec-state-funnel.md` — [phase 2a+] — five readers bypass SpecState; move each or it reads frozen files
 - `docs/specs/_ledger/gotcha-codex-packaged-entry-test-runs-near-its-timeout.md` — [general] — Codex packaged-entry test runs at its 5 s limit under load; rerun with --timeout
 - `docs/specs/_ledger/gotcha-workspace-scan-skips-trees-with-no-commits-off-base.md` — [general] — scanWorkspaces skips trees with no commits off base; force them live
+- `gotcha-old-plugin-sessions-only-break-on-joined-specs.md` — [phase 5, 11] — old-release sessions matter only on joined specs; reload + rerun /spec
 - `docs/specs/_ledger/gotcha-phase-tick-hash-n-counts-open-items.md` — [general] — phase tick #N counts open items; numbers shift after each tick
 
 ## Principles
@@ -35,6 +36,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-phase-8-cards-as-built.md` — [phase 8+] — card docs, plans, intent, cover, board rows, ideas, spec cards, layout 4
 - `decision-phase-9-sessions-as-built.md` — [phase 10+] — session docs, stamp as alongside ops, register/end, unsaved-work row
 - `decision-the-page-shows-and-takes-one-answer.md` — [phase 10+] — page is for looking; one edit (an answer); build to the saved mock
+- `decision-phase-10a-card-load-as-built.md` — [phase 10a, 11] — load file shape, checks at the tip, move-taken, 2000-op batch
 - `decision-phase-10-page-as-built.md` — [phase 11] — page model, render, server, process and preview as built
 
 ## Workarounds

@@ -1,5 +1,5 @@
 ---
-needs: [5, 8]
+needs: [8, 10a]
 code: false
 gate: outward
 ---
@@ -16,8 +16,14 @@ is checked by count and by `card check` before anything is retired.
 ## Implementation guidance
 
 The source is the private repo `CRM-Dance/academy-board`: 90 cards, 399 sources and 24 groups when measured
-(wave 1 → *The Academy board as built*). The import is a one-off script in the CRM repo that reads that repo
-and calls `spec.ts card …` in batches; it ships in a CRM PR, not in the plugin.
+(wave 1 → *The Academy board as built*); 99 cards (c01–c104, with gaps), 442 sources (`card_sources/`) and
+26 groups on 2026-11-13, still being written by Taras. The import is a one-off script in the CRM repo that
+maps that repo into one file of record documents and lands it with phase 10a's `card load --file
+--move-taken`; it ships in a CRM PR, not in the plugin. `card add` can't be used: it always takes the next
+number. CRM's record already has c1–c3 (2026-11-13), which move to the first free numbers after Academy's.
+
+Order on the day: tell Taras to stop writing to `academy-board`, run the import from a fresh clone, then
+`card check`; join CRM specs only after it, so their spec cards number after Academy's.
 
 Mapping:
 - card → card, same number; `status` todo/doing/done → open/doing/done; `urgent` → `p0`; `assignee` and
@@ -42,6 +48,7 @@ archived, not deleted.
 - [ ] The Academy skill uses the card commands; its MCP server, scripts and `ops/src/academy-board/` are removed in a merged CRM PR
 - [ ] `CRM-Dance/academy-board` is archived read-only
 - [ ] Taras's Claude has read the Academy tag view and added a source to a card
+- [ ] CRM's open specs start joining the board after the import, so their cards number after Academy's (Anton, 2026-11-13: "start porting the existing CRM Dance specs")
 
 ## Phase-local notes
 
