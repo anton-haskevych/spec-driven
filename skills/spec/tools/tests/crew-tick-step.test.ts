@@ -48,7 +48,7 @@ describe("afterCloseOut", () => {
     expect(outcome.log).toBe("T checkout 3 done · close-out ok · stopped a1");
     expect(outcome.lines.slice(1)).toEqual([
       "PR group ready: checkout A → the PR moment",
-      "Needs you: checkout 3 asks 2 (its in-flight note on its branch)",
+      "Needs you: checkout 3 asks 2 (question list, or its in-flight note on its branch for a spec in files)",
       "Say if wrong: checkout 3 lists 1 in its handoff",
     ]);
   });

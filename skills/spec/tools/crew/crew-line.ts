@@ -1,5 +1,5 @@
 // The line a crew worker's handoff ends with (handoff.md §4 → Crew worker):
-// `Crew: needs you <n> (in-flight.md) · say if wrong <n> · PR group ready <group | no> · next <…> · servers stopped <…>`
+// `Crew: needs you <n> (a question on the board, or its in-flight note) · say if wrong <n> · PR group ready <group | no> · next <…> · servers stopped <…>`
 export interface CrewLine {
   raw: string;
   needsYou: number;
