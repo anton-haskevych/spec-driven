@@ -27,10 +27,10 @@ The follow-up count a week later is the spec's main success metric. The baseline
 
 ## Deliverables
 
-- [ ] The release with PR B is installed on Anton's and Taras's machines and their running sessions are restarted
-- [ ] Gate: Anton says to turn it on
+- [ ] The release with PR B is on Anton's and Taras's machines before either touches a joined spec, and sessions that may touch one are reloaded (`/reload-plugins`, then re-run `/spec`)
+- [x] Gate: Anton says to turn it on — Anton, 2026-11-12: "I just want to apply the new version ... and see if it works on CRM Dance monorepo" — smoke test on one spec
 - [ ] `board.record: on` is on CRM's main
-- [ ] A first CRM spec has joined; two sessions in two trees each ticked a task and each saw the other's on its next command; `record export` on a scratch copy gives back the same lists
+- [x] A first CRM spec has joined; two sessions in two trees each ticked a task and each saw the other's on its next command; `record export` on a scratch copy gives back the same lists — 2026-11-12: explicit-charge-handling joined (22 phases, 83 tasks; banner baeb65d); phase 4 (tree pr-c) ticked 4.1–4.5 @5f32b99 and its report named phase 5 in progress in the other tree; phase 5 (tree pr-d) ticked 5.1–5.6 @6d77fb1/c32bcf2/c2fb9d3 and its next-sessions offered phase 8 (needs 4); record export in a scratch clone gave back every phase, box, deployed date and task text (only evidence hashes added; the v1:/v2: labels moved below the list)
 - [ ] One week later: the count of spec-docs-only commits on CRM's main and of `diverged on main` hand-offs, against the baseline
 
 ## Phase-local notes

@@ -67,6 +67,7 @@ phase 1's move, or `publish/publish.ts`.
 - [ ] Layout 2: a spec joined under PR B is upgraded on its next touch (fields and PR numbers copied in one batch); until then its readers use the files; a PR B plugin refuses to write (test with a layout-1 fixture)
 - [ ] `landOnMain` calls `core/land-on-ref.ts`: 5 tries, a timeout and no credential prompt; its result type and callers unchanged
 - [ ] `update.md`, `execute.md`, `babysit.md`, `SKILL.md` updated; ROADMAP row and version bump for PR C
+- [ ] `record export` keeps free-text lines inside the phase list where they were (CRM's `v1:` / `v2:` labels came back below the list on 2026-11-12) (unit test on that fixture)
 
 ## Phase-local notes
 

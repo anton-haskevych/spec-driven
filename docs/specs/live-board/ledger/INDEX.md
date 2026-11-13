@@ -7,6 +7,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `gotcha-readers-outside-the-spec-state-funnel.md` — [phase 2a+] — five readers bypass SpecState; move each or it reads frozen files
 - `docs/specs/_ledger/gotcha-codex-packaged-entry-test-runs-near-its-timeout.md` — [general] — Codex packaged-entry test runs at its 5 s limit under load; rerun with --timeout
 - `docs/specs/_ledger/gotcha-workspace-scan-skips-trees-with-no-commits-off-base.md` — [general] — scanWorkspaces skips trees with no commits off base; force them live
+- `gotcha-old-plugin-sessions-only-break-on-joined-specs.md` — [phase 5, 11] — old-release sessions matter only on joined specs; reload + rerun /spec
 
 ## Principles
 - `principle-record-reuses-the-house-loop-and-cache.md` — [phase 1+] — reuse land-on-main loop, claim lease, base cache, field readers
