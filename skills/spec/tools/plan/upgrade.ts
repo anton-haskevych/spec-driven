@@ -1,7 +1,8 @@
 import { parseFrontmatter, stringField } from "../core/frontmatter";
 import { readFocusFields, readShipField } from "../core/spec-meta";
 import { withoutUndefined } from "../core/read-fields";
-import { FIELDS_LAYOUT, NOTES_LAYOUT, RECORD_LAYOUT } from "../record/layout";
+import { CARDS_LAYOUT, FIELDS_LAYOUT, NOTES_LAYOUT, RECORD_LAYOUT } from "../record/layout";
+import { specCard, type SpecCardSeed } from "../cards/spec-card";
 import type { RecordOp } from "../record/plan-writes";
 import type { RecordPlan } from "../record/write";
 import { MERGE_METHODS, type MergeMethod } from "../playbook/settings";
@@ -22,6 +23,8 @@ export interface CopiedFromFiles {
   prs: PrDoc[];
   // Absent: the files had no in-flight notes to copy.
   notes?: NotesFromFiles;
+  // What the spec's card is made from when no card covers it yet; absent, no card is made.
+  card?: SpecCardSeed;
 }
 
 // What GitHub says about a PR number the files link.
@@ -98,8 +101,9 @@ export function upgradePlan(spec: string, copied: CopiedFromFiles, at: string): 
     const fields = layout < FIELDS_LAYOUT ? copied.fields : {};
     const prs: RecordOp[] = layout < FIELDS_LAYOUT ? copied.prs.filter((doc) => view.doc(prDocPath(spec, doc.group)) === undefined).map((doc) => ({ op: "create", path: prDocPath(spec, doc.group), doc })) : [];
     const notes = layout < NOTES_LAYOUT ? notesStepOps(plan, copied.notes ?? NO_NOTES, at) : [];
+    const card = layout < CARDS_LAYOUT && copied.card ? (specCard(view, spec, copied.card, at)?.ops ?? []) : [];
     return {
-      ops: [{ op: "update", path: specDocPath(spec), patch: { ...fields, layout: RECORD_LAYOUT } }, ...prs, ...notes],
+      ops: [{ op: "update", path: specDocPath(spec), patch: { ...fields, layout: RECORD_LAYOUT } }, ...prs, ...notes, ...card],
       message: `record: upgrade ${spec} to layout ${RECORD_LAYOUT}`,
     };
   };

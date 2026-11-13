@@ -12,6 +12,7 @@ import { matchPhaseTasks, type TaskCopy } from "./join-tasks";
 import type { CopiedFromFiles } from "./upgrade";
 import { notesStep } from "./upgrade-notes";
 import type { QuestionDoc } from "../questions/question-doc";
+import type { SpecCardSeed } from "../cards/spec-card";
 
 // One copy of a spec: the default branch's, or a worktree's (`tree` is its folder name).
 export interface JoinCopy {
@@ -39,6 +40,8 @@ export interface JoinPlan {
   // The parks its in-flight files held, as question documents.
   questions: QuestionDoc[];
   prs: PrDoc[];
+  // The spec's card, made in the join's batch when no card covers it.
+  card?: SpecCardSeed;
   recorded: string[];
   left: string[];
 }
@@ -72,7 +75,7 @@ export function planJoin(input: JoinInput): JoinPlan | { refused: string } {
   if (problems.length > 0) return { refused: `${input.spec}'s plan has problems: ${problems.join("; ")}` };
   const prs = copied?.prs ?? missingPrDocs(input.spec, phases, () => false);
   const noted = copied?.notes ? notesStep({ spec, phases }, copied.notes, input.joinedAt) : { phases, questions: [] };
-  return { spec, phases: noted.phases, questions: noted.questions, prs, recorded, left: [...new Set(left)] };
+  return { spec, phases: noted.phases, questions: noted.questions, prs, ...(copied?.card ? { card: copied.card } : {}), recorded, left: [...new Set(left)] };
 }
 
 // Main's phases in main's order; a phase only in a tree goes after the phase it follows there, when its

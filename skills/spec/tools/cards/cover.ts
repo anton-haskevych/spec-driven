@@ -39,13 +39,15 @@ export function coveringCards(view: RecordView, spec: string): CardRow[] {
   return cardRows(view).filter((row) => refsTo(row.card.coveredBy, spec).length > 0);
 }
 
-// What a pack shows: each open card that covers the spec, with the customer's words.
+// What a pack shows: each open card that covers the spec, with the customer's words (a spec's own card
+// quotes only its title, so it shows none).
 export function coverLines(rows: readonly CardRow[], spec: string): string[] {
   return rows.flatMap(({ card, origin }) => {
     const phases = refsTo(card.coveredBy, spec).map((ref) => parseRef(ref).phases);
     const scope = phases.includes(undefined) ? "the whole spec" : `${phases.length === 1 && !phases[0]?.includes("-") ? "phase" : "phases"} ${phases.join(", ")}`;
     const label = [card.priority, card.commitment].filter(Boolean).join(" · ");
-    return [`Card ${card.id} (${label}) covers ${scope}: ${card.title}`, ...(origin ? [`  ${quoteLine(origin)}`] : [])];
+    const quote = origin && origin.quote !== card.title ? [`  ${quoteLine(origin)}`] : [];
+    return [`Card ${card.id} (${label}) covers ${scope}: ${card.title}`, ...quote];
   });
 }
 

@@ -27,10 +27,10 @@ describe("a spec joined under layout 1 (real git)", () => {
   test("is upgraded by the next write, in a batch of its own before the write", async () => {
     const line = await phase("set", "alpha", "3", "--title", "Renamed");
     expect(line).toStartWith("set: phase 3");
-    expect(onRecord(specDocPath("alpha"))).toMatchObject({ layout: 3, status: "active", owner: "Taras", ship: "auto", planVersion: 2 });
+    expect(onRecord(specDocPath("alpha"))).toMatchObject({ layout: 4, status: "active", owner: "Taras", ship: "auto", planVersion: 2 });
     expect(onRecord(prDocPath("alpha", "default"))).toEqual({ group: "default", branch: "feat/alpha", state: "merged", number: 12, mergedAt: "2026-11-10", mergedSha: "abc1234", method: "squash" });
-    expect(onRecord(META_PATH)).toEqual({ layout: 3 });
-    expect(repo.git("--git-dir", repo.origin, "log", "--format=%s", "-2", RECORD_REF).split("\n")).toEqual(["record: set alpha (plan v2)", "record: upgrade alpha to layout 3"]);
+    expect(onRecord(META_PATH)).toEqual({ layout: 4 });
+    expect(repo.git("--git-dir", repo.origin, "log", "--format=%s", "-2", RECORD_REF).split("\n")).toEqual(["record: set alpha (plan v2)", "record: upgrade alpha to layout 4"]);
   }, REAL_GIT_MS);
 
   test("brings the default branch's in-flight note and its park over; the pack then reads them from the record", async () => {

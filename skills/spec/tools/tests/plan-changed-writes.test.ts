@@ -61,7 +61,7 @@ describe("a pack tells the session the plan changed since its last pack (real gi
 
   test("under the Board line, once per version; the first pack only remembers", async () => {
     const deps = contextDeps({ runner: isolatedRunner, now: () => NOW, memory: sessionPlanMemory("sp", memoryDir) });
-    const pack = () => contextPack(repo.dir, { mode: "resume", name: "alpha" }, deps).then((text) => text.split("\n").slice(1, 3));
+    const pack = () => contextPack(repo.dir, { mode: "resume", name: "alpha" }, deps).then((text) => text.split("\n").filter((line) => !line.startsWith("Card ")).slice(1, 3));
     expect(await pack()).toEqual(["Board: live · plan v1", ""]);
 
     const other = repo.clone("pr-b");

@@ -15,6 +15,7 @@ import type { PhaseDoc } from "../plan/docs/phase-doc";
 import type { SpecDoc } from "../plan/docs/spec-doc";
 import { planJoin, type JoinInput, type JoinPlan } from "../plan/join";
 import type { QuestionDoc } from "../questions/question-doc";
+import { specCard, type SpecCardSeed } from "../cards/spec-card";
 import { copyFromFolder } from "../plan/upgrade-read";
 import { ghClient, type GhClient } from "../pr/gh";
 import { readTreeCopies } from "../plan/join-copies";
@@ -96,8 +97,17 @@ async function readCopies(joining: Joining, deps: JoinDeps): Promise<Result<Copi
   };
 }
 
+export interface NewSpec {
+  spec: SpecDoc;
+  phases: readonly PhaseDoc[];
+  prs?: readonly PrDoc[];
+  questions?: readonly QuestionDoc[];
+  card?: SpecCardSeed;
+}
+
 // `spec.json` is a create: of two machines writing a spec at once, the second finds it and changes nothing.
-export function newSpecPlan({ spec, phases, prs, questions }: { spec: SpecDoc; phases: readonly PhaseDoc[]; prs?: readonly PrDoc[]; questions?: readonly QuestionDoc[] }, verb: string, seen: (doc: unknown) => void): RecordPlan {
+// The spec's card lands in the same batch when no card covers it, so a spec on layout 4 always has one.
+export function newSpecPlan({ spec, phases, prs, questions, card }: NewSpec, verb: string, seen: (doc: unknown) => void): RecordPlan {
   return (view) => {
     const current = view.doc(specDocPath(spec.name));
     seen(current);
@@ -108,6 +118,7 @@ export function newSpecPlan({ spec, phases, prs, questions }: { spec: SpecDoc; p
         ...phases.map((phase) => ({ op: "create" as const, path: phaseDocPath(spec.name, phase.id), doc: phase })),
         ...(prs ?? missingPrDocs(spec.name, phases, () => false)).map((doc) => ({ op: "create" as const, path: prDocPath(spec.name, doc.group), doc })),
         ...(questions ?? []).map((doc) => ({ op: "create" as const, path: questionDocPath(spec.name, doc.id), doc })),
+        ...(card ? (specCard(view, spec.name, card, spec.joinedAt)?.ops ?? []) : []),
       ],
       message: `record: ${verb} ${spec.name}`,
     };
