@@ -1,5 +1,5 @@
 ---
-needs: [3]
+needs: [3a]
 pr: A
 ---
 
@@ -31,3 +31,8 @@ unreachable origin, on one repo per file.
 - [ ] focus-land, owner-command, deployed-land, ship-command on the fake `land`
 - [ ] publish-commands: one real publish-docs smoke, refusals on fakes/stubs
 - [ ] land-on-main trimmed to adapter cases, `beforeAll`; allowlist and `REAL_GIT_CAP` updated; full suite green
+
+## Phase-local notes
+
+- Per commit: `test:fast` plus the `.git` files covering what you touched; full `bun test` before ticking the last item.
+- Handoff lists every removed test name and where its git behaviour is still proven (fake test or `<file>.git.test.ts:<test>`).

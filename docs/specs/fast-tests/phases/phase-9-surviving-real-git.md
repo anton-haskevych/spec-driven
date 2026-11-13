@@ -31,3 +31,4 @@ Last deliverable: one junit run of the full suite, recorded in `pr-opening.md` a
 - [ ] git, gitattributes, mainline-base-cache, session-facts, board-local-work, pilot-workspace, record-mirror on one repo per file (record-mirror's copy tests on plain folders)
 - [ ] page-process repo into `beforeAll`; codex-packaged-entry and runtime-legacy-readers setup shared; `beforeEach` exception set empty
 - [ ] Full-suite timing (junit) recorded in `pr-opening.md` against 443 s, with the slowest 10 files
+- [ ] `restore()` reset helper in `git-repo.ts` (refs on both sides, worktrees, `.git/spec-board`, `reset --hard` + `clean`), called in `afterEach` by every shared-repo file; explicit `beforeAll` timeouts

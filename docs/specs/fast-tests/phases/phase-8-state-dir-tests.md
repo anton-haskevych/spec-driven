@@ -1,5 +1,5 @@
 ---
-needs: [3]
+needs: [3a]
 pr: A
 ---
 
@@ -31,3 +31,8 @@ one real test of the workspace check; trees-command and trees-prune keep cut/reu
 - [ ] codex-entry and context-stored-runtime on stubs, one real workspace test kept
 - [ ] trees-place-owner on fakes; trees-command and trees-prune keep only cut/reuse and `--apply` real
 - [ ] Allowlist and `REAL_GIT_CAP` updated; full suite green
+
+## Phase-local notes
+
+- Per commit: `test:fast` plus the `.git` files covering what you touched; full `bun test` before ticking the last item.
+- Handoff lists every removed test name and where its git behaviour is still proven (fake test or `<file>.git.test.ts:<test>`).

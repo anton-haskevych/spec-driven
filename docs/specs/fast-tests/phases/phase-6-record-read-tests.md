@@ -1,5 +1,5 @@
 ---
-needs: [3]
+needs: [3a]
 pr: A
 ---
 
@@ -31,3 +31,8 @@ refresh (`record/mirror.ts:35` needs `git archive`).
 - [ ] record-command on fakes (one real `sync` smoke at most)
 - [ ] board-joined-golden, trees-place-joined, workflow-capabilities, plan-changed-writes, pr-status-command's joined test on fakes
 - [ ] Allowlist lines removed, `REAL_GIT_CAP` lowered; full suite green
+
+## Phase-local notes
+
+- Per commit: `test:fast` plus the `.git` files covering what you touched; full `bun test` before ticking the last item.
+- Handoff lists every removed test name and where its git behaviour is still proven (fake test or `<file>.git.test.ts:<test>`).

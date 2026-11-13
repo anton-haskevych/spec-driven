@@ -16,7 +16,7 @@ A written principle against it already exists and was not followed.
 - Proof that the in-memory stand-ins behave like real git, so fast green tests can be trusted.
 - A way for command tests to use the stand-ins (today most commands can't be tested without real git).
 - Two speeds: the quick suite on every commit, the real-git tests before a PR.
-- The rule shown to an agent at the moment it edits a test.
+- The rule shown to an agent the first time a new test runs (the guard's red message).
 - The existing real-git tests rewritten onto the stand-ins, slowest first, keeping real git only where
   the code under test runs git itself; measured before and after.
 

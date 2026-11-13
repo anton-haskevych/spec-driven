@@ -1,6 +1,6 @@
 ---
 created: 2026-11-13T15:05:10-08:00
-updated: 2026-11-13T15:25:29-08:00
+updated: 2026-11-13T15:46:11-08:00
 status: draft
 area: [tools, tests]
 domain: [spec-workflow]
@@ -8,7 +8,8 @@ scope: [improvement, refactor]
 related:
   - live-board: its phases added most of the real-git command tests; it also edits record/ref.ts, fake-record.ts, read-plans.ts and phase-writer.ts
   - spec-loop-automation: edits tests/git-repo.ts
-  - pr-babysit: edits core/land-on-main.ts, which phase 3 gives an injectable land function
+  - pr-babysit: edits core/land-on-main.ts, which phase 3a puts behind the land seam
+  - oversee-crew-spec: also edits core/land-on-main.ts, which phase 3a puts behind the land seam
 ---
 
 # Fast Tests Spec
@@ -28,6 +29,7 @@ related:
 | `ledger/INDEX.md` | Forward-propagating learnings — scan here first |
 | `in-flight/` | Ephemeral pending state, one file per phase (on-demand) |
 | `research/` | Prep snapshots: wave 0 (timings, council), wave 1 (seams, inventory), craft |
+| `reviews/` | Collegium reviews: 2026-11-13 seam-reach |
 
 ## Relationship to code
 

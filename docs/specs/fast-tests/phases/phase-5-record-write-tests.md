@@ -1,5 +1,5 @@
 ---
-needs: [3]
+needs: [3a]
 pr: A
 ---
 
@@ -29,3 +29,8 @@ Seed with `seedRecord(fakeRecord(), joinedDocs(...))` and `joinedFiles(tree)`; a
 - [ ] spec-field-commands on fakes + fake `land`
 - [ ] session-command, session-stamp-command, plan-command on fakes
 - [ ] Allowlist lines removed, `REAL_GIT_CAP` lowered; full suite green
+
+## Phase-local notes
+
+- Per commit: `test:fast` plus the `.git` files covering what you touched; full `bun test` before ticking the last item.
+- Handoff lists every removed test name and where its git behaviour is still proven (fake test or `<file>.git.test.ts:<test>`).
