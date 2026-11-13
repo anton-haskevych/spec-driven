@@ -16,6 +16,7 @@ PR #41 merged 2026-11-13 as cfde02a (squash).
 PR #42 merged 2026-11-13 as ea15598 (squash).
 PR #43 merged 2026-11-13 as 2f1f7bf (squash).
 PR #44 merged 2026-11-13 as 136d697 (squash).
+PR #46 merged 2026-11-13 as bdc8085 (squash).
 
 ## Pre-PR checks
 
