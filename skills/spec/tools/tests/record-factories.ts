@@ -5,6 +5,7 @@ import type { PrDoc } from "../plan/docs/pr-doc";
 import type { PhaseDoc, Task } from "../plan/docs/phase-doc";
 import type { SpecDoc } from "../plan/docs/spec-doc";
 import type { QuestionDoc } from "../questions/question-doc";
+import { CLAUDE_CODE_SOURCE, type SessionDoc } from "../sessions/session-doc";
 
 export function task(overrides: Partial<Task> = {}): Task {
   return { id: "1.1", text: "Do the thing", done: false, ...overrides };
@@ -80,4 +81,16 @@ export function sourceDoc(overrides: Partial<SourceDoc> = {}): SourceDoc {
 
 export function tagDoc(overrides: Partial<TagDoc> = {}): TagDoc {
   return { name: "Academy Ballroom", kind: "customer", ...overrides };
+}
+
+export function sessionDoc(overrides: Partial<SessionDoc> = {}): SessionDoc {
+  return {
+    ref: { source: CLAUDE_CODE_SOURCE, id: "s1" },
+    who: "Anton",
+    host: "mbp",
+    tree: "checkout-pr-a",
+    mode: "execute",
+    lastWriteAt: "2026-11-13T09:00:00-08:00",
+    ...overrides,
+  };
 }
