@@ -86,3 +86,11 @@ test("every style block is closed, so no rule hides inside a phone-only query", 
   }
   expect({ depth, lowest }).toEqual({ depth: 0, lowest: 0 });
 });
+
+test("only a question on the record gets answer buttons: a park in files has nothing to save to", () => {
+  const model = pageModel();
+  const park = { kind: "question" as const, mark: "Q" as const, title: "Ship it Friday?", detail: "checkout · phase 2", late: false, spec: "checkout" };
+  const html = renderApp({ ...model, needs: { ...model.needs, rows: [park] } }).html;
+  expect(html).toContain("Ship it Friday?");
+  expect(html.split('data-view="plan"')[0]).not.toContain("<form");
+});
