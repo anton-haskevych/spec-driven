@@ -9,6 +9,7 @@ Spec written 2026-11-11 from prep (wave 1, wave 2, craft) and re-planned by the 
 One minor version per PR, picked at merge (main's minor + 1). PR B ships with `board.record` off. PRs C, D
 and E each raise the record's layout number and carry the upgrade step for specs that joined earlier.
 PR #37 merged 2026-11-11 as 9392c3f (squash).
+PR #38 merged 2026-11-12 as 0aaa216 (squash).
 
 ## Pre-PR checks
 
