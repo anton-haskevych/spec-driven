@@ -31,3 +31,4 @@
 - [x] Phase 9 — Sessions and work not on the remote → `phases/phase-9-sessions.md`
 - [x] Phase 10 — The page → `phases/phase-10-page.md`
 - [ ] Phase 11 — Academy's board moves over → `phases/phase-11-academy-moves-over.md`
+- [ ] Phase 12 — record export keeps labels in place → `phases/phase-12-record-export-keeps-labels-in-place.md`

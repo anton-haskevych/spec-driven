@@ -1,5 +1,5 @@
 ---
-needs: [5, 8]
+needs: [8]
 code: false
 gate: outward
 ---
