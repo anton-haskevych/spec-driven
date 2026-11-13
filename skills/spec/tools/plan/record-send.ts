@@ -1,12 +1,11 @@
 import { hostname } from "node:os";
-import { basename } from "node:path";
 import { gitAt, gitCommonDir, type Git } from "../core/git";
 import { defaultBranch } from "../core/run";
 import { outboxDir, sendIntent, type IntentRunners, type RecordWrite } from "../record/outbox";
 import { gitRecordPort, type RecordPort } from "../record/ref";
 import type { RecordView } from "../record/view";
 import type { RecordPlan } from "../record/write";
-import { sessionFactsOf } from "../sessions/facts";
+import { once, sessionFactsOf, treeFolder } from "../sessions/facts";
 import { ownSessionId } from "../sessions/own";
 import { withStamp, type SessionFacts } from "../sessions/stamp";
 import { intentRunners } from "./intents";
@@ -34,11 +33,10 @@ export const NO_ORIGIN: PhaseOutcome = { kind: "refused", reason: "This repo has
 export function recordWorld(projectDir: string, deps: PhaseDeps): RecordWorld {
   const git = gitAt(projectDir, deps.runner);
   const common = gitCommonDir(git);
-  const top = git.out(["rev-parse", "--show-toplevel"]);
   const branch = defaultBranch(projectDir, deps.runner);
   const port = gitRecordPort(git);
   const session = ownSessionId(deps.env);
-  const tree = basename(top.ok ? top.value : projectDir);
+  const tree = treeFolder(git, projectDir);
   return {
     git,
     ...(branch ? { defaultBranch: branch } : {}),
@@ -50,11 +48,6 @@ export function recordWorld(projectDir: string, deps: PhaseDeps): RecordWorld {
     runners: intentRunners(git),
     sessionFacts: once(() => sessionFactsOf(git, deps.env, tree, hostname())),
   };
-}
-
-function once<T>(read: () => T): () => T {
-  let value: { read: T } | undefined;
-  return () => (value ??= { read: read() }).read;
 }
 
 // One intent, sent after anything queued before it; `plan` is the caller's own run of it, so it can watch

@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { cardCommand } from "../commands/card";
 import { phaseCommand } from "../commands/phase";
 import { sessionDocPath, claudeSessionRef, type SessionDoc } from "../sessions/session-doc";
 import { isolatedRunner, type TestRepo, type WorkingCopy } from "./git-repo";
@@ -43,5 +44,12 @@ describe("every phase write stamps its session (real git)", () => {
   test("a session with no id writes the change and no document", async () => {
     await phase(undefined, "unpark", "alpha", "3", "yes");
     expect(sessionPaths()).toHaveLength(2);
+  }, REAL_GIT_MS);
+
+  test("a card added directly, never queued, stamps too", async () => {
+    const quote = ["--quote", "Please add it", "--app", "imessage", "--at", "2026-11-11", "--ref", "msg 1"];
+    expect(await cardCommand(tree.dir, ["add", "A new card", ...quote], as("s3"))).toStartWith("card: c1 added");
+    expect(sessionPaths()).toHaveLength(3);
+    expect(stamped("s3").mode).toBe("execute");
   }, REAL_GIT_MS);
 });
