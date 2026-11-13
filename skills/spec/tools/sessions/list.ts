@@ -6,6 +6,8 @@ import { SESSIONS_FOLDER, readSessionDoc, type SessionDoc } from "./session-doc"
 
 // A session that wrote less than this long ago is on the spec; older ones are history nobody cleaned up.
 export const SESSION_LISTED_HOURS = 24;
+// Documents older than this are history the board never shows, however much unsaved work they claim.
+export const SESSION_KEPT_DAYS = 7;
 const HOUR_MS = 60 * 60_000;
 const PLAN_CHANGERS = new Set(["review", "prep", "create"]);
 

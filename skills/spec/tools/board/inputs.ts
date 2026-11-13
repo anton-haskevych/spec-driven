@@ -3,6 +3,7 @@ import type { Result } from "../core/result";
 import type { PrRow } from "../pr/checks/rollup";
 import type { PrDoc } from "../plan/docs/pr-doc";
 import type { LiveSession } from "../sessions/live";
+import type { SessionDoc } from "../sessions/session-doc";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 import type { PlanSource } from "../plan/read-plans";
@@ -52,5 +53,9 @@ export interface BoardInputs {
   prDocs: ReadonlyMap<string, readonly PrDoc[]>;
   // Spec → PR numbers its pr-opening.md links, oldest first.
   prLinks: ReadonlyMap<string, readonly number[]>;
+  // Session documents from the record, newest write first; empty with the board off.
+  sessionDocs: readonly SessionDoc[];
+  // This machine's name as session documents carry it: another host's sessions are the other machine's.
+  thisHost: string;
   ownSessionId?: string;
 }

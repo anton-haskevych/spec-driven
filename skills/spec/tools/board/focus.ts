@@ -11,6 +11,7 @@ import type { BoardInputs } from "./inputs";
 import { linkedPrs, toPrCell } from "./joins";
 import type { PrRow } from "../pr/checks/rollup";
 import type { BlockedRow, FlightRow, FocusNow, FocusRow, FocusSession, ReadyRow } from "./model";
+import { claimedPhase, docOf, otherMachineSessions, type OtherMachineSession } from "./session-docs";
 import { focusWork, type PersonClaim } from "./people";
 import { splitKey } from "./phase-keys";
 
@@ -69,6 +70,7 @@ export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inpu
     const name = node.spec.name;
     const { progress, due, overdue } = summary;
     const stage = inputs.stages.get(name);
+    const elsewhere = otherMachineSessions(inputs, name);
     return {
       spec: name,
       band,
@@ -79,11 +81,11 @@ export function focusLane(lanes: BuiltLanes, order: readonly FocusedSpec[], inpu
       overdue,
       ...(node.meta.stale ? { stale: node.meta.stale } : {}),
       now: focusNow(node, lanes, inputs),
-      sessions: (bySpec.get(name) ?? []).map((session) => focusSession(session, name)),
-      ...focusWork(remoteClaims(name, inputs), openLinkedPrs(name, inputs).map((pr) => ({ author: pr.author, cell: toPrCell(pr) })), me),
+      sessions: (bySpec.get(name) ?? []).map((session) => focusSession(session, name, inputs)),
+      ...focusWork(remoteClaims(name, inputs, elsewhere), openLinkedPrs(name, inputs).map((pr) => ({ author: pr.author, cell: toPrCell(pr) })), me, elsewhere.map(({ sessionId: _held, ...shown }) => shown)),
     };
   });
-  return { rows, otherSessions: unattributed.map((session) => focusSession(session)) };
+  return { rows, otherSessions: unattributed.map((session) => focusSession(session, undefined, inputs)) };
 }
 
 function isShown(node: SpecNode, inputs: BoardInputs): boolean {
@@ -139,12 +141,19 @@ function openLinkedPrs(spec: string, { prs, prLinks }: BoardInputs): PrRow[] {
   return linkedPrs(prs.value, prLinks.get(spec) ?? []).filter((pr) => pr.state === "OPEN");
 }
 
-function remoteClaims(spec: string, { claims }: BoardInputs): PersonClaim[] {
-  return claims.flatMap(({ claim, status, holder }) => (status === "remote" && holder && claim.spec === spec ? [{ user: holder.user, phase: claim.phase, since: claim.claimedAt }] : []));
+// A claim whose session has a document is shown with that session, not twice.
+function remoteClaims(spec: string, { claims }: BoardInputs, explained: readonly OtherMachineSession[]): PersonClaim[] {
+  const shown = new Set(explained.map((session) => session.sessionId));
+  return claims.flatMap(({ claim, status, holder }) => (status === "remote" && holder && claim.spec === spec && !shown.has(claim.sessionId) ? [{ user: holder.user, phase: claim.phase, since: claim.claimedAt }] : []));
 }
 
-export function focusSession(session: LiveSession, spec?: string): FocusSession {
-  const title = session.name === undefined ? undefined : parseLaunchTitle(session.name);
-  const launched = title && title.spec === spec ? { sub: title.sub, ...(title.phase ? { phase: title.phase } : {}) } : {};
-  return { label: sessionLabel(session.name, session.sessionId), ...launched, status: session.status, since: session.updatedAt.toISOString() };
+// What the session's launch title says, else what its own document and claim say.
+export function focusSession(session: LiveSession, spec: string | undefined, inputs: Pick<BoardInputs, "sessionDocs" | "claims">): FocusSession {
+  const parsed = session.name === undefined ? undefined : parseLaunchTitle(session.name);
+  const title = parsed && parsed.spec === spec ? parsed : undefined;
+  const doc = docOf(inputs, session.sessionId);
+  const sub = title?.sub ?? (doc?.spec === spec ? doc?.mode : undefined);
+  const phase = title?.phase ?? (spec === undefined ? undefined : claimedPhase(inputs, session.sessionId, spec));
+  const named = spec !== undefined && sub !== undefined ? { sub, ...(phase ? { phase } : {}) } : {};
+  return { label: sessionLabel(session.name, session.sessionId), ...named, status: session.status, since: session.updatedAt.toISOString() };
 }

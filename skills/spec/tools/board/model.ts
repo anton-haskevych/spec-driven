@@ -146,6 +146,17 @@ export interface FocusWork {
   mine: boolean;
   claims: FocusClaim[];
   prs: PrCell[];
+  // Sessions on another machine, from their documents; `phase` is what their claim holds.
+  sessions?: FocusRemoteSession[];
+}
+
+export interface FocusRemoteSession {
+  mode: string;
+  host: string;
+  tree: string;
+  phase?: string;
+  // When the session last wrote.
+  since: string;
 }
 
 export interface FocusRow {

@@ -1,11 +1,15 @@
 import { isOffered, ownerOf, personKey, samePerson } from "../core/people";
 import type { SpecMeta } from "../core/spec-meta";
-import type { Board, FocusClaim, FocusRow, FocusWork, PrCell } from "./model";
+import type { Board, FocusClaim, FocusRemoteSession, FocusRow, FocusWork, PrCell } from "./model";
 
 export const ME = "me";
 
 export interface PersonClaim extends FocusClaim {
   user: string;
+}
+
+export interface PersonSessionDoc extends FocusRemoteSession {
+  person: string;
 }
 
 export interface AuthoredPr {
@@ -19,7 +23,7 @@ export function ownerField(meta: SpecMeta): { owner?: string } {
 }
 
 // Only "me" matches by prefix; everyone else is keyed exactly, so two teammates never merge.
-export function focusWork(claims: readonly PersonClaim[], prs: readonly AuthoredPr[], me?: string): { work: FocusWork[]; unattributedPrs: PrCell[] } {
+export function focusWork(claims: readonly PersonClaim[], prs: readonly AuthoredPr[], me?: string, sessions: readonly PersonSessionDoc[] = []): { work: FocusWork[]; unattributedPrs: PrCell[] } {
   const buckets = new Map<string, FocusWork>();
   const bucket = (name: string): FocusWork => {
     const mine = me !== undefined && samePerson(name, me);
@@ -30,6 +34,10 @@ export function focusWork(claims: readonly PersonClaim[], prs: readonly Authored
   };
   for (const { user, ...claim } of claims) bucket(user).claims.push(claim);
   for (const { author, cell } of prs) if (author) bucket(author).prs.push(cell);
+  for (const { person, ...session } of sessions) {
+    const work = bucket(person);
+    work.sessions = [...(work.sessions ?? []), session];
+  }
   const work = [...buckets.values()].toSorted((a, b) => Number(b.mine) - Number(a.mine) || a.person.localeCompare(b.person));
   return { work, unattributedPrs: prs.flatMap(({ author, cell }) => (author ? [] : [cell])) };
 }
