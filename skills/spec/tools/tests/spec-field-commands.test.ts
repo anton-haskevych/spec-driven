@@ -31,7 +31,7 @@ describe("spec fields of a joined spec (real git)", () => {
     expect(await shipCommand(repo.dir, ["alpha", "auto"], isolatedRunner, deps)).toMatch(/^ship: alpha is auto \([0-9a-f]{7}\)$/);
     expect(await focusCommand(repo.dir, ["add", "alpha", "must"], isolatedRunner, deps)).toMatch(/^focus: added alpha to must \([0-9a-f]{7}\)$/);
     expect(await specStatusCommand(repo.dir, ["alpha", "paused"], isolatedRunner, deps)).toMatch(/^spec-status: alpha is paused \([0-9a-f]{7}\)$/);
-    expect(onRecord()).toMatchObject({ layout: 2, owner: "Taras", ship: "auto", focus: "must", status: "paused" });
+    expect(onRecord()).toMatchObject({ layout: 3, owner: "Taras", ship: "auto", focus: "must", status: "paused" });
     expect(mainTip()).toBe(main);
   }, REAL_GIT_MS);
 
