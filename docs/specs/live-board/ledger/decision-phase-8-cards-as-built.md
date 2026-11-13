@@ -4,7 +4,7 @@ applies-to: [phase 8+]
 created: 2026-11-13T02:33:15-08:00
 ---
 
-# Cards, sources and tags as phase 8 built them (deliverables 1–5)
+# Cards, sources and tags as phase 8 built them
 
 What later sessions build on (paths under `skills/spec/tools/`):
 
@@ -33,5 +33,19 @@ What later sessions build on (paths under `skills/spec/tools/`):
 - **Board.** `board/card-rows.ts` adds needs-you rows `card-close` (every covering phase finished: a joined
   phase merged/deployed/done by `phaseStage`, a file phase ticked on the default branch) and `card-open`
   (a done card whose covering phase isn't).
-- **Not built yet:** deliverables 6–9 (ideas as cards, `_backlog` files on touch, list shows both, prep/join
-  make a spec's card, priority and due read from cards, `CARDS_LAYOUT = 4` + upgrade step, docs, version).
+- **Ideas** (`cards/backlog-card.ts`): `card import <slug> [--cover …]` adds an idea card from a backlog
+  file (quote = body, app `backlog`, ref = the file's repo path) and refuses at the tip when a source already
+  has that ref. `card add --cover` writes covers in the add batch; covers are checked against the checkout
+  (prep's stub isn't on main yet). New cards share `landNewCard` (`commands/card/add.ts`).
+- **List.** With `board.record` on (checkout settings), the table's Backlog is `remainingFiles` (files no
+  source names) plus `cardIdeas` (open cards covering nothing) as `BacklogItem`s with `card` set. Off: files.
+- **Spec cards** (`cards/spec-card.ts`): `specCard(view, spec, seed, at)` makes the card when no non-dropped
+  card covers the spec (commitment `asked`, quote = the `CLAUDE.md` H1, app `spec`, ref `spec:<name>`) and
+  returns nothing when the seed's documents don't validate, so a bad title never refuses a join. Used by
+  `newSpecPlan` (join, `plan apply`) and the upgrade step. `coverLines` skips a quote equal to the title.
+- **Priority and due** reach every reader through `JoinedReads.schedule` (`loadNodes`): `cardSchedules`
+  gives the open covering cards' best priority and earliest due; `planSourceOf` returns none for a spec
+  joined below `CARDS_LAYOUT`, and `loadNode` keeps `CLAUDE.md`'s when no card covers the spec.
+- **Layout 4** (`RECORD_LAYOUT = CARDS_LAYOUT = 4`): `CopiedFromFiles.card` (from `copyFromFolder`) feeds
+  join and the `layout < CARDS_LAYOUT` upgrade step. Timestamps passed as `at` must be `isoTimestamp`'s
+  shape: a source's `occurredAt` refuses milliseconds, and the spec card is then silently not made.

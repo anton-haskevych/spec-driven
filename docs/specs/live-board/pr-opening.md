@@ -28,11 +28,14 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   PR D, 2026-11-13: `1938 pass · 2 fail` across 276 files (300 s); `spec-field-commands.test.ts` expected
   layout 2 (fixed: `4 pass`), `land-on-main.test.ts` "tries five times" is load timing (`11 pass · 0 fail`
   alone); typecheck clean; `bun install --frozen-lockfile` no changes.
+  PR E, 2026-11-13: `2006 pass · 0 fail` across 287 files after the layout-4 commit; after the docs and
+  version commit the doc and version suites (`353 pass · 0 fail`, 45 files); typecheck clean;
+  `bun install --frozen-lockfile` no changes.
 - [x] `bun run typecheck` clean (PR A, 2026-11-11)
 - [x] `bun install --frozen-lockfile` clean (no new runtime dependencies) (PR A, 2026-11-11)
-- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`; PR D: 2.55.0, `All version declarations match: 2.55.0`)
-- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162)
-- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C and D: `doctor: clean (1 spec)`)
+- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`; PR D: 2.55.0, `All version declarations match: 2.55.0`; PR E: 2.56.0, `All version declarations match: 2.56.0`)
+- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230)
+- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D and E: `doctor: clean (1 spec)`)
 - [x] With the board off, a file-based spec behaves as before: the pre-existing suites pass unchanged
   PR A: nothing reads the record yet; the same one timing failure as `bun test` above.
   PR B, 2026-11-12: full suite green; the only edited expectation is the frozen-plan hook naming `phase task`.
@@ -171,6 +174,36 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   #### in-flight/phase-1.md
   # In-flight — phase 1
   $ laptop: spec.ts (2.54) phase set demo 2 --title Again
+  phase set: record: this plugin is older than the board's layout; update it
+  ```
+  PR E, 2026-11-13, bare origin + clones `laptop` (released 2.55.0) and `desktop` (this branch), script
+  `pr-e-scenario.sh` in the session scratchpad. A spec joined on 2.55 reads its `CLAUDE.md` priority until the
+  next write upgrades it to layout 4, which makes its card with that priority and due date; from then on the
+  card sets them; an idea is a card in the list; 2.55 then refuses to write.
+  ```
+  $ laptop: spec.ts (2.55) join demo
+  join: demo is on the board (2 phases, 2 tasks, 0 worktrees read) · banner landed on main (a3b0169)
+  --- record on 2.55: meta { "layout": 3}
+  $ desktop: spec.ts list table demo  (before the upgrade: CLAUDE.md priority)
+  | demo | active | p1 | 2026-12-01 | tools | demo | 2026-11-01 | 0/2 |
+  $ desktop: spec.ts phase set demo 2 --title Writes
+  set: phase 2 · title "Writes" (plan v2)
+  --- record after this branch's first write
+  meta.json: { "layout": 4}
+  cards/0/c1.json: { "id": "c1", "title": "Demo Spec", "status": "open", "commitment": "asked", "priority": "p1", "due": "2026-12-01", "tags": [], "coveredBy": [ "demo" ], "createdAt": "2026-11-13T03:03:25-08:00"}
+  sources/c1/a.json: { "card": "c1", "role": "origin", "app": "spec", "occurredAt": "2026-11-01T09:00:00-08:00", "quote": "Demo Spec", "ref": "spec:demo"}
+  record: set demo (plan v2)
+  record: upgrade demo to layout 4
+  record: join demo
+  $ desktop: spec.ts card update c1 --priority p0
+  card: c1 updated (priority p0)
+  $ desktop: spec.ts list table demo  (priority from the card)
+  | demo | active | p0 | 2026-12-01 | tools | demo | 2026-11-01 | 0/2 |
+  $ desktop: spec.ts card add "Export to CSV" --quote "can we get this as a spreadsheet" --app claude-code --commitment idea --priority p2
+  card: c2 added (idea · p2)
+  $ desktop: spec.ts list table   (Backlog section)
+  | c2 | p2 | — | — | Export to CSV |
+  $ laptop: spec.ts (2.55) phase set demo 2 --title Again
   phase set: record: this plugin is older than the board's layout; update it
   ```
 - [x] The claims suites pass unchanged after `core/remote-push.ts` is lifted out (PR A: no diff in `tests/claims-*.ts`, 93 pass)

@@ -70,7 +70,7 @@ then the spec's own fields are read.
 - [x] With the board on, `/spec idea` writes a card; a `_backlog` file becomes a card when next touched; the list shows cards and remaining files together; with it off nothing changes
 - [x] Prep and join make a card for a spec that none covers; a spec's priority and due date come from its cards
 - [x] Layout 4: a spec joined earlier gets its card on its next touch; until then its own priority and due date are read
-- [ ] `idea.md`, `list.md`, `prep.md`, `create.md`, `SKILL.md` updated; ROADMAP row and version bump for PR E
+- [x] `idea.md`, `list.md`, `prep.md`, `create.md`, `SKILL.md` updated; ROADMAP row and version bump for PR E
 
 ## Phase-local notes
 
