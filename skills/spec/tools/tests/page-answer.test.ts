@@ -23,7 +23,7 @@ describe("answering a question from the page", () => {
     record.landFromAnotherMachine(Object.entries(pageDocs()).map(([path, doc]) => ({ path, text: serializeDoc(doc) })));
     outbox = join(mkdtempSync(join(tmpdir(), "spec-page-answer-")), "outbox");
     deps = {
-      send: (intent, plan) => sendIntent(record, outbox, { command: "answer", args: intent }, {}, { validate: validateRecordDoc, pause: async () => {} }, PAGE_NOW, plan),
+      send: (intent, plan) => sendIntent(record, outbox, { session: undefined, command: "answer", args: intent }, {}, { validate: validateRecordDoc, pause: async () => {} }, PAGE_NOW, plan),
       by: "Anton",
       now: () => PAGE_NOW,
     };
