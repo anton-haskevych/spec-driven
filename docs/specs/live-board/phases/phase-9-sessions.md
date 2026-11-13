@@ -57,11 +57,11 @@ Liveness across machines can only be "last wrote N minutes ago"; keep the per-ma
 
 ## Deliverables
 
-- [ ] `session-doc` reader; the file named by the whole session key; every command's write stamps its session (who, mode, tree, plan version, time) last-write-wins; two sessions on one machine get two documents; two sub-agents ticking at once both land
-- [ ] Prep, create and review sessions register at entry; the pack lists other sessions on the same spec with their mode
-- [ ] The board's per-person rows are built from session documents joined to claims by session id, on both machines
-- [ ] Stamps carry `ahead` and `edited`; a tree holding work not on the remote for more than a few hours is a *Needs you* row
-- [ ] `review.md`, `prep.md`, `list.md`, `SKILL.md` updated; ROADMAP row and version bump for PR F
+- [x] `session-doc` reader; the file named by the whole session key; every command's write stamps its session (who, mode, tree, plan version, time) last-write-wins; two sessions on one machine get two documents; two sub-agents ticking at once both land
+- [x] Prep, create and review sessions register at entry; the pack lists other sessions on the same spec with their mode
+- [x] The board's per-person rows are built from session documents joined to claims by session id, on both machines
+- [x] Stamps carry `ahead` and `edited`; a tree holding work not on the remote for more than a few hours is a *Needs you* row
+- [x] `review.md`, `prep.md`, `list.md`, `SKILL.md` updated; ROADMAP row and version bump for PR F
 
 ## Phase-local notes
 

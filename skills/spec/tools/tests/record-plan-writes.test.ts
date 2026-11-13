@@ -79,4 +79,35 @@ describe("planWrites", () => {
   test("an op that leaves a document as it was writes nothing", () => {
     expect(planWrites(view, [{ op: "update", path: PHASE, patch: { title: "Join" } }], anything)).toEqual({ kind: "planned", changes: [], versions: {} });
   });
+
+  describe("alongside ops", () => {
+    const stamp: RecordOp = { op: "replace", path: "sessions/s1.json", doc: { title: "stamp" } };
+
+    test("ride in the batch without counting toward the op limit", () => {
+      const full: RecordOp[] = Array.from({ length: MAX_OPS }, (_, index) => ({ op: "create", path: `t/${index}.json`, doc: { title: "t" } }));
+      const planned = planWrites(view, full, anything, [stamp]);
+      expect(planned).toMatchObject({ kind: "planned" });
+      expect(planned.kind === "planned" && planned.changes.length).toBe(MAX_OPS + 1);
+    });
+
+    test("yield to an op the batch already has for that path", () => {
+      const own: RecordOp = { op: "replace", path: stamp.path, doc: { title: "own" } };
+      const planned = planWrites(view, [own], anything, [stamp]);
+      expect(planned).toEqual({ kind: "planned", changes: [{ path: stamp.path, text: serializeDoc({ title: "own" }) }], versions: { [stamp.path]: version({ title: "own" }) } });
+    });
+
+    test("are written only when the batch changes something", () => {
+      expect(planWrites(view, [{ op: "update", path: PHASE, patch: { title: "Join" } }], anything, [stamp])).toEqual({ kind: "planned", changes: [], versions: {} });
+    });
+
+    test("keep the path rules: the store's own file or a bad path is invalid", () => {
+      const ops: RecordOp[] = [{ op: "create", path: "t/1.json", doc: { title: "t" } }];
+      expect(planWrites(view, ops, anything, [{ op: "delete", path: "meta.json" }, { op: "delete", path: "a/b.txt" }])).toMatchObject({ kind: "invalid" });
+    });
+
+    test("are checked like any op: a bad document is invalid", () => {
+      const planned = planWrites(view, [{ op: "create", path: "t/1.json", doc: { title: "t" } }], needsTitle, [{ op: "replace", path: "sessions/s2.json", doc: {} }]);
+      expect(planned).toEqual({ kind: "invalid", problems: ["sessions/s2.json: title must be text"] });
+    });
+  });
 });

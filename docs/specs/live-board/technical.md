@@ -90,7 +90,10 @@ type TagDoc = { name: string; kind: "customer" | "area" | "other"; priority?: "p
 
 type SessionDoc = { ref: SessionRef; who: string; host: string; tree: string; branch?: string; title?: string;
   mode: "prep" | "create" | "review" | "execute" | "babysit" | "overseer";
+  spec?: string;                                 // the spec it works on: set by `session register`, else the one spec its writes touch
   planVersion?: number; lastWriteAt: string; ahead?: number; edited?: number };
+                                                 // path: sessions/<base64url of sessionKey(ref)>.json; every Claude session
+                                                 // shares one SourceRef (CLAUDE_CODE_SOURCE), the id makes the file unique
 ```
 
 Rules carried from the Academy board's schema and skill (`research/…wave-1…` → *The Academy board as built*): a

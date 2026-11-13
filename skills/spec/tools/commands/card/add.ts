@@ -6,6 +6,7 @@ import { boardBase } from "../../plan/board-base";
 import { validateRecordDoc } from "../../plan/kinds";
 import type { PhaseDeps } from "../../plan/phase-writer";
 import { loadSettings } from "../../playbook/settings";
+import { stampedBy } from "../../sessions/facts";
 import { gitRecordPort } from "../../record/ref";
 import { writeRecord, type RecordPlan } from "../../record/write";
 import { coverRefProblem } from "../../cards/cover";
@@ -41,7 +42,7 @@ export async function landNewCard(projectDir: string, deps: PhaseDeps, action: s
   const intent = intentFor(loadSettings(base.value.projectDir).board.people, isoTimestamp(deps.now()));
   if ("refused" in intent) return refusedLine(action, intent.refused);
   let line = "card: added";
-  const written = await writeRecord(port, planOf(intent, (seen) => (line = seen)), { validate: validateRecordDoc });
+  const written = await writeRecord(port, stampedBy(git, deps.env, projectDir, deps.now())(planOf(intent, (seen) => (line = seen))), { validate: validateRecordDoc });
   if (written.kind === "landed") return line;
   if (written.kind === "offline") return refusedLine(action, `Can't reach origin (${written.reason}); a new card is never queued, so run card ${action} again when origin answers.`);
   return refusedLine(action, written.kind === "unchanged" ? "nothing to write" : writtenReason(written, action));

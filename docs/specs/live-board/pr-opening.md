@@ -32,11 +32,14 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   PR E, 2026-11-13: `2006 pass · 0 fail` across 287 files after the layout-4 commit; after the docs and
   version commit the doc and version suites (`353 pass · 0 fail`, 45 files); typecheck clean;
   `bun install --frozen-lockfile` no changes.
+  PR F, 2026-11-13: `2080 pass · 1 fail` across 295 files (337 s): the same `codex-packaged-entry` "source fixture
+  completes …" timing failure (5446 ms against 5 s); alone with `--timeout 60000`: `1 pass · 0 fail`; typecheck
+  clean; `bun install --frozen-lockfile` no changes.
 - [x] `bun run typecheck` clean (PR A, 2026-11-11)
 - [x] `bun install --frozen-lockfile` clean (no new runtime dependencies) (PR A, 2026-11-11)
-- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`; PR D: 2.55.0, `All version declarations match: 2.55.0`; PR E: 2.56.0, `All version declarations match: 2.56.0`)
-- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230)
-- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D and E: `doctor: clean (1 spec)`)
+- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`; PR D: 2.55.0, `All version declarations match: 2.55.0`; PR E: 2.56.0, `All version declarations match: 2.56.0`; PR F: 2.57.0, `All version declarations match: 2.57.0`, row under *Live board (2.53–2.57)*)
+- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230; PR F: largest touched `board/model.ts`, 243)
+- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D, E and F: `doctor: clean (1 spec)`)
 - [x] With the board off, a file-based spec behaves as before: the pre-existing suites pass unchanged
   PR A: nothing reads the record yet; the same one timing failure as `bun test` above.
   PR B, 2026-11-12: full suite green; the only edited expectation is the frozen-plan hook naming `phase task`.
@@ -206,5 +209,31 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   | c2 | p2 | — | — | Export to CSV |
   $ laptop: spec.ts (2.55) phase set demo 2 --title Again
   phase set: record: this plugin is older than the board's layout; update it
+  ```
+  PR F, 2026-11-13, bare origin + clones `laptop` and `desktop` (one machine, so no "other host" here; the
+  cross-machine join is covered by `board-session-docs.test.ts`), this branch's `spec.ts`, and the previous
+  release (origin/main, 2.56.0) for the compatibility step; script `pr-f-scenario.sh` in the session
+  scratchpad. No layout change: 2.56.0 keeps writing with sessions on the record.
+  ```
+  $ laptop: spec.ts join demo
+  join: demo is on the board (2 phases, 2 tasks, 0 worktrees read) · banner landed on main (d08ee2f)
+  $ laptop: a review session registers
+  session: review demo registered (rev in laptop)
+  $ desktop: an execute session ticks 1.1, with an uncommitted file in its tree
+  tick: phase 1 · 1.1 done (b9d13fb on origin/feat/demo-pr-b) · 1 edited file is not in this commit
+  $ desktop: the execute pack lists the review
+  Board: live · plan v1
+  Session: review by Anton on Antons-Laptop.local (tree laptop), last wrote <1m ago — a review can change this spec's plan
+  $ laptop: the review session sees the execute session
+  Board: live · plan v1
+  Session: execute by Anton on Antons-Laptop.local (tree desktop), last wrote <1m ago
+  --- the documents on the record (host and time left out)
+  {'ref': {'source': {'runtime': 'claude', 'key': 'claude-code'}, 'id': 'exe'}, 'who': 'Anton', 'tree': 'desktop', 'mode': 'execute', 'spec': 'demo', 'branch': 'feat/demo-pr-b', 'planVersion': 1, 'ahead': 0, 'edited': 1}
+  {'ref': {'source': {'runtime': 'claude', 'key': 'claude-code'}, 'id': 'rev'}, 'who': 'Anton', 'tree': 'laptop', 'mode': 'review', 'spec': 'demo', 'branch': 'feat/demo-pr-a', 'title': 'review demo', 'planVersion': 1, 'ahead': 0, 'edited': 0}
+  $ desktop: the previous release (origin/main) still writes after sessions exist
+  set: phase 2 · title "Writes" (plan v2)
+  $ laptop: the review ends at handoff
+  session: rev ended; its document is removed
+  documents left: 1
   ```
 - [x] The claims suites pass unchanged after `core/remote-push.ts` is lifted out (PR A: no diff in `tests/claims-*.ts`, 93 pass)

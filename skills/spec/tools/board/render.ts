@@ -116,6 +116,8 @@ function attentionCells(row: AttentionRow, now: Date): string[] {
       return ["claim by a closed session", `${rowName(row)} → resume or release`];
     case "prune":
       return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "the next handoff removes them (trees prune --auto)"];
+    case "unsaved-work":
+      return [`${plural(row.ahead, "commit")} and ${plural(row.edited, "edited file")} not on origin`, `${row.tree} · ${row.who} on ${row.host}, last wrote ${ago(new Date(row.since), now)} ago → ${row.here ? "push it" : "ask them to push it"}`];
     case "idle-claim":
       return [`claim idle ${ago(new Date(row.since), now)}`, `${row.spec} · ${row.phases.join(", ")} → switch to ${row.session} or take it over`];
     case "remote-claim":
@@ -129,6 +131,10 @@ function attentionCells(row: AttentionRow, now: Date): string[] {
     default:
       return unrendered(row);
   }
+}
+
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
 function unrendered(row: never): never {

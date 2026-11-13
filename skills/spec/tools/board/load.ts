@@ -10,6 +10,12 @@ import type { PrDoc } from "../plan/docs/pr-doc";
 import { linkedPrNumbers } from "../pr/resolve";
 import { toPrRows, type PrRow } from "../pr/checks/rollup";
 import { heldClaims, remoteHeldClaims, withoutTakenOver } from "../claims/held";
+import { hostname } from "node:os";
+import { withLocalWork } from "./local-work";
+import { readSessions, SESSION_KEPT_DAYS } from "../sessions/list";
+import type { SessionDoc } from "../sessions/session-doc";
+import type { PlanSource } from "../plan/read-plans";
+import { recordViewOf } from "../record/read";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
 import { psProcStarts } from "../sessions/proc-starts";
 import { scanWorkspaces, type WorkspaceScanResult } from "../workspaces/scan";
@@ -92,9 +98,17 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       prs,
       prDocs,
       prLinks: prLinks(states, workspaces, plans.prs),
+      sessionDocs: withLocalWork(recentSessionDocs(plans, now), hostname(), trees.ok ? trees.value.map((tree) => tree.path) : [], runners.runner),
+      thisHost: hostname(),
       ...(request.ownSessionId ? { ownSessionId: request.ownSessionId } : {}),
     },
   };
+}
+
+// Documents from the record that wrote within the week; what each board section does with their age is its own.
+function recentSessionDocs(plans: PlanSource, now: Date): SessionDoc[] {
+  const view = recordViewOf(plans.record);
+  return view ? readSessions(view).filter((doc) => now.getTime() - Date.parse(doc.lastWriteAt) < SESSION_KEPT_DAYS * 24 * 60 * 60_000) : [];
 }
 
 function prRows(lists: Result<PrLists>, externalPatterns: readonly string[]): Result<PrRow[]> {

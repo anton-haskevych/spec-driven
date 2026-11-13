@@ -8,6 +8,8 @@ import { readCardDoc } from "../cards/card-doc";
 import { tagSlug } from "../cards/paths";
 import { readSourceDoc } from "../cards/source-doc";
 import { readTagDoc } from "../cards/tag-doc";
+import type { SessionRef } from "../runtime/sessions";
+import { readSessionDoc, sessionSlug } from "../sessions/session-doc";
 
 // Where each document kind lives on the record, and its reader. The store is handed `validateRecordDoc`
 // and never imports a reader; later phases add rows here.
@@ -53,6 +55,14 @@ const KINDS: readonly RecordKind[] = [
     path: /^tags\/([^/]+)\.json$/,
     read: readTagDoc,
     identity: (doc, match) => notAt("name", (doc as { name: string }).name, tagSlug((doc as { name: string }).name) === match[1]),
+  },
+  {
+    path: /^sessions\/([^/]+)\.json$/,
+    read: readSessionDoc,
+    identity: (doc, match) => {
+      const { ref } = doc as { ref: SessionRef };
+      return sessionSlug(ref) === match[1] ? undefined : `ref ${JSON.stringify(ref)} does not match the path`;
+    },
   },
 ];
 

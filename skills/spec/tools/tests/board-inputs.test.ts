@@ -11,6 +11,7 @@ import { anonymousRunner, isolatedAsyncRunner, isolatedRunner, repoWithOrigin, t
 import { cannedGh } from "./stub-runner";
 import { createTree } from "./tree";
 import { joinedRepo } from "./joined-repo";
+import { sessionCommand } from "../commands/session";
 import type { PrDoc } from "../plan/docs/pr-doc";
 import { gitRecordPort } from "../record/ref";
 import { writeRecord } from "../record/write";
@@ -225,4 +226,21 @@ describe("board load on a joined spec (real git)", () => {
       repo.cleanup();
     }
   }, 30_000);
+});
+
+describe("session documents in the board's inputs (real git)", () => {
+  test("a registered session is read from the record, with this machine's name; a week-old one is not", async () => {
+    const repo = joinedRepo("spec-board-sessions-");
+    try {
+      const deps = (id: string, at: string) => ({ runner: isolatedRunner, env: { CLAUDE_CODE_SESSION_ID: id }, now: () => new Date(at) });
+      await sessionCommand(repo.dir, ["register", "review", "alpha"], deps("fresh", NOW.toISOString()));
+      await sessionCommand(repo.dir, ["register", "review", "alpha"], deps("old", new Date(NOW.getTime() - 8 * 24 * 60 * 60_000).toISOString()));
+      const inputs = await loadBoardInputs(repo.dir, { local: true }, runners, NOW);
+      if (!inputs.ok) throw new Error(inputs.reason);
+      expect(inputs.value.sessionDocs.map((doc) => [doc.ref.id, doc.mode, doc.spec])).toEqual([["fresh", "review", "alpha"]]);
+      expect(inputs.value.thisHost).not.toBe("");
+    } finally {
+      repo.cleanup();
+    }
+  }, 60_000);
 });

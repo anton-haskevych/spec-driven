@@ -32,6 +32,8 @@ See `SKILL.md` for layout rules, `product-brief.md` / `research/` semantics, and
 
 **Spin-off check first.** If this session already works another spec (a `/spec` command for a different name ran here, or you have been executing, reviewing or creating another spec), do not prep inline: follow *Spin-off* below. Prep here only when the user explicitly asks for it in this session.
 
+**Register the session** once the name is settled, so the sessions executing or reviewing this spec see a prep is under way: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts session register prep <name> --title "prep <name>"` (SKILL.md → *Tools* → Sessions). Its line is the report; `The board is off here` or an unreachable origin means nothing to do, so carry on. A spin-off's fresh session registers the same way.
+
 Resolve the target folder `docs/specs/<name>/`:
 
 - **Does not exist** → fresh prep. Start at Stage 0 (Frame). If `docs/specs/_backlog/<name>.md` exists, or the user names an idea from the backlog (a file, or with the board on an idea card: `spec.ts card list`), that idea is the starting ask: read it first and frame from its title and body or quote.

@@ -4,6 +4,8 @@ You are guiding a full product spec session for `$ARGUMENTS`. The output is a st
 
 ## Process
 
+**Register the session first**, so the sessions executing this spec see a plan is being written: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts session register create $ARGUMENTS --title "create $ARGUMENTS"` (SKILL.md → *Tools* → Sessions). `The board is off here` or an unreachable origin means nothing to do: carry on.
+
 Work through these 6 stages **interactively**. Ask clarifying questions at each stage — don't generate boilerplate. Use AskUserQuestion for key decisions.
 
 ### 1. Discover

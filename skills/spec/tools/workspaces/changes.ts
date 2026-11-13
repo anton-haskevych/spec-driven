@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { gitFailureReason } from "../core/git";
+import { gitFailureReason, type Git } from "../core/git";
 import { parsePorcelainZ } from "../core/git-status";
 import type { Result } from "../core/result";
 import { runAll, type AsyncRunner, type RunJob, type RunResult } from "../core/run";
@@ -53,4 +53,27 @@ function specNames(root: string, answered: ReadonlyArray<{ query: Query; result:
 
 function splitZ(output: string): string[] {
   return output.split("\0").filter(Boolean);
+}
+
+// What a tree holds that no remote has: commits on no remote ref, and uncommitted paths. `ahead` is left out
+// when the repo has no remote at all, since every commit would then count. Status takes no pathspec: a glob
+// makes it walk every untracked directory.
+export interface TreeWork {
+  ahead?: number;
+  edited: number;
+}
+
+export function treeWork(git: Git): Result<TreeWork> {
+  const status = git.run(["--no-optional-locks", "status", "--porcelain", "-z", "--untracked-files=normal"]);
+  if (status.code !== 0) return { ok: false, reason: `git status failed: ${gitFailureReason(status.stderr) || `exit ${status.code}`}` };
+  const edited = parsePorcelainZ(status.stdout).length;
+  const ahead = commitsOnNoRemote(git);
+  return { ok: true, value: ahead === undefined ? { edited } : { ahead, edited } };
+}
+
+function commitsOnNoRemote(git: Git): number | undefined {
+  const remotes = git.out(["remote"]);
+  if (!remotes.ok || remotes.value === "") return undefined;
+  const counted = git.out(["rev-list", "--count", "HEAD", "--not", "--remotes"]);
+  return counted.ok ? Number(counted.value) : undefined;
 }

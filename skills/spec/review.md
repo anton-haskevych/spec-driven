@@ -16,7 +16,7 @@ Run SKILL.md → *Preconditions*. A legacy spec without `ledger/` follows `legac
 
 ## 1. Identify the spec
 
-Determine which spec to review from conversation context. If ambiguous, ask the user to confirm. Read in parallel:
+Determine which spec to review from conversation context. If ambiguous, ask the user to confirm. Then **register the session**, so the sessions executing the spec hear a review is about to change its plan (S192: "Did the phases 1 2 and others that already were doing the work knew that you had a review"): `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts session register review <spec> --title "review <spec>"`. Report its line; `The board is off here` or an unreachable origin means nothing to do. The other sessions' packs list this one as `Session: review by …`. Read in parallel:
 
 - `design.md` — problem, decisions, UX flows
 - `technical.md` — API contracts, data models, architecture

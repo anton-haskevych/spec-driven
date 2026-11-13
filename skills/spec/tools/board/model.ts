@@ -110,6 +110,8 @@ export type AttentionRow =
   | { kind: "idle-claim"; spec: string; phases: string[]; session: string; since: string }
   // A phase parked on a question for the user (`phase park`); it leaves the ready lane until answered.
   | { kind: "question"; spec: string; phase: string; question: string; recommend?: string; since: string }
+  // A tree holding commits or edits no remote has, quiet for hours: its latest session document says so.
+  | { kind: "unsaved-work"; who: string; host: string; tree: string; ahead: number; edited: number; since: string; here: boolean }
   // Merged worktrees by ancestry; `trees prune` also finds squash-merged ones by their PR's head.
   | { kind: "prune"; trees: number }
   // A card every covering phase of has merged (close it with evidence), or a done card with one still open.
@@ -146,6 +148,17 @@ export interface FocusWork {
   mine: boolean;
   claims: FocusClaim[];
   prs: PrCell[];
+  // Sessions on another machine, from their documents; `phase` is what their claim holds.
+  sessions?: FocusRemoteSession[];
+}
+
+export interface FocusRemoteSession {
+  mode: string;
+  host: string;
+  tree: string;
+  phase?: string;
+  // When the session last wrote.
+  since: string;
 }
 
 export interface FocusRow {

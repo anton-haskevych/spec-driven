@@ -8,6 +8,7 @@ import { isoTimestamp } from "../core/schedule";
 import { findSpecs } from "../core/spec-folders";
 import { loadSpecStateFromFiles } from "../core/spec-state";
 import { isPlainObject } from "../record/document";
+import { stampedBy } from "../sessions/facts";
 import { gitRecordPort, type RecordPort } from "../record/ref";
 import { writeRecord, type RecordPlan, type StoreWrite } from "../record/write";
 import { boardBase } from "../plan/board-base";
@@ -65,7 +66,8 @@ export async function joinCommand(projectDir: string, args: readonly string[], d
   const planned = planJoin({ spec, ...copies.value, joinedAt: isoTimestamp(deps.now()) });
   if ("refused" in planned) return `join: refused, nothing written. ${planned.refused}`;
   let existing: unknown;
-  const written = await writeRecord(port, newSpecPlan(planned, "join", (doc) => (existing = doc)), { validate: validateRecordDoc });
+  const stamp = stampedBy(git, deps.env, projectDir, deps.now());
+  const written = await writeRecord(port, stamp(newSpecPlan(planned, "join", (doc) => (existing = doc))), { validate: validateRecordDoc });
   const lines = [...planned.recorded, ...planned.left].map((line) => `join: ${line}`);
   return [...lines, await resultLine(joining, planned, written, existing, copies.value.trees.length)].join("\n");
 }
