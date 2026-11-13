@@ -10,7 +10,7 @@ const TEXT = { type: "string" } as const;
 
 export const QUOTE_FLAGS = { quote: TEXT, app: TEXT, person: TEXT, at: TEXT, ref: TEXT, "ref-url": TEXT } as const;
 export const FIELD_FLAGS = { title: TEXT, commitment: TEXT, status: TEXT, priority: TEXT, due: TEXT, assignee: TEXT, note: TEXT } as const;
-const CARD_FLAGS = { ...QUOTE_FLAGS, ...FIELD_FLAGS, role: TEXT, tag: { type: "string", multiple: true }, "if-version": TEXT } as const;
+const CARD_FLAGS = { ...QUOTE_FLAGS, ...FIELD_FLAGS, role: TEXT, tag: { type: "string", multiple: true }, cover: { type: "string", multiple: true }, "if-version": TEXT } as const;
 
 export function cardFlags(args: readonly string[]) {
   return parseFlags(args, CARD_FLAGS);

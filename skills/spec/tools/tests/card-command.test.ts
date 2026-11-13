@@ -82,6 +82,18 @@ describe("card add, source, update, list and check (real git)", () => {
     expect(await card(a, "close", "c3")).toStartWith("usage: card add");
     expect((await card(a, "list")).split("\n").at(-1)).toBe("card: 1 open card");
   }, REAL_GIT_MS);
+
+  test("a backlog file becomes an idea card once; prep's card covers the spec it starts", async () => {
+    a.write("docs/specs/_backlog/organizer-accounts.md", "---\ntitle: Organizer accounts\ntags: [directory]\npriority: p2\ncreated: 2026-09-23T19:00:00-07:00\n---\nOrganizers manage their own listing.\n");
+    a.write("docs/specs/directory/CLAUDE.md", "---\nstatus: prep\n---\n# Directory\n");
+    expect(await card(a, "import", "organizer-accounts", "--cover", "directory")).toBe("card: c4 added (idea · p2 · tags: directory)");
+    expect(await card(a, "import", "organizer-accounts.md")).toBe("card import: refused, nothing written. docs/specs/_backlog/organizer-accounts.md is already card c4");
+    expect(await card(a, "import", "missing")).toBe("card import: refused, nothing written. No backlog file docs/specs/_backlog/missing.md in this checkout.");
+    expect(await card(a, "add", "Lost", ...QUOTE, "--cover", "nowhere")).toBe("card add: refused, nothing written. no spec named nowhere");
+    expect(await card(a, "list", "--tag", "directory")).toBe(
+      "c4 · p2 · idea · open — Organizer accounts · directory · covered by directory\n  “Organizers manage their own listing.” — backlog, 2026-09-23\ncard: 1 open card",
+    );
+  }, REAL_GIT_MS);
 });
 
 describe("the card intent", () => {

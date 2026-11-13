@@ -17,6 +17,8 @@ export interface AddCardIntent {
   due?: string;
   assignee?: string;
   tags: string[];
+  // What already covers it: prep adds the card for the spec it is starting.
+  coveredBy?: string[];
   note?: string;
   at: string;
   origin: OriginQuote;
@@ -57,7 +59,7 @@ export function cardPlan(edit: (view: RecordView) => CardEdit, see: See = () => 
 }
 
 export function addCardPlan(intent: AddCardIntent, see?: See): RecordPlan {
-  return cardPlan((view) => addEdit(view, intent), see);
+  return cardPlan((view) => addCardEdit(view, intent), see);
 }
 
 export function updateCardPlan(intent: UpdateCardIntent, see?: See): RecordPlan {
@@ -77,10 +79,10 @@ export function findCard(view: RecordView, id: string): CardDoc | string {
   return readCardDoc(view.doc(cardDocPath(id))).doc ?? `no card ${id} on the board`;
 }
 
-function addEdit(view: RecordView, intent: AddCardIntent): CardEdit {
+export function addCardEdit(view: RecordView, intent: AddCardIntent): CardEdit {
   const id = nextCardId(view);
   const { origin, at, ...fields } = intent;
-  const card: CardDoc = withoutUndefined({ id, title: fields.title, status: "open" as const, commitment: fields.commitment, priority: fields.priority, due: fields.due, assignee: fields.assignee, tags: fields.tags, coveredBy: [], note: fields.note, createdAt: at });
+  const card: CardDoc = withoutUndefined({ id, title: fields.title, status: "open" as const, commitment: fields.commitment, priority: fields.priority, due: fields.due, assignee: fields.assignee, tags: fields.tags, coveredBy: fields.coveredBy ?? [], note: fields.note, createdAt: at });
   const ops: RecordOp[] = [
     { op: "create", path: cardDocPath(id), doc: card },
     { op: "create", path: sourceDocPath(id, "a"), doc: { card: id, role: "origin", ...origin } },
