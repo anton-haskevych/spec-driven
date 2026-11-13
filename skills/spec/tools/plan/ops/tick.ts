@@ -5,6 +5,8 @@ import type { RecordPlan } from "../../record/write";
 import type { PhaseDoc, Task } from "../docs/phase-doc";
 import { phaseDocPath } from "../kinds";
 import { readJoinedPlan, type JoinedPlan } from "../state-source";
+import { approvalOps } from "../../questions/gate";
+import type { QuestionAnswer } from "../../questions/question-doc";
 
 // What a tick asks for, as it is queued: `at` is the tick's time, so a refusal's "4m ago" never depends on
 // when the plan ran.
@@ -17,6 +19,8 @@ export interface TickIntent {
   session?: string;
   tree: string;
   unpushed?: boolean;
+  // A Gate: task approved at the tick: recorded as its answered gate question in the same write.
+  approval?: QuestionAnswer;
 }
 
 export type TickSeen = { kind: "ticked"; phase: string; task: string; phaseComplete: boolean } | { kind: "already"; phase: string; task: Task };
@@ -39,7 +43,8 @@ export function tickPlan(intent: TickIntent, see: (seen: TickSeen) => void = () 
     if (task.done) return { refused: closedLine(task, intent.at) };
     const tasks = phase.tasks.map((each) => (each.id === task.id ? closed(each, intent) : each));
     see({ kind: "ticked", phase: phase.id, task: task.id, phaseComplete: allTasksDone(countTasks(tasks)) });
-    return { ops: [{ op: "update", path: phaseDocPath(intent.spec, phase.id), patch: { tasks } }], message: `record: tick ${intent.spec} ${task.id}` };
+    const approval = intent.approval ? approvalOps(plan, phase.id, task, intent.approval) : [];
+    return { ops: [{ op: "update", path: phaseDocPath(intent.spec, phase.id), patch: { tasks } }, ...approval], message: `record: tick ${intent.spec} ${task.id}` };
   };
 }
 
@@ -89,5 +94,15 @@ export function readTickIntent(args: unknown): TickIntent | undefined {
   if (!spec || !phase || !task || !evidence || !at || !tree) return undefined;
   const { session, unpushed } = args;
   if ((session !== undefined && typeof session !== "string") || (unpushed !== undefined && typeof unpushed !== "boolean")) return undefined;
-  return { spec, phase, task, evidence, at, tree, ...(session === undefined ? {} : { session }), ...(unpushed === undefined ? {} : { unpushed }) };
+  const approval = readApproval(args.approval);
+  if (approval === null) return undefined;
+  return { spec, phase, task, evidence, at, tree, ...(session === undefined ? {} : { session }), ...(unpushed === undefined ? {} : { unpushed }), ...(approval ? { approval } : {}) };
+}
+
+// null: present but malformed.
+function readApproval(value: unknown): QuestionAnswer | undefined | null {
+  if (value === undefined) return undefined;
+  if (!isPlainObject(value)) return null;
+  const { text, by, at } = value;
+  return typeof text === "string" && typeof by === "string" && typeof at === "string" && text && by && at ? { text, by, at } : null;
 }

@@ -41,8 +41,8 @@ describe("a write tells the session the plan changed since it last saw it (real 
     expect(heard.split("\n")[0]).toBe("Plan changed since this session loaded it (v2 → v3): phase 4 added");
     expect(heard.split("\n").at(-1)).toBe("phase deployed: Phase 2 is not ticked; only a finished phase can be deployed");
 
-    expect(await a("park", "alpha", "3", "Ship today?")).toStartWith("parked Phase 3");
-    expect(await b("park", "alpha", "4", "Copy ok?")).toStartWith("parked Phase 4");
+    expect(await a("park", "alpha", "3", "Ship today?")).toStartWith("question: q1 open on phase 3");
+    expect(await b("park", "alpha", "4", "Copy ok?")).toStartWith("question: q2 open on phase 4");
   }, REAL_GIT_MS);
 });
 

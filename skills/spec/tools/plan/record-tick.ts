@@ -7,6 +7,8 @@ import { closedBySameSession, closedLine, findTask, tickPlan, type TickIntent, t
 import type { PhaseDeps, PhaseOutcome } from "./phase-writer";
 import { NO_ORIGIN, sendRecordIntent, storeRefusal, type RecordWorld } from "./record-send";
 import type { JoinedPlan } from "./state-source";
+import { approvalEvidence, approvalOf } from "../questions/gate";
+import { answererOf } from "../questions/who";
 
 type TickBase = Omit<TickIntent, "evidence">;
 
@@ -20,12 +22,26 @@ export async function recordTick(world: RecordWorld, spec: string, joined: Joine
   const { phase, task } = found;
   const base: TickBase = { spec, phase: phase.id, task: task.id, at: world.now.toISOString(), tree: world.tree, ...(world.session ? { session: world.session } : {}) };
   if (task.done) return doneAlready(task, base);
-  if (!phase.code || task.gate || isGateItem(task.text)) {
+  if (task.gate || isGateItem(task.text)) return tickGate(world, joined, base, task, request.evidence);
+  if (!phase.code) {
     const problem = checkEvidence({ id: phase.id, code: phase.code }, task.text, request.evidence);
     if (problem !== undefined || request.evidence === undefined) return { kind: "invalid", reason: problem ?? `${task.id} needs --evidence` };
     return send(world, { ...base, evidence: request.evidence }, "");
   }
   return saveThenSend(world, base, request.evidence);
+}
+
+// A Gate: task pushes nothing. Its evidence is the approval given now, recorded as its answered gate question,
+// or the answer its gate question already holds.
+function tickGate(world: RecordWorld, joined: JoinedPlan, base: TickBase, task: Task, evidence: string | undefined): Promise<PhaseOutcome> | PhaseOutcome {
+  if (evidence === undefined) {
+    const approval = approvalOf(joined, base.phase, task.id);
+    if (!approval) return { kind: "invalid", reason: `"${task.text}" records an approval; answer its gate question (phase unpark) or tick it with --evidence "<who approved, when>"` };
+    return send(world, { ...base, evidence: approvalEvidence(approval) }, "");
+  }
+  const problem = checkEvidence({ id: base.phase, code: true }, task.text, evidence);
+  if (problem !== undefined) return { kind: "invalid", reason: problem };
+  return send(world, { ...base, evidence, approval: { text: evidence, by: answererOf(world.git), at: base.at } }, "");
 }
 
 async function saveThenSend(world: RecordWorld, base: TickBase, note: string | undefined): Promise<PhaseOutcome> {

@@ -80,7 +80,7 @@ function askEdit(plan: JoinedPlan, intent: AskIntent): Planned {
     ...(recommend ? { recommend } : {}),
   };
   const advice = recommend ? ` · recommend: ${recommend}` : "";
-  return { op: { op: "create", path: questionDocPath(plan.spec.name, doc.id), doc }, line: `question: ${doc.id} open on phase ${phase.id} — "${question}"${advice}` };
+  return { op: { op: "create", path: questionDocPath(plan.spec.name, doc.id), doc }, line: `question: ${doc.id} open on phase ${phase.id} — "${question}"${advice}\nHand off; the board shows the question.` };
 }
 
 function answerEdit(plan: JoinedPlan, intent: AnswerIntent): Planned {

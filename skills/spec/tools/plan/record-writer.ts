@@ -1,7 +1,11 @@
+import { gitAt } from "../core/git";
 import { phaseInFlightFile } from "../core/in-flight";
 import { openPark } from "../core/park";
 import { isCalendarDay } from "../core/schedule";
 import type { SpecFolder } from "../core/spec-folders";
+import type { UnparkRequest } from "../phases/park";
+import { openQuestionOn } from "../questions/on-phase";
+import { answererOf, askerOf } from "../questions/who";
 import { diskReader } from "../core/spec-state";
 import { findPhaseDoc } from "./ops/change";
 import { openRecordPark } from "./ops/phase-state";
@@ -20,6 +24,11 @@ export function recordWriter(projectDir: string, spec: SpecFolder, joined: Joine
   const noticed = (write: (world: RecordWorld) => PhaseOutcome | Promise<PhaseOutcome>) => withPlanNotice(projectDir, name, joined, deps, write);
   const send = (command: PlannedIntent["command"], args: object, plan: PlannedIntent["plan"]) =>
     noticed((world) => recordPlanCommand(world, spec, joined, { command, args, plan }));
+  // A park left on the phase document before questions moved to their own documents.
+  const sendUnpark = (request: UnparkRequest) => {
+    const intent = { spec: name, phase: request.phase, answer: request.answer, at: request.at };
+    return send("unpark", intent, (see) => PLAN_INTENTS.unpark.plan(intent, see));
+  };
   return {
     tick: (request) => noticed((world) => recordTick(world, name, joined, request)),
     add(request) {
@@ -50,14 +59,17 @@ export function recordWriter(projectDir: string, spec: SpecFolder, joined: Joine
     park(request) {
       const inFile = fileParkOf(spec, joined, request.phase);
       if (inFile) return { kind: "invalid", reason: `Phase ${inFile.phase} is already parked on "${inFile.question}"; ask both in one question` };
-      const intent = { spec: name, phase: request.phase, question: request.question, ...(request.recommend ? { recommend: request.recommend } : {}), at: request.at };
-      return send("park", intent, (see) => PLAN_INTENTS.park.plan(intent, see));
+      const intent = { spec: name, phase: request.phase, question: request.question, ...(request.recommend ? { recommend: request.recommend } : {}), at: request.at, by: askerOf(deps.env, projectDir) };
+      return send("ask", intent, (see) => PLAN_INTENTS.ask.plan(intent, see));
     },
     unpark(request): PhaseOutcome | Promise<PhaseOutcome> {
       const phase = findPhaseDoc(joined, request.phase);
-      if (typeof phase !== "string" && !openRecordPark(phase) && fileParkOf(spec, joined, request.phase)) return files.unpark(request);
-      const intent = { spec: name, phase: request.phase, answer: request.answer, at: request.at };
-      return send("unpark", intent, (see) => PLAN_INTENTS.unpark.plan(intent, see));
+      if (typeof phase !== "string" && !openQuestionOn(joined, phase.id)) {
+        if (openRecordPark(phase)) return sendUnpark(request);
+        if (fileParkOf(spec, joined, request.phase)) return files.unpark(request);
+      }
+      const intent = { spec: name, phase: request.phase, text: request.answer, at: request.at, by: answererOf(gitAt(projectDir, deps.runner)) };
+      return send("answer", intent, (see) => PLAN_INTENTS.answer.plan(intent, see));
     },
   };
 }

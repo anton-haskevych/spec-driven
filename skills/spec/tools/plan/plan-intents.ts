@@ -9,6 +9,7 @@ import type { PhaseFields } from "../phases/set";
 import { setEdit, type SetIntent } from "./ops/set";
 import { splitEdit, type SplitIntent } from "./ops/split";
 import { taskEdit, type TaskIntent } from "./ops/task";
+import { answerPlan, askPlan, type AnswerIntent, type AskIntent } from "../questions/plans";
 
 type See = (seen: ChangeSeen) => void;
 type Fields = Record<string, unknown>;
@@ -28,6 +29,8 @@ export interface PlanIntents {
   deployed: PlanIntent<DeployedIntent>;
   park: PlanIntent<ParkIntent>;
   unpark: PlanIntent<UnparkIntent>;
+  ask: PlanIntent<AskIntent>;
+  answer: PlanIntent<AnswerIntent>;
 }
 
 export type PlanCommand = keyof PlanIntents;
@@ -64,6 +67,14 @@ export const PLAN_INTENTS: PlanIntents = {
   unpark: {
     read: (a) => withSpec(a, { phase: text(a.phase), answer: text(a.answer), at: text(a.at) }),
     plan: (i, see) => phaseStatePlan(i.spec, "unpark", i.phase, unparkEdit(i), see),
+  },
+  ask: {
+    read: (a) => withSpec(a, { phase: text(a.phase), question: text(a.question), recommend: optional(a.recommend, text), at: text(a.at), by: text(a.by) }),
+    plan: (i, see) => askPlan(i, see),
+  },
+  answer: {
+    read: (a) => withSpec(a, { id: optional(a.id, text), phase: optional(a.phase, text), text: text(a.text), by: text(a.by), at: text(a.at), ifVersion: optional(a.ifVersion, text) }),
+    plan: (i, see) => answerPlan(i, see),
   },
 };
 

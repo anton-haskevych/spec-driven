@@ -6,7 +6,7 @@ import { serializeDoc } from "../record/document";
 import { viewOfTexts } from "../record/view";
 import type { RecordPlan } from "../record/write";
 import type { PhaseDoc } from "./docs/phase-doc";
-import { phaseDocPath, specDocPath } from "./kinds";
+import { phaseDocPath, questionDocPath, specDocPath } from "./kinds";
 import type { ChangeSeen } from "./ops/change";
 import type { PlanCommand } from "./plan-intents";
 import type { PhaseOutcome } from "./phase-writer";
@@ -45,7 +45,12 @@ export async function recordPlanCommand(world: RecordWorld, spec: SpecFolder, jo
 }
 
 function viewOfPlan(plan: JoinedPlan) {
-  const docs: [string, unknown][] = [[specDocPath(plan.spec.name), plan.spec], ...plan.phases.map((phase): [string, unknown] => [phaseDocPath(plan.spec.name, phase.id), phase])];
+  const name = plan.spec.name;
+  const docs: [string, unknown][] = [
+    [specDocPath(name), plan.spec],
+    ...plan.phases.map((phase): [string, unknown] => [phaseDocPath(name, phase.id), phase]),
+    ...(plan.questions ?? []).map((doc): [string, unknown] => [questionDocPath(name, doc.id), doc]),
+  ];
   return viewOfTexts(new Map(docs.map(([path, doc]) => [path, serializeDoc(doc)])), { kind: "at", sha: "local" });
 }
 

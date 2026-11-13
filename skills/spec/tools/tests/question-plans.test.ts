@@ -47,7 +47,7 @@ describe("askPlan", () => {
     const { questions, seen, result } = run((see) => askPlan(ASK, see), record([questionDoc({ id: "q4", about: "checkout#2", answer: { text: "x", by: "Anton", at: "T0" } })]));
     expect(questions?.at(-1)).toEqual({ id: "q5", about: "checkout#3", kind: "question", askedAt: "T1", askedBy: "session-1", question: "Reset the pick each morning?", recommend: "no reset" });
     expect("ops" in result && result.ops.map((op) => op.path)).toEqual([questionDocPath(SPEC, "q5")]);
-    expect(seen[0]?.line).toBe('question: q5 open on phase 3 — "Reset the pick each morning?" · recommend: no reset');
+    expect(seen[0]?.line).toBe('question: q5 open on phase 3 — "Reset the pick each morning?" · recommend: no reset\nHand off; the board shows the question.');
   });
 
   test("a phase whose next task is a Gate: item asks a gate question about that task", () => {
