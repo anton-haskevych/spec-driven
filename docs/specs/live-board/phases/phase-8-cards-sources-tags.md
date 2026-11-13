@@ -62,8 +62,8 @@ then the spec's own fields are read.
 
 ## Deliverables
 
-- [ ] `card-doc`, `source-doc`, `tag-doc` readers with the Academy rules; `card check` reports cross-document problems and runs in the doctor
-- [ ] `spec.ts card add | update | source | list`; the number is taken in the plan (two clones adding at once get c97 and c98); `card add` refuses offline; the origin source lands in the card's batch; an assignee resolves through `samePerson` to a `board.people` name
+- [x] `card-doc`, `source-doc`, `tag-doc` readers with the Academy rules; `card check` reports cross-document problems and runs in the doctor
+- [x] `spec.ts card add | update | source | list`; the number is taken in the plan (two clones adding at once get c97 and c98); `card add` refuses offline; the origin source lands in the card's batch; an assignee resolves through `samePerson` to a `board.people` name
 - [ ] `card cover`: link stored on the card, validated against the record; packs list a joined spec's covering cards with their origin quotes
 - [ ] `card close` with evidence and `card drop`; the board proposes a close when every covering phase is merged and flags a done card with an open phase
 - [ ] `card tag`; one priority scale `p0`–`p3` (`PRIORITIES`) on cards and tags; the list view groups by tag
