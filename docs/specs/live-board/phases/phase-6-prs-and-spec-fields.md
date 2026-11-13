@@ -47,8 +47,9 @@ priority and due date stay as spec fields.
 
 **This release moves data that joined specs already hold in files** (CRM has had the board on since phase 5).
 Raise `RECORD_LAYOUT` to 2 and add the upgrade step: the next command that touches a spec whose
-`SpecDoc.layout` is 1 copies `status`, owner, focus, ship, the lifecycle notes and relations from `CLAUDE.md`,
-and the PR numbers and merge lines from `pr-opening.md`, into the record in one batch. Until a spec is
+`SpecDoc.layout` is 1 copies `status`, owner, focus and ship from `CLAUDE.md`, and the PR numbers and merge
+lines from `pr-opening.md`, into the record in one batch. Relations, `stale` and `dropped` stay in `CLAUDE.md`:
+no command writes them (preflight 2026-11-12; `ledger/decision-phase-6-fields-and-prs-as-built.md`). Until a spec is
 upgraded, `loadNodes` and `specPrNumbers` read those fields from its files. A session still on PR B refuses to
 write once the layout is 2, so it can't put an owner in the old home (`technical.md` → *Releases*).
 

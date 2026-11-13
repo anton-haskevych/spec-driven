@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { landSpecField, planSpecField, type SpecFieldEdit, type SpecFieldPlan } from "../core/land-spec-field";
 import { systemRunner, type Runner } from "../core/run";
+import { fieldLine, systemFieldDeps, writeJoinedField, type FieldWriteDeps } from "./spec-field-write";
 import { SHIP_MODES, shipMode, type ShipMode } from "../core/spec-meta";
 
 export interface ShipRequest {
@@ -20,11 +21,15 @@ export function parseShipArgs(args: readonly string[]): ShipRequest | string {
   return mode ? { spec, mode } : `ship: ${word} is not a ship mode; use ${MODE_CHOICES}`;
 }
 
-export async function shipCommand(projectDir: string, args: readonly string[], runner: Runner = systemRunner): Promise<string> {
+export async function shipCommand(projectDir: string, args: readonly string[], runner: Runner = systemRunner, deps: FieldWriteDeps = systemFieldDeps(runner)): Promise<string> {
   const request = parseShipArgs(args);
   if (typeof request === "string") return request;
-  const outcome = await landSpecField(projectDir, runner, shipEdit(request));
-  return outcome.kind === "landed" ? `ship: ${request.spec} is ${request.mode} (${outcome.sha.slice(0, 7)})` : `ship: ${outcome.reason}`;
+  const edit = shipEdit(request);
+  const landed = (sha: string) => `ship: ${request.spec} is ${request.mode} (${sha})`;
+  const joined = await writeJoinedField(projectDir, { spec: request.spec, key: "ship", value: request.mode }, deps);
+  if (joined) return fieldLine("ship", joined, landed, edit.already);
+  const outcome = await landSpecField(projectDir, runner, edit);
+  return outcome.kind === "landed" ? landed(outcome.sha.slice(0, 7)) : `ship: ${outcome.reason}`;
 }
 
 export function planShip(request: ShipRequest, claudeMd: string): SpecFieldPlan {

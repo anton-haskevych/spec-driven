@@ -5,11 +5,9 @@ import { heldClaims } from "../claims/held";
 import { gitAt, gitCommonDir } from "../core/git";
 import type { Result } from "../core/result";
 import { defaultBranch } from "../core/run";
-import { readTextIfExists } from "../core/files";
-import { parseFrontmatter } from "../core/frontmatter";
 import { ownerOf } from "../core/people";
-import { resolveSpec, type SpecFolder } from "../core/spec-folders";
-import { readSpecMeta } from "../core/spec-meta";
+import { resolveSpec } from "../core/spec-folders";
+import { readSpecFields } from "../graph/spec-fields";
 import { loadSettings } from "../playbook/settings";
 import { loadLiveSessions } from "../sessions/live";
 import { ownSessionId } from "../sessions/own";
@@ -71,16 +69,11 @@ async function loadPlaceWorld(projectDir: string, spec: string, deps: PlaceDeps)
   const views = [states.get(spec), typeof own === "string" ? undefined : plans.state(own)].filter((view) => view !== undefined);
   if (views.length === 0) return { ok: false, reason: typeof own === "string" ? own : `no spec named ${spec}` };
   const baseMeta = nodes.get(spec)?.meta;
-  const owner = baseMeta ? ownerOf(baseMeta) : typeof own === "string" ? undefined : checkoutOwner(own);
+  const owner = baseMeta ? ownerOf(baseMeta) : typeof own === "string" ? undefined : ownerOf(readSpecFields(own.dir, plans.fields(spec)).meta);
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   return {
     ok: true,
     value: { ownSessionId: ownSessionId(deps.env), defaultBranch: branch, worktrees: worktrees.value, sessions, claims: heldClaims(git, sessions, states), activity: phaseActivity(states, workspaces, joinedActivity), views, ...(owner === undefined ? {} : { owner }) },
   };
-}
-
-function checkoutOwner(folder: SpecFolder): string | undefined {
-  const parsed = parseFrontmatter(readTextIfExists(join(folder.dir, "CLAUDE.md")) ?? "");
-  return parsed.kind === "ok" ? ownerOf(readSpecMeta(parsed.data)) : undefined;
 }
 

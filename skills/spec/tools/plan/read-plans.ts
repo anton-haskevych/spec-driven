@@ -1,7 +1,10 @@
 import { gitAt, gitCommonDir, type Git } from "../core/git";
 import type { Runner } from "../core/run";
 import { loadSettings } from "../playbook/settings";
-import type { MarksSource } from "../graph/nodes";
+import type { FieldsSource, MarksSource } from "../graph/nodes";
+import type { RecordFields } from "../graph/spec-fields";
+import { RECORD_LAYOUT } from "../record/layout";
+import type { SpecDoc } from "./docs/spec-doc";
 import { listOutbox, outboxDir, type OutboxEntry } from "../record/outbox";
 import { overlayIntents } from "../record/overlay";
 import { gitRecordReadPort, readRecord, recordViewOf, type RecordRead, type RecordReadOptions } from "../record/read";
@@ -12,6 +15,7 @@ import { joinedPhaseMarks, readJoinedPlan, stateSourceFor, type JoinedPlan, type
 export interface PlanSource {
   state: SpecSource;
   marks: MarksSource;
+  fields: FieldsSource;
   isJoined(spec: string): boolean;
   joined(spec: string): JoinedPlan | undefined;
   record: RecordRead;
@@ -43,6 +47,10 @@ export function planSourceOf(record: RecordRead, pending = 0): PlanSource {
       const joined = plan(spec);
       return joined ? joinedPhaseMarks(joined) : undefined;
     },
+    fields: (spec) => {
+      const joined = plan(spec)?.spec;
+      return joined && joined.layout >= RECORD_LAYOUT ? recordFieldsOf(joined) : undefined;
+    },
     isJoined: (spec) => plan(spec) !== undefined,
     joined: plan,
     record,
@@ -64,4 +72,8 @@ export function specStatesAt(projectDir: string, runner: Runner, now: Date): Spe
 // Hooks and the doctor never fetch: they read what the last fetch left.
 export function readLocalPlans(projectDir: string, runner: Runner, now: Date): PlanSource {
   return readPlans(gitAt(projectDir, runner), { fetch: false, now });
+}
+
+function recordFieldsOf({ status, owner, focus, ship }: SpecDoc): RecordFields {
+  return { ...(status ? { status } : {}), ...(owner ? { owner } : {}), ...(focus ? { focus } : {}), ...(ship ? { ship } : {}) };
 }

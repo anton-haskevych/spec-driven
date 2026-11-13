@@ -107,7 +107,7 @@ describe("one-spec readers of a joined spec (real git)", () => {
   });
 
   test("a joined spec whose record tasks are all done is finished, though its progress.md is a stub", () => {
-    const nodes = loadNodes(repo.dir, readLocalPlans(repo.dir, isolatedRunner, NOW).marks);
+    const nodes = loadNodes(repo.dir, readLocalPlans(repo.dir, isolatedRunner, NOW));
     expect(nodes.get("gamma")?.phases).toEqual([{ id: "1", done: true, deployed: false }]);
     expect(isFinished(nodes.get("gamma")!)).toBe(true);
     expect(isFinished(loadNodes(repo.dir).get("gamma")!)).toBe(false);

@@ -28,6 +28,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-plan-changes-as-built.md` — [phase 3b+] — planChangePlan vs phaseStatePlan, PLAN_INTENTS, dry run then send, parks
 - `decision-plan-notice-as-built.md` — [phase 4+] — plan-changed memory holds shapes; notice before result; hook only for seen specs
 - `decision-phase-4-tools-as-built.md` — [phase 4+] — plan apply draft, stub, tidy holders and edge keys, export without ids
+- `decision-phase-6-fields-and-prs-as-built.md` — [phase 6+] — four fields move; one copier; upgrade on touch, never queued
 
 ## Workarounds
 - `docs/specs/_ledger/workaround-test-a-hanging-origin-with-a-blackhole-address.md` — [general] — Test a hanging origin with http://10.255.255.1/…; a missing path fails at once

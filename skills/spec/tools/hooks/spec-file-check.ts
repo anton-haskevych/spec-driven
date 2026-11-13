@@ -13,7 +13,7 @@ import { linkIssues } from "../graph/checks";
 import { loadNodes } from "../graph/nodes";
 import { systemRunner, type Runner } from "../core/run";
 import { readLocalPlans, type PlanSource } from "../plan/read-plans";
-import { changedPlanParts, joinedEditProblem } from "./frozen-plan-edits";
+import { changedPlanParts, changedSpecFields, joinedEditProblem, movedFieldsProblem } from "./frozen-plan-edits";
 import { phaseEdgeIssues } from "../doctor/phase-edges";
 import { phaseGateIssues } from "../doctor/phase-gates";
 import { phaseScheduleIssues } from "../doctor/schedule";
@@ -53,7 +53,8 @@ function projectFileIssues(filePath: string, text: string, projectDir: string): 
 function specFileIssues(location: SpecFileLocation, filePath: string, text: string, projectDir: string, runner: Runner): Issue[] {
   if (location.pathInSpec === "CLAUDE.md") {
     const links = linkIssues(loadNodes(projectDir), location.spec.name, filePath);
-    return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links];
+    const upgraded = readLocalPlans(projectDir, runner, new Date()).fields(location.spec.name) !== undefined;
+    return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links, ...(upgraded ? movedFieldIssues(location, filePath, text, runner) : [])];
   }
   if (location.pathInSpec.startsWith("phases/") || location.pathInSpec === "progress.md") {
     const plans = readLocalPlans(projectDir, runner, new Date());
@@ -76,12 +77,19 @@ function frozenPlanIssues(location: SpecFileLocation, filePath: string, text: st
   return parts.length === 0 ? [] : [error(filePath, joinedEditProblem(location.spec.name, parts))];
 }
 
+function movedFieldIssues(location: SpecFileLocation, filePath: string, text: string, runner: Runner): Issue[] {
+  const committed = runner.run(["git", "show", `HEAD:./${basename(filePath)}`], { cwd: dirname(filePath) });
+  if (committed.code !== 0) return [];
+  const fields = changedSpecFields(committed.stdout, text);
+  return fields.length === 0 ? [] : [error(filePath, movedFieldsProblem(location.spec.name, fields))];
+}
+
 function phaseFileIssues(location: SpecFileLocation, projectDir: string, plans: PlanSource): Issue[] {
   const state = plans.state(location.spec);
   const pointer = location.pathInSpec;
   const playbooks = new Set(loadPlaybooks(projectDir).map((playbook) => playbook.name));
   return [
-    ...phaseEdgeIssues(state, loadNodes(projectDir, plans.marks), pointer),
+    ...phaseEdgeIssues(state, loadNodes(projectDir, plans), pointer),
     ...phaseScheduleIssues(state, isoDay(new Date()), pointer),
     ...taskPhaseIssues(state, pointer),
     ...phaseGateIssues(state, pointer),

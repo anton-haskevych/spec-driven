@@ -23,6 +23,7 @@ import { PLAN_USAGE, planCommand } from "./commands/plan";
 import { RECORD_USAGE, recordCommand } from "./commands/record";
 import { settingsReport } from "./commands/settings";
 import { SHIP_USAGE, shipCommand } from "./commands/ship";
+import { SPEC_STATUS_USAGE, specStatusCommand } from "./commands/spec-status";
 import { TREES_USAGE, treesCommand } from "./commands/trees";
 import { findProjectDir, findSpecs } from "./core/spec-folders";
 import { pilotCommandRefusal, type LocalPilot } from "./runtime/workflow-capabilities";
@@ -60,6 +61,7 @@ export const COMMANDS: Record<string, Command> = {
   focus: { usage: FOCUS_USAGE, run: (dir, args) => focusCommand(dir, args) },
   ship: { usage: SHIP_USAGE, run: (dir, args) => shipCommand(dir, args) },
   owner: { usage: OWNER_USAGE, run: (dir, args) => ownerCommand(dir, args) },
+  "spec-status": { usage: SPEC_STATUS_USAGE, run: (dir, args) => specStatusCommand(dir, args) },
   launch: { usage: LAUNCH_USAGE, run: (dir, args) => launchCommand(dir, args) },
   trees: { usage: TREES_USAGE, run: (dir, args) => treesCommand(dir, args) },
   record: { usage: RECORD_USAGE, run: (dir, args) => recordCommand(dir, args) },
