@@ -171,6 +171,7 @@ blockquote footer { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14
 .phase { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
 .phase:first-child { border-top: 0; }
 .st { font: 600 14px var(--sans); color: var(--todo-ink); white-space: nowrap; }
+.st.doing, .st.built { color: var(--move-ink); } .st.live { color: var(--done-ink); }
 .last { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; color: var(--muted); font-size: 15.5px; }
 .copy { align-self: flex-start; font: 700 16.5px var(--display); min-height: 46px; padding: 0 22px; background: var(--p0-bg); color: var(--p0-fg); border: 0; border-radius: 10px; cursor: pointer; }
 

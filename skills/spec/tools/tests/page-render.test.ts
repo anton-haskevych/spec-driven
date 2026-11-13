@@ -42,7 +42,7 @@ describe("the rendered page", () => {
   test("an opened card: the quote, the phases with their names, the copy line", () => {
     expect(html).toContain(`<section class="sheet" id="c90" data-view="card" data-id="c90" data-kind="card" data-stage="moving" hidden>`);
     expect(html).toContain(`<blockquote>“I like having the Upcoming Events … now it doesn&#x27;t show.”<footer><span>Chasity · imessage · Nov 11</span><span>1 more source</span></footer></blockquote>`);
-    expect(html).toContain(`<div class="phase"><i class="sq doing"></i><span>2 · Filter labels</span><span class="st">doing</span></div>`);
+    expect(html).toContain(`<div class="phase"><i class="sq doing"></i><span>2 · Filter labels</span><span class="st doing">doing</span></div>`);
     expect(html).toContain(`<span class="waits">waits on q12</span>`);
     expect(html).toContain(`data-copy="Card c90 &quot;Filters say what they hide&quot;`);
   });

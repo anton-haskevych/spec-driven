@@ -38,7 +38,7 @@ function coveredBy(card: PageCard): string[] {
 function phaseLine(card: PageCard, phase: PagePhase): string {
   const square = `<i class="sq${phase.square === "todo" ? "" : ` ${phase.square}`}"></i>`;
   const waiting = card.question && card.question.spec === phase.spec && card.question.phase === phase.id;
-  const status = waiting ? waits(`waits on ${card.question?.id}`) : `<span class="st">${esc(STAGE_WORDS[phase.stage] ?? phase.stage)}</span>`;
+  const status = waiting ? waits(`waits on ${card.question?.id}`) : `<span class="st ${phase.square}">${esc(STAGE_WORDS[phase.stage] ?? phase.stage)}</span>`;
   return `<div class="phase">${square}<span>${esc(`${phase.id}${phase.title ? ` · ${phase.title}` : ""}`)}</span>${status}</div>`;
 }
 

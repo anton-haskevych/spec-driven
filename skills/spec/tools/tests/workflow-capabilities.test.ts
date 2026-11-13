@@ -9,7 +9,7 @@ import { joinedRepo } from "./joined-repo";
 const pilot: LocalPilot = { kind: "local-pilot", spec: "checkout", phase: "2" };
 
 test("pilot refuses unready command families and unknown commands before dispatch", async () => {
-  for (const name of ["claim", "trees", "board", "list", "launch", "crew", "push", "publish-docs", "pr", "owner", "focus", "ship", "__proto__", "new-command"]) {
+  for (const name of ["claim", "trees", "board", "list", "launch", "crew", "push", "publish-docs", "pr", "owner", "focus", "ship", "page", "__proto__", "new-command"]) {
     expect(pilotCommandRefusal([name, "take", "checkout", "2"], pilot)).toContain("unavailable in local-pilot");
     expect(await run([name], "/missing", { workflow: pilot })).toContain("unavailable in local-pilot");
   }
