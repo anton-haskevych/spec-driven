@@ -35,5 +35,5 @@ that are currently on there to join the board that you just created for this spe
 
 ## Deliverables
 
-- [ ] card load --file <docs.json> writes prepared cards, sources and tags under their own ids in one validated batch at the tip, refusing an id already taken
-- [ ] card load --move-taken renumbers the existing cards whose ids the file uses (with their sources) to the next free numbers above the file's, and prints each old → new
+- [x] card load --file <docs.json> writes prepared cards, sources and tags under their own ids in one validated batch at the tip, refusing an id already taken
+- [x] card load --move-taken renumbers the existing cards whose ids the file uses (with their sources) to the next free numbers above the file's, and prints each old → new
