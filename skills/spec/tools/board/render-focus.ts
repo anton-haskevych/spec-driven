@@ -8,7 +8,7 @@ const READY_SHOWN = 3;
 const OTHER_SESSIONS_SHOWN = 5;
 const CLAIMS_SHOWN = 2;
 const STAGE: Record<NonNullable<FocusRow["stage"]>, string> = { prep: "prep", create: "draft" };
-const FLIGHT_SHORT: Partial<Record<FlightNext, string>> = { "ticked on branch, not merged": "on branch" };
+const FLIGHT_SHORT: Partial<Record<FlightNext, string>> = { "ticked on branch, not merged": "on branch", "built, PR not opened": "built, no PR" };
 
 export function focusSection(board: Board, now: Date, who?: string): string {
   const me = board.me ? personKey(board.me) : ME;

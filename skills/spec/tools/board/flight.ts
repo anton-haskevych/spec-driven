@@ -1,7 +1,8 @@
 import type { SpecState } from "../core/spec-state";
-import { isFinished, type SpecNode } from "../graph/nodes";
+import { hasFinishedStatus, isFinished, type SpecNode } from "../graph/nodes";
 import { phaseNeeds, readySet } from "../ready/ready-set";
 import type { PhaseActivity } from "./activity";
+import { shownPrGroup } from "./joined-activity";
 import { prClaimGroup } from "../claims/pr-claim";
 import { heldName } from "../claims/rules";
 import type { BoardInputs, HeldClaim } from "./inputs";
@@ -22,12 +23,12 @@ export function flightRows(activity: ReadonlyMap<string, PhaseActivity>, inputs:
   const claims = claimsOnBoard(inputs);
   return [...new Set([...activity.keys(), ...claims.keys()])]
     .map((key) => ({ ...splitKey(key), ...(activity.get(key) ?? NO_ACTIVITY), held: claims.get(key) }))
-    .filter(({ spec }) => isOnBoard(specNode(spec, inputs)))
+    .filter(({ spec, built }) => isOnBoard(specNode(spec, inputs)) || (built !== undefined && stillOpen(specNode(spec, inputs))))
     .toSorted((a, b) => KEY_ORDER.compare(rowKey(a), rowKey(b)))
-    .map(({ spec, phase, tickedIn, wipIn, held }): FlightRow => {
+    .map(({ spec, phase, tickedIn, wipIn, built, held }): FlightRow => {
       const [workspace = held?.status === "remote" ? "" : (held?.claim.workspace ?? ""), ...alsoIn] = tickedIn.length > 0 ? tickedIn : wipIn;
       const node = specNode(spec, inputs);
-      const prGroup = workspaceState(spec, workspace, inputs)?.phases.find((candidate) => candidate.id === phase)?.edges.pr ?? (phase === undefined ? undefined : prClaimGroup(phase));
+      const prGroup = (built ? shownPrGroup(built.prGroup) : undefined) ?? workspaceState(spec, workspace, inputs)?.phases.find((candidate) => candidate.id === phase)?.edges.pr ?? (phase === undefined ? undefined : prClaimGroup(phase));
       return {
         spec,
         phase,
@@ -37,7 +38,7 @@ export function flightRows(activity: ReadonlyMap<string, PhaseActivity>, inputs:
         ...(held ? { holder: heldName(held) } : {}),
         ...(node ? ownerField(node.meta) : {}),
         ...(workspace ? { target: { workspace } } : {}),
-        next: tickedIn.length > 0 ? "ticked on branch, not merged" : "executing",
+        next: built?.prNotOpened ? "built, PR not opened" : tickedIn.length > 0 || built ? "ticked on branch, not merged" : "executing",
       };
     });
 }
@@ -71,6 +72,11 @@ export function specNode(spec: string, inputs: BoardInputs): SpecNode | undefine
 
 export function isOnBoard(node: SpecNode | undefined): node is SpecNode {
   return node !== undefined && !isFinished(node) && node.status !== "paused";
+}
+
+// Every phase built reads as finished, yet the PR is still to open or merge: only an ending status closes it.
+function stillOpen(node: SpecNode | undefined): boolean {
+  return node !== undefined && !hasFinishedStatus(node) && node.status !== "paused";
 }
 
 function tickedByWorkspace(spec: string, activity: ReadonlyMap<string, PhaseActivity>): Map<string, Set<string>> {
