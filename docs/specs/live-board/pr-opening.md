@@ -36,11 +36,14 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   PR F, 2026-11-13: `2080 pass · 1 fail` across 295 files (337 s): the same `codex-packaged-entry` "source fixture
   completes …" timing failure (5446 ms against 5 s); alone with `--timeout 60000`: `1 pass · 0 fail`; typecheck
   clean; `bun install --frozen-lockfile` no changes.
+  PR G, 2026-11-13: `2125 pass · 1 fail` across 302 files (385 s): the same `codex-packaged-entry` "source fixture
+  completes …" timing failure (5385 ms against 5 s); alone with `--timeout 30000`: `4 pass · 0 fail`; typecheck clean;
+  `bun install --frozen-lockfile` no changes.
 - [x] `bun run typecheck` clean (PR A, 2026-11-11)
 - [x] `bun install --frozen-lockfile` clean (no new runtime dependencies) (PR A, 2026-11-11)
-- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`; PR D: 2.55.0, `All version declarations match: 2.55.0`; PR E: 2.56.0, `All version declarations match: 2.56.0`; PR F: 2.57.0, `All version declarations match: 2.57.0`, row under *Live board (2.53–2.57)*)
-- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230; PR F: largest touched `board/model.ts`, 243)
-- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D, E and F: `doctor: clean (1 spec)`)
+- [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`; PR D: 2.55.0, `All version declarations match: 2.55.0`; PR E: 2.56.0, `All version declarations match: 2.56.0`; PR F: 2.57.0, `All version declarations match: 2.57.0`, row under *Live board (2.53–2.57)*; PR G: 2.58.0, `All version declarations match: 2.58.0`, row under *Live board (2.53–2.58)*)
+- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230; PR F: largest touched `board/model.ts`, 243; PR G: largest new `page/styles.ts`, 225, `page/model.ts`, 196; `startPageServer` 45 lines)
+- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D, E, F and G: `doctor: clean (1 spec)`)
 - [x] With the board off, a file-based spec behaves as before: the pre-existing suites pass unchanged
   PR A: nothing reads the record yet; the same one timing failure as `bun test` above.
   PR B, 2026-11-12: full suite green; the only edited expectation is the frozen-plan hook naming `phase task`.
@@ -236,5 +239,21 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   $ laptop: the review ends at handoff
   session: rev ended; its document is removed
   documents left: 1
+  ```
+  PR G, 2026-11-13: no record here (this repo has the board off), so the page ran two ways. The real server from
+  this branch on this repo (`page --serve`): an honest empty page, `running.json` written and removed on SIGTERM,
+  about 54 MB resident and 0.0% CPU idle. The page on factory data over an in-memory record
+  (`tests/page-preview.ts`), driven in headless Chrome: answering "No reset" landed on the record, the count went
+  1 → 0 and the question left; screenshots at 1440 px, phone width and 125% dark, and a dead feed, in
+  `research/phase-10/`.
+  ```
+  $ spec.ts page --serve --port 41950   (this repo, board off)
+  page: serving http://127.0.0.1:41950
+  $ curl /health
+  {"ok":true,"pid":82131,"version":"2.57.0"}
+  $ ps -o rss,%cpu -p 82131 (after 18 s)
+  54224   0.0
+  $ preview: click "No reset" on q12
+  toast: question: q12 answered on phase 3: "No reset" (Anton) · title "Live board · crm" · count 0 · question rows 0
   ```
 - [x] The claims suites pass unchanged after `core/remote-push.ts` is lifted out (PR A: no diff in `tests/claims-*.ts`, 93 pass)

@@ -46,21 +46,10 @@ export async function startPageServer(deps: PageServerDeps): Promise<PageServer>
   let lastOpen = now();
   await deps.refresher.tick();
 
-  const send = (event: string, data: string) => {
-    const chunk = encoder.encode(`event: ${event}\ndata: ${data}\n\n`);
-    for (const client of clients) {
-      try {
-        client.enqueue(chunk);
-      } catch {
-        clients.delete(client);
-      }
-    }
-  };
-
   const cycle = async () => {
     const result = await deps.refresher.tick();
-    if (result.kind === "rebuilt") send("render", JSON.stringify(renderApp(result.model)));
-    else send("tick", String(now()));
+    if (result.kind === "rebuilt") broadcast(clients, "render", JSON.stringify(renderApp(result.model)));
+    else broadcast(clients, "tick", String(now()));
     if (clients.size > 0) lastOpen = now();
     else if (now() - lastOpen >= (deps.idleExitMs ?? IDLE_EXIT_MS)) deps.onIdle();
   };
@@ -78,17 +67,7 @@ export async function startPageServer(deps: PageServerDeps): Promise<PageServer>
         lastOpen = now();
         return events(req, clients);
       },
-      "/answer": {
-        POST: async (req) => {
-          const refusal = originRefusal(req.headers, server.port ?? deps.port);
-          if (refusal) return Response.json({ ok: false, line: `Refused: ${refusal}.` }, { status: 403 });
-          const body = await req.json().catch(() => undefined);
-          const reply = await deps.answer(body);
-          deps.refresher.rebuildNext();
-          void cycle();
-          return Response.json(reply.body, { status: reply.status });
-        },
-      },
+      "/answer": { POST: (req): Promise<Response> => answer(req, server.port ?? deps.port, deps, cycle) },
     },
     fetch: () => new Response("Not found", { status: 404 }),
   });
@@ -105,6 +84,28 @@ export async function startPageServer(deps: PageServerDeps): Promise<PageServer>
       void server.stop(true);
     },
   };
+}
+
+// After an answer the model is rebuilt at once, so every open page drops the question without waiting a tick.
+async function answer(req: Request, port: number, deps: PageServerDeps, cycle: () => Promise<void>): Promise<Response> {
+  const refusal = originRefusal(req.headers, port);
+  if (refusal) return Response.json({ ok: false, line: `Refused: ${refusal}.` }, { status: 403 });
+  const body = await req.json().catch(() => undefined);
+  const reply = await deps.answer(body);
+  deps.refresher.rebuildNext();
+  void cycle();
+  return Response.json(reply.body, { status: reply.status });
+}
+
+function broadcast(clients: Set<Client>, event: string, data: string): void {
+  const chunk = encoder.encode(`event: ${event}\ndata: ${data}\n\n`);
+  for (const client of clients) {
+    try {
+      client.enqueue(chunk);
+    } catch {
+      clients.delete(client);
+    }
+  }
 }
 
 function html(model: PageModel | undefined): Response {
