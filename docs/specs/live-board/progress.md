@@ -31,5 +31,6 @@
 - [x] Phase 9 — Sessions and work not on the remote → `phases/phase-9-sessions.md`
 - [x] Phase 10 — The page → `phases/phase-10-page.md`
 - [x] Phase 10a — Cards come in with their numbers → `phases/phase-10a-cards-come-in-with-their-numbers.md`
+- [ ] Phase 10aa — The page reads right for a whole board → `phases/phase-10aa-the-page-reads-right-for-a-whole-board.md`
 - [ ] Phase 11 — Academy's board moves over → `phases/phase-11-academy-moves-over.md`
 - [ ] Phase 12 — record export keeps labels in place → `phases/phase-12-record-export-keeps-labels-in-place.md`
