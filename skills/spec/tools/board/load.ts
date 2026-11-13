@@ -11,6 +11,7 @@ import { linkedPrNumbers } from "../pr/resolve";
 import { toPrRows, type PrRow } from "../pr/checks/rollup";
 import { heldClaims, remoteHeldClaims, withoutTakenOver } from "../claims/held";
 import { hostname } from "node:os";
+import { withLocalWork } from "./local-work";
 import { readSessions, SESSION_KEPT_DAYS } from "../sessions/list";
 import type { SessionDoc } from "../sessions/session-doc";
 import type { PlanSource } from "../plan/read-plans";
@@ -97,7 +98,7 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       prs,
       prDocs,
       prLinks: prLinks(states, workspaces, plans.prs),
-      sessionDocs: recentSessionDocs(plans, now),
+      sessionDocs: withLocalWork(recentSessionDocs(plans, now), hostname(), trees.ok ? trees.value.map((tree) => tree.path) : [], runners.runner),
       thisHost: hostname(),
       ...(request.ownSessionId ? { ownSessionId: request.ownSessionId } : {}),
     },
