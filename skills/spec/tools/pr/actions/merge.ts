@@ -15,6 +15,9 @@ import { parsePrNumber, resolvePr } from "../resolve";
 import { ghWrites } from "./gh-writes";
 import { withMergeLine, type MergeRecord } from "./merge-line";
 import { plansOnDemandAt } from "../../plan/read-plans";
+import type { PrObserved } from "../../plan/pr-sync";
+import { recordPr } from "../../plan/pr-sync-send";
+import type { Env } from "../../core/env";
 
 export interface MergeRequest {
   target: readonly string[];
@@ -26,6 +29,7 @@ export interface MergeRequest {
 export interface MergeDeps {
   runner: Runner;
   now: () => Date;
+  env?: Env;
 }
 
 interface Merged {
@@ -75,8 +79,14 @@ async function recordMerge(projectDir: string, request: MergeRequest, deps: Merg
   if (!spec) return `${result}\npr merge: merged; merge line not landed — ${view.headRefName} names no spec`;
 
   const record: MergeRecord = { pr: view.number, date: request.date ?? localDate(deps.now()), sha, ...(method ? { method } : {}) };
+  const onBoard = await recordPr(projectDir, spec, mergedSeen(view, record), "pr merge", { runner: deps.runner, env: deps.env ?? {}, now: deps.now });
+  if (onBoard.kind === "record") return [result, ...onBoard.notes].join("\n");
   const landing = await landOnMain(gitAt(projectDir, deps.runner), branch, (dir) => mergeLineEdit(dir, branch, spec, record));
   return landing.kind === "landed" || landing.kind === "unchanged" ? result : `${result}\npr merge: merged; merge line not landed — ${landing.reason}`;
+}
+
+function mergedSeen(view: PrView, { date, sha, method }: MergeRecord): PrObserved {
+  return { number: view.number, branch: view.headRefName, state: "merged", headRefOid: view.headRefOid, mergedAt: date, mergedSha: sha, ...(method ? { method } : {}) };
 }
 
 function mergeLineEdit(projectDir: string, branch: string, spec: string, record: MergeRecord): MainEditPlan<number> {
