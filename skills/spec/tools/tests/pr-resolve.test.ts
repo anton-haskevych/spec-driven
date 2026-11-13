@@ -67,7 +67,7 @@ describe("resolvePr", () => {
     tree = createTree();
     tree.spec("billing", phasedSpecFiles(TWO_GROUPS));
     const recordSaysB = (): SpecState => stateOf([{ id: "1", title: "Schema", pr: "B" }]);
-    const { result } = resolve(["billing"], [[["gh", "pr", "view", "feat/billing-pr-b"], view(903)]], { state: recordSaysB, prs: () => undefined });
+    const { result } = resolve(["billing"], [[["gh", "pr", "view", "feat/billing-pr-b"], view(903)]], { ...FILES_ONLY, state: recordSaysB });
     expect(result).toMatchObject({ ok: true, value: { view: { number: 903 } } });
   });
 
@@ -108,7 +108,7 @@ describe("resolvePr", () => {
   test("a spec on layout 2 links its PR documents' numbers, not pr-opening.md's", () => {
     tree = createTree();
     tree.spec("billing", { ...phasedSpecFiles([{ id: "1", title: "Schema", pr: "A" }]), "pr-opening.md": "## Spec state\n\nPR #779 merged.\n" });
-    const onRecord: SpecPlans = { state: FILES_ONLY.state, prs: () => [prDoc({ group: "A", branch: "feat/billing-pr-a", number: 812, state: "merged" })] };
+    const onRecord: SpecPlans = { ...FILES_ONLY, prs: () => [prDoc({ group: "A", branch: "feat/billing-pr-a", number: 812, state: "merged" })] };
     const { result } = resolve(["billing"], [[["gh", "pr", "view", "feat/billing-pr-a"], { code: 1, stderr: "no pull requests found" }], [["gh", "pr", "view", "812"], view(812, "MERGED")]], onRecord);
     expect(result).toMatchObject({ ok: true, value: { view: { number: 812 } } });
   });

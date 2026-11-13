@@ -71,13 +71,13 @@ export function readPlansAt(projectDir: string, runner: Runner, now: Date): Plan
   return readPlans(gitAt(projectDir, runner), { fetch: loadSettings(projectDir).board.record, now });
 }
 
-export type SpecPlans = Pick<PlanSource, "state" | "prs">;
+export type SpecPlans = Pick<PlanSource, "state" | "prs" | "joined">;
 
 // Opens the record on the first spec asked for: a command aimed at a PR number never reads it.
 export function plansOnDemandAt(projectDir: string, runner: Runner, now: Date): SpecPlans {
   let plans: PlanSource | undefined;
   const open = () => (plans ??= readPlansAt(projectDir, runner, now));
-  return { state: (spec) => open().state(spec), prs: (spec) => open().prs(spec) };
+  return { state: (spec) => open().state(spec), prs: (spec) => open().prs(spec), joined: (spec) => open().joined(spec) };
 }
 
 export function specStatesAt(projectDir: string, runner: Runner, now: Date): SpecSource {

@@ -5,7 +5,7 @@ import type { SpecState } from "../core/spec-state";
 import type { Result } from "../core/result";
 import type { PrDoc } from "../plan/docs/pr-doc";
 import type { SpecPlans } from "../plan/read-plans";
-import { treeName } from "../trees/naming";
+import { specOfBranch, treeName } from "../trees/naming";
 import type { GhClient } from "./gh";
 import type { PrView } from "./checks/types";
 import { pickGroup, prGroups } from "./groups";
@@ -29,6 +29,12 @@ export function specPrNumbers(prOpening: string): number[] {
 export function linkedPrNumbers(prOpening: string | undefined, prs: readonly PrDoc[] | undefined): number[] {
   if (!prs) return specPrNumbers(prOpening ?? "");
   return prs.flatMap((doc) => doc.number ?? []).toSorted((a, b) => a - b);
+}
+
+// The spec a pr command names, or the one its PR's branch names.
+export function specOfTarget(target: readonly string[], view: Pick<PrView, "headRefName">): string | undefined {
+  const [first] = target;
+  return first !== undefined && parsePrNumber(first) === undefined ? first : specOfBranch(view.headRefName);
 }
 
 export function parsePrNumber(target: string): number | undefined {

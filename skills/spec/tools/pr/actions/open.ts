@@ -17,7 +17,7 @@ import { readPlansAt } from "../../plan/read-plans";
 import type { Env } from "../../core/env";
 import { prObservedOf } from "../../plan/pr-observed";
 import type { PrObserved } from "../../plan/pr-sync";
-import { recordPr } from "../../plan/pr-sync-send";
+import { recordPr, type PrSyncDeps } from "../../plan/pr-sync-send";
 
 export interface OpenRequest {
   spec: string;
@@ -37,14 +37,16 @@ const SHORT_SHA = 7;
 export async function openPr(projectDir: string, request: OpenRequest, deps: OpenDeps): Promise<string> {
   const spec = resolveSpec(projectDir, request.spec);
   if (typeof spec === "string") return `pr open: ${spec}`;
-  const group = pickGroup(readPlansAt(projectDir, deps.runner, deps.now()).state(spec), request.group);
+  const plans = readPlansAt(projectDir, deps.runner, deps.now());
+  const group = pickGroup(plans.state(spec), request.group);
   if (!group.ok) return `pr open: ${group.reason}`;
 
   const branch = treeName(spec.name, group.value.name).branch;
   const git = gitAt(projectDir, deps.runner);
   const log = babysitLogger(git, deps.now);
   const existing = ghClient(projectDir, deps.runner).prView(branch);
-  const recorded = (line: string, seen: PrObserved) => withRecordNotes(projectDir, spec.name, line, seen, deps);
+  const joined = plans.joined(spec.name);
+  const recorded = async (line: string, seen: PrObserved) => (joined ? [...(await recordPr(projectDir, joined, seen, "pr open", recordDeps(deps))), line].join("\n") : line);
   if (existing.ok && existing.value.state === "OPEN") return reportOrMarkReady(existing.value, request.draft, projectDir, deps, log, recorded);
 
   const opened = createPr(projectDir, git, branch, { path: relative(projectDir, spec.dir), name: spec.name, group: group.value }, request.draft, deps.runner);
@@ -71,10 +73,8 @@ async function reportOrMarkReady(view: PrView, keepDraft: boolean, projectDir: s
   return recorded(`PR: #${view.number} marked ready · ${detail}`, { ...prObservedOf(view, false), state: "open" });
 }
 
-// The result line stays the last line: babysit reads it.
-async function withRecordNotes(projectDir: string, spec: string, line: string, seen: PrObserved, deps: OpenDeps): Promise<string> {
-  const onBoard = await recordPr(projectDir, spec, seen, "pr open", { runner: deps.runner, env: deps.env ?? {}, now: deps.now });
-  return onBoard.kind === "record" ? [...onBoard.notes, line].join("\n") : line;
+function recordDeps(deps: OpenDeps): PrSyncDeps {
+  return { runner: deps.runner, env: deps.env ?? {}, now: deps.now };
 }
 
 function readyDetail(outcome: ReadyOutcome, sha: string): string {
