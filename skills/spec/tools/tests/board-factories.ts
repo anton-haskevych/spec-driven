@@ -66,6 +66,7 @@ export function boardInputs(specs: readonly SpecFixture[], overrides: Partial<Bo
     claims: [],
     prs: "local",
     prLinks: new Map(),
+    prDocs: new Map(),
     ...overrides,
   };
 }

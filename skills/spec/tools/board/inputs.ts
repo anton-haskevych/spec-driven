@@ -1,6 +1,7 @@
 import type { HeldClaim } from "../claims/rules";
 import type { Result } from "../core/result";
 import type { PrRow } from "../pr/checks/rollup";
+import type { PrDoc } from "../plan/docs/pr-doc";
 import type { LiveSession } from "../sessions/live";
 import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
@@ -47,6 +48,8 @@ export interface BoardInputs {
   sessions: Result<LiveSession[]> | "local";
   claims: readonly HeldClaim[];
   prs: Result<PrRow[]> | "local";
+  // Spec → its PR documents as GitHub has them now; only specs on layout 2.
+  prDocs: ReadonlyMap<string, readonly PrDoc[]>;
   // Spec → PR numbers its pr-opening.md links, oldest first.
   prLinks: ReadonlyMap<string, readonly number[]>;
   ownSessionId?: string;

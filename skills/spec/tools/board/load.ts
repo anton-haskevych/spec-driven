@@ -17,6 +17,11 @@ import { canonicalPath, loadWorkspaces } from "../workspaces/list";
 import { loadWorkspaceViews } from "../workspaces/views";
 import type { BoardInputs, WorkspaceView } from "./inputs";
 import { joinedActivity } from "./joined-activity";
+import { boardPrDocs } from "./pr-sync";
+import { validateRecordDoc } from "../plan/kinds";
+import { prSyncPlan } from "../plan/pr-sync";
+import { gitRecordPort } from "../record/ref";
+import { writeRecord } from "../record/write";
 import { buildBoard } from "./lanes";
 import type { Board } from "./model";
 
@@ -65,6 +70,8 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
   const workspaces = loadWorkspaceViews(scans, nodes, plans.isJoined);
   // An unreadable worktree list falls back to the live ones, as claimContext falls back to claimed ones.
   const trees = loadWorkspaces(git);
+  const prs = prLists ? prRows(await prLists, settings.checks.external) : "local";
+  const prDocs = await syncedPrDocs(git, [...states.keys()], plans.prs, prs);
   return {
     ok: true,
     value: {
@@ -82,7 +89,8 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       backlogCount: backlog.length,
       sessions,
       claims: [...remote, ...local],
-      prs: prLists ? prRows(await prLists, settings.checks.external) : "local",
+      prs,
+      prDocs,
       prLinks: prLinks(states, workspaces, plans.prs),
       ...(request.ownSessionId ? { ownSessionId: request.ownSessionId } : {}),
     },
@@ -103,6 +111,15 @@ function prLinks(states: ReadonlyMap<string, SpecState>, workspaces: readonly Wo
     }
   }
   return links;
+}
+
+// PRs opened or merged on github.com reach their documents here as well as at pr status. A write that
+// doesn't land is retried by the next load.
+async function syncedPrDocs(git: Git, specs: readonly string[], docsOf: (spec: string) => PrDoc[] | undefined, prs: Result<PrRow[]> | "local"): Promise<Map<string, PrDoc[]>> {
+  const synced = boardPrDocs(specs, docsOf, prs !== "local" && prs.ok ? prs.value : []);
+  const port = synced.sightings.length > 0 ? gitRecordPort(git) : undefined;
+  if (port) await writeRecord(port, prSyncPlan(synced.sightings), { validate: validateRecordDoc });
+  return synced.docs;
 }
 
 // Resolved like worktree paths, so the board can match it against them.
