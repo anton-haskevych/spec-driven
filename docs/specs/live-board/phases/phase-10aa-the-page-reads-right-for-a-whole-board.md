@@ -37,10 +37,10 @@ Check against CRM's board (`spec.ts page` from `~/IdeaProjects/crm`) with the ch
 
 ## Deliverables
 
-- [ ] A done card covering a whole spec isn't flagged 'done, but <phase> is open'; only a cover that names phases is
-- [ ] A card's page shows its status (done or dropped, with when, who and why) and its note
-- [ ] A card covering a whole spec shows that spec's progress, not a square for each of its phases
-- [ ] Now shows one chip per person (people matched as owners are), and the chips never overlap
-- [ ] The count on Now matches its rows: the rows shown plus 'N more' add up to it
+- [x] A done card covering a whole spec isn't flagged 'done, but <phase> is open'; only a cover that names phases is
+- [x] A card's page shows its status (done or dropped, with when, who and why) and its note
+- [x] A card covering a whole spec shows that spec's progress, not a square for each of its phases
+- [x] Now shows one chip per person (people matched as owners are), and the chips never overlap
+- [x] The count on Now matches its rows: the rows shown plus 'N more' add up to it
 - [ ] Plan clamps a long tag summary to three lines, and hides a tag no open or done card carries
 - [ ] Checked in a real browser at 1440 and 390 px on CRM's board with Academy's cards: screenshots in the phase's research

@@ -75,7 +75,7 @@ describe("the page model", () => {
   });
 
   test("Plan: a row per tag, P0 first, with its reason, counts, panels per covering spec, Open and Done", () => {
-    expect(model.plan.map((row) => row.tag)).toEqual(["Schedule fixes", "Card fee", "No tag"]);
+    expect(model.plan.map((row) => row.tag)).toEqual(["Schedule fixes", "No tag"]);
     expect(model.plan[0]).toMatchObject({
       priority: "p0",
       reason: "Students can't find their classes",
@@ -88,8 +88,12 @@ describe("the page model", () => {
       open: ["c91"],
       done: ["c92"],
     });
-    expect(model.plan[1]).toMatchObject({ tag: "Card fee", counts: { done: 0, moving: 0, todo: 0 }, unfolded: false, closed: false });
-    expect(model.plan[2]).toMatchObject({ tag: "No tag", untagged: true, open: ["c93"], who: [{ person: "Taras", writing: false }] });
+    expect(model.plan[1]).toMatchObject({ tag: "No tag", untagged: true, open: ["c93"], who: [{ person: "Taras", writing: false }] });
+  });
+
+  test("Plan hides a tag no open or done card carries: one with no cards, or only dropped ones", () => {
+    const docs = { ...pageDocs(), [cardDocPath("c97")]: cardDoc({ id: "c97", title: "Gone", status: "dropped", tags: ["Card fee"], closed: { at: "2026-11-10", by: "Anton", why: "no" } }) };
+    expect(pageModel(pageInputs(docs)).plan.map((row) => row.tag)).not.toContain("Card fee");
   });
 
   test("the board rides along untouched", () => {

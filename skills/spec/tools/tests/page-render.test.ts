@@ -41,6 +41,7 @@ describe("the rendered page", () => {
     expect(html).toContain(`<div class="gh" data-rank="0">P0 <span class="more">1 project</span></div>`);
     expect(html).toMatch(/<details class="proj p0" [^>]*data-due="2026-11-12"[^>]* open><summary><span class="pri p0">P0<\/span><span class="pn"><b>Schedule fixes<\/b><span class="waits">1 waits on an answer<\/span>/);
     expect(html).toContain(`<span class="due late">overdue Nov 12</span>`);
+    expect(html).not.toContain("Card fee");
     expect(html).toContain(`<summary class="ph"><b><i class="sq live"></i>Done</b><span class="n">1<i class="chev"></i></span></summary>`);
   });
 
@@ -96,6 +97,14 @@ test("with no record: an honest empty page", () => {
   expect(html).toContain("Nothing waits on anyone.");
   expect(html).toContain("No projects yet");
   expect(html).toContain("<title>Live board · crm</title>");
+});
+
+test("Plan clamps a tag's summary to three lines and keeps the whole of it on hover", () => {
+  const model = pageModel();
+  const long = "Pass sync ".repeat(80).trim();
+  const html = renderApp({ ...model, plan: model.plan.map((row, index) => (index === 0 ? { ...row, waits: 0, reason: long } : row)) }).html;
+  expect(html).toContain(`<span class="reason" title="${long}">${long}</span>`);
+  expect(STYLES).toMatch(/\.pn \.reason \{[^}]*-webkit-line-clamp: 3;/);
 });
 
 test("every style block is closed, so no rule hides inside a phone-only query", () => {

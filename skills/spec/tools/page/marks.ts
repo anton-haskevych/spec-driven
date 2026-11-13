@@ -40,10 +40,6 @@ function phaseCounts(phases: readonly PagePhase[]): { done: number; moving: numb
   return { done: count(["live"]), moving: count(["doing", "built"]), todo: count(["todo"]) };
 }
 
-export function strip(phases: readonly PagePhase[]): string {
-  return `<span class="strip">${squares(phases)}</span>`;
-}
-
 function squares(phases: readonly PagePhase[]): string {
   return phases.map((phase) => `<i class="sq${phase.square === "todo" ? "" : ` ${phase.square}`}" title="${esc(`${phase.id}${phase.title ? ` · ${phase.title}` : ""}: ${phase.stage}`)}"></i>`).join("");
 }

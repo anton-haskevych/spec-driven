@@ -112,6 +112,7 @@ details.proj[open] > summary .chev { transform: rotate(45deg); }
 .pn b { font: 700 18px/1.2 var(--display); }
 details.p0 .pn b { font-size: 21px; font-weight: 800; }
 .pn > span:not(.waits) { color: var(--muted); font-size: 15px; line-height: 1.35; }
+.pn .reason { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
 .pprog { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 .pcount { display: flex; flex-wrap: wrap; gap: 3px 12px; font: 500 13.5px/1.2 var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; }
 .pcount span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
