@@ -11,6 +11,7 @@ import { anonymousRunner, isolatedAsyncRunner, isolatedRunner, repoWithOrigin, t
 import { cannedGh } from "./stub-runner";
 import { createTree } from "./tree";
 import { joinedRepo } from "./joined-repo";
+import type { PrDoc } from "../plan/docs/pr-doc";
 import { gitRecordPort } from "../record/ref";
 import { writeRecord } from "../record/write";
 import { RECORD_REF } from "../record/layout";
@@ -217,7 +218,7 @@ describe("board load on a joined spec (real git)", () => {
     try {
       const inputs = await loadBoardInputs(repo.dir, { local: false }, { ...runners, asyncRunner });
       if (!inputs.ok) throw new Error(inputs.reason);
-      const expected = { group: "default", branch: "feat/alpha", state: "merged", number: 50, headRefOid: "abc123", mergedSha: "fff999", mergedAt: "2026-11-12" };
+      const expected: PrDoc = { group: "default", branch: "feat/alpha", state: "merged", number: 50, headRefOid: "abc123", mergedSha: "fff999", mergedAt: "2026-11-12" };
       expect(inputs.value.prDocs.get("alpha")).toEqual([expected]);
       expect(JSON.parse(repo.git("--git-dir", repo.origin, "show", `${RECORD_REF}:${prDocPath("alpha", "default")}`))).toEqual(expected);
     } finally {
