@@ -8,6 +8,7 @@ phase 3a. Baseline: 443 s full suite, 439 s of it in 74 real-git files (`researc
 
 Partial merge (Anton, 2026-11-13: "this is good enough, please merge the work into the main"): PR A lands phases 1–3
 from `feat/fast-tests-pr-a`; phases 3a–9 follow in a later PR from a fresh branch.
+PR #48 merged 2026-11-13 as af987bd (squash).
 
 ## Pre-PR checks
 
