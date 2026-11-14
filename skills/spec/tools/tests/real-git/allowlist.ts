@@ -9,7 +9,7 @@ export const REAL_GIT_FILES: Record<string, string> = {
   "card-load-command.git.test.ts": "moves to fakes in phase 5",
   "claim-command.git.test.ts": "moves to fakes in phase 4",
   "claims-live.git.test.ts": "moves to fakes in phase 4",
-  "claims-remote.git.test.ts": "claims RemotePort: create-only push, lease take-over and pushers racing on a bare origin",
+  "claims-remote.git.test.ts": "remote port contract on gitRemotePort; the holder from git; pushers racing on a bare origin",
   "claims-store.git.test.ts": "claimsDir: every worktree of a clone shares git's common dir",
   "codex-entry.git.test.ts": "moves to fakes in phase 8",
   "codex-packaged-entry.git.test.ts": "the copied Codex CLI reaches stored context in a real workspace",
@@ -53,9 +53,8 @@ export const REAL_GIT_FILES: Record<string, string> = {
   "record-newer-layout.git.test.ts": "moves to fakes in phase 6",
   "record-plan-changes.git.test.ts": "moves to fakes in phase 5",
   "record-race.git.test.ts": "racing record writers on three clones: lease refusals and re-plans on real refs",
-  "record-read.git.test.ts": "readRecord: fetches the record ref and reads every document in one go",
   "record-readers.git.test.ts": "one-spec readers fetch a joined spec's record once",
-  "record-ref.git.test.ts": "gitRecordPort: blobs in one call, create-only and lease refs, offline, busy lock, not a branch",
+  "record-ref.git.test.ts": "record port and read-port contracts on gitRecordPort; blobs in one hash-object call, ref is not a branch",
   "record-tick-offline.git.test.ts": "moves to fakes in phase 6",
   "record-tick.git.test.ts": "moves to fakes in phase 6, keeping the Nov 11 two-machine lease race",
   "record-upgrade.git.test.ts": "moves to fakes in phase 6",
@@ -78,7 +77,7 @@ export const REAL_GIT_FILES: Record<string, string> = {
   "workspaces-scan.git.test.ts": "scanWorkspaces: the main checkout and worktrees from git worktree list",
 };
 
-export const REAL_GIT_CAP = 75;
+export const REAL_GIT_CAP = 74;
 
 export const HELPER_EXCEPTIONS: Record<string, string> = {
   "crew-deps.ts": "drops git-repo in phase 8",
@@ -126,8 +125,6 @@ export const REPO_BUILD_EXCEPTIONS: Record<string, string> = {
   "record-export.git.test.ts": "moves to fakes in phase 6",
   "record-mirror.git.test.ts": "one repo per file in phase 9",
   "record-newer-layout.git.test.ts": "moves to fakes in phase 6",
-  "record-read.git.test.ts": "one repo per file in phase 9",
-  "record-ref.git.test.ts": "one repo per file in phase 9",
   "record-tick.git.test.ts": "moves to fakes in phase 6",
   "record-upgrade.git.test.ts": "moves to fakes in phase 6",
   "runtime-legacy-readers.git.test.ts": "one repo per file in phase 9",

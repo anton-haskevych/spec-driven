@@ -5,9 +5,9 @@ import { join } from "node:path";
 import { answerFromPage, type AnswerDeps } from "../page/answer";
 import { validateRecordDoc } from "../plan/kinds";
 import { questionDocPath } from "../plan/kinds";
-import { blobVersion, parseDoc, serializeDoc } from "../record/document";
+import { blobVersion, serializeDoc } from "../record/document";
 import { sendIntent } from "../record/outbox";
-import { fakeRecord, type FakeRecord } from "./fake-record";
+import { docOf, fakeRecord, seedRecord, type FakeRecord } from "./fake-record";
 import { PAGE_NOW, pageDocs } from "./page-fixture";
 
 const Q12 = questionDocPath("schedule-fixes", "q12");
@@ -20,7 +20,7 @@ describe("answering a question from the page", () => {
 
   beforeEach(() => {
     record = fakeRecord();
-    record.landFromAnotherMachine(Object.entries(pageDocs()).map(([path, doc]) => ({ path, text: serializeDoc(doc) })));
+    seedRecord(record, pageDocs());
     outbox = join(mkdtempSync(join(tmpdir(), "spec-page-answer-")), "outbox");
     deps = {
       send: (intent, plan) => sendIntent(record, outbox, { session: undefined, command: "answer", args: intent }, {}, { validate: validateRecordDoc, pause: async () => {} }, PAGE_NOW, plan),
@@ -33,7 +33,7 @@ describe("answering a question from the page", () => {
   test("lands the answer with who and when, at the version the page showed", async () => {
     const reply = await answerFromPage({ spec: "schedule-fixes", id: "q12", text: "No reset", ifVersion: shown() }, deps);
     expect(reply).toEqual({ status: 200, body: { ok: true, line: 'question: q12 answered on phase 3: "No reset" (Anton)' } });
-    expect(parseDoc(record.filesAt(record.tip).get(Q12) ?? "")).toMatchObject({ answer: { text: "No reset", by: "Anton" } });
+    expect(docOf(record, Q12)).toMatchObject({ answer: { text: "No reset", by: "Anton" } });
   });
 
   test("a question changed since the page showed it is a conflict, and nothing is written", async () => {
