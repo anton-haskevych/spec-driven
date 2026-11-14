@@ -1,5 +1,5 @@
 ---
-needs: [8, 10a]
+needs: [8, 10a, 10aa]
 code: false
 gate: outward
 ---
@@ -43,7 +43,7 @@ archived, not deleted.
 
 ## Deliverables
 
-- [ ] The import has run: 90 cards, 399 sources and the groups are on CRM's board with their numbers, and `card check` is clean
+- [x] The import has run: 90 cards, 399 sources and the groups are on CRM's board with their numbers, and `card check` is clean — 2026-11-13: academy-board 2c92ff4 → CRM record ff131e652a: 99 cards (c01–c104 kept), 442 sources, 26 tags; CRM c1–c3 → c105–c107; card check clean
 - [ ] Gate: Anton confirms the Academy tag view reads right
 - [ ] The Academy skill uses the card commands; its MCP server, scripts and `ops/src/academy-board/` are removed in a merged CRM PR
 - [ ] `CRM-Dance/academy-board` is archived read-only

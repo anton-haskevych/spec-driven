@@ -34,6 +34,19 @@ describe("the page model", () => {
     expect(model.totals).toEqual({ done: 1, all: 4 });
   });
 
+  test("a card covering a whole spec says so; a spec it also names by phase is still whole", () => {
+    const docs = { ...pageDocs(), [cardDocPath("c96")]: cardDoc({ id: "c96", title: "All of it", status: "doing", coveredBy: ["schedule-fixes", "schedule-fixes#2"] }) };
+    const whole = pageModel(pageInputs(docs)).cards.find((each) => each.id === "c96");
+    expect(whole).toMatchObject({ whole: ["schedule-fixes"] });
+    expect(whole?.phases.map((phase) => phase.id)).toEqual(["1", "2", "3"]);
+    expect(card("c90")?.whole).toEqual([]);
+  });
+
+  test("an ended card carries how it ended and its note; it has no deadline", () => {
+    expect(card("c92")).toMatchObject({ closed: { at: "2026-11-13T09:00:00-08:00", by: "Anton", why: "merged" }, note: "Spec: schedule-fixes | Items: featured row", due: { kind: "none" } });
+    expect(card("c94")).toMatchObject({ status: "dropped", closed: { at: "2026-11-10", by: "Anton", why: "no" } });
+  });
+
   test("needs you: the record's question with its id and version first, then the board's rows in its own words", () => {
     expect(model.needs.rows[0]).toMatchObject({ kind: "question", mark: "Q", title: "Reset the Teachers pick each morning?", detail: "schedule-fixes · phase 3", owner: "Anton", question: { id: "q12" } });
     expect(model.needs.rows.filter((row) => row.kind === "question")).toHaveLength(1);
@@ -47,6 +60,12 @@ describe("the page model", () => {
     expect(model.needs.mine).toBe(model.needs.rows.length);
   });
 
+  test("one person spelled several ways is one count, matched as owners are", () => {
+    const close = (id: string, assignee: string) => cardDoc({ id, title: id, coveredBy: ["schedule-fixes#1"], assignee });
+    const docs = { ...pageDocs(), [cardDocPath("c95")]: close("c95", "Taras"), [cardDocPath("c96")]: close("c96", "Taras Korpach"), [cardDocPath("c97")]: close("c97", "taras") };
+    expect(pageModel(pageInputs(docs)).needs.others).toEqual([{ person: "Taras", count: 3 }]);
+  });
+
   test("sessions: writing now, and quiet with unpushed commits reads silent", () => {
     expect(model.sessions).toMatchObject([
       { person: "Anton", spec: "schedule-fixes", state: "writing" },
@@ -56,7 +75,7 @@ describe("the page model", () => {
   });
 
   test("Plan: a row per tag, P0 first, with its reason, counts, panels per covering spec, Open and Done", () => {
-    expect(model.plan.map((row) => row.tag)).toEqual(["Schedule fixes", "Card fee", "No tag"]);
+    expect(model.plan.map((row) => row.tag)).toEqual(["Schedule fixes", "No tag"]);
     expect(model.plan[0]).toMatchObject({
       priority: "p0",
       reason: "Students can't find their classes",
@@ -69,8 +88,12 @@ describe("the page model", () => {
       open: ["c91"],
       done: ["c92"],
     });
-    expect(model.plan[1]).toMatchObject({ tag: "Card fee", counts: { done: 0, moving: 0, todo: 0 }, unfolded: false, closed: false });
-    expect(model.plan[2]).toMatchObject({ tag: "No tag", untagged: true, open: ["c93"], who: [{ person: "Taras", writing: false }] });
+    expect(model.plan[1]).toMatchObject({ tag: "No tag", untagged: true, open: ["c93"], who: [{ person: "Taras", writing: false }] });
+  });
+
+  test("Plan hides a tag no open or done card carries: one with no cards, or only dropped ones", () => {
+    const docs = { ...pageDocs(), [cardDocPath("c97")]: cardDoc({ id: "c97", title: "Gone", status: "dropped", tags: ["Card fee"], closed: { at: "2026-11-10", by: "Anton", why: "no" } }) };
+    expect(pageModel(pageInputs(docs)).plan.map((row) => row.tag)).not.toContain("Card fee");
   });
 
   test("the board rides along untouched", () => {

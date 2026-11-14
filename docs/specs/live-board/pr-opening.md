@@ -16,6 +16,7 @@ PR #41 merged 2026-11-13 as cfde02a (squash).
 PR #42 merged 2026-11-13 as ea15598 (squash).
 PR #43 merged 2026-11-13 as 2f1f7bf (squash).
 PR #44 merged 2026-11-13 as 136d697 (squash).
+PR #46 merged 2026-11-13 as bdc8085 (squash).
 
 ## Pre-PR checks
 
@@ -43,11 +44,13 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   `bun install --frozen-lockfile` no changes.
   PR I, 2026-11-13: `2140 pass · 0 fail` across 304 files (341 s, load average 12); typecheck clean;
   `bun install --frozen-lockfile` no changes.
+  PR J, 2026-11-13: `2151 pass · 0 fail` across 304 files (357 s); typecheck clean; `bun install
+  --frozen-lockfile` no changes.
 - [x] `bun run typecheck` clean (PR A, 2026-11-11)
 - [x] `bun install --frozen-lockfile` clean (no new runtime dependencies) (PR A, 2026-11-11)
 - [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`; PR D: 2.55.0, `All version declarations match: 2.55.0`; PR E: 2.56.0, `All version declarations match: 2.56.0`; PR F: 2.57.0, `All version declarations match: 2.57.0`, row under *Live board (2.53–2.57)*; PR G: 2.58.0, `All version declarations match: 2.58.0`, row under *Live board (2.53–2.58)*; PR I: 2.59.0, `All version declarations match: 2.59.0`, row under *Live board (2.53–2.59)*)
-- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230; PR F: largest touched `board/model.ts`, 243; PR G: largest new `page/styles.ts`, 225, `page/model.ts`, 196; `startPageServer` 45 lines; PR I: largest new `cards/load.ts`, 104)
-- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D, E, F, G and I: `doctor: clean (1 spec)`)
+- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230; PR F: largest touched `board/model.ts`, 243; PR G: largest new `page/styles.ts`, 225, `page/model.ts`, 196; `startPageServer` 45 lines; PR I: largest new `cards/load.ts`, 104; PR J: largest touched `page/styles.ts`, 234)
+- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D, E, F, G and I: `doctor: clean (1 spec)`; PR J: `0 errors`, the two older warnings on phases 5 and 10a)
 - [x] With the board off, a file-based spec behaves as before: the pre-existing suites pass unchanged
   PR A: nothing reads the record yet; the same one timing failure as `bun test` above.
   PR B, 2026-11-12: full suite green; the only edited expectation is the frozen-plan hook naming `phase task`.
@@ -259,5 +262,17 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   54224   0.0
   $ preview: click "No reset" on q12
   toast: question: q12 answered on phase 3: "No reset" (Anton) · title "Live board · crm" · count 0 · question rows 0
+  ```
+  PR J, 2026-11-13: this branch's page over CRM's real board with Academy's 99 cards
+  (`tests/page-preview.ts 41990 --repo ~/IdeaProjects/crm`, read-only beside CRM's own server), headless Chrome
+  at 1440×900 and 390×844; table and screenshots in `research/phase-10aa/2026-11-13-10aa-browser-check.md`.
+  ```
+  done-but-open rows on Now   22 → 0
+  count vs rows               108 vs 3 + 126 more → 94 = 3 + 91 more; others fold apart (13)
+  Taras chips                 "Taras Korpach 8" "taras 5" "Taras 8" → "Taras 13", inside the box
+  whole-spec covers           30–49 squares a row → one bar (21/30); Plan panels: 33 bars, 9 squares
+  c30 (done)                  no state, no note → "Done Nov 3 by academy-board import: …", note, no deadline
+  Plan                        4 empty tags, 20-line summaries → none; tallest summary 3 lines
+  390 px                      no element past the viewport
   ```
 - [x] The claims suites pass unchanged after `core/remote-push.ts` is lifted out (PR A: no diff in `tests/claims-*.ts`, 93 pass)
