@@ -7,7 +7,7 @@ import { planExport } from "../plan/export";
 import { planJoin } from "../plan/join";
 import { joinedSpecState } from "../plan/state-source";
 import { planTidy } from "../plan/tidy";
-import { copyOf, specFiles, SPEC, type PhaseSpec } from "./join-fixtures";
+import { copyOf, phaseFile, pointer, specFiles, SPEC, type PhaseSpec } from "./join-fixtures";
 
 const PHASES: PhaseSpec[] = [
   { id: "1", done: true, deployed: "2026-11-10", tasks: [["a", true]] },
@@ -72,5 +72,57 @@ describe("planExport", () => {
     const plan = joined(files);
     const once = applied(files, planExport(plan, planFiles(files), true).files);
     expect(planExport(plan, planFiles(once), true).files).toEqual([]);
+  });
+
+  describe("free-text lines in the list (explicit-charge-handling, 2026-11-12)", () => {
+    const line = (id: string, done: boolean) => `- [${done ? "x" : " "}] Phase ${id} — P${id} → \`${pointer(id)}\``;
+    const v1 = ["1", "14", "14a"];
+    const v2 = ["8", "12"];
+    const progress = [
+      "# Explicit Charge Handling — Progress",
+      "",
+      "## Success metrics",
+      "",
+      "- Zero code paths return a pass visit outside ChargeReversal",
+      "",
+      "## Phases",
+      "",
+      "v1:",
+      ...v1.map((id) => line(id, false)),
+      "",
+      "v2:",
+      ...v2.map((id) => line(id, false)),
+      "",
+    ].join("\n");
+    const files = new Map([["progress.md", progress], ...[...v1, ...v2].map((id) => [pointer(id), phaseFile({ id, tasks: [`${id} one`] })] as const)]);
+
+    function allDone() {
+      const plan = joined(files);
+      return { ...plan, phases: plan.phases.map((doc) => ({ ...doc, tasks: doc.tasks.map((task) => ({ ...task, done: true })) })) };
+    }
+
+    const expected = progress.replace(/- \[ \]/g, "- [x]");
+
+    test("the labels stay where they stood and the list keeps the file's order", () => {
+      const exported = applied(files, planExport(allDone(), planFiles(files), true).files);
+      expect(exported.get("progress.md")).toBe(expected);
+    });
+
+    test("a tidied stub takes the list's layout from the frozen copy before the tidy", () => {
+      const tidied = applied(files, planTidy(SPEC, "2026-11-12", planFiles(files)));
+      const exported = applied(tidied, planExport(allDone(), planFiles(tidied), true, progress).files);
+      expect(exported.get("progress.md")).toBe(expected);
+    });
+
+    test("a phase added on the board goes after the phase before it; one dropped there goes", () => {
+      const plan = allDone();
+      const added = { ...plan.phases[1]!, id: "14b", title: "P14b", file: pointer("14b") };
+      const changed = { ...plan, phases: [...plan.phases.slice(0, 2), added, ...plan.phases.slice(2).filter((doc) => doc.id !== "12")] };
+      const withFile = new Map([...files, [pointer("14b"), phaseFile({ id: "14b", tasks: ["14b one"] })]]);
+      const text = applied(withFile, planExport(changed, planFiles(withFile), true).files).get("progress.md") ?? "";
+      expect(text).toContain(`${line("14", true)}\n${line("14b", true)}\n${line("14a", true)}`);
+      expect(text).toContain(`v2:\n${line("8", true)}\n`);
+      expect(text).not.toContain("phase-12.md");
+    });
   });
 });

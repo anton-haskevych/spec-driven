@@ -1,9 +1,11 @@
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { applyEdits } from "../core/apply-edits";
 import { readTextIfExists } from "../core/files";
-import { gitAt } from "../core/git";
+import { gitAt, type Git } from "../core/git";
+import { defaultBranch } from "../core/run";
 import { resolveSpec } from "../core/spec-folders";
-import { planExport } from "../plan/export";
+import { hasPhaseLines, planExport } from "../plan/export";
+import { frozenProgress } from "../plan/frozen-progress";
 import { readPlans } from "../plan/read-plans";
 import type { JoinedPlan } from "../plan/state-source";
 import { gitRecordPort } from "../record/ref";
@@ -24,7 +26,9 @@ export async function recordExport(projectDir: string, spec: string, unjoin: boo
     const text = read(doc.file);
     return text === undefined ? [] : [{ pointer: doc.file, text }];
   });
-  const exported = planExport(plan, { progress: read("progress.md") ?? "", phases }, unjoin);
+  const progress = read("progress.md") ?? "";
+  const frozen = hasPhaseLines(progress) ? undefined : frozenAtDefault(projectDir, git, join(folder.dir, "progress.md"), deps);
+  const exported = planExport(plan, { progress, phases }, unjoin, frozen);
   if (exported.missing.length > 0) return `export: refused, nothing written. ${exported.missing.join(", ")} not in this tree; export from a tree that has every phase file.`;
   applyEdits({ kind: "ok", edits: exported.files.map(({ pointer, text }) => ({ file: join(folder.dir, pointer), text })) });
   const written = `export: ${spec} written to files (${countsOf(plan)})`;
@@ -32,6 +36,11 @@ export async function recordExport(projectDir: string, spec: string, unjoin: boo
   const port = gitRecordPort(git);
   if (!port) return `${written}; still on the board: this repo has no origin`;
   return `${written}${unjoinPart(await writeRecord(port, unjoinPlan(spec), { validate: deps.validate }))}`;
+}
+
+function frozenAtDefault(projectDir: string, git: Git, file: string, deps: RecordDeps): string | undefined {
+  const branch = defaultBranch(projectDir, deps.runner);
+  return branch ? frozenProgress(git, `origin/${branch}`, relative(projectDir, file)) : undefined;
 }
 
 function unjoinPlan(spec: string): RecordPlan {
