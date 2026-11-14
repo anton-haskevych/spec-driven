@@ -4,7 +4,7 @@ import { resolveSpec } from "../core/spec-folders";
 import { diskReader } from "../core/spec-state";
 import { fromTreePlan } from "../plan/join-from-tree";
 import { validateRecordDoc } from "../plan/kinds";
-import { gitRecordPort } from "../record/ref";
+import { recordPortsOf } from "../core/git-seams";
 import { writeRecord, type StoreWrite } from "../record/write";
 import { ownSessionId } from "../sessions/own";
 import type { JoinDeps } from "./join";
@@ -12,7 +12,7 @@ import type { JoinDeps } from "./join";
 // Never queued, like join: it reads this tree against the record as it is now.
 export async function joinFromTree(projectDir: string, spec: string, deps: JoinDeps): Promise<string> {
   const git = gitAt(projectDir, deps.runner);
-  const port = gitRecordPort(git);
+  const port = recordPortsOf(git, deps)?.port;
   if (!port) return "join: this repo has no origin; the board's record lives there";
   const folder = resolveSpec(projectDir, spec);
   if (typeof folder === "string") return `join: ${folder}`;

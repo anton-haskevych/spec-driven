@@ -6,7 +6,7 @@ import { resolveSpec } from "../core/spec-folders";
 import { planExport } from "../plan/export";
 import { readPlans } from "../plan/read-plans";
 import type { JoinedPlan } from "../plan/state-source";
-import { gitRecordPort } from "../record/ref";
+import { recordPortsOf } from "../core/git-seams";
 import { writeRecord, type RecordPlan, type StoreWrite } from "../record/write";
 import type { RecordDeps } from "./record";
 
@@ -29,7 +29,7 @@ export async function recordExport(projectDir: string, spec: string, unjoin: boo
   applyEdits({ kind: "ok", edits: exported.files.map(({ pointer, text }) => ({ file: join(folder.dir, pointer), text })) });
   const written = `export: ${spec} written to files (${countsOf(plan)})`;
   if (!unjoin) return `${written}; still on the board`;
-  const port = gitRecordPort(git);
+  const port = recordPortsOf(git, deps)?.port;
   if (!port) return `${written}; still on the board: this repo has no origin`;
   return `${written}${unjoinPart(await writeRecord(port, unjoinPlan(spec), { validate: deps.validate }))}`;
 }

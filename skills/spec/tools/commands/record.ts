@@ -1,12 +1,11 @@
 import { ago } from "../board/cells";
 import type { Env } from "../core/env";
 import { gitAt, gitCommonDir, type Git } from "../core/git";
+import { recordPortsOf, type Seamed } from "../core/git-seams";
 import { systemRunner, type Runner } from "../core/run";
-import { RECORD_TRACKING_REF } from "../record/layout";
 import { readRecordCopy, refreshRecordCopy } from "../record/mirror";
 import { dropEntry, flushOutbox, listOutbox, outboxDir, refusedFor, type IntentRunners } from "../record/outbox";
 import type { Validate } from "../record/plan-writes";
-import { gitRecordPort } from "../record/ref";
 import { ownSessionId } from "../sessions/own";
 import { intentRunners } from "../plan/intents";
 import { validateRecordDoc } from "../plan/kinds";
@@ -14,7 +13,7 @@ import { EXPORT_USAGE, recordExport } from "./record-export";
 
 export const RECORD_USAGE = `record status | sync | drop <n> | ${EXPORT_USAGE.replace("record ", "")}`;
 
-export interface RecordDeps {
+export interface RecordDeps extends Seamed {
   runner: Runner;
   env: Env;
   now: () => Date;
@@ -49,13 +48,13 @@ export async function recordCommand(projectDir: string, args: readonly string[],
 }
 
 function statusLine(world: RecordWorld): string {
-  const tip = world.git.out(["rev-parse", "--verify", "-q", RECORD_TRACKING_REF]);
-  const tipPart = tip.ok ? `tip ${tip.value.slice(0, 7)}` : "no record fetched yet";
+  const tip = recordPortsOf(world.git, world.deps)?.read.trackingTip();
+  const tipPart = tip ? `tip ${tip.slice(0, 7)}` : "no record fetched yet";
   return [tipPart, copyPart(world), ...outboxParts(world)].join(" · ");
 }
 
 async function syncLine(world: RecordWorld): Promise<string> {
-  const port = gitRecordPort(world.git);
+  const port = recordPortsOf(world.git, world.deps)?.port;
   if (!port) return "this repo has no origin; the board's record lives there";
   const flushed = await flushOutbox(port, world.outbox, world.deps.runners(world.git), { validate: world.deps.validate });
   if (flushed.kind === "offline") return offlineLine(world);

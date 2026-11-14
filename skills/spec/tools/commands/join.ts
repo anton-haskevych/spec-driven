@@ -9,7 +9,8 @@ import { findSpecs } from "../core/spec-folders";
 import { loadSpecStateFromFiles } from "../core/spec-state";
 import { isPlainObject } from "../record/document";
 import { stampedBy } from "../sessions/facts";
-import { gitRecordPort, type RecordPort } from "../record/ref";
+import type { RecordPort } from "../record/ref";
+import { recordPortsOf, type Seamed } from "../core/git-seams";
 import { writeRecord, type RecordPlan, type StoreWrite } from "../record/write";
 import { boardBase } from "../plan/board-base";
 import type { PhaseDoc } from "../plan/docs/phase-doc";
@@ -31,7 +32,7 @@ export const JOIN_USAGE = "join <spec> [--from-tree | --tidy]";
 const FROM_TREE = "--from-tree";
 const TIDY = "--tidy";
 
-export interface JoinDeps {
+export interface JoinDeps extends Seamed {
   runner: Runner;
   asyncRunner: AsyncRunner;
   now: () => Date;
@@ -58,7 +59,7 @@ export async function joinCommand(projectDir: string, args: readonly string[], d
   const branch = defaultBranch(projectDir, deps.runner);
   if (!branch) return `join: ${NO_DEFAULT_BRANCH.replace("nothing pushed", "nothing written")}`;
   const git = gitAt(projectDir, deps.runner);
-  const port = gitRecordPort(git);
+  const port = recordPortsOf(git, deps)?.port;
   if (!port) return "join: this repo has no origin; the board's record lives there";
   const joining = { git, branch, port, spec, gh: ghClient(projectDir, deps.runner) };
   const copies = await readCopies(joining, deps);

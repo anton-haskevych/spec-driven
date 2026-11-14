@@ -1,9 +1,9 @@
 import { gitAt } from "../core/git";
+import { recordPortsOf } from "../core/git-seams";
 import { defaultBranch } from "../core/run";
 import { boardBase } from "../plan/board-base";
 import { validateRecordDoc } from "../plan/kinds";
 import type { PhaseDeps } from "../plan/phase-writer";
-import { gitRecordPort } from "../record/ref";
 import { writeRecord, type RecordPlan } from "../record/write";
 import { once, sessionFactsOf, treeFolder } from "../sessions/facts";
 import { claudeSessionRef, sessionDocPath, SESSION_MODES, type SessionMode } from "../sessions/session-doc";
@@ -40,7 +40,7 @@ async function register(projectDir: string, deps: PhaseDeps, change: Required<Pi
   if (!facts) return "session: nothing registered; this session has no id";
   const branch = defaultBranch(projectDir, deps.runner);
   if (!branch) return `session: nothing registered. ${NO_DEFAULT_BRANCH.replace("nothing pushed", "nothing written")}`;
-  const port = gitRecordPort(git);
+  const port = recordPortsOf(git, deps)?.port;
   if (!port) return "session: nothing registered. This repo has no origin; the board's record lives there.";
   const base = await boardBase(git, branch, "a registration");
   if (!base.ok) return `session: nothing registered. ${base.reason}`;
@@ -56,7 +56,7 @@ async function end(projectDir: string, deps: PhaseDeps): Promise<string> {
   const ref = claudeSessionRef(deps.env);
   if (!ref) return "session: nothing to end; this session has no id";
   const git = gitAt(projectDir, deps.runner);
-  const port = gitRecordPort(git);
+  const port = recordPortsOf(git, deps)?.port;
   if (!port) return "session: nothing to end; this repo has no origin";
   const path = sessionDocPath(ref);
   const plan: RecordPlan = (view) => (view.version(path) === undefined ? { unchanged: true } : { ops: [{ op: "delete", path }], message: "record: session ended" });
