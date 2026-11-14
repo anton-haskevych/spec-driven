@@ -3,7 +3,8 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, relative } from "node:path";
 import { systemRunner } from "../core/run";
-import { HELPER_EXCEPTIONS, REAL_GIT_CAP, REAL_GIT_FILES } from "./real-git/allowlist";
+import { HELPER_EXCEPTIONS, REAL_GIT_CAP, REAL_GIT_FILES, REPO_BUILD_EXCEPTIONS } from "./real-git/allowlist";
+import { repoBuildsOutsideBeforeAll } from "./real-git/repo-builds";
 import { importScanner, TEST_SUFFIX, testFilesUnder } from "./real-git/scan";
 import { TRIPWIRE_LOG_ENV } from "./real-git/tripwire";
 
@@ -50,6 +51,19 @@ describe("real-git test allowlist", () => {
         ? `REAL_GIT_FILES has ${listed.length} entries; REAL_GIT_CAP is ${REAL_GIT_CAP}.\nMove the logic to the fakes, or raise REAL_GIT_CAP in this diff and say why in the PR.`
         : `REAL_GIT_FILES has ${listed.length} entries; lower REAL_GIT_CAP to ${listed.length}.`;
     expect(listed.length === REAL_GIT_CAP ? "" : message).toBe("");
+  });
+
+  test("repos are built once per file", () => {
+    const gitFiles = testFiles.filter((file) => file.endsWith(GIT_SUFFIX));
+    const builds = new Map(gitFiles.map((file) => [named(file), repoBuildsOutsideBeforeAll(readFileSync(file, "utf8"))]));
+    const offenders = [...builds].filter(([file, found]) => found.length > 0 && !Object.hasOwn(REPO_BUILD_EXCEPTIONS, file));
+    const messages = offenders.map(([file, found]) => {
+      const places = found.map(({ line, builder, where }) => `${file}:${line} calls ${builder} ${where === "collection time" ? "at collection time" : `inside ${where}`}`);
+      return `${places.join("\n")}\nBuild it in beforeAll and reset what a test changes, or move the test to the fakes.`;
+    });
+    expect(messages).toEqual([]);
+    const fixed = Object.keys(REPO_BUILD_EXCEPTIONS).filter((file) => (builds.get(file) ?? []).length === 0);
+    expect(fixed, "these now build in beforeAll (or are gone): drop them from REPO_BUILD_EXCEPTIONS").toEqual([]);
   });
 
   test("only the real-git helpers and the named exceptions import them", () => {
