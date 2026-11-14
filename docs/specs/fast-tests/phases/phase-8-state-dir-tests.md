@@ -36,3 +36,4 @@ one real test of the workspace check; trees-command and trees-prune keep cut/reu
 
 - Per commit: `test:fast` plus the `.git` files covering what you touched; full `bun test` before ticking the last item.
 - Handoff lists every removed test name and where its git behaviour is still proven (fake test or `<file>.git.test.ts:<test>`).
+- Phase 3 trace: trees-place-owner also cuts real worktrees in its "placed" cases (`addTree`), like trees-command. Its refusals go to fakes; the placing cases stay real or fold into trees-command's kept cut test.

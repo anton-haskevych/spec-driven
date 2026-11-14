@@ -34,12 +34,12 @@ Order:
 
 ## Deliverables
 
-- [ ] Trace: run each phase 4–8 target test once under a recording runner; list every git argv per command in `technical.md` §4, each marked "seam" or "`gitStub` answer"
-- [ ] `GitSeams` + `recordPortsOf(git, deps)` (write port and a linked read port) with unit tests on fakes; `recordWorld` built on it, still keeping a port without a branch
-- [ ] Route plan, session, card/land, join, join-from-tree, record-export, record through `recordPortsOf`, each keeping its own branch check and refusal order; `record status` via `read.trackingTip()`; existing tests unchanged and green
-- [ ] Read helpers take deps: `readPlans` gets `read` in its options (default keeps `fetchTimeoutMs`); `readPlansAt`/`readLocalPlans`/`plansOnDemandAt` take `{ runner, seams? }`; phaseContext, write-notice, question, card send, spec-field-write, join-tidy pass deps
-- [ ] `joinedDocs` (+ `joinedRepo` uses it), `joinedFiles`, `withSettings`, `gitStub` as a `strictRunner` in `stub-runner.ts`, `command-deps.ts`; one record-write test running with no real git
-- [ ] doctor-file on fakes: `spec.ts run()` passes a runner to `doctor` (it asks git for origin through `readPlans`); `doctor-file.git.test.ts` → `doctor-file.test.ts`, its allowlist line removed, `REAL_GIT_CAP` lowered
+- [x] Trace: run each phase 4–8 target test once under a recording runner; list every git argv per command in `technical.md` §4, each marked "seam" or "`gitStub` answer"
+- [x] `GitSeams` + `recordPortsOf(git, deps)` (write port and a linked read port) with unit tests on fakes; `recordWorld` built on it, still keeping a port without a branch
+- [x] Route plan, session, card/land, join, join-from-tree, record-export, record through `recordPortsOf`, each keeping its own branch check and refusal order; `record status` via `read.trackingTip()`; existing tests unchanged and green
+- [x] Read helpers take deps: `readPlans` gets `read` in its options (default keeps `fetchTimeoutMs`); `readPlansAt`/`readLocalPlans`/`plansOnDemandAt` take `{ runner, seams? }`; phaseContext, write-notice, question, card send, spec-field-write, join-tidy pass deps
+- [x] `joinedDocs` (+ `joinedRepo` uses it), `joinedFiles`, `withSettings`, `gitStub` as a `strictRunner` in `stub-runner.ts`, `command-deps.ts`; one record-write test running with no real git
+- [x] doctor-file on fakes: `spec.ts run()` passes a runner to `doctor` (it asks git for origin through `readPlans`); `doctor-file.git.test.ts` → `doctor-file.test.ts`, its allowlist line removed, `REAL_GIT_CAP` lowered
 
 ## Phase-local notes
 

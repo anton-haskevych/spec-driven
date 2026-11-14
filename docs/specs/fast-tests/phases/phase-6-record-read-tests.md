@@ -36,3 +36,5 @@ refresh (`record/mirror.ts:35` needs `git archive`).
 
 - Per commit: `test:fast` plus the `.git` files covering what you touched; full `bun test` before ticking the last item.
 - Handoff lists every removed test name and where its git behaviour is still proven (fake test or `<file>.git.test.ts:<test>`).
+- record-upgrade reaches real GitHub today (`gh pr view` from `copyFromFolder`, phase 3 trace): answer it in `gitStub`'s `answers`.
+- trees-place-joined cuts a real worktree when it places (`addTree`: `fetch`, `show-ref`, `worktree add`; phase 3 trace). Move its refusal and board-reading cases to fakes; a case that places keeps real git or moves to `trees-acquire.git`.

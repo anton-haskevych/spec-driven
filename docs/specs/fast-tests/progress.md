@@ -17,7 +17,7 @@
 
 - [x] Phase 1 — Guard and two speeds → `phases/phase-1-guard-and-two-speeds.md`
 - [x] Phase 2 — Contract suite → `phases/phase-2-contract-suite.md`
-- [ ] Phase 3 — Command tests can take the fakes → `phases/phase-3-command-seam.md`
+- [x] Phase 3 — Command tests can take the fakes → `phases/phase-3-command-seam.md`
 - [ ] Phase 3a — Board, land and remote seams → `phases/phase-3a-board-land-and-remote-seams.md`
 - [ ] Phase 4 — Claims and board tests on fakes → `phases/phase-4-claims-tests.md`
 - [ ] Phase 5 — Record-writing command tests on fakes → `phases/phase-5-record-write-tests.md`

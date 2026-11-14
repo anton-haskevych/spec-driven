@@ -80,14 +80,84 @@ The ports:
 
 ## 4. Command seam
 
-### Phase 3 starts with a trace
+### The trace (phase 3, 2026-11-13)
 
-Run each phase 4–8 target test once under a recording runner, and list here every git argv each command reaches. Each argv is marked **seam** (behind `GitSeams`) or **stub** (answered by `gitStub`). The tables below are the starting plan, and the trace corrects them. Known so far, beyond the record ports:
-- **Board load** (`board/load.ts:62-80`): `defaultBranch`, then `loadMainline` (`mainline/load.ts:39-50`: pin fetch, `log -1`, `baseProject` archive, `rev-parse --show-prefix`, `readPlans`), `scanWorkspaces` (`for-each-ref`) and `loadWorkspaces` (`worktree list`).
-- **Claim** (`commands/claim.ts:66-92`): `claimsDir`, `loadWorkspaces`, `readHolder`, and `pushAfterTake` (symbolic-ref + push).
-- **`recordWorld`** (`plan/record-send.ts:33-51`): `defaultBranch` (falls back to `gh`), `treeFolder` (`show-toplevel`), `sessionFactsOf` (`treeWork`), `intentRunners`.
-- **Record** (`commands/record.ts:51-69`): `status` runs `rev-parse` on the tracking ref (move it to `read.trackingTip()`); `sync` runs `refreshRecordCopy` (`record/mirror.ts:35`, `git archive`).
-- **Join** (`commands/join.ts:88`): `readTreeCopies` (worktree scan). **Join-tidy** (`commands/join-tidy.ts:33-40`): `pinDefault`, `specDirAt`, `tidyHolders`.
+Each phase 4–8 target file ran once with `systemRunner`/`systemAsyncRunner` wrapped in a recorder (a `--preload`
+that logs argv plus the calling function from the stack); calls made by the test's own repo setup are left out. Every
+git argv falls in one group, marked **seam** (behind `GitSeams`) or **stub** (answered by `gitStub` or its `answers`).
+
+| Group | Mark | Argv (normalized) |
+|---|---|---|
+| `recordPorts` | seam, phase 3 | `remote get-url origin`; `fetch -q --no-tags origin +refs/spec-board/record:refs/spec-board-remote/record`; `ls-remote --exit-code origin refs/spec-board/record`; `rev-parse --verify -q refs/spec-board-remote/record`; `update-ref [-d] refs/spec-board-remote/record`; `ls-tree -r -z`; `cat-file blob` / `--batch`; `hash-object -w --stdin-paths`; commitOnto's `read-tree`, `update-index -z --index-info`, `write-tree`, `commit-tree … -m record: …`; `push --porcelain --no-verify --force-with-lease=refs/spec-board/record:…`; the read port's `--git-common-dir` (fetched stamp) |
+| `land` | seam, 3a | `rev-parse --verify --quiet refs/remotes/origin/<b>^{commit}`, `hash-object -w --stdin`, commitOnto (non-record message), `push --porcelain --no-verify --force-with-lease=refs/heads/<b>:<sha>` |
+| `boardBase` | seam, 3a | board-base's and upgrade-send's `rev-parse --verify --quiet refs/remotes/origin/<b>^{commit}`, pinDefault's `fetch -q origin <b>`, baseProject's `--git-common-dir` + `--show-prefix`, base-cache's `ls-tree -r --name-only -z` + `archive --format=tar` |
+| `mainline` | seam, 3a | pinBase's `rev-parse … origin/<b>^{commit}`, `log -1 --format=%cI <sha>`, then the base-cache reads |
+| `remote` | seam, 3a | claims remote port: `remote get-url origin` and the `refs/spec-claims/*` pushes and fetches |
+| `commonDir`, `toplevel`, `defaultBranch`, `branch`, `head`, `ident`, `treeWork` | stub (named) | `rev-parse --path-format=absolute --git-common-dir`; `rev-parse --show-toplevel`; `symbolic-ref --short refs/remotes/origin/HEAD` (+ `gh repo view` fallback); `branch --show-current`, `symbolic-ref --short -q HEAD`; `rev-parse HEAD`; `var GIT_AUTHOR_IDENT` (plain and `-c user.useConfigOnly=true -c user.email=spec-driven@invalid`); `--no-optional-locks status --porcelain -z --untracked-files=normal`, `remote`, `rev-list --count HEAD --not --remotes` |
+| `worktrees` | stub (`answers`) | `--no-optional-locks worktree list --porcelain`; `for-each-ref --format=%(refname:short) %(ahead-behind:<sha>) refs/heads`; workspaceSpecChanges' `diff --name-only -z` + `status --porcelain -z --untracked-files=all` (board load, join's readTreeCopies) |
+| `holders` | stub (`answers`) | join-tidy's tidyHolders: `diff --name-only -z <sha>...HEAD`, `status … --untracked-files=all`, `fetch -q --prune origin +refs/heads/feat/<spec>*:…`, `for-each-ref refs/remotes/origin/feat/<spec>*` |
+| `push` | stub (`answers`) | publish/push.ts: `symbolic-ref --short -q HEAD`, `rev-parse --verify -q refs/remotes/origin/<b>`, `rev-parse --abbrev-ref --symbolic-full-name @{u}`, `rev-list --count [--first-parent] …`, `fetch -q origin main`, `status --porcelain -z`, `push --porcelain [-u] [--no-verify] origin HEAD:refs/heads/<b>`; push-commit's `fetch`, `merge-base --is-ancestor`, `push` (record-tick, pr-open, publish-commands) |
+| `originTip`, `check-attr`, crew and pr facts | stub (`answers`) | `rev-parse --verify --quiet refs/remotes/origin/main^{commit}` outside a seam (join-tidy, trees-prune); doctor's `check-attr merge -- …`; spec-file-check's `show HEAD:./CLAUDE.md`; crew close-out's `fetch -q origin <b>`, `rev-parse origin/<b>`, `log origin/<b> --since … --grep=^\[handoff\]`, `status --porcelain`; pr-log's `log -1 --format=%s`, `rev-parse --short=7 HEAD` |
+| mirror, trees, publish-docs | stays real (phases 6, 8, 7) | `archive --format=tar -o <path> <tip>` (record sync's local copy); `worktree add -q -b`, `worktree remove`, `branch -D`, `show-ref --verify`, `fetch -q origin <b>`, `merge-base --is-ancestor` (trees place / prune); `merge-tree --write-tree`, `push -q origin <sha>:refs/heads/main`, `merge -q --no-edit` (publish-docs) |
+
+Per target file (a file's `recordPorts` may include its own seeding through `joinedRepo`; `gitStub` throws on
+anything it isn't given, so each migration finds the exact list):
+
+| Phase | Test file | Seams | `gitStub` (+ `answers`) | Real or open |
+|---|---|---|---|---|
+| 4 | board-command | recordPorts, boardBase, mainline, remote | commonDir, defaultBranch, ident, toplevel, worktrees | — |
+| 4 | claim-command | recordPorts, boardBase, mainline, remote | commonDir, defaultBranch, head, ident, push, toplevel, worktrees | — |
+| 4 | claims-live | — | commonDir | — |
+| 5 | card-command | recordPorts, boardBase | check-attr, commonDir, defaultBranch, head, ident, toplevel, treeWork | — |
+| 5 | card-load-command | recordPorts, boardBase | commonDir, defaultBranch, head, ident, toplevel, treeWork | — |
+| 5 | plan-command | recordPorts, boardBase | defaultBranch, head | — |
+| 5 | question-command | recordPorts, boardBase | commonDir, defaultBranch, head, ident, toplevel, treeWork | — |
+| 5 | record-plan-changes | recordPorts, boardBase | commonDir, defaultBranch, head, ident, toplevel, treeWork | mirror archive |
+| 5 | session-command | recordPorts, boardBase | check-attr, commonDir, defaultBranch, head, ident, toplevel, treeWork | — |
+| 5 | session-stamp-command | recordPorts, boardBase | commonDir, defaultBranch, head, ident, toplevel, treeWork | — |
+| 5 | spec-field-commands | recordPorts, land, boardBase | commonDir, defaultBranch, head, ident, toplevel, treeWork | — |
+| 6 | board-joined-golden | recordPorts, boardBase, mainline | commonDir, defaultBranch, ident, toplevel, worktrees | — |
+| 6 | plan-changed-writes | recordPorts, boardBase | check-attr, commonDir, defaultBranch, head, ident, toplevel, treeWork | — |
+| 6 | pr-status-command | recordPorts, boardBase | commonDir, defaultBranch, toplevel | — |
+| 6 | record-command | recordPorts | commonDir | mirror archive |
+| 6 | record-export | recordPorts, land, boardBase | commonDir, defaultBranch, holders, originTip, worktrees | — |
+| 6 | record-newer-layout | recordPorts | commonDir | — |
+| 6 | record-tick | recordPorts, boardBase | commonDir, defaultBranch, head, ident, push, toplevel, treeWork | — |
+| 6 | record-tick-offline | recordPorts, boardBase | check-attr, commonDir, defaultBranch, head, push, toplevel | mirror archive |
+| 6 | record-upgrade | recordPorts, boardBase | check-attr, commonDir, defaultBranch, head, ident, toplevel, treeWork | real `gh pr view` |
+| 6 | trees-place-joined | recordPorts, boardBase, mainline, remote | commonDir, defaultBranch, ident, toplevel, worktrees | worktree add/remove |
+| 6 | workflow-capabilities | recordPorts | commonDir | — |
+| 7 | deployed-land | land, boardBase | defaultBranch | — |
+| 7 | focus-land | land, boardBase | — | — |
+| 7 | join-command | recordPorts, land, boardBase | defaultBranch, head, toplevel, worktrees | real `gh pr view` |
+| 7 | join-tidy | recordPorts, land, boardBase | commonDir, defaultBranch, holders, originTip, worktrees | — |
+| 7 | land-on-main | land, boardBase | — | — |
+| 7 | owner-command | recordPorts, land, boardBase | defaultBranch, ident | — |
+| 7 | publish-commands | land, boardBase | defaultBranch, push | publish-docs merge |
+| 7 | ship-command | recordPorts, land, boardBase | defaultBranch | — |
+| 8 | codex-entry | recordPorts | commonDir, toplevel, worktrees | — |
+| 8 | context-stored-runtime | recordPorts | commonDir, worktrees | — |
+| 8 | crew-check | — | branch-facts, commonDir, worktrees | — |
+| 8 | crew-launch | recordPorts | commonDir | — |
+| 8 | crew-overseer-command | — | commonDir, ident | — |
+| 8 | crew-tick | — | commonDir | — |
+| 8 | pr-log | — | commonDir, head | — |
+| 8 | pr-merge | recordPorts, land, boardBase | commonDir, defaultBranch, toplevel | — |
+| 8 | pr-open | recordPorts, boardBase | commonDir, defaultBranch, head, push, toplevel | — |
+| 8 | pr-wait | — | commonDir, head | — |
+| 8 | trees-command | recordPorts, boardBase, mainline | commonDir, defaultBranch, toplevel, treeWork, worktrees | worktree add/remove |
+| 8 | trees-place-owner | recordPorts, boardBase, mainline | commonDir, defaultBranch, toplevel, worktrees | worktree add/remove |
+| 8 | trees-prune | boardBase | commonDir, defaultBranch, originTip, worktrees | worktree add/remove |
+
+Findings:
+- **Real GitHub.** join-command and record-upgrade run a real `gh pr view <n>` (`copyFromFolder` reads PR lines on a
+  join or an upgrade). On fakes, answer it through `answers`; `strictRunner` throws if a test forgets.
+- **Nothing in phases 4–8 is stuck on real git** beyond what their phases already keep: record-command's `sync`
+  (mirror), trees-command/trees-prune/trees-place-* cutting and removing worktrees, publish-docs' merge.
+- **Phase 4's headline holds.** claim-command reaches only the four 3a seams (`recordPorts`, `boardBase`, `mainline`,
+  `remote`: the claim ref pushes and `remoteHeldClaims`' origin lookup) plus stub answers, the bulk of them 304
+  worktree scans and the branch push after a take. Once 3a lands, nothing in it needs a repo.
+- **`board/load.ts:134`** still calls `gitRecordPort` inline (`syncedPrDocs`); 3a routes it through `recordPorts`.
 
 ### `core/git-seams.ts` (new)
 

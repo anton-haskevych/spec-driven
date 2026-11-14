@@ -33,3 +33,7 @@ from main, so a fake that lands into the tree would hide it. The land contract r
 - [ ] `land` seam on `FieldWriteDeps`, `MergeDeps`, `JoinDeps`, `PhaseDeps`; `landSpecField`/`deployedOnMain`/`landFocus`/`landBanner` take a deps object; `phase/deployed.ts:15` passes the context runner
 - [ ] Fake `land` (a `main` file map apart from the tree, the full `MainLanding` union) + a land contract (landed, unchanged, refused, offline) run on `landOnMain` and the fake
 - [ ] `boardBase` seam where plan, session, join and card/land call it; one land test and one claim test running with no real git
+
+## Phase-local notes
+
+- From phase 3: `tests/command-deps.ts` has `fakeCheckout()` (`gitStub` + fake record seams) and phase/join/record/field-write builders. `claimDeps()` and the fake `land` come here, once `mainline`, `remote` and `land` exist.

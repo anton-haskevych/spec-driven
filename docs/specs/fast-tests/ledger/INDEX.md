@@ -19,3 +19,4 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 
 ## Workarounds
 - `docs/specs/_ledger/workaround-test-a-failed-fetch-with-a-bogus-negotiation-algorithm.md` — [general] — Real 'failed' fetch: git config fetch.negotiationAlgorithm bogus
+- `workaround-trace-git-argv-with-a-runner-preload.md` — [phase 3a, 4–8] — trace a test's git: preload a systemRunner wrapper

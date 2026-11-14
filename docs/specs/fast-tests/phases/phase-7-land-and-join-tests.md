@@ -36,3 +36,4 @@ unreachable origin, on one repo per file.
 
 - Per commit: `test:fast` plus the `.git` files covering what you touched; full `bun test` before ticking the last item.
 - Handoff lists every removed test name and where its git behaviour is still proven (fake test or `<file>.git.test.ts:<test>`).
+- join-command reaches real GitHub today (`gh pr view` from `copyFromFolder`, phase 3 trace): answer it in `gitStub`'s `answers`.
