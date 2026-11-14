@@ -9,7 +9,7 @@ needs to know exist to navigate the code — not every file that's touched.
 |------|------|-------|
 | `skills/spec/tools/tests/real-git-allowlist.test.ts`, `tests/real-git/` | Guard (`allowlist.ts` data, `scan.ts` import closure, `repo-builds.ts` ast-grep scan); `tripwire.ts` + `tripwire/git` + `fast-tier.ts` behind `bun run test:fast` | 1 |
 | `docs/specs/_playbook/gates.md` | `per-commit` and `pre-pr` gates for this repo | 1 |
-| `skills/spec/tools/tests/*-contract.ts` | Record, read and remote port contracts run on real git and fakes | 2 |
+| `skills/spec/tools/tests/*-contract.ts`, `fake-remote.ts`, `fake-record.test.ts` | Record, read and remote port contracts: real side in `record-ref.git.test.ts` / `claims-remote.git.test.ts`, fake side in `fake-record.test.ts` | 2 |
 | `skills/spec/tools/core/git-seams.ts` | `GitSeams` bundle, `seamsOf`, `recordPortsOf` | 3, 3a |
 | `skills/spec/tools/tests/command-deps.ts` | Command deps builders: `phaseDeps()` (phase 1, on `notARepoRunner`), the rest on fakes; fake `land` | 1, 3, 3a |
 

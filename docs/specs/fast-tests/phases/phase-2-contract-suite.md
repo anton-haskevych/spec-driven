@@ -33,11 +33,11 @@ Lift, don't rewrite: the read-port adapter (`record-read.test.ts:20-38`) and `fa
 
 ## Deliverables
 
-- [ ] `recordPortContract` passing on `gitRecordPort` (real: one `beforeAll` repo, record and tracking refs deleted between cases) — `record-ref.git.test.ts` keeps only adapter-only cases beside it
-- [ ] `fakeRef`/`fakeRecord` pass the same contract: hex ids, `failed` fetch, missing blob throws; `fake-record.test.ts` runs it in the fast tier
-- [ ] `fakeRecordReadPort` + `seedRecord` + `docOf`/`recordPhaseOf`/`commitLog` in `fake-record.ts`; `record-read`, `page-answer`, `page-preview` use them
-- [ ] `fake-remote.ts` (closure state, no `this`) + `remotePortContract` incl. `hasBranch` true/false/unreachable, passing on `gitRemotePort` and `fakeRemote`; `claims-remote-take.test.ts` imports the shared fake
-- [ ] `recordReadPortContract` on `gitRecordReadPort` and the fake: a push moves the tracking tip, an absent record clears it, `markFetched` survives a new port; the fake builds port and read as one linked pair
+- [x] `recordPortContract` passing on `gitRecordPort` (real: one `beforeAll` repo, record and tracking refs deleted between cases) — `record-ref.git.test.ts` keeps only adapter-only cases beside it
+- [x] `fakeRef`/`fakeRecord` pass the same contract: hex ids, `failed` fetch, a missing blob is an error (as `record/ref.ts:112`); `fake-record.test.ts` runs it in the fast tier
+- [x] `fakeRecordReadPort` + `seedRecord` + `docOf`/`recordPhaseOf`/`commitLog` in `fake-record.ts`; `record-read`, `page-answer`, `page-preview` use them
+- [x] `fake-remote.ts` (closure state, no `this`) + `remotePortContract` incl. `hasBranch` true/false/unreachable, passing on `gitRemotePort` and `fakeRemote`; `claims-remote-take.test.ts` imports the shared fake
+- [x] `recordReadPortContract` on `gitRecordReadPort` and the fake: a push moves the tracking tip, an absent record clears it, `markFetched` survives a new port; the fake builds port and read as one linked pair
 
 ## Phase-local notes
 

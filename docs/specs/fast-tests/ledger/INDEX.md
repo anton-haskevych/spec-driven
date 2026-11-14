@@ -18,3 +18,4 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-lesson-enforced-by-guard.md` — [phase 1] — Anton: the real-git lesson carries enforced-by (house rule)
 
 ## Workarounds
+- `docs/specs/_ledger/workaround-test-a-failed-fetch-with-a-bogus-negotiation-algorithm.md` — [general] — Real 'failed' fetch: git config fetch.negotiationAlgorithm bogus
