@@ -39,6 +39,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-phase-10a-card-load-as-built.md` — [phase 10a, 11] — load file shape, checks at the tip, move-taken, 2000-op batch
 - `decision-phase-10-page-as-built.md` — [phase 11] — page model, render, server, process and preview as built
 - `decision-phase-10aa-whole-spec-covers.md` — [phase 10aa, 11, 12] — whole-spec cover isn't a promise; bar not squares; Now lists mine
+- `decision-export-takes-the-list-layout-from-history.md` — [phase 12+] — export rewrites phase lines in place; tidied stub → pre-tidy history
 
 ## Workarounds
 - `docs/specs/_ledger/workaround-test-a-hanging-origin-with-a-blackhole-address.md` — [general] — Test a hanging origin with http://10.255.255.1/…; a missing path fails at once
