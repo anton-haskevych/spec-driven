@@ -47,10 +47,11 @@ archived, not deleted.
 - [x] Gate: Anton confirms the Academy tag view reads right — Anton, 2026-11-13: "everything is aweomse and looks great" (CRM page on 2.60.0; screenshots in research/phase-11/)
 - [x] The Academy skill uses the card commands; its MCP server, scripts and `ops/src/academy-board/` are removed in a merged CRM PR — CRM PR #1260 merged 2026-11-14 (df1ef19df9), merged by Anton
 - [x] `CRM-Dance/academy-board` is archived read-only — Archived 2026-11-13 on Anton's word; still at 2c92ff4, no writes after the import
-- [ ] Taras's Claude has read the Academy tag view and added a source to a card
 - [ ] CRM's open specs start joining the board after the import, so their cards number after Academy's (Anton, 2026-11-13: "start porting the existing CRM Dance specs")
 
 ## Phase-local notes
 
 - Card references in CRM spec docs (about 19 folders mention cards in prose) need no edit: numbers are kept.
 - The frozen claude.ai artifact from before 2026-11-03 stays retired; nothing reads it.
+- Taras's first read and source on the Academy tag was dropped as a deliverable (Anton, 2026-11-13: "This is not
+  something that the spec has to wait on").

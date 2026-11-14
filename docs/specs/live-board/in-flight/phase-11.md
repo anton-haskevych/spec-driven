@@ -12,8 +12,6 @@
 
 ## Pick up from here
 
-1. 11.5 — Taras's Claude reads the `Academy Ballroom` tag and adds a source to a card. Tick with the card id and
-   source id (`card list --tag "Academy Ballroom"`, then the record log for `card source` by Taras).
-2. 11.6 — the first CRM spec joining after the import (record commit `record: join <spec>` after ff131e652a). As of
+1. 11.6 — the first CRM spec joining after the import (record commit `record: join <spec>` after ff131e652a). As of
    this session the last joins were 2026-11-12. Specs join as sessions touch them (execute/review/handoff run
    `join` first); no bulk port.
