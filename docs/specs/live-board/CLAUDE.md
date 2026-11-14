@@ -47,5 +47,5 @@ This spec is a *design document*, not a live mirror. For ground truth see:
 - `skills/spec/SKILL.md` — layout rules and the *Tools* section every command is documented in
 - `ROADMAP.md` — the plugin's rules (agentic only, zero dependencies, no SessionStart hook) and release table
 - `skills/spec/tools/` — the code; `tests/` beside it
-- The Academy board this generalises lives in the CRM repo: `ops/src/academy-board/` and
-  `.claude/skills/academy-ballroom-board/`
+- The Academy board this generalises moved onto CRM's board in phase 11 (CRM PR #1260); its old code is gone and
+  `CRM-Dance/academy-board` is archived. The Academy skill is CRM's `.claude/skills/academy-ballroom-board/`
