@@ -37,6 +37,7 @@ export const REAL_GIT_FILES: Record<string, string> = {
   "plan-changed-hook.git.test.ts": "planChangedResponse reads a joined spec's record version from origin",
   "plan-changed-writes.git.test.ts": "moves to fakes in phase 6",
   "plan-command.git.test.ts": "moves to fakes in phase 5",
+  "plan-frozen-progress.git.test.ts": "frozenProgress: the newest progress.md in git history that still lists its phases",
   "pr-log.git.test.ts": "moves to fakes in phase 8",
   "pr-merge.git.test.ts": "moves to fakes in phase 8",
   "pr-open.git.test.ts": "moves to fakes in phase 8",
@@ -76,7 +77,7 @@ export const REAL_GIT_FILES: Record<string, string> = {
   "workspaces-scan.git.test.ts": "scanWorkspaces: the main checkout and worktrees from git worktree list",
 };
 
-export const REAL_GIT_CAP = 73;
+export const REAL_GIT_CAP = 74;
 
 export const HELPER_EXCEPTIONS: Record<string, string> = {
   "crew-deps.ts": "drops git-repo in phase 8",

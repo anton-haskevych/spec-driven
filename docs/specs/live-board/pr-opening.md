@@ -17,6 +17,7 @@ PR #42 merged 2026-11-13 as ea15598 (squash).
 PR #43 merged 2026-11-13 as 2f1f7bf (squash).
 PR #44 merged 2026-11-13 as 136d697 (squash).
 PR #46 merged 2026-11-13 as bdc8085 (squash).
+PR #47 merged 2026-11-13 as e01914d (squash).
 
 ## Pre-PR checks
 
@@ -46,11 +47,14 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   `bun install --frozen-lockfile` no changes.
   PR J, 2026-11-13: `2151 pass · 0 fail` across 304 files (357 s); typecheck clean; `bun install
   --frozen-lockfile` no changes.
+  PR H, 2026-11-13: `2155 pass · 1 fail` across 305 files (500 s, load average 63): `join-command.test.ts` "a second
+  run says already on the board" timed out at 6603 ms against 5 s (join code unchanged from main); alone with
+  `--timeout 30000`: `9 pass · 0 fail`; typecheck clean; `bun install --frozen-lockfile` no changes.
 - [x] `bun run typecheck` clean (PR A, 2026-11-11)
 - [x] `bun install --frozen-lockfile` clean (no new runtime dependencies) (PR A, 2026-11-11)
 - [x] `python3 scripts/version.py --set <main's minor + 1>` at merge; all declarations match; ROADMAP row added (PR B: 2.53.0, `All version declarations match: 2.53.0`, row under *Live board (2.53)*; PR C: 2.54.0, `All version declarations match: 2.54.0`; PR D: 2.55.0, `All version declarations match: 2.55.0`; PR E: 2.56.0, `All version declarations match: 2.56.0`; PR F: 2.57.0, `All version declarations match: 2.57.0`, row under *Live board (2.53–2.57)*; PR G: 2.58.0, `All version declarations match: 2.58.0`, row under *Live board (2.53–2.58)*; PR I: 2.59.0, `All version declarations match: 2.59.0`, row under *Live board (2.53–2.59)*)
-- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230; PR F: largest touched `board/model.ts`, 243; PR G: largest new `page/styles.ts`, 225, `page/model.ts`, 196; `startPageServer` 45 lines; PR I: largest new `cards/load.ts`, 104; PR J: largest touched `page/styles.ts`, 234)
-- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D, E, F, G and I: `doctor: clean (1 spec)`; PR J: `0 errors`, the two older warnings on phases 5 and 10a)
+- [x] New and touched tool files under 250 lines, functions under 50 (PR A: largest `record/outbox.ts`, 143; PR C: largest `board/model.ts`, 227; PR D: largest touched `commands/crew/tick.ts`, 162; PR E: largest touched `board/model.ts`, 230; PR F: largest touched `board/model.ts`, 243; PR G: largest new `page/styles.ts`, 225, `page/model.ts`, 196; `startPageServer` 45 lines; PR I: largest new `cards/load.ts`, 104; PR J: largest touched `page/styles.ts`, 234; PR H: `plan/export.ts`, 104, new `plan/frozen-progress.ts`, 16)
+- [x] `bun skills/spec/tools/spec.ts doctor live-board` has no errors (PR A: `doctor: clean`; PR C, D, E, F, G and I: `doctor: clean (1 spec)`; PR J and H: `0 errors`, the two older warnings on phases 5 and 10a)
 - [x] With the board off, a file-based spec behaves as before: the pre-existing suites pass unchanged
   PR A: nothing reads the record yet; the same one timing failure as `bun test` above.
   PR B, 2026-11-12: full suite green; the only edited expectation is the frozen-plan hook naming `phase task`.
@@ -274,5 +278,15 @@ Scoped to the plugin repo (`skills/spec/`). Plugin PRs open ready, not draft —
   c30 (done)                  no state, no note → "Done Nov 3 by academy-board import: …", note, no deadline
   Plan                        4 empty tags, 20-line summaries → none; tallest summary 3 lines
   390 px                      no element past the viewport
+  ```
+  PR H, 2026-11-13: this branch's `record export` on a scratch clone of CRM against its real record
+  (`explicit-charge-handling`, 22 phases), once as checked out and once with `progress.md` cut to the tidied stub:
+  ```
+  $ record export explicit-charge-handling   (untidied)
+  export: explicit-charge-handling written to files (22 phases, 83 tasks); still on the board
+  progress.md diff: phases 4, 5, 6 ticked; v1: / v2: and Success metrics unmoved
+  $ record export explicit-charge-handling   (tidied stub in the tree)
+  export: explicit-charge-handling written to files (22 phases, 83 tasks); still on the board
+  progress.md: same as before the tidy, boxes aside
   ```
 - [x] The claims suites pass unchanged after `core/remote-push.ts` is lifted out (PR A: no diff in `tests/claims-*.ts`, 93 pass)

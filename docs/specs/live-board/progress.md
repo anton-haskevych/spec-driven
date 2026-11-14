@@ -33,4 +33,4 @@
 - [x] Phase 10a — Cards come in with their numbers → `phases/phase-10a-cards-come-in-with-their-numbers.md`
 - [x] Phase 10aa — The page reads right for a whole board → `phases/phase-10aa-the-page-reads-right-for-a-whole-board.md`
 - [ ] Phase 11 — Academy's board moves over → `phases/phase-11-academy-moves-over.md`
-- [ ] Phase 12 — record export keeps labels in place → `phases/phase-12-record-export-keeps-labels-in-place.md`
+- [x] Phase 12 — record export keeps labels in place → `phases/phase-12-record-export-keeps-labels-in-place.md`

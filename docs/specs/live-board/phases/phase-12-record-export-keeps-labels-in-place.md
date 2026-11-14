@@ -19,4 +19,4 @@ Moved here from phase 6, which shipped (PR C, #39) without it. Found in the 2026
 
 ## Deliverables
 
-- [ ] `record export` keeps free-text lines inside the phase list where they were (CRM's `v1:` / `v2:` labels came back below the list on 2026-11-12) (unit test on that fixture)
+- [x] `record export` keeps free-text lines inside the phase list where they were (CRM's `v1:` / `v2:` labels came back below the list on 2026-11-12) (unit test on that fixture)
