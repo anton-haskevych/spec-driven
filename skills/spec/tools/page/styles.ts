@@ -56,6 +56,8 @@ button:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px soli
 .pbar { display: flex; gap: 2px; height: 14px; border-radius: 7px; overflow: hidden; background: var(--soft); }
 .pbar i { display: block; min-width: 5px; }
 .pbar .d { background: var(--done); } .pbar .m { background: var(--move); } .pbar .t { background: var(--todo); }
+.spec-bar { display: inline-flex; align-items: center; gap: 6px; min-width: 96px; flex: 1 1 96px; font: 600 13px/1 var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; }
+.spec-bar .pbar { flex: 1; min-width: 48px; height: 10px; } .fold .spec-bar { flex: 0 0 140px; } .fold { white-space: nowrap; }
 .pbar.empty { background: none; border: 1.5px dashed var(--faint); box-sizing: border-box; }
 .chev { flex: none; display: inline-block; width: 8px; height: 8px; border: solid var(--faint); border-width: 0 2.5px 2.5px 0; transform: rotate(-45deg); transition: transform .15s; }
 /* session chips */
@@ -110,6 +112,7 @@ details.proj[open] > summary .chev { transform: rotate(45deg); }
 .pn b { font: 700 18px/1.2 var(--display); }
 details.p0 .pn b { font-size: 21px; font-weight: 800; }
 .pn > span:not(.waits) { color: var(--muted); font-size: 15px; line-height: 1.35; }
+.pn .reason { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
 .pprog { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 .pcount { display: flex; flex-wrap: wrap; gap: 3px 12px; font: 500 13.5px/1.2 var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; }
 .pcount span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
@@ -138,7 +141,8 @@ details.p0 .pn b { font-size: 21px; font-weight: 800; }
 .count { background: var(--you); color: var(--you-ink); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 4px; font-variant-numeric: tabular-nums; }
 .count b { font: 800 88px/0.82 var(--display); }
 .count span { font: 700 18px var(--display); }
-.count small { margin-top: auto; padding-top: 16px; display: flex; align-items: center; gap: 7px; font: 600 14px var(--sans); }
+.count small { margin-top: auto; padding-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font: 600 14px var(--sans); }
+.count small .oc { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .rows { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .ny { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: var(--surface); border-radius: 12px; padding: 12px 16px 12px 12px; min-width: 0; }
 .ny .k { flex: none; width: 40px; height: 40px; border-radius: 10px; background: var(--you); color: var(--you-ink); font: 700 16px/40px var(--sans); text-align: center; }
@@ -165,6 +169,11 @@ details.p0 .pn b { font-size: 21px; font-weight: 800; }
 .kv { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .tag { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 8px; box-sizing: border-box; font: 600 14px/1 var(--sans); background: var(--soft); color: var(--ink); white-space: nowrap; }
 .tag.todo { background: var(--todo-bg); color: var(--todo-ink); border: 1.5px solid var(--todo); }
+.end { margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; font-size: 15.5px; line-height: 1.35; background: var(--soft); color: var(--muted); }
+.end.done { background: var(--done-bg); color: var(--done-ink); } .end b { margin-right: 4px; }
+.note { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+details.note summary { list-style: none; cursor: pointer; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4; overflow: hidden; }
+details.note[open] summary { display: block; } details.note summary::-webkit-details-marker { display: none; }
 blockquote { margin: 0; background: var(--bg); border-radius: 12px; padding: 20px 22px; font-size: 20px; line-height: 1.4; }
 blockquote footer { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14.5px; color: var(--muted); margin-top: 12px; }
 .phases { display: flex; flex-direction: column; }

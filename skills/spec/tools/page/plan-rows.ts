@@ -11,12 +11,15 @@ export interface PlanContext {
 const NO_TAG = "No tag";
 
 // The Academy board's By scope: a row per tag, P0 first; a card with two tags is in both rows. Closed rows
-// (nothing left open) and untagged cards come last.
+// (nothing left open) and untagged cards come last. A tag no open or done card carries has no row.
 export function planRows(cards: readonly PageCard[], tags: readonly TagDoc[], context: PlanContext): PlanRow[] {
   const names = new Map<string, string>();
   for (const name of [...tags.map((tag) => tag.name), ...cards.flatMap((card) => card.tags)]) if (!names.has(name.toLowerCase())) names.set(name.toLowerCase(), name);
   const details = new Map(tags.map((tag) => [tag.name.toLowerCase(), tag]));
-  const rows = [...names].map(([key, name]) => planRow(name, details.get(key), cards.filter((card) => card.tags.some((tag) => tag.toLowerCase() === key)), context));
+  const rows = [...names].flatMap(([key, name]) => {
+    const tagged = cards.filter((card) => card.tags.some((tag) => tag.toLowerCase() === key));
+    return tagged.length > 0 ? [planRow(name, details.get(key), tagged, context)] : [];
+  });
   const untagged = cards.filter((card) => card.tags.length === 0);
   const ranked = rows.toSorted((a, b) => Number(a.closed) - Number(b.closed) || priorityRank(a.priority) - priorityRank(b.priority) || a.tag.localeCompare(b.tag));
   return untagged.length > 0 ? [...ranked, { ...planRow(NO_TAG, undefined, untagged, context), untagged: true }] : ranked;
