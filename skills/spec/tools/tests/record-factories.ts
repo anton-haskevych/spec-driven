@@ -4,6 +4,7 @@ import type { TagDoc } from "../cards/tag-doc";
 import type { PrDoc } from "../plan/docs/pr-doc";
 import type { PhaseDoc, Task } from "../plan/docs/phase-doc";
 import type { SpecDoc } from "../plan/docs/spec-doc";
+import { phaseDocPath, specDocPath } from "../plan/kinds";
 import type { QuestionDoc } from "../questions/question-doc";
 import { CLAUDE_CODE_SOURCE, type SessionDoc } from "../sessions/session-doc";
 
@@ -92,5 +93,19 @@ export function sessionDoc(overrides: Partial<SessionDoc> = {}): SessionDoc {
     mode: "execute",
     lastWriteAt: "2026-11-13T09:00:00-08:00",
     ...overrides,
+  };
+}
+
+// Spec `alpha` as joined: phase 2 holds 2.3–2.5 open, phase 3 holds 3.1.
+export const ALPHA_PHASES: PhaseDoc[] = [
+  phaseDoc({ id: "2", file: "phases/phase-2.md", tasks: [task({ id: "2.3", text: "three" }), task({ id: "2.4", text: "four" }), task({ id: "2.5", text: "five" })] }),
+  phaseDoc({ id: "3", file: "phases/phase-3.md", needs: ["2"], tasks: [task({ id: "3.1", text: "one" }), task({ id: "3.2", text: "two" })] }),
+];
+
+// A spec as join leaves it on the record, by document path: one source for the real and the fake seed.
+export function joinedDocs(spec: string, phases: readonly PhaseDoc[], overrides: Partial<SpecDoc> = {}): Record<string, SpecDoc | PhaseDoc> {
+  return {
+    [specDocPath(spec)]: specDoc({ name: spec, phases: phases.map((phase) => phase.id), ...overrides }),
+    ...Object.fromEntries(phases.map((phase) => [phaseDocPath(spec, phase.id), phase])),
   };
 }

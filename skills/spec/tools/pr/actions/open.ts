@@ -37,7 +37,7 @@ const SHORT_SHA = 7;
 export async function openPr(projectDir: string, request: OpenRequest, deps: OpenDeps): Promise<string> {
   const spec = resolveSpec(projectDir, request.spec);
   if (typeof spec === "string") return `pr open: ${spec}`;
-  const plans = readPlansAt(projectDir, deps.runner, deps.now());
+  const plans = readPlansAt(projectDir, deps, deps.now());
   const group = pickGroup(plans.state(spec), request.group);
   if (!group.ok) return `pr open: ${group.reason}`;
 

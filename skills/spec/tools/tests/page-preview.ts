@@ -4,13 +4,13 @@ import { loadPageModel } from "../page/load";
 import { refresher } from "../page/refresh";
 import { startPageServer } from "../page/server";
 import { validateRecordDoc } from "../plan/kinds";
-import { parseDoc, serializeDoc } from "../record/document";
+import { parseDoc } from "../record/document";
 import { sendIntent } from "../record/outbox";
 import { defaultClaudeHome } from "../sessions/live";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fakeRecord } from "./fake-record";
+import { fakeRecord, seedRecord } from "./fake-record";
 import { pageDocs, pageInputs, pageModel } from "./page-fixture";
 
 // The page with factory data on an in-memory record, for looking at it in a browser: answers really land
@@ -21,7 +21,7 @@ const port = Number(Bun.argv[2] && !Bun.argv[2].startsWith("--") ? Bun.argv[2] :
 const repoAt = Bun.argv.indexOf("--repo");
 const repo = repoAt > 0 ? Bun.argv[repoAt + 1] : undefined;
 const record = fakeRecord();
-record.landFromAnotherMachine(Object.entries(pageDocs()).map(([path, doc]) => ({ path, text: serializeDoc(doc) })));
+seedRecord(record, pageDocs());
 const outbox = join(mkdtempSync(join(tmpdir(), "spec-page-preview-")), "outbox");
 const docsAtTip = () => Object.fromEntries([...record.filesAt(record.tip)].map(([path, text]) => [path, parseDoc(text)]));
 

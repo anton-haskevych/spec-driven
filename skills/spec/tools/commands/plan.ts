@@ -13,7 +13,7 @@ import { validateRecordDoc } from "../plan/kinds";
 import { specFieldsFromFiles } from "../plan/upgrade";
 import { specCardSeed } from "../cards/spec-card";
 import { stampedBy } from "../sessions/facts";
-import { gitRecordPort } from "../record/ref";
+import { recordPortsOf } from "../core/git-seams";
 import { writeRecord, type StoreWrite } from "../record/write";
 import { newSpecPlan, systemJoinDeps, type JoinDeps } from "./join";
 import { NO_DEFAULT_BRANCH } from "./push";
@@ -37,7 +37,7 @@ async function applyDraft(projectDir: string, folder: SpecFolder, draft: unknown
   const branch = defaultBranch(projectDir, deps.runner);
   if (!branch) return refused(NO_DEFAULT_BRANCH.replace("nothing pushed", "nothing written"));
   const git = gitAt(projectDir, deps.runner);
-  const port = gitRecordPort(git);
+  const port = recordPortsOf(git, deps)?.port;
   if (!port) return refused("This repo has no origin; the board's record lives there.");
   const base = await boardBase(git, branch, "a new plan");
   if (!base.ok) return refused(base.reason);

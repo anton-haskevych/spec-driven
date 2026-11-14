@@ -1,4 +1,5 @@
 import type { Env } from "../core/env";
+import type { Seamed } from "../core/git-seams";
 import type { Runner } from "../core/run";
 import { FIELD_COMMAND, fieldPlan, type FieldIntent } from "../plan/ops/field";
 import { readPlansAt } from "../plan/read-plans";
@@ -6,7 +7,7 @@ import { OLDER_PLUGIN } from "../record/write";
 import { recordWorld, sendRecordIntent } from "../plan/record-send";
 import { upgradeIfBehind } from "../plan/upgrade-send";
 
-export interface FieldWriteDeps {
+export interface FieldWriteDeps extends Seamed {
   runner: Runner;
   env: Env;
   now: () => Date;
@@ -25,7 +26,7 @@ export type FieldWritten =
 // A joined spec's field is a record write; `undefined` means the spec is in files and the caller lands on main.
 // A record on a newer layout may hold the field: landing it on main would hide it, so it refuses.
 export async function writeJoinedField(projectDir: string, intent: FieldIntent, deps: FieldWriteDeps): Promise<FieldWritten | undefined> {
-  const plans = readPlansAt(projectDir, deps.runner, deps.now());
+  const plans = readPlansAt(projectDir, deps, deps.now());
   if (plans.record.kind === "newer") return { kind: "refused", reason: OLDER_PLUGIN, notes: [] };
   const joined = plans.joined(intent.spec);
   if (!joined) return undefined;

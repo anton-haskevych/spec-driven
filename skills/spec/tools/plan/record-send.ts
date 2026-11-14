@@ -1,8 +1,9 @@
 import { hostname } from "node:os";
 import { gitAt, gitCommonDir, type Git } from "../core/git";
+import { recordPortsOf } from "../core/git-seams";
 import { defaultBranch } from "../core/run";
 import { outboxDir, sendIntent, type IntentRunners, type RecordWrite } from "../record/outbox";
-import { gitRecordPort, type RecordPort } from "../record/ref";
+import type { RecordPort } from "../record/ref";
 import type { RecordView } from "../record/view";
 import type { RecordPlan } from "../record/write";
 import { once, sessionFactsOf, treeFolder } from "../sessions/facts";
@@ -34,7 +35,7 @@ export function recordWorld(projectDir: string, deps: PhaseDeps): RecordWorld {
   const git = gitAt(projectDir, deps.runner);
   const common = gitCommonDir(git);
   const branch = defaultBranch(projectDir, deps.runner);
-  const port = gitRecordPort(git);
+  const port = recordPortsOf(git, deps)?.port;
   const session = ownSessionId(deps.env);
   const tree = treeFolder(git, projectDir);
   return {

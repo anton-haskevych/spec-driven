@@ -1,4 +1,4 @@
-// Run by claims-store.test.ts as a separate process, so two takers really race.
+// Run by claims-store.git.test.ts as a separate process, so two takers really race.
 import { takeClaim } from "../../claims/store";
 
 const [dir, sessionId, startAt, mode] = Bun.argv.slice(2);

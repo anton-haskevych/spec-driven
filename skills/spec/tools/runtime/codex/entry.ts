@@ -91,7 +91,7 @@ function existingTarget(cwd: string, target: LocalPilot, deps: CodexEntryDeps): 
   const specs = findSpecs(cwd, target.spec);
   const spec = specs.length === 1 ? specs[0] : undefined;
   if (!spec) return { ok: false, reason: "local-pilot requires one existing named spec" };
-  const state = readPlansAt(cwd, deps.runner, new Date(deps.now())).state(spec);
+  const state = readPlansAt(cwd, deps, new Date(deps.now())).state(spec);
   if (!state.hasProgress || !existsSync(join(spec.dir, "ledger/INDEX.md")) || !state.phases.some((phase) => phase.id === target.phase)) {
     return { ok: false, reason: "local-pilot requires current spec layout and an existing exact phase; no fallback phase was selected" };
   }

@@ -4,9 +4,11 @@
   "type": "module",
   "scripts": {
     "test": "bun test",
+    "test:fast": "bun skills/spec/tools/tests/real-git/fast-tier.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@ast-grep/napi": "0.51.0",
     "@types/bun": "1.4.2",
     "typescript": "^7.0.2"
   }

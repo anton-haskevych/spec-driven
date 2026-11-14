@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { phaseCommand } from "../commands/phase";
 import { loadSpecStateFromFiles } from "../core/spec-state";
 import { createTree, type Tree } from "./tree";
+import { phaseDeps } from "./command-deps";
 
 const PROGRESS = [
   "## Phases",
@@ -26,7 +27,7 @@ function checkout() {
 }
 
 const read = (dir: string, path: string) => readFileSync(join(dir, path), "utf8");
-const phase = (args: string[]) => phaseCommand(tree.root, args);
+const phase = (args: string[]) => phaseCommand(tree.root, args, undefined, phaseDeps());
 
 describe("phase move on a spec in files", () => {
   test("moves items selected as tick selects them, into the target's Deliverables, reopening a done target", () => {
@@ -55,6 +56,16 @@ describe("phase set on a spec in files", () => {
     expect(text).toStartWith("---\nneeds: []\ngate: design\n---\n# Phase 3 — Two-way sync\n");
     expect(text).toContain("**Outcome:** Both sides match.");
     expect(read(spec.dir, "progress.md")).toContain("- [ ] Phase 3 — Two-way sync → `phases/phase-3-sync.md`");
+  });
+
+  test("rewords an Outcome wrapped over several lines, leaving nothing of the old one", () => {
+    const spec = checkout();
+    const path = join(spec.dir, "phases/phase-3-sync.md");
+    writeFileSync(path, SYNC.replace("**Outcome:** data matches.", "**Outcome:** data matches · a day ·\nlow risk: reads only."));
+    expect(phase(["set", "checkout", "3", "--outcome", "Both sides match."])).toBe("set: phase 3 · outcome reworded");
+    const text = read(spec.dir, "phases/phase-3-sync.md");
+    expect(text).toContain("**Outcome:** Both sides match.\n\n## Deliverables");
+    expect(text).not.toContain("low risk: reads only.");
   });
 
   test("refuses a needs edge that makes a cycle; the same values are unchanged", () => {

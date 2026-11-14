@@ -13,7 +13,7 @@ import { answererOf } from "../../questions/who";
 
 // An answer by id names the version it was read at: a question someone changed since is a conflict.
 export async function answerById(projectDir: string, specName: string, id: string, text: string, deps: PhaseDeps, ifVersion?: string): Promise<string> {
-  const plans = readPlansAt(projectDir, deps.runner, deps.now());
+  const plans = readPlansAt(projectDir, deps, deps.now());
   if (plans.record.kind === "newer") return `question answer: ${OLDER_PLUGIN}`;
   const spec = resolveSpec(projectDir, specName);
   if (typeof spec === "string") return `question answer: ${spec}`;

@@ -19,7 +19,7 @@ export const refusedLine = (action: string, reason: string) => `card ${action}: 
 // anything is sent or queued; the send plans it again at the tip.
 // `intentAt` builds the intent from that read (an edit names the version it was read at), or says why not.
 export async function sendCardIntent(projectDir: string, deps: PhaseDeps, action: string, intentAt: (view: RecordView, plans: PlanSource) => CardIntent | string): Promise<string> {
-  const plans = readPlansAt(projectDir, deps.runner, deps.now());
+  const plans = readPlansAt(projectDir, deps, deps.now());
   if (plans.record.kind === "newer") return `card ${action}: ${OLDER_PLUGIN}`;
   const view = recordViewOf(plans.record);
   if (!view) return refusedLine(action, "There is no board record here yet; card add starts one.");

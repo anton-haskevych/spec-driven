@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { doctorReport } from "../commands/doctor";
 import { hookResponse } from "../hooks/spec-file-check";
+import { notARepoRunner } from "./stub-runner";
 
 let project = "";
 const spec = () => join(project, "docs", "specs", "checkout");
@@ -30,18 +31,18 @@ afterAll(() => rmSync(project, { recursive: true, force: true }));
 
 describe("doctorReport", () => {
   test("reports a clean spec", () => {
-    expect(doctorReport(project, "checkout")).toBe("doctor: clean (1 spec)");
+    expect(doctorReport(project, "checkout", notARepoRunner)).toBe("doctor: clean (1 spec)");
   });
 
   test("names a spec it cannot find", () => {
-    expect(doctorReport(project, "nope")).toContain("no spec named nope");
+    expect(doctorReport(project, "nope", notARepoRunner)).toContain("no spec named nope");
   });
 
   test("a project-wide run also checks the backlog", () => {
     const item = join(project, "docs", "specs", "_backlog", "bad-idea.md");
     mkdirSync(join(item, ".."), { recursive: true });
     writeFileSync(item, "---\npriority: urgent\n---\n");
-    expect(doctorReport(project)).toContain("_backlog/bad-idea.md: frontmatter has no title");
+    expect(doctorReport(project, undefined, notARepoRunner)).toContain("_backlog/bad-idea.md: frontmatter has no title");
     rmSync(item);
   });
 });
@@ -51,7 +52,7 @@ describe("hookResponse", () => {
 
   test("blocks with the problem when a written CLAUDE.md uses a status the project rejects", () => {
     const file = write("CLAUDE.md", "---\nstatus: draft\ncreated: a\nupdated: b\n---\n");
-    const response = JSON.parse(hookResponse(payload(file), project) ?? "{}");
+    const response = JSON.parse(hookResponse(payload(file), project, notARepoRunner) ?? "{}");
     expect(response.decision).toBe("block");
     expect(response.reason).toContain('status "draft" is not allowed here');
     write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\n---\n");
@@ -60,13 +61,13 @@ describe("hookResponse", () => {
   test("checks against the project's rules when the session cd'd into a subfolder", () => {
     const file = write("CLAUDE.md", "---\nstatus: draft\ncreated: a\nupdated: b\n---\n");
     const fromSubfolder = { ...payload(file), cwd: join(project, "frontend", "src") };
-    expect(JSON.parse(hookResponse(fromSubfolder, project) ?? "{}").reason).toContain('status "draft" is not allowed here');
+    expect(JSON.parse(hookResponse(fromSubfolder, project, notARepoRunner) ?? "{}").reason).toContain('status "draft" is not allowed here');
     write("CLAUDE.md", "---\nstatus: active\ncreated: a\nupdated: b\n---\n");
   });
 
   test("blocks a ledger entry without frontmatter", () => {
     const file = write("ledger/gotcha-b.md", "# no frontmatter\n");
-    expect(hookResponse(payload(file, "Edit"), project)).toContain("ledger entry has no frontmatter");
+    expect(hookResponse(payload(file, "Edit"), project, notARepoRunner)).toContain("ledger entry has no frontmatter");
   });
 
   test("blocks a backlog item without a title, open or closed", () => {
@@ -74,14 +75,14 @@ describe("hookResponse", () => {
     mkdirSync(join(backlog, "_closed"), { recursive: true });
     for (const file of [join(backlog, "idea.md"), join(backlog, "_closed", "old.md")]) {
       writeFileSync(file, "---\ntags: [a]\n---\nbody\n");
-      expect(hookResponse(payload(file), project)).toContain("frontmatter has no title");
+      expect(hookResponse(payload(file), project, notARepoRunner)).toContain("frontmatter has no title");
       rmSync(file);
     }
   });
 
   test("blocks a phase file whose code flag is not a boolean", () => {
     const file = write("phases/phase-1-harness.md", "---\ncode: no\n---\n- [ ] build it\n");
-    const response = JSON.parse(hookResponse(payload(file), project) ?? "{}");
+    const response = JSON.parse(hookResponse(payload(file), project, notARepoRunner) ?? "{}");
     expect(response.reason).toContain('code must be true or false, not "no"');
     write("phases/phase-1-harness.md", "- [ ] build it\n");
   });
@@ -90,29 +91,29 @@ describe("hookResponse", () => {
     const playbook = join(project, "docs", "specs", "_playbook", "growth.md");
     mkdirSync(join(playbook, ".."), { recursive: true });
     writeFileSync(playbook, "---\nmatch: growth\n---\n");
-    expect(JSON.parse(hookResponse(payload(playbook), project) ?? "{}").reason).toContain("match must map taxonomy fields");
+    expect(JSON.parse(hookResponse(payload(playbook), project, notARepoRunner) ?? "{}").reason).toContain("match must map taxonomy fields");
     writeFileSync(playbook, "---\nmatch: { domain: [growth] }\n---\n# Growth\n");
-    expect(hookResponse(payload(playbook), project)).toBeUndefined();
+    expect(hookResponse(payload(playbook), project, notARepoRunner)).toBeUndefined();
 
     const phase = write("phases/phase-1-harness.md", "---\nplaybook: video\n---\n- [ ] build it\n");
-    expect(JSON.parse(hookResponse(payload(phase), project) ?? "{}").reason).toContain("playbook: video is not in docs/specs/_playbook/ (known: growth)");
-    expect(doctorReport(project, "checkout")).toContain("playbook: video is not in");
+    expect(JSON.parse(hookResponse(payload(phase), project, notARepoRunner) ?? "{}").reason).toContain("playbook: video is not in docs/specs/_playbook/ (known: growth)");
+    expect(doctorReport(project, "checkout", notARepoRunner)).toContain("playbook: video is not in");
     write("phases/phase-1-harness.md", "- [ ] build it\n");
     rmSync(playbook);
   });
 
   test("blocks a phase whose gate is not a known kind", () => {
     const phase = write("phases/phase-1-harness.md", "---\ngate: someday\n---\n- [ ] Gate: agreed\n");
-    expect(JSON.parse(hookResponse(payload(phase), project) ?? "{}").reason).toContain('gate must be design or outward, not "someday"');
+    expect(JSON.parse(hookResponse(payload(phase), project, notARepoRunner) ?? "{}").reason).toContain('gate must be design or outward, not "someday"');
     write("phases/phase-1-harness.md", "---\ngate: design\n---\n- [ ] Gate: agreed\n");
-    expect(hookResponse(payload(phase), project)).toBeUndefined();
+    expect(hookResponse(payload(phase), project, notARepoRunner)).toBeUndefined();
     write("phases/phase-1-harness.md", "- [ ] build it\n");
   });
 
   test("stays silent for valid spec files, code files, other tools and malformed input", () => {
-    expect(hookResponse(payload(join(spec(), "ledger", "gotcha-a.md")), project)).toBeUndefined();
-    expect(hookResponse(payload(join(project, "src", "app.ts")), project)).toBeUndefined();
-    expect(hookResponse(payload(join(spec(), "CLAUDE.md"), "Read"), project)).toBeUndefined();
-    expect(hookResponse("not json", project)).toBeUndefined();
+    expect(hookResponse(payload(join(spec(), "ledger", "gotcha-a.md")), project, notARepoRunner)).toBeUndefined();
+    expect(hookResponse(payload(join(project, "src", "app.ts")), project, notARepoRunner)).toBeUndefined();
+    expect(hookResponse(payload(join(spec(), "CLAUDE.md"), "Read"), project, notARepoRunner)).toBeUndefined();
+    expect(hookResponse("not json", project, notARepoRunner)).toBeUndefined();
   });
 });

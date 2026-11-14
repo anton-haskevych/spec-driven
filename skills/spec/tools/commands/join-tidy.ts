@@ -7,7 +7,7 @@ import { isoTimestamp } from "../core/schedule";
 import { findSpecs } from "../core/spec-folders";
 import { baseProject } from "../mainline/load";
 import { pinDefault } from "../publish/snapshot";
-import { readPlans } from "../plan/read-plans";
+import { readPlansWith } from "../plan/read-plans";
 import { planTidy, type TidiedFile } from "../plan/tidy";
 import { tidyHolders, type TidyHolders } from "../plan/tidy-holders";
 import type { JoinDeps } from "./join";
@@ -30,7 +30,7 @@ export async function joinTidy(projectDir: string, spec: string, deps: JoinDeps)
   const branch = defaultBranch(projectDir, deps.runner);
   if (!branch) return `join: ${NO_DEFAULT_BRANCH.replace("nothing pushed", "nothing written")}`;
   const git = gitAt(projectDir, deps.runner);
-  const plan = readPlans(git, { fetch: true, now: deps.now() }).joined(spec);
+  const plan = readPlansWith(git, deps, { fetch: true, now: deps.now() }).joined(spec);
   if (!plan) return `join: refused, nothing written. ${spec} is not on the board; only a joined spec is tidied.`;
   const tip = pinDefault(git, branch);
   if (!tip.ok) return `join: refused, nothing written. Can't reach origin (${tip.reason}).`;

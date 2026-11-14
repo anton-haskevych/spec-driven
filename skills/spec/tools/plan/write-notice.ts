@@ -25,7 +25,7 @@ export async function withPlanNotice(
   const before = (tip && readJoinedPlan(tip, spec)) ?? joined;
   const notice = noticePlanChange(memory, spec, planShapeOf(before));
   if (outcome.kind === "landed") {
-    const after = readLocalPlans(projectDir, deps.runner, deps.now()).joined(spec);
+    const after = readLocalPlans(projectDir, deps, deps.now()).joined(spec);
     if (after) memory.show(spec, planShapeOf(after));
   }
   return notice ? { ...outcome, notice } : outcome;

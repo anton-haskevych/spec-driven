@@ -6,6 +6,7 @@ import { phaseEdges, phaseState } from "./factories";
 import { loadNodes } from "../graph/nodes";
 import { refsToPhase } from "../phases/review-refs";
 import { createTree, type Tree } from "./tree";
+import { phaseDeps } from "./command-deps";
 
 let tree: Tree;
 afterEach(() => tree.cleanup());
@@ -55,7 +56,7 @@ describe("refsToPhase", () => {
 
   test("split prints them for review after the summary", () => {
     project();
-    const output = phaseCommand(tree.root, ["split", "checkout", "7", "Extra"]);
+    const output = phaseCommand(tree.root, ["split", "checkout", "7", "Extra"], undefined, phaseDeps());
     expect(output).toContain(
       "\nThese still point at Phase 7; keep them, or retarget to a new part:\n- Phase 8 needs 7\n",
     );

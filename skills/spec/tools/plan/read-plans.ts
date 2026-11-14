@@ -1,4 +1,5 @@
 import { gitAt, gitCommonDir, type Git } from "../core/git";
+import { recordPortsOf, type Seamed } from "../core/git-seams";
 import type { Runner } from "../core/run";
 import { loadSettings } from "../playbook/settings";
 import type { FieldsSource, MarksSource, ScheduleSource } from "../graph/nodes";
@@ -10,7 +11,7 @@ import type { SpecDoc } from "./docs/spec-doc";
 import { readSpecPrDocs } from "./pr-sync";
 import { listOutbox, outboxDir, type OutboxEntry } from "../record/outbox";
 import { overlayIntents } from "../record/overlay";
-import { gitRecordReadPort, readRecord, recordViewOf, type RecordRead, type RecordReadOptions } from "../record/read";
+import { gitRecordReadPort, readRecord, recordViewOf, type RecordRead, type RecordReadOptions, type RecordReadPort } from "../record/read";
 import { INTENT_PLANNERS } from "./intents";
 import { validateRecordDoc } from "./kinds";
 import { joinedPhaseMarks, readJoinedPlan, stateSourceFor, type JoinedPlan, type SpecSource } from "./state-source";
@@ -31,8 +32,13 @@ export interface PlanSource {
 
 export const FILES_ONLY: PlanSource = planSourceOf({ kind: "none" });
 
-export function readPlans(git: Git, options: RecordReadOptions & { fetchTimeoutMs?: number }): PlanSource {
-  const port = gitRecordReadPort(git, options.fetchTimeoutMs);
+// What a plan read needs from its command: the runner, and the seams a test swaps for fakes.
+export interface PlanReadDeps extends Seamed {
+  runner: Runner;
+}
+
+export function readPlans(git: Git, options: RecordReadOptions & { fetchTimeoutMs?: number; read?: RecordReadPort }): PlanSource {
+  const port = options.read ?? gitRecordReadPort(git, options.fetchTimeoutMs);
   const read: RecordRead = port ? readRecord(port, options) : { kind: "none" };
   if (read.kind !== "read") return planSourceOf(read);
   const queued = queuedIntents(git);
@@ -75,27 +81,33 @@ export function planSourceOf(record: RecordRead, pending = 0): PlanSource {
   };
 }
 
+// Through the command's seams: a checkout they give no record port reads its files only.
+export function readPlansWith(git: Git, deps: Seamed, options: RecordReadOptions): PlanSource {
+  const ports = recordPortsOf(git, deps);
+  return ports ? readPlans(git, { ...options, read: ports.read }) : FILES_ONLY;
+}
+
 // A one-spec command in a checkout: it fetches when this checkout's settings turn the board on.
-export function readPlansAt(projectDir: string, runner: Runner, now: Date): PlanSource {
-  return readPlans(gitAt(projectDir, runner), { fetch: loadSettings(projectDir).board.record, now });
+export function readPlansAt(projectDir: string, deps: PlanReadDeps, now: Date): PlanSource {
+  return readPlansWith(gitAt(projectDir, deps.runner), deps, { fetch: loadSettings(projectDir).board.record, now });
 }
 
 export type SpecPlans = Pick<PlanSource, "state" | "prs" | "joined">;
 
 // Opens the record on the first spec asked for: a command aimed at a PR number never reads it.
-export function plansOnDemandAt(projectDir: string, runner: Runner, now: Date): SpecPlans {
+export function plansOnDemandAt(projectDir: string, deps: PlanReadDeps, now: Date): SpecPlans {
   let plans: PlanSource | undefined;
-  const open = () => (plans ??= readPlansAt(projectDir, runner, now));
+  const open = () => (plans ??= readPlansAt(projectDir, deps, now));
   return { state: (spec) => open().state(spec), prs: (spec) => open().prs(spec), joined: (spec) => open().joined(spec) };
 }
 
-export function specStatesAt(projectDir: string, runner: Runner, now: Date): SpecSource {
-  return plansOnDemandAt(projectDir, runner, now).state;
+export function specStatesAt(projectDir: string, deps: PlanReadDeps, now: Date): SpecSource {
+  return plansOnDemandAt(projectDir, deps, now).state;
 }
 
 // Hooks and the doctor never fetch: they read what the last fetch left.
-export function readLocalPlans(projectDir: string, runner: Runner, now: Date): PlanSource {
-  return readPlans(gitAt(projectDir, runner), { fetch: false, now });
+export function readLocalPlans(projectDir: string, deps: PlanReadDeps, now: Date): PlanSource {
+  return readPlansWith(gitAt(projectDir, deps.runner), deps, { fetch: false, now });
 }
 
 function recordFieldsOf({ status, owner, focus, ship }: SpecDoc): RecordFields {

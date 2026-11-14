@@ -6,9 +6,9 @@ import { defaultBranch } from "../core/run";
 import { resolveSpec } from "../core/spec-folders";
 import { hasPhaseLines, planExport } from "../plan/export";
 import { frozenProgress } from "../plan/frozen-progress";
-import { readPlans } from "../plan/read-plans";
+import { readPlansWith } from "../plan/read-plans";
 import type { JoinedPlan } from "../plan/state-source";
-import { gitRecordPort } from "../record/ref";
+import { recordPortsOf } from "../core/git-seams";
 import { writeRecord, type RecordPlan, type StoreWrite } from "../record/write";
 import type { RecordDeps } from "./record";
 
@@ -18,7 +18,7 @@ export async function recordExport(projectDir: string, spec: string, unjoin: boo
   const folder = resolveSpec(projectDir, spec);
   if (typeof folder === "string") return `export: ${folder}`;
   const git = gitAt(projectDir, deps.runner);
-  const plans = readPlans(git, { fetch: true, now: deps.now() });
+  const plans = readPlansWith(git, deps, { fetch: true, now: deps.now() });
   const plan = plans.joined(spec);
   if (!plan) return `export: ${spec} is not on the board; its files already hold its plan`;
   const read = (pointer: string) => readTextIfExists(join(folder.dir, pointer));
@@ -33,7 +33,7 @@ export async function recordExport(projectDir: string, spec: string, unjoin: boo
   applyEdits({ kind: "ok", edits: exported.files.map(({ pointer, text }) => ({ file: join(folder.dir, pointer), text })) });
   const written = `export: ${spec} written to files (${countsOf(plan)})`;
   if (!unjoin) return `${written}; still on the board`;
-  const port = gitRecordPort(git);
+  const port = recordPortsOf(git, deps)?.port;
   if (!port) return `${written}; still on the board: this repo has no origin`;
   return `${written}${unjoinPart(await writeRecord(port, unjoinPlan(spec), { validate: deps.validate }))}`;
 }

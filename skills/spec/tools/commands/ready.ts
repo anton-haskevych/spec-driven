@@ -9,7 +9,7 @@ export function readyReport(projectDir: string, specName: string | undefined, ru
   if (!specName) return "usage: ready <spec-name>";
   const [spec] = findSpecs(projectDir, specName);
   if (!spec) return `ready: no spec named ${specName}`;
-  const plans = readPlansAt(projectDir, runner, now);
+  const plans = readPlansAt(projectDir, { runner }, now);
   const state = plans.state(spec);
   return `${renderReadySet(readySet(state, loadNodes(projectDir, plans)))}\n\n${renderPrGroups(state)}`;
 }

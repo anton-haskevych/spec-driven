@@ -55,7 +55,11 @@ function snapshot(port: RecordReadPort, tip: string, how: { live: boolean; ageMs
 // The common dir is asked for only once a record exists, so a repo without one pays no extra git call.
 export function gitRecordReadPort(git: Git, fetchTimeoutMs?: number): RecordReadPort | undefined {
   const port = gitRecordPort(git);
-  if (!port) return undefined;
+  return port ? recordReadPortOn(git, port, fetchTimeoutMs) : undefined;
+}
+
+// The read side of a write port this clone already has: one origin lookup serves both.
+export function recordReadPortOn(git: Git, port: RecordPort, fetchTimeoutMs?: number): RecordReadPort {
   let stamp: string | undefined;
   const stampPath = () => {
     if (stamp === undefined) {

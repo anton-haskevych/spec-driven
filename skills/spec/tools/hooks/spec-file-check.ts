@@ -53,11 +53,11 @@ function projectFileIssues(filePath: string, text: string, projectDir: string): 
 function specFileIssues(location: SpecFileLocation, filePath: string, text: string, projectDir: string, runner: Runner): Issue[] {
   if (location.pathInSpec === "CLAUDE.md") {
     const links = linkIssues(loadNodes(projectDir), location.spec.name, filePath);
-    const upgraded = readLocalPlans(projectDir, runner, new Date()).fields(location.spec.name) !== undefined;
+    const upgraded = readLocalPlans(projectDir, { runner }, new Date()).fields(location.spec.name) !== undefined;
     return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links, ...(upgraded ? movedFieldIssues(location, filePath, text, runner) : [])];
   }
   if (location.pathInSpec.startsWith("phases/") || location.pathInSpec === "progress.md") {
-    const plans = readLocalPlans(projectDir, runner, new Date());
+    const plans = readLocalPlans(projectDir, { runner }, new Date());
     const frozen = plans.isJoined(location.spec.name) ? frozenPlanIssues(location, filePath, text, runner) : [];
     return location.pathInSpec === "progress.md" ? frozen : [...frozen, ...phaseFileIssues(location, projectDir, plans)];
   }
@@ -102,7 +102,7 @@ function isLedgerEntry(pathInSpec: string): boolean {
   return parts.length === 2 && parts[0] === "ledger" && pathInSpec.endsWith(".md") && basename(pathInSpec) !== "INDEX.md";
 }
 
-export function hookResponse(payload: unknown, fallbackDir: string): string | undefined {
+export function hookResponse(payload: unknown, fallbackDir: string, runner: Runner = systemRunner): string | undefined {
   if (!isRecord(payload) || !WATCHED_TOOLS.has(String(payload.tool_name))) return undefined;
   const input = payload.tool_input;
   const rawPath = isRecord(input) ? input.file_path : undefined;
@@ -110,7 +110,7 @@ export function hookResponse(payload: unknown, fallbackDir: string): string | un
 
   const projectDir = findProjectDir(typeof payload.cwd === "string" ? payload.cwd : fallbackDir);
   const filePath = isAbsolute(rawPath) ? rawPath : join(projectDir, rawPath);
-  const errors = issuesForWrittenFile(filePath, projectDir).filter((issue) => issue.severity === "error");
+  const errors = issuesForWrittenFile(filePath, projectDir, runner).filter((issue) => issue.severity === "error");
   if (errors.length === 0) return undefined;
 
   const reason = `spec doctor found problems in the file you just wrote:\n${formatIssues(errors, projectDir)}\nFix them before moving on.`;

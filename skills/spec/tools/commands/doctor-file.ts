@@ -2,9 +2,10 @@ import { realpathSync, statSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { resolveSpec } from "../core/spec-folders";
 import { formatIssues } from "../doctor/issue";
+import type { Runner } from "../core/run";
 import { issuesForWrittenFile } from "../hooks/spec-file-check";
 
-export function doctorFileReport(projectDir: string, specName: string, path: string): string {
+export function doctorFileReport(projectDir: string, specName: string, path: string, runner?: Runner): string {
   const spec = resolveSpec(projectDir, specName);
   if (typeof spec === "string") return `doctor: ${spec}`;
   try {
@@ -15,7 +16,7 @@ export function doctorFileReport(projectDir: string, specName: string, path: str
     }
     if (!statSync(file).isFile()) return "doctor: --file requires an existing file";
     const project = realpathSync(projectDir);
-    const issues = issuesForWrittenFile(file, project);
+    const issues = issuesForWrittenFile(file, project, runner);
     if (issues.length === 0) return "doctor: clean (1 file)";
     const errors = issues.filter(({ severity }) => severity === "error").length;
     return `doctor: ${errors} errors, ${issues.length - errors} warnings\n${formatIssues(issues, project)}`;

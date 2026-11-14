@@ -58,7 +58,7 @@ export function fileWriter(projectDir: string, spec: SpecFolder, deps: PhaseDeps
       const result = planSplit(spec, request, nodes);
       if (result.kind === "invalid") return { kind: "invalid", reason: result.reason };
       applyEdits(result.plan);
-      const refs = refsToPhase(loadSpecStateFromFiles(spec), result.original.id, nodes, specStatesAt(projectDir, deps.runner, deps.now()));
+      const refs = refsToPhase(loadSpecStateFromFiles(spec), result.original.id, nodes, specStatesAt(projectDir, deps, deps.now()));
       return landed(splitLine(result, refs));
     },
     move(request) {

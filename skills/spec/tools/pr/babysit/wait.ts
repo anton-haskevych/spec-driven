@@ -36,7 +36,7 @@ const SHORT_SHA = 7;
 
 export async function waitForPr(projectDir: string, request: WaitRequest, deps: WaitDeps): Promise<string> {
   const { runner, clock } = deps;
-  const resolved = resolvePr(ghClient(projectDir, runner), projectDir, request.target, plansOnDemandAt(projectDir, runner, new Date(clock.now())));
+  const resolved = resolvePr(ghClient(projectDir, runner), projectDir, request.target, plansOnDemandAt(projectDir, { runner }, new Date(clock.now())));
   if (!resolved.ok) return `pr wait: ${resolved.reason}`;
   const { view } = resolved.value;
   const git = gitAt(projectDir, runner);

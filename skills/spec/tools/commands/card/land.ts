@@ -6,7 +6,7 @@ import { boardBase } from "../../plan/board-base";
 import { validateRecordDoc } from "../../plan/kinds";
 import type { PhaseDeps } from "../../plan/phase-writer";
 import { loadSettings } from "../../playbook/settings";
-import { gitRecordPort } from "../../record/ref";
+import { recordPortsOf } from "../../core/git-seams";
 import { writeRecord, type RecordPlan } from "../../record/write";
 import { stampedBy } from "../../sessions/facts";
 import { NO_DEFAULT_BRANCH } from "../push";
@@ -21,7 +21,7 @@ export async function landNow(projectDir: string, deps: PhaseDeps, action: strin
   const branch = defaultBranch(projectDir, deps.runner);
   if (!branch) return refusedLine(action, NO_DEFAULT_BRANCH.replace("nothing pushed", "nothing written"));
   const git = gitAt(projectDir, deps.runner);
-  const port = gitRecordPort(git);
+  const port = recordPortsOf(git, deps)?.port;
   if (!port) return refusedLine(action, NO_ORIGIN);
   const base = await boardBase(git, branch, "a new card");
   if (!base.ok) return refusedLine(action, base.reason);

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { FileChange, RefPort, Tip, TipRead } from "../core/land-on-ref";
 import type { PushOutcome } from "../core/remote-push";
 
@@ -13,25 +14,41 @@ export interface FakeRef extends RefPort {
   offline: boolean;
   busyFetches: number;
   racerBeforeNextPush: (() => void) | undefined;
+  // This clone's copy of the tip, as git's tracking ref: a fetch or a push of ours moves it.
+  tracking: string | undefined;
+  fetches: number;
+  failNextFetch(): void;
   filesAt(sha: string | undefined): ReadonlyMap<string, string>;
   landFromAnotherMachine(changes: readonly FileChange[], message?: string): string;
 }
 
 export function fakeRef(): FakeRef {
   let next = 0;
+  let failing = false;
   const ref: FakeRef = {
     commits: new Map(),
     tip: undefined,
     offline: false,
     busyFetches: 0,
     racerBeforeNextPush: undefined,
+    tracking: undefined,
+    fetches: 0,
+    failNextFetch: () => {
+      failing = true;
+    },
     filesAt: (sha) => (sha ? (ref.commits.get(sha)?.files ?? new Map()) : new Map()),
     fetchTip(): TipRead {
+      ref.fetches += 1;
       if (ref.offline) return { kind: "offline", reason: "origin unreachable" };
       if (ref.busyFetches > 0) {
         ref.busyFetches -= 1;
         return { kind: "busy", reason: "cannot lock ref" };
       }
+      // Like git: a failed fetch reads as failed only when origin still lists the ref.
+      const failed = failing && ref.tip !== undefined;
+      failing = false;
+      if (failed) return { kind: "failed", reason: "fatal: fetch failed" };
+      ref.tracking = ref.tip;
       return ref.tip ? { kind: "at", sha: ref.tip } : { kind: "absent" };
     },
     commit(base, changes, message) {
@@ -40,7 +57,7 @@ export function fakeRef(): FakeRef {
         if (change.text === undefined) files.delete(change.path);
         else files.set(change.path, change.text);
       }
-      const sha = `c${++next}`;
+      const sha = commitId(base, message, ++next);
       ref.commits.set(sha, { parent: base.kind === "at" ? base.sha : undefined, files, message });
       return { ok: true, value: sha };
     },
@@ -52,6 +69,7 @@ export function fakeRef(): FakeRef {
       const expected = lease.kind === "at" ? lease.sha : undefined;
       if (ref.tip !== expected) return { kind: "refused" };
       ref.tip = commit;
+      ref.tracking = commit;
       return { kind: "pushed" };
     },
     landFromAnotherMachine(changes, message = "elsewhere") {
@@ -63,4 +81,9 @@ export function fakeRef(): FakeRef {
     },
   };
   return ref;
+}
+
+// Hex like git's, and per instance, so golden outputs don't depend on which test ran first.
+function commitId(base: Tip, message: string, counter: number): string {
+  return createHash("sha1").update(`${base.kind === "at" ? base.sha : ""}\0${message}\0${counter}`).digest("hex");
 }

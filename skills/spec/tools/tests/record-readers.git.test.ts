@@ -93,7 +93,7 @@ describe("one-spec readers of a joined spec (real git)", () => {
 
   test("a lazy spec source reads the record on the first spec asked for, never before", () => {
     const runner = counting();
-    const states = specStatesAt(repo.dir, runner, NOW);
+    const states = specStatesAt(repo.dir, { runner }, NOW);
     expect(runner.recordFetches).toBe(0);
     const alpha = resolveSpec(repo.dir, "alpha");
     if (typeof alpha === "string") throw new Error(alpha);
@@ -107,7 +107,7 @@ describe("one-spec readers of a joined spec (real git)", () => {
   });
 
   test("a joined spec whose record tasks are all done is finished, though its progress.md is a stub", () => {
-    const nodes = loadNodes(repo.dir, readLocalPlans(repo.dir, isolatedRunner, NOW));
+    const nodes = loadNodes(repo.dir, readLocalPlans(repo.dir, { runner: isolatedRunner }, NOW));
     expect(nodes.get("gamma")?.phases).toEqual([{ id: "1", done: true, deployed: false }]);
     expect(isFinished(nodes.get("gamma")!)).toBe(true);
     expect(isFinished(loadNodes(repo.dir).get("gamma")!)).toBe(false);

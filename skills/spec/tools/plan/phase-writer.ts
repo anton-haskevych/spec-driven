@@ -1,4 +1,5 @@
 import type { Env } from "../core/env";
+import type { Seamed } from "../core/git-seams";
 import type { Runner } from "../core/run";
 import type { SpecFolder } from "../core/spec-folders";
 import type { AddRequest } from "../phases/add";
@@ -43,7 +44,7 @@ export interface PhaseWriter {
   note(request: NoteRequest): Written;
 }
 
-export interface PhaseDeps {
+export interface PhaseDeps extends Seamed {
   runner: Runner;
   env: Env;
   now: () => Date;

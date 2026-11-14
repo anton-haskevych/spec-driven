@@ -73,6 +73,8 @@ User input, API responses, file contents — validated once at the edge. Inside 
 
 Pure logic → exhaustive unit tests. Layer wiring → a small set of high-value integration tests. Don't unit-test glue; don't integration-test arithmetic. Tests should match the shape of the risk.
 
+Real infrastructure (a git repo, a database, the network) only in tests of the adapter that talks to it; everything else runs on fakes held to the same contract. Where the project keeps a guard for this, such as this plugin's real-git allowlist, it fails the test the moment it is written.
+
 Every extracted helper (per principle 9) gets a unit test. No exceptions.
 
 ## 14. Composition over inheritance, composition over giant procedures

@@ -31,19 +31,22 @@ import { SPEC_STATUS_USAGE, specStatusCommand } from "./commands/spec-status";
 import { TREES_USAGE, treesCommand } from "./commands/trees";
 import { findProjectDir, findSpecs } from "./core/spec-folders";
 import { pilotCommandRefusal, type LocalPilot } from "./runtime/workflow-capabilities";
+import type { Runner } from "./core/run";
 
 export interface Command {
   usage: string;
-  run(projectDir: string, args: readonly string[], workflow?: LocalPilot): string | Promise<string>;
+  run(projectDir: string, args: readonly string[], workflow?: LocalPilot, runner?: Runner): string | Promise<string>;
 }
 
 export interface CommandDeps {
   context?: Pick<Command, "run">;
   workflow?: LocalPilot;
+  // For commands that take one (doctor); the others build their own.
+  runner?: Runner;
 }
 
 export const COMMANDS: Record<string, Command> = {
-  doctor: { usage: DOCTOR_USAGE, run: doctorCommand },
+  doctor: { usage: DOCTOR_USAGE, run: (dir, args, _workflow, runner) => doctorCommand(dir, args, runner) },
   context: {
     usage: "context <sub-command> <spec-name> [hint]",
     run: (dir, args) => contextPack(dir, parseContextRequest(args, (name) => findSpecs(dir, name).length > 0)),
@@ -55,7 +58,7 @@ export const COMMANDS: Record<string, Command> = {
   list: { usage: LIST_USAGE, run: (dir, args) => listCommand(dir, args, systemBoardDeps()) },
   board: { usage: BOARD_USAGE, run: (dir, args) => boardCommand(dir, args) },
   playbooks: { usage: "playbooks <spec-name>", run: (dir, args) => playbooksReport(dir, args[0]) },
-  phase: { usage: PHASE_USAGE, run: phaseCommand },
+  phase: { usage: PHASE_USAGE, run: (dir, args, workflow) => phaseCommand(dir, args, workflow) },
   settings: { usage: "settings", run: (dir) => settingsReport(dir) },
   pr: { usage: PR_USAGE, run: (dir, args) => prCommand(dir, args) },
   push: { usage: PUSH_USAGE, run: (dir, args) => pushReport(dir, args) },
@@ -72,7 +75,7 @@ export const COMMANDS: Record<string, Command> = {
   record: { usage: RECORD_USAGE, run: (dir, args) => recordCommand(dir, args) },
   join: { usage: JOIN_USAGE, run: (dir, args) => joinCommand(dir, args) },
   plan: { usage: PLAN_USAGE, run: (dir, args) => planCommand(dir, args) },
-  question: { usage: QUESTION_USAGE, run: questionCommand },
+  question: { usage: QUESTION_USAGE, run: (dir, args, workflow) => questionCommand(dir, args, workflow) },
   card: { usage: CARD_USAGE, run: (dir, args) => cardCommand(dir, args) },
   page: { usage: PAGE_USAGE, run: (dir, args) => pageCommand(dir, args) },
 };
@@ -88,7 +91,7 @@ export async function run(argv: readonly string[], projectDir: string, deps: Com
   if (name === "context" && deps.workflow && !deps.context) return "spec: context binding unavailable in local-pilot; legacy context is disabled";
   if (name === "context" && deps.context) return deps.context.run(projectDir, args);
   const command = name !== undefined && Object.hasOwn(COMMANDS, name) ? COMMANDS[name] : undefined;
-  return command ? command.run(projectDir, args, deps.workflow) : USAGE;
+  return command ? command.run(projectDir, args, deps.workflow, deps.runner) : USAGE;
 }
 
 async function withStdinArgs(argv: readonly string[]): Promise<readonly string[]> {

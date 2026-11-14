@@ -22,7 +22,7 @@ export interface RerunDeps {
 
 export function rerunPr(projectDir: string, target: readonly string[], deps: RerunDeps): string {
   const gh = ghClient(projectDir, deps.runner);
-  const resolved = resolvePr(gh, projectDir, target, plansOnDemandAt(projectDir, deps.runner, deps.now()));
+  const resolved = resolvePr(gh, projectDir, target, plansOnDemandAt(projectDir, deps, deps.now()));
   if (!resolved.ok) return `pr rerun: ${resolved.reason}`;
   const { view } = resolved.value;
   if (view.state !== "OPEN") return `pr rerun: #${view.number} is ${view.state.toLowerCase()}`;

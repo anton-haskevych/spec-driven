@@ -19,7 +19,7 @@ export interface HoldDeps {
 }
 
 export function holdPr(projectDir: string, request: HoldRequest, deps: HoldDeps): string {
-  const resolved = resolvePr(ghClient(projectDir, deps.runner), projectDir, request.target, plansOnDemandAt(projectDir, deps.runner, new Date()));
+  const resolved = resolvePr(ghClient(projectDir, deps.runner), projectDir, request.target, plansOnDemandAt(projectDir, deps, new Date()));
   if (!resolved.ok) return `pr hold: ${resolved.reason}`;
   const { number, state } = resolved.value.view;
   if (state !== "OPEN") return `pr hold: #${number} is ${state.toLowerCase()}`;

@@ -38,7 +38,8 @@ export interface PlanFields {
 export type PhaseSet = { kind: "ok"; plan: Extract<EditPlan, { kind: "ok" }>; phaseId: string; said: string[] } | { kind: "unchanged"; reason: string } | { kind: "invalid"; reason: string };
 
 const HEADING = /^#\s+Phase\s+\S+\s+—\s+.*$/m;
-const OUTCOME = /^\*\*Outcome:\*\*.*$/m;
+// The Outcome paragraph: its first line and any wrapped lines up to the next blank line.
+const OUTCOME = /^\*\*Outcome:\*\*.*(?:\n.+)*/m;
 const LINE_TITLE = /^(\s*[-*+]\s+\[.\]\s+Phase\s+\S+\s+—\s+)(.*?)(\s+→.*)$/;
 
 // Frontmatter for the edges, the heading and progress line for the title, the **Outcome:** line.
