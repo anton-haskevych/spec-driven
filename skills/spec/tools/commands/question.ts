@@ -33,7 +33,7 @@ function list(projectDir: string, args: readonly string[], deps: PhaseDeps): str
   const parsed = parseFlags(args, { all: { type: "boolean" }, json: { type: "boolean" } });
   if (!parsed || parsed.positionals.length > 0) return `usage: ${QUESTION_USAGE}`;
   const all = parsed.values.all === true;
-  const view = recordViewOf(readPlansAt(projectDir, deps.runner, deps.now()).record);
+  const view = recordViewOf(readPlansAt(projectDir, deps, deps.now()).record);
   const rows = view ? questionRows(view, all) : [];
   if (parsed.values.json) return JSON.stringify({ questions: rows });
   return [...rows.map(questionLine), view ? questionsSummary(rows, all) : "question: no board record here; parked phases of specs in files show on the board"].join("\n");

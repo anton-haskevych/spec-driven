@@ -74,7 +74,7 @@ function briefPath(runPath: string, request: CrewLaunchRequest): string {
 function shipOf(tree: string, spec: string, deps: CrewDeps): BriefRequest["ship"] {
   if (!existsSync(tree)) return undefined;
   const [folder] = findSpecs(tree, spec);
-  const own = folder ? readSpecFields(folder.dir, readLocalPlans(tree, deps.runner, deps.now()).fields(spec)).meta.ship : undefined;
+  const own = folder ? readSpecFields(folder.dir, readLocalPlans(tree, deps, deps.now()).fields(spec)).meta.ship : undefined;
   if (own) return { mode: own, from: "spec" };
   const fallback = loadSettings(tree).pr.ship;
   return fallback ? { mode: fallback, from: "settings" } : undefined;

@@ -95,6 +95,6 @@ function logWrite(values: { add?: string; start?: string; group?: string; pushed
 function prNumber(projectDir: string, target: readonly string[], runner: Runner): Result<number> {
   const number = target.length === 1 ? parsePrNumber(target[0]!) : undefined;
   if (number !== undefined) return { ok: true, value: number };
-  const resolved = resolvePr(ghClient(projectDir, runner), projectDir, target, plansOnDemandAt(projectDir, runner, new Date()));
+  const resolved = resolvePr(ghClient(projectDir, runner), projectDir, target, plansOnDemandAt(projectDir, { runner }, new Date()));
   return resolved.ok ? { ok: true, value: resolved.value.view.number } : resolved;
 }

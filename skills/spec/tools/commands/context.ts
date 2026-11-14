@@ -90,7 +90,7 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   const specs = findSpecs(projectDir, name);
   if (specs.length !== 1 || !specs[0]) return "";
 
-  const plans = readPlansAt(projectDir, deps.runner, deps.now?.() ?? new Date());
+  const plans = readPlansAt(projectDir, deps, deps.now?.() ?? new Date());
   const state = plans.state(specs[0]);
   const hasLedger = existsSync(join(state.spec.dir, "ledger", "INDEX.md"));
   if (!state.hasProgress || !hasLedger) return "";

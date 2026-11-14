@@ -41,7 +41,7 @@ const SHORT_SHA = 7;
 const NO_METHOD = "pr merge: pr.merge is not set; pass --method or set it in docs/specs/_playbook/settings.md";
 
 export async function mergePr(projectDir: string, request: MergeRequest, deps: MergeDeps): Promise<string> {
-  const plans = plansOnDemandAt(projectDir, deps.runner, deps.now());
+  const plans = plansOnDemandAt(projectDir, deps, deps.now());
   const resolved = resolvePr(ghClient(projectDir, deps.runner), projectDir, request.target, plans);
   if (!resolved.ok) return `pr merge: ${resolved.reason}`;
   const { view } = resolved.value;

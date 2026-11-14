@@ -53,11 +53,11 @@ function projectFileIssues(filePath: string, text: string, projectDir: string): 
 function specFileIssues(location: SpecFileLocation, filePath: string, text: string, projectDir: string, runner: Runner): Issue[] {
   if (location.pathInSpec === "CLAUDE.md") {
     const links = linkIssues(loadNodes(projectDir), location.spec.name, filePath);
-    const upgraded = readLocalPlans(projectDir, runner, new Date()).fields(location.spec.name) !== undefined;
+    const upgraded = readLocalPlans(projectDir, { runner }, new Date()).fields(location.spec.name) !== undefined;
     return [...checkSpecMeta(filePath, text, allowedStatuses(projectDir)), ...links, ...(upgraded ? movedFieldIssues(location, filePath, text, runner) : [])];
   }
   if (location.pathInSpec.startsWith("phases/") || location.pathInSpec === "progress.md") {
-    const plans = readLocalPlans(projectDir, runner, new Date());
+    const plans = readLocalPlans(projectDir, { runner }, new Date());
     const frozen = plans.isJoined(location.spec.name) ? frozenPlanIssues(location, filePath, text, runner) : [];
     return location.pathInSpec === "progress.md" ? frozen : [...frozen, ...phaseFileIssues(location, projectDir, plans)];
   }

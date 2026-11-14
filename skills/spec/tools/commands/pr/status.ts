@@ -16,7 +16,7 @@ export const PR_STATUS_USAGE = "pr status [<pr> | <spec-name> [<group>]]";
 export async function prStatus(projectDir: string, args: readonly string[], runner: Runner = systemRunner, now = new Date(), env: Env = process.env): Promise<string> {
   if (args.length > 2) return `usage: ${PR_STATUS_USAGE}`;
   const gh = ghClient(projectDir, runner);
-  const plans = plansOnDemandAt(projectDir, runner, now);
+  const plans = plansOnDemandAt(projectDir, { runner }, now);
   const resolved = resolvePr(gh, projectDir, args, plans);
   if (!resolved.ok) return `pr status: ${resolved.reason}`;
   const { view, otherPrs } = resolved.value;

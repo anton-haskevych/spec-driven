@@ -32,12 +32,12 @@ export async function listCommand(projectDir: string, args: readonly string[], d
   const route = listRoute(args);
   if (typeof route === "string") return route;
   if (route.kind === "table") {
-    const plans = readPlansAt(projectDir, deps.runner, deps.now);
+    const plans = readPlansAt(projectDir, deps, deps.now);
     return portfolioTable(projectDir, route.args, today, plans, boardCards(projectDir, plans));
   }
   const board = await loadBoard(projectDir, { local: route.local, ownSessionId: ownSessionId(deps.env) }, deps, deps.now);
   if (board.ok) return fenced(renderBoard(board.value));
-  const plans = readLocalPlans(projectDir, deps.runner, deps.now);
+  const plans = readLocalPlans(projectDir, deps, deps.now);
   return `${portfolioTable(projectDir, [], today, plans, boardCards(projectDir, plans))}\n\nboard unavailable: ${board.reason}`;
 }
 

@@ -23,7 +23,7 @@ export function systemPhaseDeps(): PhaseDeps {
 
 export function phaseContext(projectDir: string, deps: PhaseDeps, workflow?: LocalPilot): PhaseContext {
   let plans: PlanSource | undefined;
-  const read = () => (plans ??= readPlansAt(projectDir, deps.runner, deps.now()));
+  const read = () => (plans ??= readPlansAt(projectDir, deps, deps.now()));
   return {
     projectDir,
     deps,

@@ -12,7 +12,7 @@ const NO_RECORD = "card: no board record here; with the board off, ideas are fil
 export function listCards(projectDir: string, args: readonly string[], deps: PhaseDeps, usage: string): string {
   const parsed = parseFlags(args, { all: { type: "boolean" }, tag: { type: "string" }, json: { type: "boolean" } });
   if (!parsed || parsed.positionals.length > 0) return `usage: ${usage}`;
-  const plans = readPlansAt(projectDir, deps.runner, deps.now());
+  const plans = readPlansAt(projectDir, deps, deps.now());
   if (plans.record.kind === "newer") return `card list: ${OLDER_PLUGIN}`;
   const view = recordViewOf(plans.record);
   const all = parsed.values.all === true;
@@ -25,7 +25,7 @@ export function listCards(projectDir: string, args: readonly string[], deps: Pha
 
 // What no single card can see; the doctor runs the same check on the local copy.
 export function checkCards(projectDir: string, deps: PhaseDeps): string {
-  const plans = readPlansAt(projectDir, deps.runner, deps.now());
+  const plans = readPlansAt(projectDir, deps, deps.now());
   if (plans.record.kind === "newer") return `card check: ${OLDER_PLUGIN}`;
   const view = recordViewOf(plans.record);
   if (!view) return NO_RECORD;
