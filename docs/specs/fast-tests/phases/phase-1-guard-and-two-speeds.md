@@ -44,11 +44,11 @@ doctor checks that path. Its first paragraph still states the rule, the fakes, t
 
 ## Deliverables
 
-- [ ] Guard in `tests/real-git/` (data `allowlist.ts`, scan `scan.ts`, thin `real-git-allowlist.test.ts`): every test bun collects under `skills/` whose transitive import closure (`Bun.resolveSync`) reaches `git-repo`/`joined-repo` — red on today's tree, naming the files
-- [ ] Rename all real-git files to `*.git.test.ts` with `REAL_GIT_FILES` reasons and `REAL_GIT_CAP` (checked with `===`); helper-import check with its shrinking exception set (`crew-deps.ts` until phase 8; fixtures allowed); guard green; fix the codex-packaged-entry lesson `paths:` and fixture comments that named old files
-- [ ] Repo-build check with `@ast-grep/napi`: a builder (`repoWithOrigin`, `joinedRepo`, `.clone(`, `.addWorktree(`, or a same-file helper calling one) only inside `beforeAll`; inside `test`/`it`/`beforeEach` fails; shrinking exception set; Linux binary present in `bun.lock`
-- [ ] `test:fast` script with a `git` tripwire (a shim first on `PATH` that fails and names the argv) + `gates.md` (`per-commit`, `pre-pr`) + `settings.md` `gates.per-commit`; files the tripwire catches become `.git` files or get fixed; this spec's `pr-opening.md` first check becomes `gate: pre-pr`; `spec.ts doctor fast-tests` clean
-- [ ] Project lesson `principle-tests-use-real-git-only-for-code-that-runs-git.md` via `lessons add`, with `enforced-by: skills/spec/tools/tests/real-git-allowlist.test.ts`; isolated-runner gotcha's cost note becomes a pointer; `principles.md` §13 sentence
+- [x] Guard in `tests/real-git/` (data `allowlist.ts`, scan `scan.ts`, thin `real-git-allowlist.test.ts`): every test bun collects under `skills/` whose transitive import closure (`Bun.resolveSync`) reaches `git-repo`/`joined-repo` — red on today's tree, naming the files
+- [x] Rename all real-git files to `*.git.test.ts` with `REAL_GIT_FILES` reasons and `REAL_GIT_CAP` (checked with `===`); helper-import check with its shrinking exception set (`crew-deps.ts` until phase 8; fixtures allowed); guard green; fix the codex-packaged-entry lesson `paths:` and fixture comments that named old files
+- [x] Repo-build check with `@ast-grep/napi`: a builder (`repoWithOrigin`, `joinedRepo`, `.clone(`, `.addWorktree(`, or a same-file helper calling one) only inside `beforeAll`; inside `test`/`it`/`beforeEach` fails; shrinking exception set; Linux binary present in `bun.lock`
+- [x] `test:fast` script with a `git` tripwire (a shim first on `PATH` that fails and names the argv) + `gates.md` (`per-commit`, `pre-pr`) + `settings.md` `gates.per-commit`; files the tripwire catches become `.git` files or get fixed; this spec's `pr-opening.md` first check becomes `gate: pre-pr`; `spec.ts doctor fast-tests` clean
+- [x] Project lesson `principle-tests-use-real-git-only-for-code-that-runs-git.md` via `lessons add`, with `enforced-by: skills/spec/tools/tests/real-git-allowlist.test.ts`; isolated-runner gotcha's cost note becomes a pointer; `principles.md` §13 sentence
 
 ## Phase-local notes
 

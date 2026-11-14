@@ -5,6 +5,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 
 ## Gotchas
 - `gotcha-fast-tier-git-leaks-through-production-defaults.md` — [phase 1+] — default `systemRunner` runs git unseen; the tripwire catches it
+- `docs/specs/_ledger/gotcha-bun-scan-imports-needs-the-right-loader-and-no-shebang.md` — [general] — scanImports: strip shebang, loader by extension, skip JSON
 
 ## Principles
 - `principle-real-git-tests-run-per-commit-while-seams-move.md` — [phase 3, 3a, 4–8] — per commit: test:fast + covering .git files

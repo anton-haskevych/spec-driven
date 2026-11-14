@@ -13,3 +13,9 @@ repo. Git fails, the command takes its fallback branch, and the test passes whil
 
 The import scan can't see this. The `test:fast` git tripwire (a shim first on `PATH`) is what catches it. When it
 fires, pass the deps through; don't widen `gitStub`.
+
+**Phase 1 (2026-11-13):** the tripwire found 16 such files, all through one path: `readPlans` → `gitRecordReadPort` →
+`git remote get-url origin`. They now pass `notARepoRunner` (`tests/stub-runner.ts`: every git call answers as outside
+a repo, anything else throws) or `phaseDeps()` (`tests/command-deps.ts`, defaults the runner to it). A test that goes
+through `spec.ts run()` can't pass a runner yet (`doctor-file.git.test.ts`, phase 3's task); a CLI child gets a `PATH`
+with no git (`spec-folders.test.ts`).
