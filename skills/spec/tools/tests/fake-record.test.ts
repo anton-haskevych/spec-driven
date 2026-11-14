@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { phaseDocPath } from "../plan/kinds";
 import { commitLog, docOf, fakeRecord, fakeRecordReadPort, recordPhaseOf, seedRecord } from "./fake-record";
+import { fakeRemote } from "./fake-remote";
 import { recordPortContract } from "./record-port-contract";
 import { recordReadPortContract } from "./record-read-port-contract";
+import { remotePortContract } from "./remote-port-contract";
 
 recordPortContract("fakeRecord", () => {
   const record = fakeRecord();
@@ -28,6 +30,18 @@ recordReadPortContract("fakeRecordReadPort", () => {
     landElsewhere: (changes) => record.landFromAnotherMachine(changes),
     deleteOnOrigin: () => {
       record.tip = undefined;
+    },
+  };
+});
+
+remotePortContract("fakeRemote", () => {
+  const remote = fakeRemote();
+  return {
+    port: remote,
+    elsewhere: remote,
+    branch: "main",
+    goOffline: () => {
+      remote.offline = true;
     },
   };
 });

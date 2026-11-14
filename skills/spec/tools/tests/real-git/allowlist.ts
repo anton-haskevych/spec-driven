@@ -88,7 +88,6 @@ export const REPO_BUILD_EXCEPTIONS: Record<string, string> = {
   "board-inputs.git.test.ts": "one repo per file in phase 9",
   "board-local-work.git.test.ts": "one repo per file in phase 9",
   "claim-command.git.test.ts": "moves to fakes in phase 4",
-  "claims-remote.git.test.ts": "one repo per file in phase 9",
   "claims-store.git.test.ts": "one repo per file in phase 9",
   "codex-entry.git.test.ts": "moves to fakes in phase 8",
   "codex-packaged-entry.git.test.ts": "one repo per file in phase 9",
