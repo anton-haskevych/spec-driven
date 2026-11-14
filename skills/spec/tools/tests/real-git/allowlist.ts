@@ -20,7 +20,6 @@ export const REAL_GIT_FILES: Record<string, string> = {
   "crew-overseer-command.git.test.ts": "moves to fakes in phase 8",
   "crew-tick.git.test.ts": "moves to fakes in phase 8",
   "deployed-land.git.test.ts": "moves to fakes in phase 7",
-  "doctor-file.git.test.ts": "moves to fakes in phase 3: spec.ts run() has no runner seam, so doctor asks git for origin",
   "focus-command.git.test.ts": "focus lands its band on origin's default branch",
   "focus-land.git.test.ts": "moves to fakes in phase 7",
   "git.git.test.ts": "gitAt: runs real git, trims its output and names the failing sub-command",
@@ -77,7 +76,7 @@ export const REAL_GIT_FILES: Record<string, string> = {
   "workspaces-scan.git.test.ts": "scanWorkspaces: the main checkout and worktrees from git worktree list",
 };
 
-export const REAL_GIT_CAP = 74;
+export const REAL_GIT_CAP = 73;
 
 export const HELPER_EXCEPTIONS: Record<string, string> = {
   "crew-deps.ts": "drops git-repo in phase 8",
