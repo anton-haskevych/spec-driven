@@ -22,8 +22,11 @@ Every command prints its result as the last stdout line and exits 0 (house rule)
   to the default branch, and reaches the spec branch only when a lane merges main. The list is set once at start and
   frozen: a group can't join or leave it once its branch exists. A ship-alone group may not `need` a phase of another
   group.
-- **Layout** — `specLayout(state, specBranch?)` in `T/pr/groups.ts`, pure. It returns `{ mode, groups: Map<group,
-  { branch, base, shipsAlone }>, finalPr?: { head, base, phases } }`. `branchOf(layout, group)` is the one
+- **Layout** — `specLayout(state, specBranch?)` in `T/pr/groups.ts`, pure. It returns `{ spec, mode, groups: Map<group,
+  { branch, base, shipsAlone, phases }>, ungrouped, finalPr?: { head, phases } }` (built in Phase 2). `base` is
+  `{ kind: "default" } | { kind: "spec-branch", branch }`: the caller maps it to `origin/<default>` or `origin/feat/<spec>`.
+  The mode is on only with `specBranch` set and at least one `pr:` group; in it `groups` holds the named groups only
+  and `ungrouped` lists open code phases with no `pr:` (Phase 3's check 2 reads it). `branchOf(layout, group)` is the one
   group-to-branch lookup (`default` → `feat/<spec>` in the mode); no caller uses `treeName` for a group directly.
   Commands build layouts once from loaded state and pass them down (a tick: `TickWorld.layouts`, one per spec);
   pure callers never take `git`.

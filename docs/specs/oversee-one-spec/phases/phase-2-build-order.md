@@ -33,9 +33,9 @@ No regroup or split suggestions: that is the overseer's judgement.
 
 ## Deliverables
 
-- [ ] `buildOrder(state, nodes)`: batches, longest chain, waiting-on-other-specs and unknown refs (read through `resolvePhaseRef`; `resolvedPhaseKeys` drops them), cycle from `needsCycle` fed a `needsOf` over resolved keys (needs + needs-deployed), a `needs-deployed` need met only when deployed, the later of a same-files pair one batch later; pure tests (linear spec, declared edges, ranges, cross-spec, task phases, cycle)
-- [ ] `ready <spec> --order` render (Order / Longest / Lanes / Same files / Waiting lines) and `READY_USAGE`
-- [ ] `specLayout(state, specBranch?)` and `branchOf(layout, group)` in `T/pr/groups.ts` (pure; `default` → `feat/<spec>` in the mode), the record's `specBranch: { cutFrom, shipAlone }` read on `SpecDoc` and `graph/spec-fields.ts` (record only, never `CLAUDE.md`); `shipAloneSuggestions(state, nodes)` in `ready/build-order.ts`; `ready --order`'s Lanes line marks `(ships alone)`, adds `Ships alone?` and `No lane:` lines; pure tests (mixed spec, no-group spec)
+- [x] `buildOrder(state, nodes)`: batches, longest chain, waiting-on-other-specs and unknown refs (read through `resolvePhaseRef`; `resolvedPhaseKeys` drops them), cycle from `needsCycle` fed a `needsOf` over resolved keys (needs + needs-deployed), a `needs-deployed` need met only when deployed, the later of a same-files pair one batch later; pure tests (linear spec, declared edges, ranges, cross-spec, task phases, cycle)
+- [x] `ready <spec> --order` render (Order / Longest / Lanes / Same files / Waiting lines) and `READY_USAGE`
+- [x] `specLayout(state, specBranch?)` and `branchOf(layout, group)` in `T/pr/groups.ts` (pure; `default` → `feat/<spec>` in the mode), the record's `specBranch: { cutFrom, shipAlone }` read on `SpecDoc` and `graph/spec-fields.ts` (record only, never `CLAUDE.md`); `shipAloneSuggestions(state, nodes)` in `ready/build-order.ts`; `ready --order`'s Lanes line marks `(ships alone)`, adds `Ships alone?` and `No lane:` lines; pure tests (mixed spec, no-group spec)
 
 ## Phase-local notes
 
