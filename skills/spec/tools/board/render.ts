@@ -114,6 +114,8 @@ export function attentionCells(row: AttentionRow, now: Date): string[] {
       return [`⚠ overdue (due ${monthDay(row.due)})`, rowName(row)];
     case "claim":
       return ["claim by a closed session", `${rowName(row)} → resume or release`];
+    case "main-ahead":
+      return [`${row.branch} has ${plural(row.commits, "commit")} not on origin`, `since ${ago(new Date(row.since), now)} ago → push them (spec.ts push, in the ${row.branch} checkout)`];
     case "prune":
       return [`prune ${row.trees} merged ${row.trees === 1 ? "tree" : "trees"}`, "the next handoff removes them (trees prune --auto)"];
     case "unsaved-work":

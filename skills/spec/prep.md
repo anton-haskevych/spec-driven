@@ -32,6 +32,8 @@ See `SKILL.md` for layout rules, `product-brief.md` / `research/` semantics, and
 
 **Spin-off check first.** If this session already works another spec (a `/spec` command for a different name ran here, or you have been executing, reviewing or creating another spec), do not prep inline: follow *Spin-off* below. Prep here only when the user explicitly asks for it in this session.
 
+**Sync first:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts sync-main` brings the default branch, when this checkout has it, up to origin's (a fast-forward, or a merge over spec-doc commits of its own), so you read today's specs and ledger, not one left behind on an old main; in a worktree it does nothing. Report its line. A line starting `sync-main:` is a refusal (a local edit in the way, a conflict with origin, origin unreachable): main stays as it was, so put that line first in your report and say the spec files here may be stale. Without Bun, skip it.
+
 **Register the session** once the name is settled, so the sessions executing or reviewing this spec see a prep is under way: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts session register prep <name> --title "prep <name>"` (SKILL.md → *Tools* → Sessions). Its line is the report; `The board is off here` or an unreachable origin means nothing to do, so carry on. A spin-off's fresh session registers the same way.
 
 Resolve the target folder `docs/specs/<name>/`:
@@ -303,7 +305,7 @@ A session works one spec (SKILL.md → *Session lifecycle*). When it needs a new
 3. **Seed.** Write `docs/specs/<B>/seed.md` from the template below, at most 60 lines. It carries what a fresh session can't recover: quote the user, don't paraphrase; name rejected options; point at files, not memories.
 4. **Wave 0.** If this session's agents already ran recon that bears on B, write it as `research/<YYYY-MM-DD>-wave-0-<slug>.md`: the Stage 4.1 format with `wave: 0`, `lens: inherited`, `from: <A>`, keeping `file:line` refs and noting what you spot-checked or corrected. Findings only, never the transcript.
 5. **Link.** When A waits on B, declare it on A, not in prose: the waiting phase gets the edge with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase set <A> <phase> --needs <its needs>,<B>` (a whole spec resolves before it has phases; SKILL.md → *Plan changes*; without Bun, `needs: [<B>]` in its frontmatter), or A's `CLAUDE.md` gets `needs: [<B>]` when all of A waits. Narrow to `<B>#<N>` once B's phases exist.
-6. **Commit** B's folder and A's edge (`[seed] <B>: from <A>`), following the project's docs setting.
+6. **Commit** B's folder and A's edge (`[seed] <B>: from <A>`), then send it to origin as review §6 does (`publish-docs <B>` with `docs: main`, else `push`), so B's prep session, in a fresh tree or on main, reads the seed. A refusal line goes to the user as is.
 7. **Launch** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch prep <B>`, one per spec; several run side by side. On `launch: run this in a new terminal: …`, or without Bun, give the user the line (`claude -n "<B> prep" "/spec-driven:spec prep <B>"` from the project directory).
 8. Tell the user one line per spec (`Seeded <B> — prep running in a new tab`), then return to A's work.
 

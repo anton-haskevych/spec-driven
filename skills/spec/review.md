@@ -12,7 +12,9 @@ See `SKILL.md` for layout rules and the extraction-step discipline.
 
 ## 0. Preconditions
 
-Run SKILL.md → *Preconditions*. A legacy spec without `ledger/` follows `legacy-layout.md` → `create`, `prep`, `review`, `handoff` (offer to create the ledger before writing entries).
+**Sync first:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts sync-main` brings the default branch, when this checkout has it, up to origin's (a fast-forward, or a merge over spec-doc commits of its own), so you read today's spec, not one left behind on an old main; in a worktree it does nothing. Report its line. A line starting `sync-main:` is a refusal (a local edit in the way, a conflict with origin, origin unreachable): main stays as it was, so put that line first in your report and say the spec files here may be stale. Without Bun, skip it.
+
+Then run SKILL.md → *Preconditions*. A legacy spec without `ledger/` follows `legacy-layout.md` → `create`, `prep`, `review`, `handoff` (offer to create the ledger before writing entries).
 
 ## 1. Identify the spec
 
@@ -333,15 +335,25 @@ git status  # verify ONLY the spec folder is staged
 git commit -m "[review] <spec-name>: <slug> — <N> findings (<X> spec edits, <Y> ledger entries)"
 ```
 
-Never sweep unrelated working-tree changes into the review commit — stage only the spec folder. Commit; do not push. Pushing belongs to handoff, which also publishes the spec docs to the default branch when project settings say `docs: main` (`spec.ts settings`, or `docs/specs/_playbook/settings.md`).
+Never sweep unrelated working-tree changes into the review commit — stage only the spec folder.
+
+**Then send it to origin, every time.** A review never hands off, so nothing after it would. `spec.ts settings` says where spec docs live:
+
+```bash
+bun ${CLAUDE_SKILL_DIR}/tools/spec.ts publish-docs <spec-name>   # docs: main — lands the spec docs on origin's default branch
+bun ${CLAUDE_SKILL_DIR}/tools/spec.ts push                       # docs: branch
+```
+
+On the default branch either one first syncs with origin (`Synced: main merged with origin/main …`), so the push is never one origin turns down for being behind. Keep its lines for §7. A line starting `push:`, `publish-docs:` or `sync-main:` is a refusal: the review is committed here and **not on origin**. Don't retry, force or work around it; §7 leads with it. Without Bun, run `git push -u origin "HEAD:refs/heads/$(git branch --show-current)"` and say the docs were not published.
 
 ## 7. Report and stop
 
-Open with SKILL.md → *Reports* (Impact: what the applied findings change in the plan, in plain words), then print a compact summary — this replaces every interactive step:
+A refusal from §6 or §0's sync comes first, alone on its line: `⚠ Not on origin: <the refusal line as printed>`; when there are two, the `sync-main:` line, which holds the cause. Then open with SKILL.md → *Reports* (Impact: what the applied findings change in the plan, in plain words), then print a compact summary — this replaces every interactive step:
 
 ```
 Review: reviews/YYYY-MM-DD-<slug>.md (immutable)
 Committed: <hash> — [review] <spec-name>: <slug> — …
+Remote: <the Remote: / published … line from §6>
 Findings: <N> total — <X> applied to spec, <Y> ledgered, <Z> review-file only, <W> unverified
 Forks: <K> answered by you (ledger slugs), <J> resolved by me, <L> left open
 ```

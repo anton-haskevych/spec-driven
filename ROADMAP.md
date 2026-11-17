@@ -170,6 +170,14 @@ ticks, so sessions on any tree or machine see the same plan. Off until a project
 | 2.59.0 | **A board comes in with its numbers.** `spec.ts card load --file <docs.json> [--move-taken]` lands a prepared file of cards, sources and tags (record shape, keyed by id; `c01` = `c1`) in one batch at the tip, checked like `card check` first and never queued. A number already on the board refuses the whole load; `--move-taken` moves those cards with their sources and covers to the next free numbers and prints each `old → new`. A record commit now writes its blobs in one git call, and a write that must land whole may raise the 50-op cap | shipped |
 | 2.60.0 | **The page reads right for a whole board.** *Now* lists only what really waits on someone: a done card whose covers name no phases no longer shows as "done, but still open", and its count matches its rows with one chip per person. *Plan* clamps long tag summaries and hides tags with no cards; a long card note opens from its first four lines | shipped |
 
+## Reviews reach main (2.61)
+
+Anton (2026-11-16): "It always needs to push after the review is done, always the specs need to get to the latest remote main." Four CRM reviews sat on local main for 24 h, unpushed; the board's unsaved-work row was on all along but buried at #78.
+
+| Version | Change | Status |
+|---|---|---|
+| 2.61.0 | **Reviews reach main, every time.** `spec.ts sync-main` brings a checked-out default branch up to origin's (fast-forward, or a merge over its own spec-doc commits built like publish-docs', origin's tip first; refuses untouched on a local edit in the way, a conflict, code on main or no origin; never autostashes); prep, create and review run it at entry, so they read today's spec. Review §6 sends its commit to origin like handoff (`publish-docs` / `push`) and §7 leads with any refusal; a spin-off's seed is sent the same way. On the default branch `push` and `publish-docs` sync first, instead of failing with a bare git error. The board's first *Needs you* row is a local default branch holding commits origin's lacks for over 30 minutes, read from the branch, not session documents | in PR |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through

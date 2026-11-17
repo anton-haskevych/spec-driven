@@ -22,6 +22,7 @@ const MARKS: Record<AttentionRow["kind"], NeedRow["mark"]> = {
   "pr-changes": "PR",
   overdue: "!",
   "unsaved-work": "!",
+  "main-ahead": "M",
   "card-close": "C",
   "card-open": "C",
   claim: "T",
@@ -30,8 +31,9 @@ const MARKS: Record<AttentionRow["kind"], NeedRow["mark"]> = {
   deploy: "T",
   prune: "T",
 };
-const ORDER: readonly NeedRow["mark"][] = ["Q", "PR", "!", "C", "T"];
-const LATE = new Set<AttentionRow["kind"]>(["overdue", "unsaved-work", "fix"]);
+// M first: work on main that origin lacks is the one row whose cost grows silently.
+const ORDER: readonly NeedRow["mark"][] = ["M", "Q", "PR", "!", "C", "T"];
+const LATE = new Set<AttentionRow["kind"]>(["overdue", "unsaved-work", "main-ahead", "fix"]);
 
 // The board's needs-you rows in its own words, with the record's questions in place of their park rows so
 // each carries the id and version an answer sends back.
@@ -87,7 +89,7 @@ function boardRow(row: AttentionRow, owners: NeedOwners): NeedRow {
 function ownerOfRow(row: AttentionRow, owners: NeedOwners): string | undefined {
   if (row.kind === "card-close" || row.kind === "card-open") return owners.cardAssignee(row.card);
   if (row.kind === "unsaved-work") return row.who;
-  if (row.kind === "prune") return undefined;
+  if (row.kind === "prune" || row.kind === "main-ahead") return undefined;
   return owners.specOwner(row.spec);
 }
 

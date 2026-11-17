@@ -8,6 +8,7 @@ import type { SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
 import type { PlanSource } from "../plan/read-plans";
 import type { PhaseActivity } from "./activity";
+import type { MainAhead } from "./main-ahead";
 
 export type { HeldClaim };
 
@@ -57,5 +58,7 @@ export interface BoardInputs {
   sessionDocs: readonly SessionDoc[];
   // This machine's name as session documents carry it: another host's sessions are the other machine's.
   thisHost: string;
+  // Commits on the local default branch that origin's lacks; absent when there are none.
+  mainAhead?: MainAhead;
   ownSessionId?: string;
 }

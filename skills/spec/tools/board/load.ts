@@ -12,6 +12,7 @@ import { toPrRows, type PrRow } from "../pr/checks/rollup";
 import { heldClaims, remoteHeldClaims, withoutTakenOver } from "../claims/held";
 import { hostname } from "node:os";
 import { withLocalWork } from "./local-work";
+import { mainAhead } from "./main-ahead";
 import { readSessions, SESSION_KEPT_DAYS } from "../sessions/list";
 import type { SessionDoc } from "../sessions/session-doc";
 import type { PlanSource } from "../plan/read-plans";
@@ -67,6 +68,7 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
   const mainline = await loadMainline(git, branch, { timeoutMs: FETCH_TIMEOUT_MS, local: request.local, now });
   if (!mainline.ok) return mainline;
   const { base, commonDir, nodes, states, stages, backlog, settings, duplicates, plans } = mainline.value;
+  const ahead = mainAhead(git, base);
   const sessions = request.local ? "local" : loadLiveSessions(runners.claudeHome, psProcStarts(runners.runner));
   const ownFiles = heldClaims(git, sessions === "local" ? LOCAL_LIVENESS : sessions, states);
   const remote = request.local ? [] : remoteHeldClaims(git, ownFiles);
@@ -100,6 +102,7 @@ export async function loadBoardInputs(projectDir: string, request: BoardRequest,
       prLinks: prLinks(states, workspaces, plans.prs),
       sessionDocs: withLocalWork(recentSessionDocs(plans, now), hostname(), trees.ok ? trees.value.map((tree) => tree.path) : [], runners.runner),
       thisHost: hostname(),
+      ...(ahead ? { mainAhead: ahead } : {}),
       ...(request.ownSessionId ? { ownSessionId: request.ownSessionId } : {}),
     },
   };
