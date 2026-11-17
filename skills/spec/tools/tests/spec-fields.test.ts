@@ -43,6 +43,16 @@ describe("loadNodes on a joined spec", () => {
   });
 });
 
+describe("the spec-branch state", () => {
+  test("comes from the record only, never from CLAUDE.md", () => {
+    tree = createTree();
+    tree.spec("alpha", { "CLAUDE.md": FILE_META.replace("ship: auto", "ship: auto\nspecBranch: { cutFrom: x, shipAlone: [] }") });
+    const specBranch = { cutFrom: "abc1234", shipAlone: ["D"] };
+    expect(loadNodes(tree.root, record(2, { specBranch })).get("alpha")?.specBranch).toEqual(specBranch);
+    expect(loadNodes(tree.root).get("alpha")?.specBranch).toBeUndefined();
+  });
+});
+
 describe("a spec's priority and due date", () => {
   const covering = { "cards/0/c1.json": cardDoc({ id: "c1", priority: "p0", due: "2026-12-01", coveredBy: ["alpha#1"] }) };
   const withCards = (docs: Record<string, unknown>) => planSourceOf({ kind: "read", view: viewOf(docs), live: true });

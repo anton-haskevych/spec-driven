@@ -6,7 +6,7 @@ created: 2026-11-17T14:54:00-08:00
 
 # One pure specLayout answers branch, base and ship-alone; nothing else guesses
 
-`specLayout(state, meta)` in `T/pr/groups.ts` is the only place that decides:
+`specLayout(state, specBranch?)` in `T/pr/groups.ts` (`specBranch` from the record, never `SpecMeta`) is the only place that decides:
 - whether a spec is in spec-branch mode (`specBranch` on the record's spec document, crew state, never `CLAUDE.md`);
 - each group's branch and base;
 - which groups ship alone (the frozen `specBranch.shipAlone` list);

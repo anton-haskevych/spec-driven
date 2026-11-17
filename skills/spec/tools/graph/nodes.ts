@@ -5,6 +5,7 @@ import { parsePhaseLines } from "../core/progress";
 import { listSpecs, type SpecFolder } from "../core/spec-folders";
 import type { SpecMeta } from "../core/spec-meta";
 import type { CardSchedule } from "../cards/spec-card";
+import type { SpecBranch } from "../plan/docs/spec-doc";
 import type { Relation } from "./relations";
 import { readSpecFields, type RecordFields } from "./spec-fields";
 
@@ -23,6 +24,8 @@ export interface SpecNode {
   meta: SpecMeta;
   // The first H1 of CLAUDE.md.
   title?: string;
+  // Spec-branch mode's crew state, from the record only.
+  specBranch?: SpecBranch;
 }
 
 const CODE_MAP_PATH = /^\s*\|\s*`([^`]+)`/;
@@ -53,7 +56,7 @@ export function loadNodes(projectDir: string, joined: JoinedReads = FILES_ONLY):
 }
 
 function loadNode(spec: SpecFolder, { marks, fields, schedule }: JoinedReads): SpecNode {
-  const { status, meta: fileMeta, relations, title } = readSpecFields(spec.dir, fields?.(spec.name));
+  const { status, meta: fileMeta, relations, title, specBranch } = readSpecFields(spec.dir, fields?.(spec.name));
   const fromCards = schedule?.(spec.name);
   const meta = fromCards ? { ...withoutSchedule(fileMeta), ...fromCards } : fileMeta;
   return {
@@ -64,6 +67,7 @@ function loadNode(spec: SpecFolder, { marks, fields, schedule }: JoinedReads): S
     relations,
     meta,
     ...(title ? { title } : {}),
+    ...(specBranch ? { specBranch } : {}),
   };
 }
 

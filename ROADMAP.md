@@ -178,6 +178,14 @@ Anton (2026-11-16): "It always needs to push after the review is done, always th
 |---|---|---|
 | 2.61.0 | **Reviews reach main, every time.** `spec.ts sync-main` brings a checked-out default branch up to origin's (fast-forward, or a merge over its own spec-doc commits built like publish-docs', origin's tip first; refuses untouched on a local edit in the way, a conflict, code on main or no origin; never autostashes); prep, create and review run it at entry, so they read today's spec. Review §6 sends its commit to origin like handoff (`publish-docs` / `push`) and §7 leads with any refusal; a spin-off's seed is sent the same way. On the default branch `push` and `publish-docs` sync first, instead of failing with a bare git error. The board's first *Needs you* row is a local default branch holding commits origin's lacks for over 30 minutes, read from the branch, not session documents | shipped |
 
+## Oversee one spec (2.62–)
+
+Born from the overnight CRM run on `migration-reconciliation-rules` (2026-11-17): one overseer per spec, its lanes in parallel on one spec branch, one final PR. Spec: `docs/specs/oversee-one-spec/`.
+
+| Version | Change | Status |
+|---|---|---|
+| 2.62.0 | **See the build order before any worker starts.** `ready <spec> --order` prints a spec's open phases in batches that can run side by side, its longest chain, its lanes (PR groups, ship-alone ones marked), groups that may need to ship alone, phases with no lane, same-files pairs and what waits on other specs; a `needs` cycle prints in place of the order. Underneath, `specLayout` and `branchOf` become the one answer to a group's branch, base and ship-alone, and the record's `specBranch` is read (never from `CLAUDE.md`). Read-only | in PR |
+
 ## Adoption
 
 No bulk backfill. The project ledger and spec relations fill in as specs go through

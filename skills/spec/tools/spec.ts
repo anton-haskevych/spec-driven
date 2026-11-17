@@ -22,7 +22,7 @@ import { PR_USAGE, prCommand } from "./commands/pr";
 import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
 import { PUSH_USAGE, pushReport } from "./commands/push";
 import { SYNC_MAIN_USAGE, syncMainReport } from "./commands/sync-main";
-import { readyReport } from "./commands/ready";
+import { READY_USAGE, readyCommand } from "./commands/ready";
 import { PLAN_USAGE, planCommand } from "./commands/plan";
 import { RECORD_USAGE, recordCommand } from "./commands/record";
 import { settingsReport } from "./commands/settings";
@@ -54,7 +54,7 @@ export const COMMANDS: Record<string, Command> = {
   },
   lessons: { usage: "lessons …", run: lessonsCommand },
   graph: { usage: "graph …", run: graphCommand },
-  ready: { usage: "ready <spec-name>", run: (dir, args) => readyReport(dir, args[0]) },
+  ready: { usage: READY_USAGE, run: readyCommand },
   gates: { usage: GATES_USAGE, run: gatesReport },
   list: { usage: LIST_USAGE, run: (dir, args) => listCommand(dir, args, systemBoardDeps()) },
   board: { usage: BOARD_USAGE, run: (dir, args) => boardCommand(dir, args) },

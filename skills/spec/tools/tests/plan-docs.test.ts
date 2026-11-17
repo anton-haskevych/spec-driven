@@ -57,6 +57,16 @@ describe("readSpecDoc", () => {
     expect(readSpecDoc({ ...specDoc(), focus: "Must" }).doc?.focus).toBe("must");
   });
 
+  test("reads the spec-branch crew state, cut sha and frozen ship-alone groups", () => {
+    const doc = specDoc({ specBranch: { cutFrom: "abc1234", shipAlone: ["D"] } });
+    expect(readSpecDoc(doc)).toEqual({ doc, problems: [] });
+    expect(readSpecDoc({ ...specDoc(), specBranch: { cutFrom: "", shipAlone: "D" } }).problems).toEqual([
+      "specBranch.cutFrom must be text",
+      'specBranch.shipAlone must be a list of strings, e.g. specBranch.shipAlone: ["Vercel*"]',
+    ]);
+    expect(readSpecDoc({ ...specDoc(), specBranch: "on" }).problems).toEqual(["specBranch must be an object with cutFrom and shipAlone"]);
+  });
+
   test("needs a plan version of 1 or more and a layout", () => {
     expect(readSpecDoc({ ...specDoc(), planVersion: 0, layout: undefined }).problems).toEqual([
       "planVersion must be a whole number, 1 or more",
