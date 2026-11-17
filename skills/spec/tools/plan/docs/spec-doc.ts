@@ -1,7 +1,14 @@
-import type { FrontmatterData } from "../../core/frontmatter";
+import { isRecord, type FrontmatterData } from "../../core/frontmatter";
 import { optionalText, requiredText, stringArray, wholeNumber, withoutUndefined } from "../../core/read-fields";
 import { readFocusFields, readLifecycleFields, readShipField, type FocusBand, type ShipMode } from "../../core/spec-meta";
 import { readObject, type DocRead } from "./read";
+
+// Crew state of a spec in spec-branch mode (oversee-one-spec): where feat/<spec> was cut from, and the
+// groups that ship alone from the default branch. Record only; never in CLAUDE.md.
+export interface SpecBranch {
+  cutFrom: string;
+  shipAlone: string[];
+}
 
 // A spec on the record. Fields from `focus` on are read with the same readers as CLAUDE.md, so a value
 // reads the same from a file and from the record.
@@ -20,6 +27,7 @@ export interface SpecDoc {
   ship?: ShipMode;
   stale?: string;
   dropped?: string;
+  specBranch?: SpecBranch;
 }
 
 export function readSpecDoc(value: unknown): DocRead<SpecDoc> {
@@ -44,5 +52,17 @@ function readSpecFields(fields: FrontmatterData, problems: string[]): SpecDoc {
     owner: focus.owner,
     ship: ship.ship,
     ...notes,
+    specBranch: readSpecBranch(fields.specBranch, problems),
   });
+}
+
+function readSpecBranch(value: unknown, problems: string[]): SpecBranch | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) {
+    problems.push("specBranch must be an object with cutFrom and shipAlone");
+    return undefined;
+  }
+  const cutFrom = requiredText(value.cutFrom, "specBranch.cutFrom", problems);
+  const shipAlone = stringArray(value.shipAlone, "specBranch.shipAlone", problems);
+  return cutFrom === undefined ? undefined : { cutFrom, shipAlone };
 }

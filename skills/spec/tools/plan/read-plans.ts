@@ -110,6 +110,6 @@ export function readLocalPlans(projectDir: string, deps: PlanReadDeps, now: Date
   return readPlansWith(gitAt(projectDir, deps.runner), deps, { fetch: false, now });
 }
 
-function recordFieldsOf({ status, owner, focus, ship }: SpecDoc): RecordFields {
-  return { ...(status ? { status } : {}), ...(owner ? { owner } : {}), ...(focus ? { focus } : {}), ...(ship ? { ship } : {}) };
+function recordFieldsOf({ status, owner, focus, ship, specBranch }: SpecDoc): RecordFields {
+  return { ...(status ? { status } : {}), ...(owner ? { owner } : {}), ...(focus ? { focus } : {}), ...(ship ? { ship } : {}), ...(specBranch ? { specBranch } : {}) };
 }

@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { readTextIfExists } from "../core/files";
 import { parseFrontmatter, stringField } from "../core/frontmatter";
 import { readSpecMeta, type FocusBand, type ShipMode, type SpecMeta } from "../core/spec-meta";
+import type { SpecBranch } from "../plan/docs/spec-doc";
 import { parseRelations, type Relation } from "./relations";
 
 // The fields an upgraded spec keeps on the record instead of in CLAUDE.md.
@@ -10,10 +11,13 @@ export interface RecordFields {
   owner?: string;
   focus?: FocusBand;
   ship?: ShipMode;
+  specBranch?: SpecBranch;
 }
 
 export interface SpecFields {
   status?: string;
+  // Record only: a CLAUDE.md never turns spec-branch mode on.
+  specBranch?: SpecBranch;
   meta: SpecMeta;
   relations: Relation[];
   // The first H1 of CLAUDE.md.
@@ -31,7 +35,8 @@ export function readSpecFields(specDir: string, fromRecord?: RecordFields): Spec
   const fileMeta = readSpecMeta(data);
   const meta = fromRecord ? recordMeta(fileMeta, fromRecord) : fileMeta;
   const status = fromRecord ? fromRecord.status : stringField(data, "status");
-  return { ...(status ? { status } : {}), meta, relations: parseRelations(data), ...(title ? { title } : {}) };
+  const specBranch = fromRecord?.specBranch;
+  return { ...(status ? { status } : {}), ...(specBranch ? { specBranch } : {}), meta, relations: parseRelations(data), ...(title ? { title } : {}) };
 }
 
 function recordMeta({ focus: _focus, owner: _owner, ownerInvalid: _invalid, ship: _ship, ...rest }: SpecMeta, record: RecordFields): SpecMeta {
