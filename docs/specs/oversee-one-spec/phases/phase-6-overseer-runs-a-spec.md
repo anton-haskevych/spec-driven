@@ -28,7 +28,7 @@ tools enforce the rest.
 
 ## Deliverables
 
-- [ ] `oversee-crew.md` *One spec*: start (order, regroup/split, `ship-alone:`, Say if wrong), ticks, PR moment, ship mode without waiting (`ship:` → `pr.ship` → `hold-for-review`)
+- [ ] `oversee-crew.md` *One spec*: start (order, regroup/split, ship-alone groups, Say if wrong), takeover (`crew start --spec` again: checks skipped), ticks, the `PR moment` line, ship mode without waiting (`ship:` → `pr.ship` → `hold-for-review`), the run ends `finished`
 - [ ] Brief: spec-branch line and the no-other-branches rule; `crew-brief.test.ts`
 - [ ] `execute.md` / `handoff.md`: lanes run `merge-back` (spec branch and main, gates) instead of `publish-docs`/`push`; Crew line in the `[handoff]` commit body
 - [ ] SKILL.md bullets, README mode row, ROADMAP row
