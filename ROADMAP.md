@@ -176,7 +176,7 @@ Anton (2026-11-16): "It always needs to push after the review is done, always th
 
 | Version | Change | Status |
 |---|---|---|
-| 2.61.0 | **Reviews reach main, every time.** `spec.ts sync-main` brings a checked-out default branch up to origin's (fast-forward, or a merge over its own spec-doc commits built like publish-docs', origin's tip first; refuses untouched on a local edit in the way, a conflict, code on main or no origin; never autostashes); prep, create and review run it at entry, so they read today's spec. Review §6 sends its commit to origin like handoff (`publish-docs` / `push`) and §7 leads with any refusal; a spin-off's seed is sent the same way. On the default branch `push` and `publish-docs` sync first, instead of failing with a bare git error. The board's first *Needs you* row is a local default branch holding commits origin's lacks for over 30 minutes, read from the branch, not session documents | in PR |
+| 2.61.0 | **Reviews reach main, every time.** `spec.ts sync-main` brings a checked-out default branch up to origin's (fast-forward, or a merge over its own spec-doc commits built like publish-docs', origin's tip first; refuses untouched on a local edit in the way, a conflict, code on main or no origin; never autostashes); prep, create and review run it at entry, so they read today's spec. Review §6 sends its commit to origin like handoff (`publish-docs` / `push`) and §7 leads with any refusal; a spin-off's seed is sent the same way. On the default branch `push` and `publish-docs` sync first, instead of failing with a bare git error. The board's first *Needs you* row is a local default branch holding commits origin's lacks for over 30 minutes, read from the branch, not session documents | shipped |
 
 ## Adoption
 
