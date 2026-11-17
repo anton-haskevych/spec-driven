@@ -10,7 +10,7 @@ PR A alone keeps one worker per spec; parallel lanes switch on with PR C (`decis
 
 ## Pre-PR checks
 
-- [x] gate: pre-pr (PR B: 2258 pass; 3 real-git timeouts in board-inputs/land-on-main under load 15–19, 21/21 pass alone; typecheck clean)
+- [x] gate: pre-pr
 - [ ] Whole-board crew unchanged: `crew-tick.git.test.ts`, `crew-launch.git.test.ts`, `crew-overseer-command.git.test.ts` pass untouched (phases 1, 3)
 - [ ] Every new `.git.test.ts` listed in `real-git/allowlist.ts` with `REAL_GIT_CAP` raised in the same diff
 - [ ] New and touched tool files under 250 lines
