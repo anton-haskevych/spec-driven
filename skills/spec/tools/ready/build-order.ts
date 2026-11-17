@@ -125,3 +125,25 @@ function longestChain(open: readonly PhaseState[], edges: Edges, depth: Readonly
   }
   return chain;
 }
+
+export interface ShipAloneSuggestion {
+  group: string;
+  targets: string[];
+}
+
+// Only a suggestion for the overseer: a group another phase needs deployed may need to reach main first.
+export function shipAloneSuggestions(state: SpecState, nodes: ReadonlyMap<string, SpecNode>): ShipAloneSuggestion[] {
+  const own = `${state.spec.name}#`;
+  const targetIds = new Set(
+    state.phases
+      .filter((phase) => !phase.done)
+      .flatMap((phase) => resolvedPhaseKeys(phase.edges.needsDeployed, state, nodes))
+      .filter((target) => !target.deployed && target.key.startsWith(own))
+      .map((target) => target.key.slice(own.length)),
+  );
+  const byGroup = new Map<string, string[]>();
+  for (const phase of state.phases) {
+    if (targetIds.has(phase.id) && phase.edges.pr !== undefined) byGroup.set(phase.edges.pr, [...(byGroup.get(phase.edges.pr) ?? []), phase.id]);
+  }
+  return [...byGroup.entries()].map(([group, targets]) => ({ group, targets }));
+}

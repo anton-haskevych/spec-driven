@@ -2,7 +2,11 @@ import { describe, expect, test } from "bun:test";
 import { parsePhaseEdges } from "../core/phase-edges";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import type { SpecNode } from "../graph/nodes";
-import { buildOrder } from "../ready/build-order";
+import type { SpecBranch } from "../plan/docs/spec-doc";
+import { specLayout } from "../pr/groups";
+import { buildOrder, shipAloneSuggestions } from "../ready/build-order";
+import { renderBuildOrder } from "../ready/render";
+import { parseReadyArgs, READY_USAGE } from "../commands/ready";
 import { phaseState, specNode } from "./factories";
 
 const edges = (data: Record<string, unknown>) => parsePhaseEdges(data);
@@ -122,5 +126,68 @@ describe("buildOrder on a cycle", () => {
     expect(order.cycle).toEqual(["4", "6", "4"]);
     expect(order.batches).toEqual([]);
     expect(order.longest).toEqual([]);
+  });
+});
+
+describe("shipAloneSuggestions", () => {
+  test("names each group holding a phase another phase needs deployed, until it is deployed", () => {
+    const state = spec([
+      phase("1", { needs: [], pr: "A" }, { done: true, deployed: true }),
+      phase("3a", { needs: [], pr: "D" }),
+      phase("4", { needs: [], pr: "A" }, { done: true }),
+      phase("6", { "needs-deployed": ["3a", 1, 4], pr: "P" }),
+      phase("7", { needs: [] }),
+      phase("8", { "needs-deployed": [7], pr: "P" }),
+    ]);
+    expect(shipAloneSuggestions(state, noNodes)).toEqual([
+      { group: "D", targets: ["3a"] },
+      { group: "A", targets: ["4"] },
+    ]);
+  });
+});
+
+describe("renderBuildOrder", () => {
+  const state = spec([
+    phase("1", { needs: [], pr: "A" }, { done: true }),
+    phase("2", { needs: [1], pr: "A" }),
+    phase("3a", { needs: [], pr: "D" }),
+    phase("4", { needs: [2], pr: "A" }),
+    phase("5", { needs: [], pr: "P" }, { code: false }),
+    phase("6", { "needs-deployed": ["3a"], needs: [4], pr: "P" }),
+    phase("9", { needs: ["other#8"], pr: "J" }),
+    phase("11", { "same-files-as": [6] }),
+  ]);
+  const nodes = new Map([["other", specNode({ spec: { name: "other", dir: "/specs/other" }, phases: [{ id: "8", done: false, deployed: false }] })]]);
+  const render = (specBranch?: SpecBranch) => renderBuildOrder(buildOrder(state, nodes), specLayout(state, specBranch), shipAloneSuggestions(state, nodes));
+
+  test("prints order, longest chain, lanes, suggestions, unlaned phases, same files and waits", () => {
+    expect(render({ cutFrom: "abc", shipAlone: ["D"] })).toBe(
+      [
+        "Order: [2 · 3a · 5 (task) · 9 (waiting)] → 4 → 6 → 11",
+        "Longest: 2 → 4 → 6 → 11 (4 phases)",
+        "Lanes: A 2,4 · D 3a (ships alone) · P 6 · J 9",
+        "No lane: 11 (give them a pr: group before spec-branch mode)",
+        "Same files: 6 and 11 (11 runs after 6)",
+        "Waiting: 9 needs other#8",
+      ].join("\n"),
+    );
+  });
+
+  test("outside the mode it suggests the groups that may ship alone; task phases are no lane", () => {
+    expect(render()).toContain("Lanes: A 2,4 · D 3a · P 6 · J 9\nShips alone? D (3a is a needs-deployed target)\n");
+  });
+
+  test("a spec with no groups has no lanes, and a cycle replaces the order", () => {
+    const loose = spec([phase("4", { "needs-deployed": [6] }), phase("6", { needs: [4] })]);
+    expect(renderBuildOrder(buildOrder(loose, noNodes), specLayout(loose), [])).toBe("Cycle: 4 → 6 → 4\nLanes: none (no pr: groups)");
+  });
+});
+
+describe("parseReadyArgs", () => {
+  test("a spec name, with --order for the build order", () => {
+    expect(parseReadyArgs(["x"])).toEqual({ spec: "x", order: false });
+    expect(parseReadyArgs(["x", "--order"])).toEqual({ spec: "x", order: true });
+    expect(parseReadyArgs([])).toBe(`usage: ${READY_USAGE}`);
+    expect(parseReadyArgs(["x", "--waves"])).toBe(`usage: ${READY_USAGE}`);
   });
 });
