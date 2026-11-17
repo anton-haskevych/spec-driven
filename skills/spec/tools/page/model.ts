@@ -100,7 +100,7 @@ export interface PageCard {
 
 export interface NeedRow {
   kind: AttentionRow["kind"];
-  mark: "Q" | "PR" | "!" | "C" | "T";
+  mark: "M" | "Q" | "PR" | "!" | "C" | "T";
   title: string;
   detail: string;
   late: boolean;

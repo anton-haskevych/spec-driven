@@ -4,7 +4,9 @@ You are guiding a full product spec session for `$ARGUMENTS`. The output is a st
 
 ## Process
 
-**Register the session first**, so the sessions executing this spec see a plan is being written: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts session register create $ARGUMENTS --title "create $ARGUMENTS"` (SKILL.md → *Tools* → Sessions). `The board is off here` or an unreachable origin means nothing to do: carry on.
+**Sync first:** `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts sync-main` brings the default branch, when this checkout has it, up to origin's (a fast-forward, or a merge over spec-doc commits of its own), so you read today's spec, not one left behind on an old main; in a worktree it does nothing. Report its line. A line starting `sync-main:` is a refusal (a local edit in the way, a conflict with origin, origin unreachable): main stays as it was, so put that line first in your report and say the spec files here may be stale. Without Bun, skip it.
+
+**Register the session**, so the sessions executing this spec see a plan is being written: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts session register create $ARGUMENTS --title "create $ARGUMENTS"` (SKILL.md → *Tools* → Sessions). `The board is off here` or an unreachable origin means nothing to do: carry on.
 
 Work through these 6 stages **interactively**. Ask clarifying questions at each stage — don't generate boilerplate. Use AskUserQuestion for key decisions.
 

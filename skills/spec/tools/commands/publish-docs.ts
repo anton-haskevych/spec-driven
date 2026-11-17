@@ -5,6 +5,7 @@ import { publishDocs } from "../publish/publish";
 import { pushBranch, pushResult } from "../publish/push";
 import { publishLines, remoteLine } from "../publish/render";
 import { NO_DEFAULT_BRANCH } from "./push";
+import { syncBeforePush } from "./sync-main";
 
 export const PUBLISH_DOCS_USAGE = "publish-docs [<spec-name>]";
 
@@ -14,9 +15,11 @@ export function publishDocsReport(projectDir: string, args: readonly string[], r
   if (!branch) return `publish-docs: ${NO_DEFAULT_BRANCH}`;
 
   const git = gitAt(projectDir, runner);
+  const synced = syncBeforePush(git, branch, "publish-docs");
+  if (synced.stop) return synced.lines.join("\n");
   const pushed = pushResult(pushBranch(git, branch));
-  if (!pushed.ok) return `publish-docs: ${pushed.reason}`;
-  if (pushed.value.branch === branch) return `${remoteLine(pushed.value, branch)}\npublish-docs: on ${branch} — the push published the docs`;
+  if (!pushed.ok) return [...synced.lines, `publish-docs: ${pushed.reason}`].join("\n");
+  if (pushed.value.branch === branch) return [...synced.lines, remoteLine(pushed.value, branch), `publish-docs: on ${branch} — the push published the docs`].join("\n");
 
   const published = publishDocs(git, { defaultBranch: branch, ...(args[0] ? { spec: args[0] } : {}) });
   if (!published.ok) return `${remoteLine(pushed.value, branch)}\npublish-docs: ${published.reason}`;

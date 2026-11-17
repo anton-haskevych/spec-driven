@@ -80,12 +80,15 @@ function answeredNo(result: RunResult, ref: string): boolean {
   return STOPPED_LOCALLY.test(result.stderr) && !FATAL.test(result.stderr);
 }
 
-function codeOnDefaultBranch(git: Git, defaultBranch: string, unpushed: string): string | undefined {
+export function codeOnDefaultBranch(git: Git, defaultBranch: string, unpushed: string): string | undefined {
   const log = git.out(["log", "--name-only", "--no-renames", "--format=", unpushed]);
   const outside = pathsOutsideSpecDocs(log.ok ? log.value.split("\n") : []);
   if (outside.length === 0) return undefined;
-  const preview = outside.slice(0, PREVIEW_PATHS).join(", ") + (outside.length > PREVIEW_PATHS ? ", …" : "");
-  return `${defaultBranch} has unpushed changes outside docs/specs (${preview}) — not pushing code to ${defaultBranch}; ask the user`;
+  return `${defaultBranch} has unpushed changes outside docs/specs (${previewPaths(outside)}) — not pushing code to ${defaultBranch}; ask the user`;
+}
+
+export function previewPaths(paths: readonly string[]): string {
+  return paths.slice(0, PREVIEW_PATHS).join(", ") + (paths.length > PREVIEW_PATHS ? ", …" : "");
 }
 
 function countCommits(git: Git, range: readonly string[]): number {

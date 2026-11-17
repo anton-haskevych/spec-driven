@@ -112,6 +112,8 @@ export type AttentionRow =
   | { kind: "question"; spec: string; phase: string; question: string; recommend?: string; since: string }
   // A tree holding commits or edits no remote has, quiet for hours: its latest session document says so.
   | { kind: "unsaved-work"; who: string; host: string; tree: string; ahead: number; edited: number; since: string; here: boolean }
+  // The local default branch holds commits origin's doesn't: spec docs committed and never published.
+  | { kind: "main-ahead"; branch: string; commits: number; since: string }
   // Merged worktrees by ancestry; `trees prune` also finds squash-merged ones by their PR's head.
   | { kind: "prune"; trees: number }
   // A card every covering phase of has merged (close it with evidence), or a done card with one still open.

@@ -3,6 +3,8 @@ import { chmodSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { gitAt } from "../core/git";
 import { pathsOutsideSpecDocs, pushBranch, pushResult, SAVE } from "../publish/push";
+import { syncLine, syncMain } from "../publish/sync-main";
+import { pushReport } from "../commands/push";
 import { isolatedRunner, repoWithOrigin, type TestRepo } from "./git-repo";
 
 describe("pathsOutsideSpecDocs", () => {
@@ -125,5 +127,103 @@ describe("pushBranch (real git)", () => {
     repo.write("src/b.ts", "b\n");
     repo.commitAll("two");
     expect(pushBranch(git, "main")).toMatchObject({ kind: "rejected", branch: "feat" });
+  });
+});
+
+describe("syncMain (real git)", () => {
+  let repo: TestRepo;
+
+  beforeEach(() => {
+    repo = repoWithOrigin("spec-sync-");
+    repo.write("docs/specs/a/design.md", "one\n");
+    repo.write("src/app.ts", "app\n");
+    repo.commitAll("base");
+    repo.git("push", "-q", "origin", "main");
+  });
+
+  afterEach(() => repo.cleanup());
+
+  const sync = () => syncMain(gitAt(repo.dir, isolatedRunner), "main");
+  const head = () => repo.git("rev-parse", "HEAD");
+  const originMain = () => repo.git("--git-dir", repo.origin, "rev-parse", "main");
+  const originMoves = (path: string, text: string) => {
+    const other = repo.clone(`other-${Math.random().toString(36).slice(2)}`);
+    other.write(path, text);
+    other.commitAll(`edit ${path}`);
+    other.git("push", "-q", "origin", "main");
+  };
+
+  test("does nothing off the default branch", () => {
+    repo.git("checkout", "-q", "-b", "feat");
+    expect(sync()).toEqual({ kind: "not-default", branch: "feat" });
+    expect(syncLine(sync())).toBeUndefined();
+  });
+
+  test("says so when main already matches origin", () => {
+    expect(syncLine(sync())).toBe("Synced: main already matches origin");
+  });
+
+  test("fast-forwards past edits that origin's commits don't touch", () => {
+    originMoves("docs/specs/b/design.md", "b\n");
+    repo.write("src/app.ts", "dirty\n");
+    repo.write("scratch.txt", "untracked\n");
+
+    expect(sync()).toEqual({ kind: "updated", branch: "main", commits: 1, merged: false });
+    expect(head()).toBe(originMain());
+    expect(repo.git("status", "--porcelain")).toBe("M src/app.ts\n?? scratch.txt");
+  });
+
+  test("merges its own spec-doc commits with origin's tip as the first parent, and push sends them", () => {
+    repo.write("docs/specs/a/design.md", "reviewed\n");
+    repo.commitAll("[review] a");
+    const review = head();
+    originMoves("src/other.ts", "x\n");
+    const tipBefore = originMain();
+
+    expect(pushReport(repo.dir, [], isolatedRunner)).toBe("Synced: main merged with origin/main (+1 commit)\nRemote: pushed main (+1)");
+    expect(repo.git("rev-parse", "HEAD^1", "HEAD^2")).toBe(`${tipBefore}\n${review}`);
+    expect(originMain()).toBe(head());
+    expect(repo.git("--git-dir", repo.origin, "show", "main:docs/specs/a/design.md")).toBe("reviewed");
+  });
+
+  test("refuses, untouched, when a local edit is in the way, and push stops there", () => {
+    originMoves("src/app.ts", "theirs\n");
+    repo.write("src/app.ts", "mine\n");
+    const before = head();
+
+    expect(pushReport(repo.dir, [], isolatedRunner)).toBe(
+      "sync-main: local edits are in the way (src/app.ts); commit or stash them, then run sync-main — main left as it was, 1 commit behind origin; spec files here may be stale\npush: nothing pushed — sync-main refused (above)",
+    );
+    expect(head()).toBe(before);
+    expect(repo.git("status", "--porcelain")).toBe("M src/app.ts");
+  });
+
+  test("never leaves conflict markers behind, even with merge.autoStash on", () => {
+    originMoves("src/app.ts", "theirs\n");
+    repo.write("src/app.ts", "mine\n");
+    repo.git("config", "merge.autoStash", "true");
+
+    expect(sync()).toMatchObject({ kind: "refused" });
+    expect(repo.git("show", ":src/app.ts")).toBe("app");
+    expect(repo.git("status", "--porcelain")).toBe("M src/app.ts");
+  });
+
+  test("a conflict with origin refuses without touching the checkout", () => {
+    repo.write("docs/specs/a/design.md", "mine\n");
+    repo.commitAll("[review] a");
+    originMoves("docs/specs/a/design.md", "theirs\n");
+    const before = head();
+
+    expect(sync()).toMatchObject({ kind: "refused", reason: "origin changed the same lines in docs/specs/a/design.md" });
+    expect(head()).toBe(before);
+    expect(repo.git("status", "--porcelain")).toBe("");
+  });
+
+  test("never merges into code commits on main", () => {
+    repo.write("src/app.ts", "code on main\n");
+    repo.commitAll("oops");
+    originMoves("docs/specs/b/design.md", "b\n");
+
+    expect(sync()).toMatchObject({ kind: "refused", reason: expect.stringContaining("not pushing code to main") });
   });
 });
