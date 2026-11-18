@@ -29,7 +29,7 @@ open phase, and the tree adds only spec-doc commits beyond it; or when its lane 
 
 - [x] `crew-close-out-run.test.ts` pinning today's close-out argv and verdicts
 - [x] Spec-branch close-out: the phase's last task evidence sha (`<sha> on origin/<lane>`, from the record) is in `origin/feat/<spec>`, else `commits not merged back → merge-back <spec> --push`; Crew line from the last turn, else the newest `[handoff] <spec>` commit body on `origin/<lane>` since launch; a lane's `PR group ready` starts no PR moment; tests with `sequencedRunner`
-- [ ] Prune treats a lane tree as merged when its `origin/<lane>` is in `origin/feat/<spec>`, its lane has no open phase and the tree adds only spec-doc commits beyond it, or when its lane document reads merged (Phase 5); tests
+- [x] Prune treats a lane tree as merged when its `origin/<lane>` is in `origin/feat/<spec>`, its lane has no open phase and the tree adds only spec-doc commits beyond it, or when its lane document reads merged (Phase 5); tests
 
 ## Phase-local notes
 

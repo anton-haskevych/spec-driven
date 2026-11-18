@@ -9,6 +9,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `docs/specs/_ledger/gotcha-fast-crew-tests-use-crew-fake-deps.md` — [general] — fast crew tests use fastCrewDeps (crew-fake-deps.ts), not crew-deps.ts
 - `docs/specs/_ledger/gotcha-trees-place-reads-pr-group-from-base.md` — [general] — trees place reads pr: from main; a branch-only regroup is ignored
 - `docs/specs/_ledger/gotcha-claim-take-refuses-when-another-tree-holds-the-same-ticks.md` — [general] — claim take refuses when another tree holds the same ticks
+- `gotcha-crew-check-reads-no-record.md` — [phase 6] — crew check runs today's close-out; only the tick is lane-aware
 
 ## Principles
 - `principle-one-spec-layout.md` — [phase 2+, load-bearing] — one pure specLayout + branchOf; never infer mode or bases
@@ -26,6 +27,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-docs-reach-spec-branch-through-main.md` — [phase 3+] — snapshot reaches feat/<spec> via main; no 2nd push
 - `decision-ship-alone-freeze-is-a-plan-rule.md` — [phase 3+] — no phase moves into/out of a ship-alone group in the mode
 - `decision-a-spec-run-finishes-only-after-an-empty-tick.md` — [phase 1, phase 5, phase 6] — finished needs Launched empty at tick start (PR moment)
+- `decision-prune-reads-the-lane-document-number.md` — [phase 5] — lane doc merged needs its number; prSyncPlan must copy it
 - `decision-machine-limit-lives-in-launch.md` — [phase 1, phase 3, phase 6] — 6-worker refusal in launchCrewSession; relaunch: true exempt
 
 ## Workarounds
