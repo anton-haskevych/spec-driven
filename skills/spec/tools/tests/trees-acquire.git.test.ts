@@ -31,6 +31,22 @@ describe("addTree (real git)", () => {
     expect(headOf(join(root, "s-pr-b"))).toBe(other.git("rev-parse", "HEAD"));
   });
 
+  test("cuts from the base it is given: a lane from origin/feat/<spec>, not main", () => {
+    const other = repo.clone("other");
+    other.git("checkout", "-q", "-b", "feat/s");
+    other.write("spec-branch.md", "x");
+    other.commitAll("on the spec branch");
+    other.git("push", "-q", "origin", "feat/s");
+
+    const added = addTree(git(), name, root, "feat/s", 10_000);
+    expect(added).toEqual({ ok: true, value: { kind: "created", path: join(root, "s-pr-b") } });
+    expect(headOf(join(root, "s-pr-b"))).toBe(other.git("rev-parse", "HEAD"));
+  });
+
+  test("a base missing on origin is refused by name", () => {
+    expect(addTree(git(), name, root, "feat/none", 10_000)).toEqual({ ok: false, reason: "no origin/feat/none to branch from" });
+  });
+
   test("offline: cuts from the last fetched origin and says so", () => {
     repo.git("remote", "set-url", "origin", join(repo.root, "missing.git"));
     const added = addTree(git(), name, root, "main", 10_000);

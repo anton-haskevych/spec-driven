@@ -12,8 +12,9 @@ export interface AddedTree {
   offline?: string;
 }
 
-// No tree has the branch yet. Never from local HEAD, never through the WorktreeCreate hook.
-export function addTree(git: Git, name: TreeName, root: string, defaultBranch: string, fetchTimeoutMs: number): Result<AddedTree> {
+// No tree has the branch yet: cut it from origin/<base>, freshly fetched. Never from local HEAD, never through the
+// WorktreeCreate hook. `base` is the group's layout base: the default branch, or feat/<spec> for a lane.
+export function addTree(git: Git, name: TreeName, root: string, base: string, fetchTimeoutMs: number): Result<AddedTree> {
   const path = freeFolder(root, name.folder);
   if (git.run(["show-ref", "--verify", "--quiet", `refs/heads/${name.branch}`]).code === 0) {
     return added(git.out(["worktree", "add", "-q", path, name.branch]), { kind: "reused-branch", path });
@@ -21,11 +22,11 @@ export function addTree(git: Git, name: TreeName, root: string, defaultBranch: s
   if (git.out(["fetch", "-q", "origin", name.branch], { timeoutMs: fetchTimeoutMs }).ok) {
     return added(git.out(["worktree", "add", "-q", "--track", "-b", name.branch, path, `origin/${name.branch}`]), { kind: "took-over", path });
   }
-  const pinned = pinDefault(git, defaultBranch, { timeoutMs: fetchTimeoutMs });
-  const base = pinned.ok ? pinned : originTip(git, defaultBranch);
-  if (!base.ok || !base.value) return { ok: false, reason: `no origin/${defaultBranch} to branch from` };
+  const pinned = pinDefault(git, base, { timeoutMs: fetchTimeoutMs });
+  const tip = pinned.ok ? pinned : originTip(git, base);
+  if (!tip.ok || !tip.value) return { ok: false, reason: `no origin/${base} to branch from` };
   const created: AddedTree = { kind: "created", path, ...(pinned.ok ? {} : { offline: pinned.reason }) };
-  return added(git.out(["worktree", "add", "-q", "-b", name.branch, path, base.value]), created);
+  return added(git.out(["worktree", "add", "-q", "-b", name.branch, path, tip.value]), created);
 }
 
 function added(result: Result<string>, tree: AddedTree): Result<AddedTree> {
