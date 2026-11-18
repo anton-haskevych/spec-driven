@@ -124,8 +124,8 @@ describe("sessionLaunch with a phase", () => {
     expect(launch.ok && launch.value.command).toBe("claude -n 'spec-board execute 6' '/spec-driven:spec execute spec-board 6'");
   });
 
-  test("refuses oversee-crew: it takes no spec and is never launched", () => {
-    expect(sessionLaunch("/w", ["oversee-crew", "billing"])).toEqual({ ok: false, reason: "oversee-crew isn't launched: type /spec oversee-crew in the project's main checkout" });
+  test("refuses oversee-crew: it is never launched, and the refusal names the one-spec form", () => {
+    expect(sessionLaunch("/w", ["oversee-crew", "billing"])).toEqual({ ok: false, reason: "oversee-crew isn't launched: type /spec oversee-crew [<spec>] in the project's main checkout" });
   });
 
   test("refuses a bad phase id, a phase on another sub-command, and extra words", () => {
