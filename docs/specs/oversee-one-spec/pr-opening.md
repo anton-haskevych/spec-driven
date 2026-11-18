@@ -9,6 +9,7 @@ picked at merge (main's minor + 1). Phases 1 and 2 start in parallel; 3 after 2 
 Phase 1 keeps one worker per spec; parallel lanes switch on with Phase 3 in the same PR C (`decision-lanes-ship-with-the-spec-branch`).
 PR #50 merged 2026-11-17 as 2b5573e (squash).
 PR #51 merged 2026-11-17 as 7ce2eaa (squash).
+PR #52 merged 2026-11-17 as 3cebea6 (squash).
 
 ## Pre-PR checks
 
