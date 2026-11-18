@@ -1,27 +1,22 @@
 import type { ReadyRow } from "../../board/model";
-import { loadBoardInputs } from "../../board/load";
-import { buildBoard } from "../../board/lanes";
 import type { HeldClaim } from "../../claims/rules";
 import type { Result } from "../../core/result";
 import { isoTimestamp } from "../../core/schedule";
 import type { SpecState } from "../../core/spec-state";
 import type { CloseOut } from "../../crew/close-out";
-import { claimFor, closeOut, isClaimLive } from "../../crew/close-out-run";
-import { runFileStore, systemCrewDeps, type CrewDeps, type RunFileStore } from "../../crew/deps";
+import { claimFor, isClaimLive } from "../../crew/close-out-run";
+import { runFileStore, systemCrewDeps, type CrewDeps } from "../../crew/deps";
 import { overseerLine, whoseRun } from "../../crew/overseer";
 import { pickRows } from "../../crew/pick";
 import { parseRunFile, withLaunched, withLog, withOverseer, type LaunchedEntry, type RunFile } from "../../crew/run-state";
 import { actionLines, afterCloseOut, nextAction } from "../../crew/tick-step";
 import { parseLaunchTitle } from "../../launch/title";
-import { questionLine, questionRows, type QuestionRow } from "../../questions/list";
-import { recordViewOf } from "../../record/read";
-import { loadAgents, type Agent } from "../../sessions/agents";
+import { questionLine, type QuestionRow } from "../../questions/list";
+import type { Agent } from "../../sessions/agents";
 import type { LiveSession } from "../../sessions/live";
 import { ownSessionId } from "../../sessions/own";
-import { placeTree } from "../../trees/place";
-import { placeDepsFor } from "../../trees/place-system";
-import { systemPlaceDeps } from "../trees";
-import { launchCrewSession, type CrewLaunchRequest, type CrewLaunchResult } from "./launch-session";
+import type { CrewLaunchRequest, CrewLaunchResult } from "./launch-session";
+import { systemTickPorts } from "./tick-ports";
 
 export const CREW_TICK_USAGE = "crew tick [--no-launch]";
 const NO_RUNNER = "crew tick: can't tell who runs this crew; run crew start again. Launching nothing";
@@ -78,7 +73,7 @@ export async function crewTick(projectDir: string, args: readonly string[], deps
   const held = args.includes("--no-launch") || run.state === "stood-down" ? "pausing" : runner === undefined ? "no runner" : undefined;
   if (held === "no runner") report.forYou.push(NO_RUNNER);
   if (held) report.forYou.push(...passed.relaunches.map((relaunch) => `Relaunch held (${held}): ${relaunch.spec} ${relaunch.phase}`));
-  const launched = held || runner === undefined ? 0 : await fillSlots(remaining, agents.value, passed.relaunches, world.value, { ...run, runner }, ports, report);
+  const launched = held || runner === undefined ? 0 : await fillSlots({ remaining, agents: agents.value, relaunches: passed.relaunches, world: world.value, run: { ...run, runner }, ports, report });
   const questions = world.value.questions ?? [];
   const asked = questions.map((row) => `Question: ${questionLine(row)} · answer: question answer ${row.spec} ${row.id} "<their words>"`);
   const open = questions.length === 0 ? "" : ` · ${questions.length} ${questions.length === 1 ? "question" : "questions"} open`;
@@ -114,7 +109,17 @@ function closeOutLaunched(launched: readonly LaunchedEntry[], agents: readonly A
   return passed;
 }
 
-async function fillSlots(remaining: readonly LaunchedEntry[], agents: readonly Agent[], relaunches: ReadonlyArray<{ spec: string; phase: string }>, world: TickWorld, run: RunFile & { runner: string }, ports: TickPorts, report: Report): Promise<number> {
+interface FillContext {
+  remaining: readonly LaunchedEntry[];
+  agents: readonly Agent[];
+  relaunches: ReadonlyArray<{ spec: string; phase: string }>;
+  world: TickWorld;
+  run: RunFile & { runner: string };
+  ports: TickPorts;
+  report: Report;
+}
+
+async function fillSlots({ remaining, agents, relaunches, world, run, ports, report }: FillContext): Promise<number> {
   const workers = remaining.flatMap((entry) => {
     const title = parseLaunchTitle(entry.title);
     return title?.sub === "execute" ? [{ entry, spec: title.spec }] : [];
@@ -138,25 +143,4 @@ async function fillSlots(remaining: readonly LaunchedEntry[], agents: readonly A
     } else report.forYou.push(`${pick.spec} ${pick.phase} not launched: ${last}`);
   }
   return launched;
-}
-
-function systemTickPorts(projectDir: string, store: RunFileStore, deps: CrewDeps): TickPorts {
-  return {
-    async world() {
-      const own = ownSessionId(deps.env);
-      const inputs = await loadBoardInputs(projectDir, { local: false, ...(own ? { ownSessionId: own } : {}) }, deps);
-      if (!inputs.ok) return inputs;
-      const sessions: Result<LiveSession[]> = inputs.value.sessions === "local" ? { ok: false, reason: "sessions not read" } : inputs.value.sessions;
-      const view = recordViewOf(inputs.value.plans.record);
-      const questions = view ? questionRows(view) : [];
-      return { ok: true, value: { sessions, claims: inputs.value.claims, ready: buildBoard(inputs.value, deps.now()).lanes.ready, states: inputs.value.states, questions } };
-    },
-    agents: () => loadAgents(deps.runner),
-    closeOut: (entry, agents, claims) => closeOut(entry, { agents, claims, claudeHome: deps.claudeHome, runner: deps.runner }),
-    stop(id) {
-      deps.runner.run(["claude", "stop", id]);
-      deps.runner.run(["claude", "rm", id]);
-    },
-    launch: (request) => launchCrewSession(request, store, deps, (spec, phase, options) => placeTree({ spec, phase, ...options }, placeDepsFor(projectDir, systemPlaceDeps()))),
-  };
 }
