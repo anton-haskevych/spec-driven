@@ -1,6 +1,7 @@
 import type { Result } from "../core/result";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import { DEFAULT_PR_GROUP, prBranch } from "../plan/docs/pr-doc";
+import { shipsAloneIn } from "../plan/docs/spec-branch-rules";
 import type { SpecBranch } from "../plan/docs/spec-doc";
 
 // `name` is the phases' `pr:` value; undefined for a spec whose phases declare none (branch feat/<spec>).
@@ -60,10 +61,9 @@ export function specLayout(state: SpecState, specBranch?: SpecBranch): SpecLayou
     return { spec, mode: "per-group", groups, ungrouped };
   }
   const head = prBranch(spec, DEFAULT_PR_GROUP);
-  const alone = new Set(specBranch.shipAlone.map((group) => group.toLowerCase()));
   const groups = new Map(
     named.map((group) => {
-      const shipsAlone = alone.has(group.name.toLowerCase());
+      const shipsAlone = shipsAloneIn(specBranch, group.name);
       const base: GroupBase = shipsAlone ? DEFAULT_BASE : { kind: "spec-branch", branch: head };
       return [group.name, layoutOf(spec, group.name, base, shipsAlone, group.phases)];
     }),

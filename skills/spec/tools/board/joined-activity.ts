@@ -1,6 +1,7 @@
 import { phaseStage } from "../plan/phase-stage";
 import { DEFAULT_PR_GROUP, prGroupOf, type PrDoc } from "../plan/docs/pr-doc";
 import type { PhaseDoc } from "../plan/docs/phase-doc";
+import { isLaneGroup } from "../plan/docs/spec-branch-rules";
 import type { JoinedPlan } from "../plan/state-source";
 import type { PhaseActivity } from "./activity";
 import { rowKey } from "./phase-keys";
@@ -16,6 +17,7 @@ const ON_BRANCH = /\bon origin\/(\S+)/;
 // `on origin/<branch>` puts its phase in progress in the tree on that branch; join's evidence (a bare sha)
 // names no tree. A built phase stays in flight, in its PR group's tree, until its PR merges; one finished
 // before the join (no PR document, or none opened and no pushed task) is history, not work in flight.
+// A lane's PR is the final PR, so a built lane phase never asks for its own while spec-branch mode is on.
 export function joinedActivity(plans: readonly JoinedPlan[], trees: readonly BranchTree[], prDocs: (spec: string) => readonly PrDoc[] | undefined = () => undefined): Map<string, PhaseActivity> {
   const pathOf = new Map(trees.flatMap((tree) => (tree.branch ? [[tree.branch, tree.path] as const] : [])));
   const activity = new Map<string, PhaseActivity>();
@@ -32,7 +34,8 @@ export function joinedActivity(plans: readonly JoinedPlan[], trees: readonly Bra
       }
       if (stage === "built" && pr && (pr.state !== "not-opened" || pushedOnABranch(phase))) {
         const path = pathOf.get(pr.branch);
-        activity.set(key, { tickedIn: path ? [path] : [], wipIn: [], built: { prGroup: group, prNotOpened: pr.state === "not-opened" } });
+        const prNotOpened = pr.state === "not-opened" && !isLaneGroup(spec.specBranch, group);
+        activity.set(key, { tickedIn: path ? [path] : [], wipIn: [], built: { prGroup: group, prNotOpened } });
       }
     }
   }

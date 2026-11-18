@@ -1,6 +1,7 @@
 import { phaseDocDone } from "../state-source";
 import type { PhaseDoc } from "./phase-doc";
-import type { SpecDoc } from "./spec-doc";
+import { DEFAULT_PR_GROUP } from "./pr-doc";
+import type { SpecBranch, SpecDoc } from "./spec-doc";
 
 // What keeps specLayout whole in spec-branch mode (ledger: principle-one-spec-layout): every open code phase has a
 // lane, and a ship-alone group, cut from the default branch, never waits on code that only reaches feat/<spec>.
@@ -27,9 +28,18 @@ export function shipAloneMoves(spec: SpecDoc, before: readonly PhaseDoc[], after
   });
 }
 
+// Group names match ignoring case, as `pr:` values do everywhere.
+export function shipsAloneIn(specBranch: SpecBranch | undefined, group: string | undefined): boolean {
+  return group !== undefined && (specBranch?.shipAlone ?? []).some((name) => name.toLowerCase() === group.toLowerCase());
+}
+
+// A lane: a named group of a spec in spec-branch mode that doesn't ship alone. Its PR is the final PR.
+export function isLaneGroup(specBranch: SpecBranch | undefined, group: string): boolean {
+  return specBranch !== undefined && group !== DEFAULT_PR_GROUP && !shipsAloneIn(specBranch, group);
+}
+
 function shipAloneTest(spec: SpecDoc): (phase: PhaseDoc) => boolean {
-  const alone = new Set((spec.specBranch?.shipAlone ?? []).map((group) => group.toLowerCase()));
-  return (phase) => phase.pr !== undefined && alone.has(phase.pr.toLowerCase());
+  return (phase) => shipsAloneIn(spec.specBranch, phase.pr);
 }
 
 function crossGroupNeeds(phase: PhaseDoc, open: readonly PhaseDoc[]): string[] {
