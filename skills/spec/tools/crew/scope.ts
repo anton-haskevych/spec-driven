@@ -1,6 +1,7 @@
 import type { Result } from "../core/result";
 import type { Runner } from "../core/run";
 import { parseLaunchTitle } from "../launch/title";
+import type { SpecLayout } from "../pr/groups";
 import type { LiveSession } from "../sessions/live";
 import { listRunFiles, runFileStore } from "./deps";
 import { whoseRun } from "./overseer";
@@ -11,6 +12,12 @@ export type CrewScope = { spec: string } | { overseen: ReadonlySet<string> };
 interface ScopedWorld {
   ready: ReadonlyArray<{ spec: string }>;
   questions?: ReadonlyArray<{ spec: string }>;
+}
+
+// A spec in spec-branch mode belongs to its overseer even after its run ended: its lanes merge back, the board crew's don't.
+export function boardScope(runs: readonly RunFile[], layouts: ReadonlyMap<string, SpecLayout>): { overseen: ReadonlySet<string> } {
+  const inMode = [...layouts].filter(([, layout]) => layout.mode === "spec-branch").map(([spec]) => spec);
+  return { overseen: new Set([...runs.flatMap((run) => run.spec ?? []), ...inMode]) };
 }
 
 export function inScope(spec: string, scope: CrewScope): boolean {

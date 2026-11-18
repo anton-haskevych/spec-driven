@@ -9,11 +9,12 @@ import { claimFor, isClaimLive } from "../../crew/close-out-run";
 import { runFileStore, systemCrewDeps, type CrewDeps } from "../../crew/deps";
 import { overseerLine, whoseRun } from "../../crew/overseer";
 import { MACHINE_WORKERS, machineFree, machineWorkers } from "../../crew/machine";
-import { pickRows } from "../../crew/pick";
+import { pickRows, workKey, type Pick } from "../../crew/pick";
 import { parseRunFile, withLaunched, withLog, withOverseer, withState, type LaunchedEntry, type RunFile } from "../../crew/run-state";
-import { inScope, isRunOpen, overseenLines, scopeWorld, type CrewScope } from "../../crew/scope";
+import { boardScope, inScope, isRunOpen, overseenLines, scopeWorld, type CrewScope } from "../../crew/scope";
 import { actionLines, afterCloseOut, nextAction } from "../../crew/tick-step";
 import { parseLaunchTitle } from "../../launch/title";
+import type { SpecLayout } from "../../pr/groups";
 import { questionLine, type QuestionRow } from "../../questions/list";
 import type { Agent } from "../../sessions/agents";
 import type { LiveSession } from "../../sessions/live";
@@ -29,6 +30,7 @@ export interface TickWorld {
   claims: readonly HeldClaim[];
   ready: readonly ReadyRow[];
   states: ReadonlyMap<string, SpecState>;
+  layouts: ReadonlyMap<string, SpecLayout>;
   // Open questions of joined specs, from the record; parks of specs in files show as their phases leave ready.
   questions?: readonly QuestionRow[];
   // A spec crew's plan moved since its last tick (joined specs only).
@@ -68,7 +70,7 @@ export async function crewTick(projectDir: string, args: readonly string[], deps
   const run = parseRunFile(text);
   const verdict = whoseRun(run.overseer, sessions, own);
   if (verdict.kind === "other") return overseerLine(verdict);
-  const scope = tickScope(spec, ports);
+  const scope = tickScope(spec, ports, loaded.value.layouts);
   if (!scope.ok) return `crew tick: ${scope.reason}`;
   const agents = ports.agents();
   if (!agents.ok) return `crew tick: ${agents.reason}`;
@@ -106,11 +108,11 @@ function parseTickArgs(args: readonly string[]): { spec?: string; noLaunch: bool
 }
 
 // A spec crew sees its spec; the whole-board crew everything but the specs with an open run of their own.
-function tickScope(spec: string | undefined, ports: TickPorts): Result<{ scope: CrewScope; overseen: readonly RunFile[] }> {
+function tickScope(spec: string | undefined, ports: TickPorts, layouts: ReadonlyMap<string, SpecLayout>): Result<{ scope: CrewScope; overseen: readonly RunFile[] }> {
   if (spec !== undefined) return { ok: true, value: { scope: { spec }, overseen: [] } };
   const overseen = ports.overseen();
   if (!overseen.ok) return overseen;
-  return { ok: true, value: { scope: { overseen: new Set(overseen.value.flatMap((run) => run.spec ?? [])) }, overseen: overseen.value } };
+  return { ok: true, value: { scope: boardScope(overseen.value, layouts), overseen: overseen.value } };
 }
 
 function hasNoOpenPhase(state: SpecState | undefined): boolean {
@@ -161,12 +163,13 @@ interface FillContext {
 async function fillSlots({ remaining, agents, machineBusy, relaunches, world, run, ports, report }: FillContext): Promise<number> {
   const workers = remaining.flatMap((entry) => {
     const title = parseLaunchTitle(entry.title);
-    return title?.sub === "execute" ? [{ entry, spec: title.spec }] : [];
+    return title?.sub === "execute" ? [{ entry, work: { spec: title.spec, phase: title.phase ?? "" } }] : [];
   });
   const occupied = workers.filter(({ entry }) => agents.some((agent) => agent.id === entry.id && agent.state !== "stopped")).length;
   let slots = run.caps.workers - occupied;
-  const busy = new Set([...workers.map((worker) => worker.spec), ...relaunches.map((relaunch) => relaunch.spec)]);
-  const wanted = pickRows({ ready: world.ready, states: world.states, busy, unanswered: run.unanswered, slots: Math.max(0, slots - relaunches.length), me: run.runner });
+  const out: Pick[] = workers.map(({ work }) => work);
+  const busy = new Set([...out, ...relaunches].map((work) => workKey(work, world.states, world.layouts)));
+  const wanted = pickRows({ ready: world.ready, states: world.states, layouts: world.layouts, busy, launched: out, unanswered: run.unanswered, slots: Math.max(0, slots - relaunches.length), me: run.runner });
   const fresh = wanted.slice(0, machineFree(machineBusy + relaunches.length));
   if (fresh.length < wanted.length) report.done.push(`Machine full: ${machineBusy} of ${MACHINE_WORKERS}`);
   const picks = [...relaunches.map((relaunch) => ({ ...relaunch, relaunch: true as const })), ...fresh];

@@ -28,7 +28,7 @@ export function crewTree(): Tree & { run(setup?: RunSetup): string } {
 export function tickPorts(world: Partial<TickWorld>, agents: Agent[], verdicts: Record<string, CloseOut> = {}) {
   const calls = { stopped: [] as string[], launched: [] as string[], requests: [] as Array<{ machineBusy?: number; relaunch?: true }> };
   const fake: Omit<TickPorts, "overseen"> = {
-    world: async () => ({ ok: true, value: { sessions: { ok: true, value: [liveSession({ sessionId: OWN })] }, claims: [], ready: [], states: new Map(), ...world } }),
+    world: async () => ({ ok: true, value: { sessions: { ok: true, value: [liveSession({ sessionId: OWN })] }, claims: [], ready: [], states: new Map(), layouts: new Map(), ...world } }),
     agents: () => ({ ok: true, value: agents }),
     closeOut: (entry) => verdicts[entry.id],
     stop: (id) => void calls.stopped.push(id),

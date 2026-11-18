@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { inScope, isRunOpen, scopeWorld, specRun } from "../crew/scope";
+import { boardScope, inScope, isRunOpen, scopeWorld, specRun } from "../crew/scope";
+import { specLayout } from "../pr/groups";
+import { phaseState } from "./factories";
 import { newRunFile, parseRunFile } from "../crew/run-state";
 import { readyRow } from "./board-factories";
 import { fastCrewDeps } from "./crew-fake-deps";
@@ -21,6 +23,16 @@ describe("scopeWorld", () => {
   test("the whole-board crew drops every overseen spec, and with none overseen the world is unchanged", () => {
     expect(scopeWorld(world, { overseen: new Set(["alpha"]) }).ready.map((row) => row.spec)).toEqual(["beta"]);
     expect(scopeWorld(world, { overseen: new Set() })).toBe(world);
+  });
+
+  test("the whole-board crew leaves alone every spec with an open run or in spec-branch mode", () => {
+    const state = (name: string) => ({ spec: { name, dir: `/s/${name}` }, hasProgress: true, phases: [phaseState({ id: "1", edges: { declared: true, needs: [], needsDeployed: [], sameFilesAs: [], pr: "A" } })] });
+    const layouts = new Map([
+      ["lanes", specLayout(state("lanes"), { cutFrom: "c0ffee", shipAlone: [] })],
+      ["plain", specLayout(state("plain"))],
+    ]);
+    const run = { ...parseRunFile(newRunFile({ ...NEW, spec: "watched" })), spec: "watched" };
+    expect([...boardScope([run], layouts).overseen].sort()).toEqual(["lanes", "watched"]);
   });
 
   test("inScope answers the same question for one spec name", () => {

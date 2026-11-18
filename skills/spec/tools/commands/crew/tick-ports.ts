@@ -6,6 +6,7 @@ import type { CrewDeps, RunFileStore } from "../../crew/deps";
 import { openSpecRuns } from "../../crew/scope";
 import { planShapeOf } from "../../plan/plan-diff";
 import { noticePlanChange, planMemoryFor } from "../../plan/plan-version";
+import { specLayout } from "../../pr/groups";
 import type { PlanSource } from "../../plan/read-plans";
 import { questionRows } from "../../questions/list";
 import { recordViewOf } from "../../record/read";
@@ -27,7 +28,9 @@ export function systemTickPorts(projectDir: string, store: RunFileStore, deps: C
       const view = recordViewOf(inputs.value.plans.record);
       const questions = view ? questionRows(view) : [];
       const planChange = spec === undefined ? undefined : planChangeOf(spec, inputs.value.plans, deps);
-      return { ok: true, value: { sessions, claims: inputs.value.claims, ready: buildBoard(inputs.value, deps.now()).lanes.ready, states: inputs.value.states, questions, ...(planChange ? { planChange } : {}) } };
+      const { states, nodes } = inputs.value;
+      const layouts = new Map([...states].map(([name, state]) => [name, specLayout(state, nodes.get(name)?.specBranch)]));
+      return { ok: true, value: { sessions, claims: inputs.value.claims, ready: buildBoard(inputs.value, deps.now()).lanes.ready, states, layouts, questions, ...(planChange ? { planChange } : {}) } };
     },
     overseen: () => openSpecRuns(projectDir, deps.runner),
     agents: () => deps.agents(),

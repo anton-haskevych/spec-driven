@@ -6,6 +6,7 @@ import type { CloseOut } from "../crew/close-out";
 import { findCrewLine } from "../crew/crew-line";
 import { parseRunFile } from "../crew/run-state";
 import type { SpecState } from "../core/spec-state";
+import { specLayout } from "../pr/groups";
 import { readyRow } from "./board-factories";
 import { fastCrewDeps } from "./crew-fake-deps";
 import { agent, crewTree, env, OWN, tickPorts } from "./crew-tick-fast";
@@ -18,6 +19,11 @@ const crewOk = (line: string): CloseOut => ({ kind: "ok", report: line, crewLine
 const question = (spec: string) => ({ ...questionDoc({ id: `q-${spec}`, about: `${spec}#1` }), spec, version: "v1" });
 const OTHER = "9a8b7c6d-0000-4000-8000-000000000000";
 const sessions = (...ids: string[]) => ({ ok: true as const, value: ids.map((sessionId) => liveSession({ sessionId })) });
+const lanePhase = (id: string, pr: string, needs: string[] = []) => phaseState({ id, edges: { declared: true, needs, needsDeployed: [], sameFilesAs: [], pr } });
+function lanes(spec: string, phases: ReturnType<typeof lanePhase>[]) {
+  const state: SpecState = { spec: { name: spec, dir: `/specs/${spec}` }, hasProgress: true, phases };
+  return { states: new Map([[spec, state]]), layouts: new Map([[spec, specLayout(state, { cutFrom: "c0ffee", shipAlone: [] })]]) };
+}
 const states = (spec: string, done: boolean[]): Map<string, SpecState> =>
   new Map([[spec, { spec: { name: spec, dir: `/specs/${spec}` }, hasProgress: true, phases: done.map((isDone, index) => phaseState({ id: String(index + 1), done: isDone })) }]]);
 
@@ -63,6 +69,16 @@ describe("crew tick --spec", () => {
     expect(parseRunFile(runText("run-alpha.md")).state).toBe("running");
   });
 
+  test("in spec-branch mode each lane gets its own worker, one at a time per lane", async () => {
+    tree = crewTree();
+    tree.run({ spec: "alpha", workers: 3, launched: [{ id: "a1", title: "alpha execute 1", at: "t0" }] });
+    const world = lanes("alpha", [lanePhase("1", "A"), lanePhase("2", "A"), lanePhase("3", "B"), lanePhase("4", "C", ["1"])]);
+    const ready = ["2", "3", "4"].map((phase) => readyRow({ spec: "alpha", phase }));
+    const { fake, calls } = tickPorts({ ...world, ready }, [agent("a1", "working")]);
+    await crewTick(tree.root, ["--spec", "alpha"], fastCrewDeps(tree.root, { env }), fake);
+    expect(calls.launched).toEqual(["alpha 3"]);
+  });
+
   test("bad flags are a usage line", async () => {
     tree = crewTree();
     expect(await crewTick(tree.root, ["--spec"], fastCrewDeps(tree.root, { env }))).toBe("usage: crew tick [--spec <spec>] [--no-launch]");
@@ -92,6 +108,14 @@ describe("the whole-board tick beside a spec crew", () => {
     const lines = (await crewTick(tree.root, [], fastCrewDeps(tree.root, { env }), fake)).split("\n");
     expect(lines).toContain("Overseen: alpha (no live overseer, 2 workers)");
     expect(calls.launched).toEqual([]);
+  });
+
+  test("leaves a spec in spec-branch mode alone even with no run of its own", async () => {
+    tree = crewTree();
+    tree.run({ workers: 3 });
+    const { fake, calls } = tickPorts({ ...lanes("alpha", [lanePhase("1", "A")]), ready: [readyRow({ spec: "alpha", phase: "1" }), readyRow({ spec: "beta", phase: "1" })] }, []);
+    await crewTick(tree.root, [], fastCrewDeps(tree.root, { env }), fake);
+    expect(calls.launched).toEqual(["beta 1"]);
   });
 
   test("a stood-down or finished spec run no longer holds its spec", async () => {
