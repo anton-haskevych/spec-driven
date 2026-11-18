@@ -18,6 +18,6 @@
 - [x] Phase 2 — Build order → `phases/phase-2-build-order.md`
 - [x] Phase 3 — The spec branch and merge-back → `phases/phase-3-spec-branch-and-merge-back.md`
 - [x] Phase 4 — Close-out and prune on the spec branch → `phases/phase-4-close-out-and-prune.md`
-- [ ] Phase 5 — The final PR and ship-alone groups → `phases/phase-5-final-pr-and-ship-alone.md`
+- [x] Phase 5 — The final PR and ship-alone groups → `phases/phase-5-final-pr-and-ship-alone.md`
 - [ ] Phase 6 — The overseer runs a spec end to end → `phases/phase-6-overseer-runs-a-spec.md`
 - [ ] Phase 7 — CRM adoption → `phases/phase-7-crm-adoption.md`

@@ -54,8 +54,8 @@ comments itself: there is no group's last phase to relaunch.
 - [x] `prSyncPlan`: when the `default` document turns merged, the same record write copies number, state and merge onto every lane group's document and removes `specBranch`; a closed final PR keeps the mode and is a Needs-you row; deploy marking covers `finalPr.phases`
 - [x] `pr hold --how-to-review` text with one section per phase: Outcome, files, and its commits from its tasks' record evidence shas
 - [x] `launch babysit <spec> default` cuts or takes over a tree on `feat/<spec>` (not `existingOnly` for the final PR) through `branchOf`; claim `pr-default` accepted by `takeRefusal` in spec-branch mode; `claimKey` already maps it (test case only); the babysitter opens the PR from that tree
-- [ ] `babysit.md`: the final PR merges `origin/<base>` and is the only writer of main into the spec branch once lanes are done; a lane push while the PR is open is a non-fast-forward for the babysitter, which merges `origin/feat/<spec>`; it fixes review comments in its own tree
-- [ ] The tick prints `PR moment: <spec> final PR` once every code phase outside the ship-alone groups is done (`crew/tick-step.ts`)
+- [x] `babysit.md`: the final PR merges `origin/<base>` and is the only writer of main into the spec branch once lanes are done; a lane push while the PR is open is a non-fast-forward for the babysitter, which merges `origin/feat/<spec>`; it fixes review comments in its own tree
+- [x] The tick prints `PR moment: <spec> final PR` once every code phase outside the ship-alone groups is done (`crew/tick-step.ts`)
 
 ## Phase-local notes
 
