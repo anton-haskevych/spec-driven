@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { PhaseState, SpecState } from "../core/spec-state";
-import { baseBranchOf, branchOf, specLayout } from "../pr/groups";
+import { baseBranchOf, branchOf, laneOf, specLayout } from "../pr/groups";
 import { phaseEdges, phaseState } from "./factories";
 
 function spec(phases: PhaseState[]): SpecState {
@@ -77,5 +77,18 @@ describe("baseBranchOf", () => {
     expect(baseBranchOf(specLayout(spec(phases)), "A", "main")).toBe("main");
     expect(baseBranchOf(specLayout(spec(phases), { cutFrom: "abc", shipAlone: [] }), "Z", "main")).toBe("main");
     expect(baseBranchOf(undefined, undefined, "trunk")).toBe("trunk");
+  });
+});
+
+describe("laneOf", () => {
+  const phases = [grouped("1", "A"), grouped("2", "D")];
+
+  test("a lane's branch names its group; a ship-alone group and the spec branch are not lanes", () => {
+    const layout = specLayout(spec(phases), { cutFrom: "abc", shipAlone: ["D"] });
+    expect(["feat/x-pr-a", "feat/x-pr-d", "feat/x", "feat/x-ph-10b"].map((branch) => laneOf(layout, branch))).toEqual(["A", undefined, undefined, undefined]);
+  });
+
+  test("outside spec-branch mode nothing is a lane", () => {
+    expect(laneOf(specLayout(spec(phases)), "feat/x-pr-a")).toBeUndefined();
   });
 });

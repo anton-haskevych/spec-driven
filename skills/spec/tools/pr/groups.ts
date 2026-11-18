@@ -78,6 +78,12 @@ export function branchOf(layout: SpecLayout, group: string): string {
   return layout.groups.get(group)?.branch ?? prBranch(layout.spec, group);
 }
 
+// The group whose branch this is, when it is a lane: spec-branch mode, cut from feat/<spec>, not shipping alone.
+export function laneOf(layout: SpecLayout, branch: string): string | undefined {
+  if (layout.mode !== "spec-branch") return undefined;
+  return [...layout.groups].find(([, group]) => group.branch === branch && group.base.kind === "spec-branch")?.[0];
+}
+
 // The branch a group's new tree is cut from: feat/<spec> for a lane, else the default branch.
 export function baseBranchOf(layout: SpecLayout | undefined, group: string | undefined, defaultBranch: string): string {
   const base = layout?.groups.get(group ?? DEFAULT_PR_GROUP)?.base;

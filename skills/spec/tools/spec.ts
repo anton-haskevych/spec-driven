@@ -21,6 +21,7 @@ import { playbooksReport } from "./commands/playbooks";
 import { PR_USAGE, prCommand } from "./commands/pr";
 import { PUBLISH_DOCS_USAGE, publishDocsReport } from "./commands/publish-docs";
 import { PUSH_USAGE, pushReport } from "./commands/push";
+import { MERGE_BACK_USAGE, mergeBackReport } from "./commands/merge-back";
 import { SYNC_MAIN_USAGE, syncMainReport } from "./commands/sync-main";
 import { READY_USAGE, readyCommand } from "./commands/ready";
 import { PLAN_USAGE, planCommand } from "./commands/plan";
@@ -65,6 +66,7 @@ export const COMMANDS: Record<string, Command> = {
   push: { usage: PUSH_USAGE, run: (dir, args) => pushReport(dir, args) },
   "publish-docs": { usage: PUBLISH_DOCS_USAGE, run: (dir, args) => publishDocsReport(dir, args) },
   "sync-main": { usage: SYNC_MAIN_USAGE, run: (dir, args) => syncMainReport(dir, args) },
+  "merge-back": { usage: MERGE_BACK_USAGE, run: (dir, args) => mergeBackReport(dir, args) },
   claim: { usage: CLAIM_USAGE, run: (dir, args) => claimCommand(dir, args) },
   crew: { usage: CREW_USAGE, run: (dir, args) => crewCommand(dir, args) },
   focus: { usage: FOCUS_USAGE, run: (dir, args) => focusCommand(dir, args) },
