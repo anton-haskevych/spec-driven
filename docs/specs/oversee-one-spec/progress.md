@@ -14,7 +14,7 @@
 
 ## Phases
 
-- [ ] Phase 1 — One overseer per spec → `phases/phase-1-one-overseer-per-spec.md`
+- [x] Phase 1 — One overseer per spec → `phases/phase-1-one-overseer-per-spec.md`
 - [x] Phase 2 — Build order → `phases/phase-2-build-order.md`
 - [ ] Phase 3 — The spec branch and merge-back → `phases/phase-3-spec-branch-and-merge-back.md`
 - [ ] Phase 4 — Close-out and prune on the spec branch → `phases/phase-4-close-out-and-prune.md`

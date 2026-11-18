@@ -6,6 +6,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 ## Gotchas
 - `docs/specs/_ledger/gotcha-snapshot-on-branch-not-on-main-becomes-the-base.md` — [general] — a snapshot on the branch but not on main becomes the publish base
 - `docs/specs/_ledger/gotcha-a-registered-plan-runner-is-queueable.md` — [general] — a registered plan runner is queueable; never-queued writes use writeRecord
+- `docs/specs/_ledger/gotcha-fast-crew-tests-use-crew-fake-deps.md` — [general] — fast crew tests use fastCrewDeps (crew-fake-deps.ts), not crew-deps.ts
 
 ## Principles
 - `principle-one-spec-layout.md` — [phase 2+, load-bearing] — one pure specLayout + branchOf; never infer mode or bases
@@ -22,5 +23,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-cross-lane-needs-wait-for-close-out.md` — [phase 3, phase 4] — a need on another lane waits for its close-out
 - `decision-docs-reach-spec-branch-through-main.md` — [phase 3+] — snapshot reaches feat/<spec> via main; no 2nd push
 - `decision-ship-alone-freeze-is-a-plan-rule.md` — [phase 3+] — no phase moves into/out of a ship-alone group in the mode
+- `decision-a-spec-run-finishes-only-after-an-empty-tick.md` — [phase 1, phase 5, phase 6] — finished needs Launched empty at tick start (PR moment)
+- `decision-machine-limit-lives-in-launch.md` — [phase 1, phase 3, phase 6] — 6-worker refusal in launchCrewSession; relaunch: true exempt
 
 ## Workarounds
