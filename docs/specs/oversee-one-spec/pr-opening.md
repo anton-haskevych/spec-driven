@@ -8,6 +8,7 @@ Split: **B: phase 2** · **C: phases 1, 3, 4** · **D: phases 5, 6** (phase 1 mo
 picked at merge (main's minor + 1). Phases 1 and 2 start in parallel; 3 after 2 (it reads `specLayout`); 4 and 5 after 3; 6 last.
 Phase 1 keeps one worker per spec; parallel lanes switch on with Phase 3 in the same PR C (`decision-lanes-ship-with-the-spec-branch`).
 PR #50 merged 2026-11-17 as 2b5573e (squash).
+PR #51 merged 2026-11-17 as 7ce2eaa (squash).
 
 ## Pre-PR checks
 
