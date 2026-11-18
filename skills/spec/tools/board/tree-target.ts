@@ -1,6 +1,6 @@
 import type { SpecState } from "../core/spec-state";
 import { describeHolder, findTree, treeHolder } from "../trees/find";
-import { treeName } from "../trees/naming";
+import { DEFAULT_PR_GROUP, prTreeName } from "../plan/docs/pr-doc";
 import type { PhaseActivity } from "./activity";
 import type { BoardInputs } from "./inputs";
 import type { Target } from "./model";
@@ -17,7 +17,7 @@ const NO_SESSIONS = { ok: false, reason: "--local" } as const;
 export function treeTarget(state: SpecState, phaseId: string, inputs: BoardInputs, activity: ReadonlyMap<string, PhaseActivity>): TreeTarget {
   const spec = state.spec.name;
   const prGroup = state.phases.find((phase) => phase.id === phaseId)?.edges.pr;
-  const name = treeName(spec, prGroup);
+  const name = prTreeName(spec, prGroup ?? DEFAULT_PR_GROUP);
   const phases = state.phases.filter((phase) => phase.edges.pr === prGroup).map((phase) => phase.id);
   const tree = findTree(name, { spec, phases }, { worktrees: inputs.workspaces, claims: inputs.claims, activity, defaultBranch: inputs.base.branch });
   return tree ? workspaceTarget(tree.path, inputs) : { target: { newWorktree: name.folder } };

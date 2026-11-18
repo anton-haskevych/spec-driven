@@ -13,7 +13,8 @@ export interface LaunchPlace {
 }
 
 // execute gets the tree placement picks; babysit gets the group's existing tree (the PR's code lives
-// there) and never a fresh one, and is never gated: it follows a PR this crew's own worker made.
+// there) and never a fresh one, except the final PR's, which placement cuts or takes over on feat/<spec>. Babysit is
+// never gated: it follows a PR this crew's own worker made.
 // A busy tree launches nothing.
 export async function placeForLaunch({ subCommand, spec, target, onlyFor }: LaunchPlace, place: PlaceFn): Promise<Result<Placement>> {
   const placed = subCommand === "babysit" ? await place(spec, prClaimId(target), { existingOnly: true }) : await place(spec, target, onlyFor === undefined ? {} : { onlyFor });

@@ -73,3 +73,32 @@ test("in spec-branch mode a lane's new tree is cut from feat/<spec>, a ship-alon
   await placeTree({ spec: "one", phase: "2" }, deps);
   expect(cut).toEqual(["feat/one-pr-a from feat/one", "feat/one-pr-d from main"]);
 });
+
+test("the final PR's babysitter gets a tree on feat/<spec>, cut or taken over even when asked for an existing one", async () => {
+  const state = { spec: { name: "one", dir: "/missing" }, hasProgress: true, phases: [phaseState({ id: "1", edges: phaseEdges({ pr: "A" }) }), phaseState({ id: "2", edges: phaseEdges({ pr: "D" }) })] };
+  const layout = specLayout(state, { cutFrom: "abc", shipAlone: ["D"] });
+  const cut: string[] = [];
+  const deps: PlacementDeps = {
+    loadWorld: async () => ({ ok: true, value: { ...world, worktrees: [], views: [state], layout } }),
+    addTree: async (name, base) => {
+      cut.push(`${name.branch} in ${name.folder} from ${base}`);
+      return { ok: false, reason: "fixture" };
+    },
+    hasUncommittedChanges: () => false,
+  };
+  await placeTree({ spec: "one", phase: "pr-default", existingOnly: true }, deps);
+  expect(cut).toEqual(["feat/one in one from feat/one"]);
+  expect(await placeTree({ spec: "one", phase: "pr-D", existingOnly: true }, deps)).toEqual({ ok: false, reason: "no tree for feat/one-pr-d" });
+});
+
+test("pr-default finds the tree already on feat/<spec>", async () => {
+  const state = { spec: { name: "one", dir: "/missing" }, hasProgress: true, phases: [phaseState({ id: "1", edges: phaseEdges({ pr: "A" }) })] };
+  const layout = specLayout(state, { cutFrom: "abc", shipAlone: [] });
+  const onSpecBranch = { ...world.worktrees[0]!, path: "/trees/one", branch: "feat/one" };
+  const deps: PlacementDeps = {
+    loadWorld: async () => ({ ok: true, value: { ...world, sessions: { ok: true, value: [] }, worktrees: [onSpecBranch], views: [state], layout } }),
+    addTree: async () => { throw new Error("must not add"); },
+    hasUncommittedChanges: () => false,
+  };
+  expect(await placeTree({ spec: "one", phase: "pr-default", existingOnly: true }, deps)).toEqual({ ok: true, value: { kind: "found", branch: "feat/one", path: "/trees/one" } });
+});
