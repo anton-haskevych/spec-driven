@@ -8,6 +8,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `docs/specs/_ledger/gotcha-a-registered-plan-runner-is-queueable.md` — [general] — a registered plan runner is queueable; never-queued writes use writeRecord
 - `docs/specs/_ledger/gotcha-fast-crew-tests-use-crew-fake-deps.md` — [general] — fast crew tests use fastCrewDeps (crew-fake-deps.ts), not crew-deps.ts
 - `docs/specs/_ledger/gotcha-trees-place-reads-pr-group-from-base.md` — [general] — trees place reads pr: from main; a branch-only regroup is ignored
+- `docs/specs/_ledger/gotcha-claim-take-refuses-when-another-tree-holds-the-same-ticks.md` — [general] — claim take refuses when another tree holds the same ticks
 
 ## Principles
 - `principle-one-spec-layout.md` — [phase 2+, load-bearing] — one pure specLayout + branchOf; never infer mode or bases

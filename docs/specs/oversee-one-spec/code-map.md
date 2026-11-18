@@ -13,7 +13,7 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/commands/phase/overseer-notice.ts` | `withOverseerNotice` wraps plan-shape writes; `overseerNoticeFor` (run file, then liveness) | 1 |
 | `skills/spec/tools/tests/crew-fake-deps.ts` | `fastCrewDeps` on `gitStub`: crew tests without git | 1 |
 | `skills/spec/tools/crew/spec-branch-start.ts` | pure start refusal, `startPlan` (takeover at the tip), branch discovery, the create-only cut | 3 |
-| `skills/spec/tools/commands/crew/spec-branch.ts` | `startSpecBranch`: the mode step `crew start --spec` calls (Phase 1 adds the flag) | 3 |
+| `skills/spec/tools/commands/crew/spec-branch.ts` | `startSpecBranch`: the mode step `crew start --spec [--ship-alone D,E]` runs before it writes the run | 3 |
 | `skills/spec/tools/plan/ops/spec-branch.ts` | `specBranchPlan`, unregistered (never queued); `specBranchStartProblems` | 3 |
 | `skills/spec/tools/plan/docs/spec-branch-rules.ts` | the mode's layout invariants (in `specPlanProblems`), `shipAloneMoves`, `shipsAloneIn`, `isLaneGroup` | 3 |
 | `skills/spec/tools/publish/merge-back-render.ts` | merge-back's lines, gate lines first | 3 |
@@ -29,7 +29,7 @@ needs to know exist to navigate the code — not every file that's touched.
 |------|-------------|--------|
 | `skills/spec/tools/pr/groups.ts` | gains `specLayout`, `branchOf`, `laneOf`, `baseBranchOf`; every tool reads branch, base, ship-alone from it | `principle-one-spec-layout` |
 | `skills/spec/tools/crew/deps.ts` | `runFileStore(…, spec?)`, `listRunFiles`, `CrewDeps.agents` | |
-| `skills/spec/tools/crew/pick.ts` | `groupKey`; one worker per spec until phase 3; cross-lane hold | `decision-lanes-ship-with-the-spec-branch` |
+| `skills/spec/tools/crew/pick.ts` | `groupKey`/`workKey`: one worker per lane in spec-branch mode, per spec outside it; cross-lane hold | `decision-cross-lane-needs-wait-for-close-out` |
 | `skills/spec/tools/commands/crew/tick.ts` | scope, ports, `busy` key, machine cap | |
 | `skills/spec/tools/commands/phase/context.ts` | wraps every writer with the overseer notice | |
 | `skills/spec/tools/commands/crew/launch-session.ts` | the machine refusal; `machineBusy` / `relaunch` on the request | |
