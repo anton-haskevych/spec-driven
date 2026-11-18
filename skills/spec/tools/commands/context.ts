@@ -7,6 +7,7 @@ import { noticePlanChange, planMemoryFor, type PlanMemory } from "../plan/plan-v
 import { readPlansAt, type PlanSource } from "../plan/read-plans";
 import { boardLine, treeAheadLine } from "../context/board-lines";
 import { babysitPack } from "../context/babysit-pack";
+import { specLayout } from "../pr/groups";
 import { executePack, resumePack, type PackInput } from "../context/packs";
 import { neighborhoodReport } from "./graph";
 import { loadNodes } from "../graph/nodes";
@@ -98,7 +99,7 @@ async function specPack(projectDir: string, request: ContextRequest, target: { n
   const doctor = doctorReport(projectDir, name, deps.runner, plans).split("\n").slice(0, DOCTOR_LINES).join("\n");
   const mode = request.mode === "route" ? "resume" : request.mode;
   const block = (body: string) => packBlock(state.spec.name, mode, inferredFrom, withBoardLines(plans, state.spec, body, deps));
-  if (mode === "babysit") return block(babysitPack({ state, doctor, settings: settingsLine(projectDir) }, request.hint));
+  if (mode === "babysit") return block(babysitPack({ state, doctor, settings: settingsLine(projectDir), layout: specLayout(state, plans.joined(state.spec.name)?.spec.specBranch) }, request.hint));
   const nodes = loadNodes(projectDir, plans);
   const held = await deps.readHeld(projectDir);
   const relations = neighborhoodReport(nodes, state.spec.name, projectDir, specsInFlight(held, state.spec.name));
