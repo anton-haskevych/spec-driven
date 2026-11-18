@@ -9,9 +9,10 @@ import { newRunFile, parseRunFile, withOverseer, withRunner, type Caps } from ".
 import { parseLaunchTitle } from "../../launch/title";
 import { loadSettings } from "../../playbook/settings";
 import { ownSessionId } from "../../sessions/own";
+import { systemSpecBranchStarter, type SpecBranchStarter } from "./spec-branch";
 
 export const CREW_OVERSEER_USAGE = "crew overseer [--spec <spec>]";
-export const CREW_START_USAGE = "crew start [--spec <spec>] [--workers <n>] [--babysitters <n>]";
+export const CREW_START_USAGE = "crew start [--spec <spec> [--ship-alone <group,…>]] [--workers <n>] [--babysitters <n>]";
 
 export function crewOverseer(projectDir: string, args: readonly string[], deps: CrewDeps = systemCrewDeps()): string {
   const flags = parseFlags(args, {});
@@ -20,10 +21,11 @@ export function crewOverseer(projectDir: string, args: readonly string[], deps: 
   return verdict.ok ? overseerLine(verdict.value) : `crew overseer: ${verdict.reason}`;
 }
 
-export function crewStart(projectDir: string, args: readonly string[], deps: CrewDeps = systemCrewDeps()): string {
-  const flags = parseFlags(args, { workers: { type: "string" }, babysitters: { type: "string" } });
+export async function crewStart(projectDir: string, args: readonly string[], deps: CrewDeps = systemCrewDeps(), startSpecBranch: SpecBranchStarter = systemSpecBranchStarter(deps)): Promise<string> {
+  const flags = parseFlags(args, { workers: { type: "string" }, babysitters: { type: "string" }, "ship-alone": { type: "string" } });
   const caps = flags ? parseCaps(flags.values) : undefined;
-  if (!flags || !caps) return `usage: ${CREW_START_USAGE}`;
+  const shipAlone = flags ? shipAloneGroups(flags) : undefined;
+  if (!flags || !caps || !shipAlone) return `usage: ${CREW_START_USAGE}`;
   const { spec } = flags;
   const store = runFileStore(projectDir, deps.runner, spec);
   if (!store.ok) return `crew start: ${store.reason}`;
@@ -38,6 +40,10 @@ export function crewStart(projectDir: string, args: readonly string[], deps: Cre
   const runner = runnerName(gitAt(projectDir, deps.runner));
   if (!runner.ok) return `crew start: ${runner.reason}, then start again`;
 
+  // Turned on before the run file exists, so a refused start leaves nothing behind; a re-run is a takeover.
+  const branch = spec === undefined ? { ok: true, lines: [] } : await startSpecBranch(projectDir, spec, shipAlone);
+  if (!branch.ok) return branch.lines.join("\n");
+
   const existing = store.value.read();
   const previous = existing === undefined ? undefined : parseRunFile(existing).runner;
   const text =
@@ -47,7 +53,15 @@ export function crewStart(projectDir: string, args: readonly string[], deps: Cre
   store.value.write(text);
   const run = parseRunFile(text);
   const was = previous !== undefined && previous !== runner.value ? ` (was ${previous})` : "";
-  return `Crew: ${startedHow(verdict.value)} for ${runner.value}${was} · overseer ${own} · ${run.caps.workers} workers, ${run.caps.babysitters} babysitters`;
+  return [...branch.lines, `Crew: ${startedHow(verdict.value)} for ${runner.value}${was} · overseer ${own} · ${run.caps.workers} workers, ${run.caps.babysitters} babysitters`].join("\n");
+}
+
+// Ship-alone is chosen when the spec branch is cut, so it means nothing without --spec.
+function shipAloneGroups({ spec, values }: { spec?: string; values: Record<string, string | undefined> }): string[] | undefined {
+  const raw = values["ship-alone"];
+  if (raw === undefined) return [];
+  const groups = raw.split(",").map((group) => group.trim()).filter((group) => group.length > 0);
+  return spec === undefined || groups.length === 0 ? undefined : groups;
 }
 
 // A new run starts from settings crew:; a run being taken over keeps the caps it has.

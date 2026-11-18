@@ -10,6 +10,10 @@ import type { PhaseDeps } from "../../plan/phase-writer";
 import { writeRecord, type StoreWrite } from "../../record/write";
 import { stampedBy } from "../../sessions/facts";
 
+export type SpecBranchStarter = (projectDir: string, spec: string, shipAlone: string[]) => Promise<{ ok: boolean; lines: string[] }>;
+
+export const systemSpecBranchStarter = (deps: PhaseDeps): SpecBranchStarter => (projectDir, spec, shipAlone) => startSpecBranch(projectDir, deps, spec, shipAlone);
+
 // For crew start --spec: `ok: false` means the run must not start.
 export async function startSpecBranch(projectDir: string, deps: PhaseDeps, spec: string, shipAlone: string[]): Promise<{ ok: boolean; lines: string[] }> {
   const refused = (reason: string) => ({ ok: false, lines: [`crew start: ${reason}`] });

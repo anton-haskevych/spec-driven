@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { crewCheck } from "../commands/crew/check";
 import { crewLaunch } from "../commands/crew/launch";
 import { crewOverseer, crewStart } from "../commands/crew/overseer";
+import type { SpecBranchStarter } from "../commands/crew/spec-branch";
 import { parseRunFile } from "../crew/run-state";
 import type { Placement } from "../trees/place";
 import { fastCrewDeps } from "./crew-fake-deps";
@@ -16,15 +17,28 @@ const found: Placement = { kind: "found", path: "/trees/alpha-pr-a", branch: "fe
 const placeFound = async () => ({ ok: true as const, value: found });
 const claude = [[["claude", "--version"], { stdout: "2.1.300 (Claude Code)\n" }], [["claude", "--bg"], { stdout: BACKGROUNDED }]] as const;
 
+function starter(result: { ok: boolean; lines: string[] } = { ok: true, lines: ["Spec branch: feat/alpha cut from main c0ffee1"] }) {
+  const calls: Array<{ spec: string; shipAlone: string[] }> = [];
+  const start: SpecBranchStarter = async (_dir, spec, shipAlone) => {
+    calls.push({ spec, shipAlone });
+    return result;
+  };
+  return { start, calls };
+}
+
 describe("a crew on one spec", () => {
   let tree: ReturnType<typeof crewTree>;
   afterEach(() => tree?.cleanup());
   const crewFile = (name: string) => join(tree.root, ".git", "spec-board", "crew", name);
 
-  test("crew start --spec writes run-<spec>.md with the spec, and crew overseer --spec reads it", () => {
+  test("crew start --spec turns spec-branch mode on, writes run-<spec>.md with the spec, and crew overseer --spec reads it", async () => {
     tree = crewTree();
     const deps = fastCrewDeps(tree.root, { env, claude });
-    expect(crewStart(tree.root, ["--spec", "alpha", "--workers", "2"], deps)).toBe(`Crew: started for spec-tests · overseer ${OWN} · 2 workers, 2 babysitters`);
+    const { start, calls } = starter();
+    expect(await crewStart(tree.root, ["--spec", "alpha", "--workers", "2", "--ship-alone", "D,E"], deps, start)).toBe(
+      `Spec branch: feat/alpha cut from main c0ffee1\nCrew: started for spec-tests · overseer ${OWN} · 2 workers, 2 babysitters`,
+    );
+    expect(calls).toEqual([{ spec: "alpha", shipAlone: ["D", "E"] }]);
     expect(parseRunFile(readFileSync(crewFile("run-alpha.md"), "utf8"))).toMatchObject({ spec: "alpha", overseer: OWN, state: "running" });
     expect(existsSync(crewFile("run.md"))).toBe(false);
     const other = fastCrewDeps(tree.root, { env: { CLAUDE_CODE_SESSION_ID: OTHER }, sessions: [liveSession({ sessionId: OWN, name: "alpha oversee-crew" })] });
@@ -32,13 +46,30 @@ describe("a crew on one spec", () => {
     expect(crewOverseer(tree.root, [], other)).toBe("Overseer: this session");
   });
 
-  test("crew start --spec refuses while the board crew has any session on that spec, live or not", () => {
+  test("crew start --spec writes no run file when spec-branch mode refuses to start", async () => {
+    tree = crewTree();
+    const deps = fastCrewDeps(tree.root, { env, claude });
+    const refusal = "crew start: alpha is not on the board; spec-branch mode needs the record (spec.ts join alpha)";
+    expect(await crewStart(tree.root, ["--spec", "alpha"], deps, starter({ ok: false, lines: [refusal] }).start)).toBe(refusal);
+    expect(existsSync(crewFile("run-alpha.md"))).toBe(false);
+  });
+
+  test("ship-alone groups belong to a spec crew only", async () => {
+    tree = crewTree();
+    const { start, calls } = starter();
+    expect(await crewStart(tree.root, ["--ship-alone", "D"], fastCrewDeps(tree.root, { env, claude }), start)).toStartWith("usage: crew start");
+    expect(calls).toEqual([]);
+  });
+
+  test("crew start --spec refuses while the board crew has any session on that spec, live or not", async () => {
     tree = crewTree();
     tree.run({ launched: [{ id: "a1", title: "alpha execute 3", at: "t0" }, { id: "b1", title: "beta execute 1", at: "t0" }] });
     const deps = fastCrewDeps(tree.root, { env, claude });
-    expect(crewStart(tree.root, ["--spec", "alpha"], deps)).toBe("crew start: the board crew has alpha execute 3 · a1 on alpha; pause it first");
+    const { start, calls } = starter();
+    expect(await crewStart(tree.root, ["--spec", "alpha"], deps, start)).toBe("crew start: the board crew has alpha execute 3 · a1 on alpha; pause it first");
     expect(existsSync(crewFile("run-alpha.md"))).toBe(false);
-    expect(crewStart(tree.root, ["--spec", "gamma"], deps)).toStartWith("Crew: started");
+    expect(calls).toEqual([]);
+    expect(await crewStart(tree.root, ["--spec", "gamma"], deps, start)).toContain("Crew: started");
   });
 
   test("crew launch files a worker under its spec's open run, and under run.md otherwise", async () => {
