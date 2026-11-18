@@ -1,6 +1,9 @@
 import type { Result } from "../core/result";
 import type { Runner } from "../core/run";
-import { runFileStore } from "./deps";
+import { parseLaunchTitle } from "../launch/title";
+import type { LiveSession } from "../sessions/live";
+import { listRunFiles, runFileStore } from "./deps";
+import { whoseRun } from "./overseer";
 import { parseRunFile, type RunFile } from "./run-state";
 
 export type CrewScope = { spec: string } | { overseen: ReadonlySet<string> };
@@ -31,4 +34,23 @@ export function specRun(projectDir: string, runner: Runner, spec: string): Resul
   const text = store.value.read();
   const run = text === undefined ? undefined : parseRunFile(text);
   return { ok: true, value: run && isRunOpen(run) ? run : undefined };
+}
+
+export function openSpecRuns(projectDir: string, runner: Runner): Result<RunFile[]> {
+  const listed = listRunFiles(projectDir, runner);
+  if (!listed.ok) return listed;
+  const runs = listed.value.flatMap(({ spec, store }) => {
+    const text = spec === undefined ? undefined : store.read();
+    const run = text === undefined ? undefined : parseRunFile(text);
+    return run && isRunOpen(run) ? [{ ...run, spec }] : [];
+  });
+  return { ok: true, value: runs };
+}
+
+export function overseenLines(runs: readonly RunFile[], sessions: readonly LiveSession[], own: string | undefined): string[] {
+  return runs.flatMap((run) => {
+    if (whoseRun(run.overseer, sessions, own).kind !== "take-over") return [];
+    const workers = run.launched.filter((entry) => parseLaunchTitle(entry.title)?.sub === "execute").length;
+    return [`Overseen: ${run.spec} (no live overseer, ${workers} ${workers === 1 ? "worker" : "workers"})`];
+  });
 }

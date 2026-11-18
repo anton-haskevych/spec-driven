@@ -84,6 +84,11 @@ export function withRunner(text: string, runner: string): string {
   return patched.kind === "ok" ? patched.text : text;
 }
 
+export function withState(text: string, state: string): string {
+  const patched = setFrontmatterLine(text, "state", state);
+  return patched.kind === "ok" ? patched.text : text;
+}
+
 export function withLaunched(text: string, entries: readonly LaunchedEntry[]): string {
   return withSection(text, "Launched", entries.map((entry) => `- ${entry.id} · ${entry.title} · ${entry.at}`));
 }

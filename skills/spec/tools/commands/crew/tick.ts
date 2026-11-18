@@ -1,3 +1,4 @@
+import { parseArgs } from "node:util";
 import type { ReadyRow } from "../../board/model";
 import type { HeldClaim } from "../../claims/rules";
 import type { Result } from "../../core/result";
@@ -9,7 +10,8 @@ import { runFileStore, systemCrewDeps, type CrewDeps } from "../../crew/deps";
 import { overseerLine, whoseRun } from "../../crew/overseer";
 import { MACHINE_WORKERS, machineFree, machineWorkers } from "../../crew/machine";
 import { pickRows } from "../../crew/pick";
-import { parseRunFile, withLaunched, withLog, withOverseer, type LaunchedEntry, type RunFile } from "../../crew/run-state";
+import { parseRunFile, withLaunched, withLog, withOverseer, withState, type LaunchedEntry, type RunFile } from "../../crew/run-state";
+import { inScope, isRunOpen, overseenLines, scopeWorld, type CrewScope } from "../../crew/scope";
 import { actionLines, afterCloseOut, nextAction } from "../../crew/tick-step";
 import { parseLaunchTitle } from "../../launch/title";
 import { questionLine, type QuestionRow } from "../../questions/list";
@@ -19,7 +21,7 @@ import { ownSessionId } from "../../sessions/own";
 import type { CrewLaunchRequest, CrewLaunchResult } from "./launch-session";
 import { systemTickPorts } from "./tick-ports";
 
-export const CREW_TICK_USAGE = "crew tick [--no-launch]";
+export const CREW_TICK_USAGE = "crew tick [--spec <spec>] [--no-launch]";
 const NO_RUNNER = "crew tick: can't tell who runs this crew; run crew start again. Launching nothing";
 
 export interface TickWorld {
@@ -29,10 +31,14 @@ export interface TickWorld {
   states: ReadonlyMap<string, SpecState>;
   // Open questions of joined specs, from the record; parks of specs in files show as their phases leave ready.
   questions?: readonly QuestionRow[];
+  // A spec crew's plan moved since its last tick (joined specs only).
+  planChange?: string;
 }
 
 export interface TickPorts {
-  world(): Promise<Result<TickWorld>>;
+  world(spec?: string): Promise<Result<TickWorld>>;
+  // Open spec runs: the whole-board crew leaves their specs alone.
+  overseen(): Result<RunFile[]>;
   agents(): Result<Agent[]>;
   closeOut(entry: LaunchedEntry, agents: readonly Agent[], claims: readonly HeldClaim[]): CloseOut | undefined;
   // `claude rm` keeps the transcript and the worktree: tick never removes a tree.
@@ -46,39 +52,69 @@ interface Report {
 }
 
 export async function crewTick(projectDir: string, args: readonly string[], deps: CrewDeps = systemCrewDeps(), overrides: Partial<TickPorts> = {}): Promise<string> {
-  if (args.some((arg) => arg !== "--no-launch")) return `usage: ${CREW_TICK_USAGE}`;
-  const store = runFileStore(projectDir, deps.runner);
+  const flags = parseTickArgs(args);
+  if (!flags) return `usage: ${CREW_TICK_USAGE}`;
+  const { spec } = flags;
+  const store = runFileStore(projectDir, deps.runner, spec);
   if (!store.ok) return `crew tick: ${store.reason}`;
   const ports = { ...systemTickPorts(projectDir, store.value, deps), ...overrides };
   let text = store.value.read();
-  if (text === undefined) return "crew tick: no run.md yet; run crew start first";
-  const world = await ports.world();
-  if (!world.ok) return `crew tick: ${world.reason}`;
-  if (!world.value.sessions.ok) return `crew tick: can't read sessions (${world.value.sessions.reason}); acting on nothing`;
+  if (text === undefined) return spec ? `crew tick: no run-${spec}.md yet; run crew start --spec ${spec} first` : "crew tick: no run.md yet; run crew start first";
+  const loaded = await ports.world(spec);
+  if (!loaded.ok) return `crew tick: ${loaded.reason}`;
+  if (!loaded.value.sessions.ok) return `crew tick: can't read sessions (${loaded.value.sessions.reason}); acting on nothing`;
+  const sessions = loaded.value.sessions.value;
   const own = ownSessionId(deps.env);
   const run = parseRunFile(text);
-  const verdict = whoseRun(run.overseer, world.value.sessions.value, own);
+  const verdict = whoseRun(run.overseer, sessions, own);
   if (verdict.kind === "other") return overseerLine(verdict);
+  const scope = tickScope(spec, ports);
+  if (!scope.ok) return `crew tick: ${scope.reason}`;
   const agents = ports.agents();
   if (!agents.ok) return `crew tick: ${agents.reason}`;
+  const world = scopeWorld(loaded.value, scope.value.scope);
 
-  const report: Report = { done: verdict.kind === "take-over" ? [overseerLine(verdict)] : [], forYou: [] };
+  const report: Report = { done: [...(verdict.kind === "take-over" ? [overseerLine(verdict)] : []), ...(world.planChange ? [world.planChange] : [])], forYou: overseenLines(scope.value.overseen, sessions, own) };
   if (own && run.overseer !== own) text = withOverseer(text, own);
-  const passed = closeOutLaunched(run.launched, agents.value, world.value.claims, ports, isoTimestamp(deps.now()), report);
+  const passed = closeOutLaunched(run.launched, agents.value, world.claims, ports, isoTimestamp(deps.now()), report);
   const remaining = run.launched.filter((entry) => !passed.removed.has(entry.id));
-  store.value.write(withLog(withLaunched(text, remaining), passed.logs));
+  const finished = spec !== undefined && run.launched.length === 0 && hasNoOpenPhase(world.states.get(spec));
+  if (finished) report.done.push(`Finished: ${spec} has no open phase and no session out; run ended`);
+  store.value.write(withLog(withLaunched(finished ? withState(text, "finished") : text, remaining), passed.logs));
 
-  // Pausing (or a stood-down run) closes sessions out but never starts new ones; neither does a run
-  // that doesn't say whose it is, since every pick and launch is offered to the runner.
+  // Pausing (or a run that stood down or finished) closes sessions out but never starts new ones; neither
+  // does a run that doesn't say whose it is, since every pick and launch is offered to the runner.
   const { runner } = run;
-  const held = args.includes("--no-launch") || run.state === "stood-down" ? "pausing" : runner === undefined ? "no runner" : undefined;
+  const relaunches = passed.relaunches.filter((relaunch) => inScope(relaunch.spec, scope.value.scope));
+  const held = flags.noLaunch || finished || !isRunOpen(run) ? "pausing" : runner === undefined ? "no runner" : undefined;
   if (held === "no runner") report.forYou.push(NO_RUNNER);
-  if (held) report.forYou.push(...passed.relaunches.map((relaunch) => `Relaunch held (${held}): ${relaunch.spec} ${relaunch.phase}`));
-  const launched = held || runner === undefined ? 0 : await fillSlots({ remaining, agents: agents.value, machineBusy: machineWorkers(agents.value), relaunches: passed.relaunches, world: world.value, run: { ...run, runner }, ports, report });
-  const questions = world.value.questions ?? [];
+  if (held) report.forYou.push(...relaunches.map((relaunch) => `Relaunch held (${held}): ${relaunch.spec} ${relaunch.phase}`));
+  const launched = held || runner === undefined ? 0 : await fillSlots({ remaining, agents: agents.value, machineBusy: machineWorkers(agents.value), relaunches, world, run: { ...run, runner }, ports, report });
+  const questions = world.questions ?? [];
   const asked = questions.map((row) => `Question: ${questionLine(row)} · answer: question answer ${row.spec} ${row.id} "<their words>"`);
   const open = questions.length === 0 ? "" : ` · ${questions.length} ${questions.length === 1 ? "question" : "questions"} open`;
   return [...report.done, ...report.forYou, ...asked, `Tick: ${passed.removed.size} closed out · ${launched} launched · ${report.forYou.length} for you${open}`].join("\n");
+}
+
+function parseTickArgs(args: readonly string[]): { spec?: string; noLaunch: boolean } | undefined {
+  try {
+    const { values } = parseArgs({ args: [...args], options: { spec: { type: "string" }, "no-launch": { type: "boolean" } }, strict: true });
+    return { ...(values.spec ? { spec: values.spec } : {}), noLaunch: values["no-launch"] === true };
+  } catch {
+    return undefined;
+  }
+}
+
+// A spec crew sees its spec; the whole-board crew everything but the specs with an open run of their own.
+function tickScope(spec: string | undefined, ports: TickPorts): Result<{ scope: CrewScope; overseen: readonly RunFile[] }> {
+  if (spec !== undefined) return { ok: true, value: { scope: { spec }, overseen: [] } };
+  const overseen = ports.overseen();
+  if (!overseen.ok) return overseen;
+  return { ok: true, value: { scope: { overseen: new Set(overseen.value.flatMap((run) => run.spec ?? [])) }, overseen: overseen.value } };
+}
+
+function hasNoOpenPhase(state: SpecState | undefined): boolean {
+  return state !== undefined && state.phases.length > 0 && state.phases.every((phase) => phase.done);
 }
 
 interface ClosedOut {
