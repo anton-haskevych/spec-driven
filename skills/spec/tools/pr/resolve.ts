@@ -5,10 +5,10 @@ import type { SpecState } from "../core/spec-state";
 import type { Result } from "../core/result";
 import type { PrDoc } from "../plan/docs/pr-doc";
 import type { SpecPlans } from "../plan/read-plans";
-import { specOfBranch, treeName } from "../trees/naming";
+import { specOfBranch } from "../trees/naming";
 import type { GhClient } from "./gh";
 import type { PrView } from "./checks/types";
-import { pickGroup, prGroups } from "./groups";
+import { groupBranch, pickGroup, prGroups, specLayout, type SpecLayout } from "./groups";
 
 export interface ResolvedPr {
   view: PrView;
@@ -51,17 +51,18 @@ export function resolvePr(gh: GhClient, projectDir: string, target: readonly str
 
   const spec = resolveSpec(projectDir, first);
   if (typeof spec === "string") return { ok: false, reason: spec };
-  return resolveGroupPr(gh, plans.state(spec), plans.prs(spec.name), group);
+  const state = plans.state(spec);
+  return resolveGroupPr(gh, state, plans.prs(spec.name), group, specLayout(state, plans.joined(spec.name)?.spec.specBranch));
 }
 
 // By branch, so a command aimed at group A never lands on group B's PR. Spec-state links are the
 // fallback only for a single-group spec, where the newest-open rule can't pick another group's PR.
-function resolveGroupPr(gh: GhClient, state: SpecState, prs: readonly PrDoc[] | undefined, requested: string | undefined): Result<ResolvedPr> {
+function resolveGroupPr(gh: GhClient, state: SpecState, prs: readonly PrDoc[] | undefined, requested: string | undefined, layout: SpecLayout): Result<ResolvedPr> {
   const { spec } = state;
-  const group = pickGroup(state, requested);
+  const group = pickGroup(state, requested, layout);
   if (!group.ok) return group;
   const linked = linkedPrNumbers(readTextIfExists(join(spec.dir, "pr-opening.md")), prs);
-  const byBranch = gh.prView(treeName(spec.name, group.value.name).branch);
+  const byBranch = gh.prView(groupBranch(layout, group.value));
   if (byBranch.ok) return withOthers(byBranch.value, linked);
   if (prGroups(state).length > 1) return byBranch;
   if (linked.length === 0) return { ok: false, reason: `${byBranch.reason}; ${prs ? "the board" : "pr-opening.md"} for ${spec.name} links no PR` };

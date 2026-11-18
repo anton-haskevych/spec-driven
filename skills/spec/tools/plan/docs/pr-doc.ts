@@ -1,7 +1,7 @@
 import type { FrontmatterData } from "../../core/frontmatter";
 import { oneOf, optionalText, requiredText, wholeNumber, withoutUndefined } from "../../core/read-fields";
 import { MERGE_METHODS, type MergeMethod } from "../../playbook/settings";
-import { treeName } from "../../trees/naming";
+import { treeName, type TreeName } from "../../trees/naming";
 import type { PhaseDoc } from "./phase-doc";
 import { readObject, type DocRead } from "./read";
 
@@ -51,8 +51,13 @@ export function prGroupOf(phase: Pick<PhaseDoc, "pr">): string {
   return phase.pr ?? DEFAULT_PR_GROUP;
 }
 
+// `default` is the spec's own tree on feat/<spec>; treeName(spec, "default") would make feat/<spec>-pr-default.
+export function prTreeName(spec: string, group: string): TreeName {
+  return treeName(spec, group.toLowerCase() === DEFAULT_PR_GROUP ? undefined : group);
+}
+
 export function prBranch(spec: string, group: string): string {
-  return treeName(spec, group === DEFAULT_PR_GROUP ? undefined : group).branch;
+  return prTreeName(spec, group).branch;
 }
 
 export function notOpenedPrDoc(spec: string, group: string): PrDoc {

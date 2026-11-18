@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { PhaseState, SpecState } from "../core/spec-state";
-import { baseBranchOf, branchOf, laneOf, specLayout } from "../pr/groups";
+import { baseBranchOf, branchOf, groupBranch, laneOf, pickGroup, specLayout } from "../pr/groups";
+import { prTreeName } from "../plan/docs/pr-doc";
 import { phaseEdges, phaseState } from "./factories";
 
 function spec(phases: PhaseState[]): SpecState {
@@ -90,5 +91,46 @@ describe("laneOf", () => {
 
   test("outside spec-branch mode nothing is a lane", () => {
     expect(laneOf(specLayout(spec(phases)), "feat/x-pr-a")).toBeUndefined();
+  });
+});
+
+describe("the final PR's group", () => {
+  const phases = [grouped("1", "A"), grouped("2", "B", { done: true }), grouped("3", "D")];
+  const on = specLayout(spec(phases), { cutFrom: "abc", shipAlone: ["D"] });
+
+  test("its tree is cut from feat/<spec> itself, so a missing origin branch refuses instead of cutting from main", () => {
+    expect(baseBranchOf(on, "default", "main")).toBe("feat/x");
+  });
+
+  test("pickGroup: no group, or default, is the final PR over every lane phase", () => {
+    const named = pickGroup(spec(phases), "default", on);
+    const unnamed = pickGroup(spec(phases), undefined, on);
+    expect(named.ok && { name: named.value.name, phases: ids(named.value.phases) }).toEqual({ name: "default", phases: ["1", "2"] });
+    expect(unnamed.ok && unnamed.value.name).toBe("default");
+    expect(groupBranch(on, { name: "default", phases: [] })).toBe("feat/x");
+  });
+
+  test("pickGroup: a ship-alone group still resolves to itself", () => {
+    const shipAlone = pickGroup(spec(phases), "d", on);
+    expect(shipAlone.ok && groupBranch(on, shipAlone.value)).toBe("feat/x-pr-d");
+  });
+
+  test("outside the mode, default names the group of phases with no pr:", () => {
+    const plain = spec([grouped("1", undefined)]);
+    const picked = pickGroup(plain, "default", specLayout(plain));
+    expect(picked.ok && ids(picked.value.phases)).toEqual(["1"]);
+    expect(picked.ok && groupBranch(specLayout(plain), picked.value)).toBe("feat/x");
+  });
+
+  test("outside the mode, several groups and none named still asks for one", () => {
+    const off = specLayout(spec(phases));
+    expect(pickGroup(spec(phases), undefined, off)).toMatchObject({ ok: false });
+  });
+});
+
+describe("prTreeName", () => {
+  test("default is the spec's own tree, never feat/<spec>-pr-default", () => {
+    expect(prTreeName("x", "default")).toEqual({ branch: "feat/x", folder: "x" });
+    expect(prTreeName("x", "B")).toEqual({ branch: "feat/x-pr-b", folder: "x-pr-b" });
   });
 });
