@@ -3,7 +3,7 @@ import { setFrontmatterLine } from "../core/frontmatter-patch";
 import { DEFAULT_SETTINGS } from "../playbook/settings";
 import { childLines, sectionLines, withSection } from "../core/markdown-sections";
 
-// `<git-common-dir>/spec-board/crew/run.md`, written only by the overseer (crew-brief.md → Run file).
+// `<git-common-dir>/spec-board/crew/run.md` (or `run-<spec>.md`), written only by the overseer (crew-brief.md → Run file).
 // Writers replace one section and leave the rest byte-identical, so nothing is hand-edited twice.
 
 export const LOG_LINES = 30;
@@ -27,6 +27,8 @@ export interface OpenQuestion {
 }
 
 export interface RunFile {
+  // Set on a crew that runs one spec (`run-<spec>.md`); the whole-board run has none.
+  spec?: string;
   overseer?: string;
   // Who the crew works for (`runnerName` at crew start): it picks and launches only their work and shared work.
   runner?: string;
@@ -37,6 +39,7 @@ export interface RunFile {
 }
 
 export interface NewRun {
+  spec?: string;
   overseer: string;
   runner: string;
   started: string;
@@ -51,10 +54,12 @@ const ANSWER = /^\s+- answer /;
 export function parseRunFile(text: string): RunFile {
   const parsed = parseFrontmatter(text);
   const data = parsed.kind === "ok" ? parsed.data : {};
+  const spec = stringField(data, "spec");
   const overseer = stringField(data, "overseer");
   const runner = stringField(data, "runner");
   const state = stringField(data, "state");
   return {
+    ...(spec ? { spec } : {}),
     ...(overseer ? { overseer } : {}),
     ...(runner ? { runner } : {}),
     ...(state ? { state } : {}),
@@ -64,8 +69,8 @@ export function parseRunFile(text: string): RunFile {
   };
 }
 
-export function newRunFile({ overseer, runner, started, caps, cli }: NewRun): string {
-  const frontmatter = [`overseer: ${overseer}`, `runner: ${runner}`, `started: ${started}`, "state: running", `workers: ${caps.workers}`, `babysitters: ${caps.babysitters}`, ...(cli ? [`cli: ${cli}`] : [])];
+export function newRunFile({ spec, overseer, runner, started, caps, cli }: NewRun): string {
+  const frontmatter = [...(spec ? [`spec: ${spec}`] : []), `overseer: ${overseer}`, `runner: ${runner}`, `started: ${started}`, "state: running", `workers: ${caps.workers}`, `babysitters: ${caps.babysitters}`, ...(cli ? [`cli: ${cli}`] : [])];
   return ["---", ...frontmatter, "---", "", "## Launched", "", "## Questions", "", "## Stood down", "", "## Log", ""].join("\n");
 }
 
