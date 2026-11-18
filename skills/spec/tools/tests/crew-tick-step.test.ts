@@ -54,6 +54,12 @@ describe("afterCloseOut", () => {
     ]);
   });
 
+  test("a lane's PR group ready starts no PR moment: its work ships in the final PR", () => {
+    const crew = "Crew: needs you 0 (in-flight.md) · say if wrong 0 · PR group ready A · next nothing · servers stopped none";
+    const lane: CloseOut = { kind: "ok", report: crew, crewLine: findCrewLine(crew), lane: true };
+    expect(afterCloseOut(entry, worker, lane, false, "T").lines.slice(1)).toEqual([]);
+  });
+
   test("missing on a live session: message it; on a gone one: needs you; neither is removed", () => {
     const missing: CloseOut = { kind: "missing", missing: ["claim still live"] };
     expect(afterCloseOut(entry, worker, missing, false, "T")).toEqual({ remove: false, lines: ['Close-out checkout execute 3 · a1: missing claim still live → SendMessage "checkout execute 3" once'] });

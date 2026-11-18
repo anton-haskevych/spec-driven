@@ -7,21 +7,24 @@ export interface CloseOutFacts {
   handedOff: boolean;
   crewLine?: CrewLine;
   claimLive: boolean;
+  // A lane worker in spec-branch mode: `pushed` means its recorded commit is in feat/<spec>.
+  lane?: { spec: string };
 }
 
-export type CloseOut = { kind: "ok"; report: string; crewLine?: CrewLine } | { kind: "missing"; missing: string[] } | { kind: "waiting"; claim: string };
+// `lane`: the worker's PR group is a lane, whose work ships in the final PR, never a PR of its own.
+export type CloseOut = { kind: "ok"; report: string; crewLine?: CrewLine; lane?: true } | { kind: "missing"; missing: string[] } | { kind: "waiting"; claim: string };
 
 export function closeOutVerdict(facts: CloseOutFacts): CloseOut {
   if (facts.tree === undefined) return { kind: "missing", missing: ["its tree (session gone, no claim)"] };
   const missing = [
     facts.dirty ? `uncommitted changes in ${facts.tree}` : undefined,
-    facts.pushed ? undefined : "commits not on origin",
+    facts.pushed ? undefined : facts.lane ? `commits not merged back → merge-back ${facts.lane.spec} --push` : "commits not on origin",
     facts.handedOff ? undefined : "no [handoff] commit since launch",
     facts.crewLine ? undefined : "no Crew: line",
     facts.claimLive ? "claim still live" : undefined,
   ].filter((item) => item !== undefined);
   if (missing.length > 0 || !facts.crewLine) return { kind: "missing", missing };
-  return { kind: "ok", report: facts.crewLine.raw, crewLine: facts.crewLine };
+  return { kind: "ok", report: facts.crewLine.raw, crewLine: facts.crewLine, ...(facts.lane ? { lane: true as const } : {}) };
 }
 
 // A babysitter idle on `pr wait` reads done in the roster; its live PR claim says it is waiting.

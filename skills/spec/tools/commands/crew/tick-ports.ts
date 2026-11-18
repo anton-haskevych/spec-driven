@@ -30,11 +30,12 @@ export function systemTickPorts(projectDir: string, store: RunFileStore, deps: C
       const planChange = spec === undefined ? undefined : planChangeOf(spec, inputs.value.plans, deps);
       const { states, nodes } = inputs.value;
       const layouts = new Map([...states].map(([name, state]) => [name, specLayout(state, nodes.get(name)?.specBranch)]));
-      return { ok: true, value: { sessions, claims: inputs.value.claims, ready: buildBoard(inputs.value, deps.now()).lanes.ready, states, layouts, questions, ...(planChange ? { planChange } : {}) } };
+      const phaseTasks = (name: string, phase: string) => inputs.value.plans.joined(name)?.phases.find((doc) => doc.id === phase)?.tasks;
+      return { ok: true, value: { sessions, claims: inputs.value.claims, ready: buildBoard(inputs.value, deps.now()).lanes.ready, states, layouts, phaseTasks, questions, ...(planChange ? { planChange } : {}) } };
     },
     overseen: () => openSpecRuns(projectDir, deps.runner),
     agents: () => deps.agents(),
-    closeOut: (entry, agents, claims) => closeOut(entry, { agents, claims, claudeHome: deps.claudeHome, runner: deps.runner }),
+    closeOut: (entry, agents, { claims, layouts, phaseTasks }) => closeOut(entry, { agents, claims, layouts, ...(phaseTasks ? { phaseTasks } : {}), claudeHome: deps.claudeHome, runner: deps.runner }),
     stop(id) {
       deps.runner.run(["claude", "stop", id]);
       deps.runner.run(["claude", "rm", id]);

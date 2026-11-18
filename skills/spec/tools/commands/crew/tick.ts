@@ -14,6 +14,7 @@ import { parseRunFile, withLaunched, withLog, withOverseer, withState, type Laun
 import { boardScope, inScope, isRunOpen, overseenLines, scopeWorld, type CrewScope } from "../../crew/scope";
 import { actionLines, afterCloseOut, nextAction } from "../../crew/tick-step";
 import { parseLaunchTitle } from "../../launch/title";
+import type { Task } from "../../plan/docs/phase-doc";
 import type { SpecLayout } from "../../pr/groups";
 import { questionLine, type QuestionRow } from "../../questions/list";
 import type { Agent } from "../../sessions/agents";
@@ -31,6 +32,8 @@ export interface TickWorld {
   ready: readonly ReadyRow[];
   states: ReadonlyMap<string, SpecState>;
   layouts: ReadonlyMap<string, SpecLayout>;
+  // A joined phase's tasks: close-out reads a lane's recorded commit from them.
+  phaseTasks?: (spec: string, phase: string) => readonly Task[] | undefined;
   // Open questions of joined specs, from the record; parks of specs in files show as their phases leave ready.
   questions?: readonly QuestionRow[];
   // A spec crew's plan moved since its last tick (joined specs only).
@@ -42,7 +45,7 @@ export interface TickPorts {
   // Open spec runs: the whole-board crew leaves their specs alone.
   overseen(): Result<RunFile[]>;
   agents(): Result<Agent[]>;
-  closeOut(entry: LaunchedEntry, agents: readonly Agent[], claims: readonly HeldClaim[]): CloseOut | undefined;
+  closeOut(entry: LaunchedEntry, agents: readonly Agent[], world: TickWorld): CloseOut | undefined;
   // `claude rm` keeps the transcript and the worktree: tick never removes a tree.
   stop(id: string): void;
   launch(request: CrewLaunchRequest): Promise<CrewLaunchResult>;
@@ -78,7 +81,7 @@ export async function crewTick(projectDir: string, args: readonly string[], deps
 
   const report: Report = { done: [...(verdict.kind === "take-over" ? [overseerLine(verdict)] : []), ...(world.planChange ? [world.planChange] : [])], forYou: overseenLines(scope.value.overseen, sessions, own) };
   if (own && run.overseer !== own) text = withOverseer(text, own);
-  const passed = closeOutLaunched(run.launched, agents.value, world.claims, ports, isoTimestamp(deps.now()), report);
+  const passed = closeOutLaunched(run.launched, agents.value, world, ports, isoTimestamp(deps.now()), report);
   const remaining = run.launched.filter((entry) => !passed.removed.has(entry.id));
   const finished = spec !== undefined && run.launched.length === 0 && hasNoOpenPhase(world.states.get(spec));
   if (finished) report.done.push(`Finished: ${spec} has no open phase and no session out; run ended`);
@@ -125,7 +128,8 @@ interface ClosedOut {
   relaunches: Array<{ spec: string; phase: string }>;
 }
 
-function closeOutLaunched(launched: readonly LaunchedEntry[], agents: readonly Agent[], claims: readonly HeldClaim[], ports: TickPorts, at: string, report: Report): ClosedOut {
+function closeOutLaunched(launched: readonly LaunchedEntry[], agents: readonly Agent[], world: TickWorld, ports: TickPorts, at: string, report: Report): ClosedOut {
+  const { claims } = world;
   const passed: ClosedOut = { removed: new Set(), logs: [], relaunches: [] };
   for (const entry of launched) {
     const title = parseLaunchTitle(entry.title);
@@ -133,7 +137,7 @@ function closeOutLaunched(launched: readonly LaunchedEntry[], agents: readonly A
     const agent = agents.find((candidate) => candidate.id === entry.id);
     const action = nextAction(title, agent, isClaimLive(claimFor(title, claims)));
     report.forYou.push(...actionLines(entry, action));
-    const checked = action.kind === "close-out" ? ports.closeOut(entry, agents, claims) : undefined;
+    const checked = action.kind === "close-out" ? ports.closeOut(entry, agents, world) : undefined;
     if (!checked) continue;
     const outcome = afterCloseOut(entry, title, checked, agent === undefined, at);
     if (outcome.remove) {

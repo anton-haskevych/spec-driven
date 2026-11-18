@@ -38,7 +38,7 @@ export function afterCloseOut(entry: LaunchedEntry, title: LaunchTitle, verdict:
   if (title.sub === "babysit") return { remove: true, lines: [`Babysitter ${who}: ${verdict.report}`], log: `${at} ${entry.title} finished · ${verdict.report} · stopped ${entry.id}` };
   const crew = verdict.crewLine;
   const lines = [`Closed out ${who} · ${verdict.report}`];
-  if (crew?.prGroupReady) lines.push(`PR group ready: ${title.spec} ${crew.prGroupReady} → the PR moment`);
+  if (crew?.prGroupReady && !verdict.lane) lines.push(`PR group ready: ${title.spec} ${crew.prGroupReady} → the PR moment`);
   if (crew && crew.needsYou > 0) lines.push(`Needs you: ${title.spec} ${title.phase} asks ${crew.needsYou} (question list, or its in-flight note on its branch for a spec in files)`);
   if (crew && crew.sayIfWrong > 0) lines.push(`Say if wrong: ${title.spec} ${title.phase} lists ${crew.sayIfWrong} in its handoff`);
   const relaunch = crew?.next === "same phase" && title.phase ? { spec: title.spec, phase: title.phase } : undefined;
