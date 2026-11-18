@@ -117,7 +117,8 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
 **Deploy only for infra.** After `Merged:`, when settings have `deploy: { paths, gate }` (the pack's
 `Settings:` line says `deploy: gate <name> …`) and the PR's files (`gh pr view <n> --json files`) match
 `deploy.paths`: work through `gates --name <gate>`. Its last check must say the deploy is live.
-- It passes → `phase deployed <spec> <phase> --land` for each phase of the group; the report gains
+- It passes → `phase deployed <spec> <phase> --land` for each phase the pack lists (the final PR's: every lane
+  phase); the report gains
   `- Deployed: gate <name> passed · phases <ids> marked deployed`.
 - It fails or can't be checked → no marker; the report gains `- Deploy owed: <what failed>`.
 - No `deploy:` setting, or no file matches → merged, reported, done: never a deploy, never a marker

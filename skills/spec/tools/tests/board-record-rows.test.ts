@@ -6,7 +6,7 @@ import type { FlightRow } from "../board/model";
 import { NOW, boardInputs, specFixture } from "./board-factories";
 import { phaseState } from "./factories";
 import { viewOf } from "./fake-record";
-import { cardDoc } from "./record-factories";
+import { cardDoc, prDoc } from "./record-factories";
 import { planSourceOf } from "../plan/read-plans";
 
 const row = (overrides: Partial<FlightRow>): FlightRow => ({ spec: "alpha", phase: "2", workspace: "", next: "built, PR not opened", ...overrides });
@@ -45,4 +45,21 @@ test("cards on the record: one whose covering phase is done on main can close; a
   const text = renderBoard(board);
   expect(text).toContain("Card c1 can close: alpha#1 merged");
   expect(text).toContain("Card c2 is done, but alpha#2 is open");
+});
+
+test("a closed final PR keeps spec-branch mode and is a needs-you row", () => {
+  const alpha = specFixture("alpha", { phases: [phaseState({ id: "2", done: true })] });
+  const node = { ...alpha.node, specBranch: { cutFrom: "abc", shipAlone: [] } };
+  const closed = prDoc({ group: "default", branch: "feat/alpha", number: 31, state: "closed" });
+  const inputs = boardInputs([{ ...alpha, node }], { prDocs: new Map([["alpha", [closed]]]) });
+  const board = buildBoard(inputs, NOW);
+  expect(board.lanes.needsYou).toContainEqual({ kind: "final-pr-closed", spec: "alpha", pr: 31 });
+  expect(renderBoard(board)).toContain("#31 final PR closed → reopen it or open a new one from feat/alpha");
+});
+
+test("outside the mode a closed default PR is no row", () => {
+  const alpha = specFixture("alpha", { phases: [phaseState({ id: "2", done: true })] });
+  const closed = prDoc({ group: "default", branch: "feat/alpha", number: 31, state: "closed" });
+  const board = buildBoard(boardInputs([alpha], { prDocs: new Map([["alpha", [closed]]]) }), NOW);
+  expect(board.lanes.needsYou.some((row) => row.kind === "final-pr-closed")).toBe(false);
 });
