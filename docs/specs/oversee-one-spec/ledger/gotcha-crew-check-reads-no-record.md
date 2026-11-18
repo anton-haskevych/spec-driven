@@ -15,3 +15,6 @@ When `oversee-crew.md`'s one-spec section (Phase 6) leans on `crew check`, give 
 (`readPlansAt` + `specLayout`), or tell the overseer to trust the tick's verdict.
 
 Found in Phase 4: kept out of scope (not in the phase's files).
+
+Phase 6 took the second way: `oversee-crew.md` §7 tells the overseer the tick's close-out is the verdict for a lane
+and never to act on `crew check` there. Giving `crew check` the record's world is still open (backlog candidate).
