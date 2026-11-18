@@ -1,5 +1,5 @@
 ---
-needs: [2]
+needs: [1, 2]
 pr: C
 ---
 
@@ -62,7 +62,7 @@ snapshot on the branch but not on main becomes `snapshotBase` and the next publi
 - [x] `merge-back <spec> --push`: refuses unless HEAD holds the fetched `origin/feat/<spec>` tip; lane pushed; `leasePush` to `feat/<spec>` expecting that tip, a refusal mapped to "moved"; then, only with `docs: main`, `publishDocs` unchanged (the snapshot reaches `feat/<spec>` through main at the next merge-back; no off-checkout snapshot push); `publishDocs`' `mergeBack` field renamed `snapshotMerged`
 - [x] `pr open` refuses a lane head in spec-branch mode; `publish-docs` and `push` refuse in a lane tree; `pushBranch(git, { defaultBranch, base? })` (`base` defaults to `defaultBranch`; 6 callers incl. `plan/record-tick.ts`); the phase writer refuses, in the mode, an ungrouped code phase and a ship-alone group needing another group's phase
 - [ ] `groupKey(spec, group, layout)` shared by `pickRows` and the tick's `busy`, layouts from one `TickWorld.layouts` map: per group in spec-branch mode, per spec otherwise; in the mode `pickRows` holds a row while a needed phase's lane has a launched worker not yet closed out; the whole-board skip adds `specBranch`; pure tests
-- [ ] Board record in spec-branch mode: lane groups never get the unopened-PR row while the mode is on (the final PR's state reaches lane documents in Phase 5); tests
+- [x] Board record in spec-branch mode: lane groups never get the unopened-PR row while the mode is on (the final PR's state reaches lane documents in Phase 5); tests
 
 ## Phase-local notes
 

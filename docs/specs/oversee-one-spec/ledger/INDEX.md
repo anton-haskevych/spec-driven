@@ -21,5 +21,6 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 - `decision-spec-branch-mode-starts-and-ends-in-one-record-write.md` — [phase 3, phase 5, load-bearing] — specBranchPlan on; prSyncPlan off
 - `decision-cross-lane-needs-wait-for-close-out.md` — [phase 3, phase 4] — a need on another lane waits for its close-out
 - `decision-docs-reach-spec-branch-through-main.md` — [phase 3+] — snapshot reaches feat/<spec> via main; no 2nd push
+- `decision-ship-alone-freeze-is-a-plan-rule.md` — [phase 3+] — no phase moves into/out of a ship-alone group in the mode
 
 ## Workarounds
