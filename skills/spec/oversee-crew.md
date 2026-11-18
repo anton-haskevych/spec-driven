@@ -3,8 +3,9 @@
 This session becomes the overseer. It keeps a set number of background workers busy on the board's
 ready work, checks every handoff before it counts, sends each finished PR group to a babysitter in its
 spec's ship mode, and comes to the person running the crew only for reviews, approvals and decisions.
-It works only that person's specs and specs nobody owns. It takes no spec. Run it in the project's main
-checkout. The brief and run-file shapes are in
+It works only that person's specs and specs nobody owns. Run it in the project's main checkout. With a spec
+(`/spec oversee-crew <spec>`) it runs that spec alone, end to end: §7 *One spec* says what changes; everything
+else holds as written. The brief and run-file shapes are in
 [crew-brief.md](crew-brief.md); `<crew>` is the folder named there.
 
 Every command is `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts …` unless it starts with `claude` or `git`.
@@ -127,6 +128,7 @@ prints only what needs you:
 | `Say if wrong: <spec> <phase> lists <n> …` | its items join the next *Needs you* batch as FYI |
 | `Babysitter <title> · <id>: <final line>` | report it as one line (§4 step 6) |
 | `<spec> <phase> not launched: …` | as `crew launch`'s refusals above |
+| `Overseen: <spec> (no live overseer, N workers)` | *Needs you* once: `<spec>'s overseer is gone; type /spec oversee-crew <spec> in a fresh session`. This crew leaves that spec alone |
 
 `crew check <id>` runs one close-out by hand and prints `Close-out: ok · <Crew line>`, `Close-out:
 missing <what>` or `Close-out: waiting (pr-<group> claim live)`.
@@ -227,5 +229,74 @@ answered, then fill from the board. Set `state: running` and clear `## Stood dow
 
 **Rotate.** If this conversation has been compacted (a summary of earlier turns is present), don't act on
 the summary. `run.md`, the roster and the claims already hold the state, since every step writes as it
-happens. Print `Overseer rotated: type /spec oversee-crew in a fresh session` and stop. Workers and
+happens. Print `Overseer rotated: type /spec oversee-crew in a fresh session` (with `<spec>` after it for a one-spec run) and stop. Workers and
 babysitters keep running, and so they do when this session closes.
+
+## 7. One spec
+
+`/spec oversee-crew <spec>` points this session at one spec: it plans the order, runs the spec's lanes (PR groups)
+side by side, gathers their work on the spec branch `feat/<spec>` and ships it as one final PR. Pointing it at the
+spec is the whole instruction. Several run at once, one per spec, under the machine's limit of 6 execute workers.
+Every rule above holds, with these differences:
+
+- **Every crew command takes `--spec <spec>`**: `crew overseer`, `crew start`, `crew tick`. The run file is
+  `<crew>/run-<spec>.md`; `crew launch` files under it while it is open.
+- **The spec must be on the board's record.** `crew start --spec` always turns spec-branch mode on and refuses a
+  spec in files (`crew start: <spec> is not on the board; …`): pass the line on and stop.
+
+### Start
+
+1. Main checkout, as §1 step 1.
+2. **Another overseer?** `crew overseer --spec <spec>`. `another live overseer <id> · <name>` → say `Another overseer
+   (<id>) is running <spec>` and stop.
+3. **Takeover?** A `run-<spec>.md` that is `running` (this session reads `taking over`): skip to step 7 at once.
+   `crew start --spec` again sees the mode already on and skips its checks. `stood-down`: §6's resume.
+4. **Read the order**: `ready <spec> --order` prints `Order:` (batches that run side by side), `Longest:`, `Lanes:`,
+   and when they apply `Ships alone?`, `No lane:`, `Same files:` and `Waiting:`.
+5. **Plan the lanes yourself.** These are your calls, never questions:
+   - Every open code phase needs a lane: give each `No lane:` phase one (all of them on `Lanes: none`) with
+     `phase set <spec> <phase> --pr <group>`.
+   - Fold a short lane into the longest chain when that saves a merge; give `Same files:` pairs one lane.
+   - A phase holding two jobs that could run side by side: `phase split`.
+   - Ship-alone groups: take the `Ships alone?` suggestions (code another phase needs deployed). A ship-alone group
+     is cut from main and PRs to main; it may not need another group's phase. It is frozen once its branch exists.
+   Each call goes on one *Say if wrong* line in the start message.
+6. **One message**, ending `Starting.`, never `Go?`: nothing in a one-spec run is open.
+   ```
+   Crew for <spec>: <workers> workers, <babysitters> babysitters (settings) · machine <n> of 6 busy.
+   Order: <the Order: line>   (longest: <the Longest: chain>)
+   Lanes: <the Lanes: line, after your regroups>
+   Say if wrong: <each regroup, split and ship-alone pick>
+   Ship mode: <mode> (spec | settings | default: holds for your review). Starting.
+   ```
+7. **Start**: `crew start --spec <spec> [--ship-alone <group,…>]` (caps as §1 step 7). It prints `Spec branch:
+   feat/<spec> cut from <sha>` (takeover: `(spec-branch mode already on)`), then `Crew: started …`. A `crew start:`
+   refusal (phases with no `pr:`, an old `feat/<spec>*` branch, a PR the spec already shipped as one) goes to
+   *Needs you* as is; launch nothing. Then §3, with `crew tick --spec <spec>`.
+
+### Ship mode never waits
+
+The spec's `ship:`, else settings `pr.ship`, else `hold-for-review`: babysit the final PR to green and hold it.
+Never ask it in *Needs you*, and never merge to main on a default. Only the person running the crew makes a spec
+merge itself, by saying so: `ship <spec> auto`.
+
+### Ticks
+
+`crew tick --spec <spec>` works this spec alone. It launches one worker per lane, holds a phase that needs another
+lane's work until that lane's worker closed out, and stops at the machine limit. Its lines, beside §3's table:
+
+| Line | Do |
+|---|---|
+| `Machine full: <n> of 6` | nothing; a later tick fills the slot |
+| `PR group ready: <spec> <group> → the PR moment` | only a ship-alone group prints it: §4, with this section's ship mode |
+| `PR moment: <spec> final PR` | `crew launch babysit <spec> default` (`hold` for hold-for-review). The babysitter opens the PR from its tree on `feat/<spec>`, merges main into it from then on, and in hold-for-review writes *How to review* one section per phase. Report its final line as §4 step 6 |
+| `Finished: <spec> has no open phase and no session out; run ended` | report one line (`Finished <spec>: #<n> merged` or `held for your review`) and stop: this overseer is done |
+
+- **A lane worker's close-out is the tick's.** Merged back means the phase's recorded commit is in `feat/<spec>`, and
+  its `Crew:` line may come from its `[handoff]` commit. `crew check <id>` reads no record and can say a lane's
+  commits are not on origin after a clean merge-back: never act on it for a lane.
+- **A plan change by another session** prints a `Notice:` there, and that session messages you. Re-read `ready
+  <spec> --order` before the next launch; the writer already refuses a code phase with no lane.
+- **The final PR merged** (by its babysitter or on GitHub): its record write marks every lane merged and ends
+  spec-branch mode; the next empty tick ends the run `finished`.
+

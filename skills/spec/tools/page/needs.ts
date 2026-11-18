@@ -15,6 +15,7 @@ export interface NeedOwners {
 const MARKS: Record<AttentionRow["kind"], NeedRow["mark"]> = {
   question: "Q",
   "open-pr": "PR",
+  "final-pr-closed": "PR",
   merge: "PR",
   fix: "PR",
   "pr-review": "PR",

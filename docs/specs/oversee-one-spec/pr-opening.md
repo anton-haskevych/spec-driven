@@ -12,8 +12,8 @@ PR #51 merged 2026-11-17 as 7ce2eaa (squash).
 
 ## Pre-PR checks
 
-- [x] gate: pre-pr — PR C 2026-11-17: 2380/2382 in the full run; the two 5 s timeouts (`land-on-main.git`, `codex-packaged-entry.git`, untouched here) pass alone; typecheck clean
+- [x] gate: pre-pr — PR C 2026-11-17: 2380/2382 in the full run; the two 5 s timeouts (`land-on-main.git`, `codex-packaged-entry.git`, untouched here) pass alone; typecheck clean · PR D 2026-11-17: 2416 pass, 0 fail, 1 skip; typecheck clean
 - [x] Whole-board crew unchanged: `crew-tick.git.test.ts`, `crew-launch.git.test.ts`, `crew-overseer-command.git.test.ts` pass untouched (phases 1, 3) — expectations unchanged; only `await` and new required fields in two fakes
-- [x] Every new `.git.test.ts` listed in `real-git/allowlist.ts` with `REAL_GIT_CAP` raised in the same diff — `publish-merge-back.git.test.ts`, cap 74 → 75
-- [x] New and touched tool files under 250 lines
-- [x] `python3 scripts/version.py --set <v>` and the ROADMAP row in the same PR — 2.63.0 for PR C
+- [x] Every new `.git.test.ts` listed in `real-git/allowlist.ts` with `REAL_GIT_CAP` raised in the same diff — `publish-merge-back.git.test.ts`, cap 74 → 75 · PR D adds none
+- [x] New and touched tool files under 250 lines — PR D: largest `board/model.ts` 247; `skill-wiring.test.ts` (278, over before this spec) not grown: phase 6's checks moved to `crew-one-spec-wiring.test.ts`
+- [x] `python3 scripts/version.py --set <v>` and the ROADMAP row in the same PR — 2.63.0 for PR C · 2.64.0 for PR D

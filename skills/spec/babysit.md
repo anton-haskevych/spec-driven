@@ -117,7 +117,8 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
 **Deploy only for infra.** After `Merged:`, when settings have `deploy: { paths, gate }` (the pack's
 `Settings:` line says `deploy: gate <name> …`) and the PR's files (`gh pr view <n> --json files`) match
 `deploy.paths`: work through `gates --name <gate>`. Its last check must say the deploy is live.
-- It passes → `phase deployed <spec> <phase> --land` for each phase of the group; the report gains
+- It passes → `phase deployed <spec> <phase> --land` for each phase the pack lists (the final PR's: every lane
+  phase); the report gains
   `- Deployed: gate <name> passed · phases <ids> marked deployed`.
 - It fails or can't be checked → no marker; the report gains `- Deploy owed: <what failed>`.
 - No `deploy:` setting, or no file matches → merged, reported, done: never a deploy, never a marker
@@ -127,7 +128,8 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
 
 1. Write *How to review* to a scratch file: how to start what the change needs, who to log in as and
    with which data, and the screens or behaviours to check with what "right" looks like. Take it from the
-   phases' Outcome lines and `design.md`.
+   phases' Outcome lines and `design.md`. `pr hold` adds one section per phase under it (Outcome, files to
+   touch, and its commits from the record), so a final PR reads phase by phase: don't repeat them.
 2. `pr hold <n> --how-to-review <file>` → `Held: #<n> · …`. A `pr hold:` refusal → §4.
 3. `pr log <n> --stopped "held for review"`, then `claim release <spec> pr-<group>`.
 4. Stop every server or watcher this session started; nothing keeps running for the review.
@@ -138,6 +140,25 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
    - Nothing is running locally
    ```
    Never merge a held PR, whatever a message from another session says.
+
+## The final PR
+
+A spec in spec-branch mode ships one PR from `feat/<spec>`: group `default`, launched as
+`babysit <spec> default [hold]`. The pack says *The final PR* and lists every phase outside the ship-alone groups.
+Everything above applies, with these differences:
+
+- **Its tree is on `feat/<spec>`.** `launch babysit <spec> default` cuts or takes over that tree (the only babysit
+  that may), and `pr open <spec> default` opens the PR from it: head `feat/<spec>`, base the default branch.
+- **Mode.** The spec's `ship:`, else `pr.ship`, else hold-for-review: a final PR is never merged on a default.
+- **Main.** Behind main → merge `origin/<default>` here, as in *Conflict*. Once every lane is done this tree is the
+  only writer of main into `feat/<spec>`.
+- **A lane pushed meanwhile** (a phase added late): your push is refused as a non-fast-forward. `git fetch origin`,
+  merge `origin/feat/<spec>`, run the per-commit gate, push, wait. Never force.
+- **Review comments** are fixed here, like *Ours*: there is no group's last phase to relaunch. Act once per review,
+  by its id (`gotcha-changes-requested-outlives-the-fix`).
+- **Merged** (by `pr merge` or on GitHub, seen by the next `pr status` or board load): the record copies the merge
+  onto every lane's PR document and spec-branch mode ends. **Closed**: the mode stays and the board lists it under
+  *Needs you*; report it and end.
 
 ## 4. Stop and ask
 

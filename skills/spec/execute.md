@@ -58,6 +58,10 @@ Apply the entry's [workflow capabilities](capabilities.md) before any automatic 
 - Run `claim take <spec> <phase> --take-over` only when the user says to take it over in this conversation. It takes any claim, including a live one or one from another machine, so it is never an automatic fix for a refusal.
 - Without Bun, skip this step.
 
+**A lane of a spec branch** (spec-branch mode: a crew brief's `Spec branch: feat/<spec>` line, or `spec.ts push` refusing with `<branch> is a lane of <spec>; use merge-back <spec> --push`) skips the push decision below. Its work reaches origin through `phase tick` (it pushes the lane to its own name) and leaves only through merge-back:
+- Before coding, bring the spec branch and main in: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts merge-back <spec>`. `already holds` → go on. `Merged …` → run each gate it prints as a `Gate:` line, commit any fixes, then rebuild the pack (`spec.ts context execute <spec> <phase>`): it predates what came in. A conflict → resolve it here, commit, run it again.
+- Never create or push another branch, and never `pr open`: the final PR carries the lane. handoff.md §3 runs the merge-back at the end.
+
 **Decide when to push**, once, so interrupted work is already on origin: `gh pr view "$(git branch --show-current)" --json state,isDraft`. Don't use `pr status` for this: its verdict `none` also means a ready PR whose CI hasn't run.
 - No PR, a draft, or a failed lookup (`gh` exits non-zero) → push now with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts push`, and after every commit (§6 step 5). Pushes to a branch with no PR or a draft cost no CI.
 - An open, ready PR → push once, at the end of the chunk: every push restarts its CI.
@@ -209,7 +213,7 @@ Never invent a "verification" or "open PR" phase to hold this — that's what `p
 A session whose system prompt carries an overseer's launch brief ("You are a crew worker started by the overseer session …", [oversee-crew.md](oversee-crew.md)) is a crew worker. Nobody watches its tab, so these rules win over §10's question, *Next sessions* and any step that waits for the user:
 
 - Start without waiting for "go": the launch is the approval.
-- Push per §1's decision.
+- Push per §1's decision. A lane (the brief's `Spec branch:` line) runs `merge-back` instead (§1 → *A lane of a spec branch*); its brief's ship mode is the final PR's, which the overseer carries.
 - A small call you'd normally confirm: make it and list it in the handoff as *Say if wrong*.
 - A `Gate:` item whose gate kind is in settings `crew.self-approve`: pass it yourself with evidence and list it under *Say if wrong* (§3 → *A gated phase*).
 - A real fork (the answer changes what ships), any other open `Gate:` item, or a step only the user may take (anything outward or irreversible, a merge, a deploy, `--take-over`): park the phase with `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts phase park <spec> <phase> "<question>" --recommend "<answer>"`. For a spec on the board it asks a question on the record, which every machine sees at once (a `Gate:` item next makes it the gate's approval question); for a spec in files it writes the question under `## Needs you` in `in-flight/phase-<id>.md`: commit and push that, then hand off. The board drops the phase from ready and lists the question under needs you until it's answered. Never wait for the answer, and never end a turn on a question. One open question per phase: put two forks in one question.

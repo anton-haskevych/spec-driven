@@ -3,8 +3,9 @@ import type { MergeMethod } from "../playbook/settings";
 import type { RecordOp } from "../record/plan-writes";
 import type { RecordView } from "../record/view";
 import type { RecordPlan } from "../record/write";
-import { readPrDoc, type PrDoc, type PrState } from "./docs/pr-doc";
-import { readSpecDoc } from "./docs/spec-doc";
+import { DEFAULT_PR_GROUP, readPrDoc, type PrDoc, type PrState } from "./docs/pr-doc";
+import { isLaneGroup } from "./docs/spec-branch-rules";
+import { readSpecDoc, type SpecDoc } from "./docs/spec-doc";
 import { prDocPath, prDocsFolder, specDocPath } from "./kinds";
 
 // `ready`: open, with CI not read; a green document stays green while its PR and head are the same.
@@ -68,15 +69,46 @@ export function readSpecPrDocs(view: RecordView, spec: string): PrDoc[] {
 export function prSyncPlan(sightings: readonly PrSighting[]): RecordPlan {
   return (view) => {
     const ops: RecordOp[] = [];
+    let ended = false;
     for (const { spec, seen } of sightings) {
-      if (!readSpecDoc(view.doc(specDocPath(spec))).doc) return { refused: `${spec} is not on the board` };
-      const doc = matchPrDoc(readSpecPrDocs(view, spec), seen);
+      const specDoc = readSpecDoc(view.doc(specDocPath(spec))).doc;
+      if (!specDoc) return { refused: `${spec} is not on the board` };
+      const docs = readSpecPrDocs(view, spec);
+      const doc = matchPrDoc(docs, seen);
       if (!doc) return { refused: `PR #${seen.number} (${seen.branch}) matches no PR group of ${spec}` };
       const after = prDocAfter(doc, seen);
       if (after) ops.push({ op: "replace", path: prDocPath(spec, doc.group), doc: after });
+      const modeEnd = modeEndOps(specDoc, docs, after ?? doc);
+      ended ||= modeEnd.length > 0;
+      ops.push(...modeEnd);
     }
-    return ops.length === 0 ? { unchanged: true } : { ops, message: messageOf(sightings) };
+    return ops.length === 0 ? { unchanged: true } : { ops, message: `${messageOf(sightings)}${ended ? " · spec-branch mode ended" : ""}` };
   };
+}
+
+// The final PR merged: every lane's work shipped in it, so each lane document becomes that merge (stage, cards and
+// prune read their own lane's document, mode on or off) and the mode ends in the same write, whoever merged.
+// A closed final PR keeps the mode: a reopen or a new PR from feat/<spec> still ships it.
+function modeEndOps(spec: SpecDoc, docs: readonly PrDoc[], final: PrDoc): RecordOp[] {
+  if (!spec.specBranch || final.group !== DEFAULT_PR_GROUP || final.state !== "merged") return [];
+  const lanes = docs.filter((doc) => isLaneGroup(spec.specBranch, doc.group));
+  return [
+    ...lanes.flatMap((lane): RecordOp[] => {
+      const merged = laneMergedBy(lane, final);
+      return sameDoc(lane, merged) ? [] : [{ op: "replace", path: prDocPath(spec.name, lane.group), doc: merged }];
+    }),
+    { op: "update", path: specDocPath(spec.name), patch: { specBranch: null } },
+  ];
+}
+
+// The final PR's head stays off the lane: a later sighting matched by head belongs to the final PR's document.
+function laneMergedBy(lane: PrDoc, final: PrDoc): PrDoc {
+  return withoutUndefined({ group: lane.group, branch: lane.branch, state: final.state, number: final.number, mergedAt: final.mergedAt, mergedSha: final.mergedSha, method: final.method });
+}
+
+function sameDoc(a: PrDoc, b: PrDoc): boolean {
+  const keys = Object.keys(a) as Array<keyof PrDoc>;
+  return keys.length === Object.keys(b).length && keys.every((key) => a[key] === b[key]);
 }
 
 function messageOf(sightings: readonly PrSighting[]): string {

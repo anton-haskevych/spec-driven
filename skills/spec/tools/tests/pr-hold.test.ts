@@ -6,7 +6,7 @@ import { holdPr, withHowToReview, HOLD_LABEL } from "../pr/actions/hold";
 import { ghWrites } from "../pr/actions/gh-writes";
 import { prCommand } from "../commands/pr";
 import { PR_HOLD_USAGE } from "../commands/pr/hold";
-import { ghPrViewJson } from "./pr-factories";
+import { ghPrViewJson, phasedSpecFiles } from "./pr-factories";
 import { createTree, type Tree } from "./tree";
 
 type Canned = ReadonlyArray<readonly [prefix: readonly string[], reply: Partial<RunResult>]>;
@@ -101,5 +101,21 @@ describe("holdPr", () => {
     tree = createTree();
     expect(await prCommand(tree.root, ["hold", "921"])).toBe(`usage: ${PR_HOLD_USAGE}`);
     expect(await prCommand(tree.root, ["hold", "921", "--how-to-review", "nope.md"])).toBe("pr hold: no file nope.md");
+  });
+
+  test("adds one section per phase of the PR's branch under the file's own steps", () => {
+    tree = createTree();
+    tree.spec("billing", phasedSpecFiles([{ id: "1", title: "Schema", pr: "A", outcome: "Invoices go out" }, { id: "2", title: "Import", pr: "B" }]));
+    const file = join(tree.root, "how.md");
+    writeFileSync(file, "1. pnpm dev:all\n");
+    const runner = recorder([
+      [["gh", "pr", "view", "921"], { stdout: ghPrViewJson({ number: 921, state: "OPEN", headRefName: "feat/billing-pr-a" }) }],
+      [["gh", "api"], { stdout: "" }],
+      [["gh", "label"], {}],
+      [["gh", "pr", "edit"], {}],
+    ]);
+    holdPr(tree.root, { target: ["921"], howToReview: file }, { runner });
+    const body = runner.calls.find((call) => call.argv.includes("--body-file"))?.stdin;
+    expect(body).toBe("## How to review\n1. pnpm dev:all\n\n### Phase 1 — Schema\nOutcome: Invoices go out\n");
   });
 });

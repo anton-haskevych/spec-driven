@@ -5,6 +5,7 @@ import type { Result } from "../core/result";
 import type { LiveSession } from "../sessions/live";
 import { claimStatus, isStale, takeRefusal, type ClaimContext } from "../claims/rules";
 import type { Claim } from "../claims/store";
+import { specLayout } from "../pr/groups";
 import { claim, liveSession, phaseEdges, phaseState } from "./factories";
 
 const holder: Claim = claim({ phase: "4", sessionId: "s1", sessionName: "alpha execute 4", workspace: "/wt/alpha" });
@@ -95,5 +96,11 @@ describe("takeRefusal for a PR claim", () => {
 
   test("an unknown group is refused", () => {
     expect(takeRefusal("alpha", "pr-Z", { baseState: grouped, activity: new Map(), currentPath: "/wt/a" })).toBe("PR group Z is not in alpha");
+  });
+
+  test("pr-default is the final PR's claim in spec-branch mode, and refused outside it", () => {
+    const layout = specLayout(grouped, { cutFrom: "abc", shipAlone: ["B"] });
+    expect(takeRefusal("alpha", "pr-default", { baseState: grouped, layout, activity: new Map(), currentPath: "/wt/a" })).toBeUndefined();
+    expect(takeRefusal("alpha", "pr-default", { baseState: grouped, layout: specLayout(grouped), activity: new Map(), currentPath: "/wt/a" })).toBe("PR group default is not in alpha");
   });
 });

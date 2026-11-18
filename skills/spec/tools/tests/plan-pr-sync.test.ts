@@ -93,6 +93,52 @@ describe("prSyncPlan", () => {
   });
 });
 
+describe("prSyncPlan ends spec-branch mode when the final PR merges", () => {
+  const specBranch = { cutFrom: "abc", shipAlone: ["D"] };
+  const finalOpen = prDoc({ group: "default", branch: "feat/checkout", number: 20, state: "green", headRefOid: "fff000" });
+  const shipAlone = prDoc({ group: "D", number: 5, state: "merged", mergedAt: "2026-11-10", mergedSha: "ddd444", method: "squash" });
+  const inMode = (final = finalOpen) =>
+    viewOf({
+      [specDocPath("checkout")]: specDoc({ layout: 2, specBranch }),
+      [prDocPath("checkout", "default")]: final,
+      [prDocPath("checkout", "A")]: prDoc({ group: "A" }),
+      [prDocPath("checkout", "B")]: prDoc({ group: "B" }),
+      [prDocPath("checkout", "D")]: shipAlone,
+    });
+  const merged = seen({ number: 20, branch: "feat/checkout", headRefOid: "fff000", state: "merged", mergedAt: "2026-11-17", mergedSha: "eee555", method: "squash" });
+  const laneMerged = (group: string) => prDoc({ group, number: 20, state: "merged", mergedAt: "2026-11-17", mergedSha: "eee555", method: "squash" });
+
+  test("the same write copies number, state and merge onto every lane document and removes specBranch", () => {
+    const planned = prSyncPlan([{ spec: "checkout", seen: merged }])(inMode());
+    expect(planned).toEqual({
+      ops: [
+        { op: "replace", path: prDocPath("checkout", "default"), doc: { ...finalOpen, state: "merged", mergedAt: "2026-11-17", mergedSha: "eee555", method: "squash" } },
+        { op: "replace", path: prDocPath("checkout", "A"), doc: laneMerged("A") },
+        { op: "replace", path: prDocPath("checkout", "B"), doc: laneMerged("B") },
+        { op: "update", path: specDocPath("checkout"), patch: { specBranch: null } },
+      ],
+      message: "record: PR #20 of checkout is merged · spec-branch mode ended",
+    });
+  });
+
+  test("a final document already merged with the mode still on ends it", () => {
+    const already = { ...finalOpen, state: "merged" as const, mergedAt: "2026-11-17", mergedSha: "eee555", method: "squash" as const };
+    const planned = prSyncPlan([{ spec: "checkout", seen: merged }])(inMode(already));
+    expect("ops" in planned && planned.ops.map((op) => op.path)).toEqual([prDocPath("checkout", "A"), prDocPath("checkout", "B"), specDocPath("checkout")]);
+  });
+
+  test("a closed final PR keeps the mode", () => {
+    const planned = prSyncPlan([{ spec: "checkout", seen: { ...merged, state: "closed" } }])(inMode());
+    expect("ops" in planned && planned.ops.map((op) => op.path)).toEqual([prDocPath("checkout", "default")]);
+  });
+
+  test("outside the mode a merged default group changes only its own document", () => {
+    const plain = viewOf({ [specDocPath("checkout")]: specDoc({ layout: 2 }), [prDocPath("checkout", "default")]: prDoc({ group: "default", branch: "feat/checkout" }) });
+    const planned = prSyncPlan([{ spec: "checkout", seen: merged }])(plain);
+    expect("ops" in planned && planned.ops.map((op) => op.path)).toEqual([prDocPath("checkout", "default")]);
+  });
+});
+
 test("readSpecPrDocs reads one spec's PR documents and skips one that doesn't read", () => {
   const view = viewOf({
     [prDocPath("checkout", "A")]: prDoc(),

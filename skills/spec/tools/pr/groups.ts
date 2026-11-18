@@ -18,8 +18,14 @@ export function prGroups(state: SpecState): PrGroup[] {
   return [...groups.entries()].map(([name, phases]) => ({ name, phases }));
 }
 
-export function pickGroup(state: SpecState, requested: string | undefined): Result<PrGroup> {
+// With a layout, group `default` is the final PR in spec-branch mode (and what a spec in the mode ships when no
+// group is named), else the phases with no `pr:`.
+export function pickGroup(state: SpecState, requested: string | undefined, layout?: SpecLayout): Result<PrGroup> {
+  const isDefault = requested?.toLowerCase() === DEFAULT_PR_GROUP;
+  if (layout?.finalPr && (requested === undefined || isDefault)) return { ok: true, value: { name: DEFAULT_PR_GROUP, phases: layout.finalPr.phases } };
   const groups = prGroups(state);
+  const unnamed = groups.find((group) => group.name === undefined);
+  if (isDefault && layout && unnamed) return { ok: true, value: unnamed };
   const names = groups.map((group) => group.name ?? "(no pr field)").join(", ");
   const spec = state.spec.name;
   if (requested !== undefined) {
@@ -78,14 +84,35 @@ export function branchOf(layout: SpecLayout, group: string): string {
   return layout.groups.get(group)?.branch ?? prBranch(layout.spec, group);
 }
 
+export function isFinalPrGroup(layout: SpecLayout | undefined, group: string | undefined): boolean {
+  return layout?.finalPr !== undefined && group?.toLowerCase() === DEFAULT_PR_GROUP;
+}
+
+export function groupBranch(layout: SpecLayout, group: PrGroup): string {
+  return branchOf(layout, group.name ?? DEFAULT_PR_GROUP);
+}
+
+// What a PR from this branch ships: the final PR's lane phases on feat/<spec>, else the group's on its branch.
+export function phasesOnBranch(layout: SpecLayout, branch: string): PhaseState[] {
+  if (layout.finalPr?.head === branch) return layout.finalPr.phases;
+  return [...layout.groups.values()].find((group) => group.branch === branch)?.phases ?? [];
+}
+
 // The group whose branch this is, when it is a lane: spec-branch mode, cut from feat/<spec>, not shipping alone.
 export function laneOf(layout: SpecLayout, branch: string): string | undefined {
   if (layout.mode !== "spec-branch") return undefined;
   return [...layout.groups].find(([, group]) => group.branch === branch && group.base.kind === "spec-branch")?.[0];
 }
 
-// The branch a group's new tree is cut from: feat/<spec> for a lane, else the default branch.
+// The spec branch a lane merges back into; undefined for a ship-alone group, a branch that isn't a lane, or no mode.
+export function laneSpecBranch(layout: SpecLayout, branch: string): string | undefined {
+  return laneOf(layout, branch) === undefined ? undefined : branchOf(layout, DEFAULT_PR_GROUP);
+}
+
+// The branch a group's new tree is cut from: feat/<spec> for a lane and for the final PR itself (whose tree only ever
+// takes over origin/feat/<spec>), else the default branch.
 export function baseBranchOf(layout: SpecLayout | undefined, group: string | undefined, defaultBranch: string): string {
+  if (layout?.finalPr && isFinalPrGroup(layout, group)) return layout.finalPr.head;
   const base = layout?.groups.get(group ?? DEFAULT_PR_GROUP)?.base;
   return base?.kind === "spec-branch" ? base.branch : defaultBranch;
 }

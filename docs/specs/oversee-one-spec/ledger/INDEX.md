@@ -4,12 +4,14 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 `[applies-to]` scope tag. See `SKILL.md` for entry format and filtering rules.
 
 ## Gotchas
+- `gotcha-a-spec-with-every-lane-done-reads-finished.md` — [phase 5, phase 6] — board drops finished specs; final-PR rows read every node
 - `docs/specs/_ledger/gotcha-snapshot-on-branch-not-on-main-becomes-the-base.md` — [general] — a snapshot on the branch but not on main becomes the publish base
 - `docs/specs/_ledger/gotcha-a-registered-plan-runner-is-queueable.md` — [general] — a registered plan runner is queueable; never-queued writes use writeRecord
 - `docs/specs/_ledger/gotcha-fast-crew-tests-use-crew-fake-deps.md` — [general] — fast crew tests use fastCrewDeps (crew-fake-deps.ts), not crew-deps.ts
 - `docs/specs/_ledger/gotcha-trees-place-reads-pr-group-from-base.md` — [general] — trees place reads pr: from main; a branch-only regroup is ignored
 - `docs/specs/_ledger/gotcha-claim-take-refuses-when-another-tree-holds-the-same-ticks.md` — [general] — claim take refuses when another tree holds the same ticks
 - `gotcha-crew-check-reads-no-record.md` — [phase 6] — crew check runs today's close-out; only the tick is lane-aware
+- `docs/specs/_ledger/gotcha-plugin-tree-without-node-modules.md` — [general] — a plugin tree without node_modules fails typecheck/test:fast: bun install
 
 ## Principles
 - `principle-one-spec-layout.md` — [phase 2+, load-bearing] — one pure specLayout + branchOf; never infer mode or bases

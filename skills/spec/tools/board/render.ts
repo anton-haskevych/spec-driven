@@ -102,6 +102,8 @@ export function attentionCells(row: AttentionRow, now: Date): string[] {
       return [`#${row.pr} checks pass → merge`, rowName(row)];
     case "open-pr":
       return ["built, PR not opened → open it", `${row.spec}${row.prGroup ? ` PR ${row.prGroup}` : ""} · phases ${row.phases.join(", ")}`];
+    case "final-pr-closed":
+      return [`#${row.pr} final PR closed → reopen it or open a new one from feat/${row.spec}`, row.spec];
     case "fix":
       return [`#${row.pr} ${row.failing} ${row.failing === 1 ? "check" : "checks"} failing → fix`, rowName(row)];
     case "pr-review":

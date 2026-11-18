@@ -6,7 +6,7 @@ import { pickGroup, prGroups } from "../pr/groups";
 import { resolvePr } from "../pr/resolve";
 import { phasedSpecFiles, prView, type PhaseSketch } from "./pr-factories";
 import { stubRunner, type CannedRuns } from "./stub-runner";
-import { prDoc } from "./record-factories";
+import { prDoc, specDoc } from "./record-factories";
 import { createTree, type Tree } from "./tree";
 
 const TWO_GROUPS: PhaseSketch[] = [
@@ -111,6 +111,15 @@ describe("resolvePr", () => {
     const onRecord: SpecPlans = { ...FILES_ONLY, prs: () => [prDoc({ group: "A", branch: "feat/billing-pr-a", number: 812, state: "merged" })] };
     const { result } = resolve(["billing"], [[["gh", "pr", "view", "feat/billing-pr-a"], { code: 1, stderr: "no pull requests found" }], [["gh", "pr", "view", "812"], view(812, "MERGED")]], onRecord);
     expect(result).toMatchObject({ ok: true, value: { view: { number: 812 } } });
+  });
+
+  test("in spec-branch mode <spec> alone, or <spec> default, is the final PR on feat/<spec>", () => {
+    tree = createTree();
+    tree.spec("billing", phasedSpecFiles(TWO_GROUPS));
+    const inMode: SpecPlans = { ...FILES_ONLY, joined: () => ({ spec: specDoc({ name: "billing", specBranch: { cutFrom: "abc", shipAlone: ["B"] } }), phases: [] }) };
+    const canned: CannedRuns = [[["gh", "pr", "view", "feat/billing"], view(950)]];
+    expect(resolve(["billing"], canned, inMode).result).toMatchObject({ ok: true, value: { view: { number: 950 } } });
+    expect(resolve(["billing", "default"], canned, inMode).result).toMatchObject({ ok: true, value: { view: { number: 950 } } });
   });
 
   test("an unknown spec is refused", () => {

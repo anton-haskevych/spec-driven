@@ -146,6 +146,14 @@ bun ${CLAUDE_SKILL_DIR}/tools/spec.ts publish-docs <spec-name>   # docs: main �
 bun ${CLAUDE_SKILL_DIR}/tools/spec.ts push                       # docs: branch
 ```
 
+**A lane of a spec branch** (spec-branch mode: the crew brief's `Spec branch:` line, or `push` refusing `… is a lane of <spec>`) runs neither: its work leaves through merge-back, which publishes the docs too.
+
+1. Put the `Crew:` line in the commit body of the `[handoff]` commit above, exactly as §4 prints it: the overseer's close-out reads it there when the transcript has none.
+2. `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts merge-back <spec-name>` brings the spec branch and main in. Run each gate it prints as a `Gate:` line and commit any fixes; a conflict → resolve it here, commit, run it again.
+3. `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts merge-back <spec-name> --push` lease-pushes the lane onto `feat/<spec>` (`Merged back: …`) and, with `docs: main`, publishes the spec docs. `feat/<spec> moved` → another lane landed first: back to step 2. Any other `merge-back:` line is a refusal: print it as is.
+
+Keep its `Merged back:` line as the `Remote:` line for *Signal completion*.
+
 Pushing is confined: the branch goes to its own name, and only committed spec docs go to the default branch. Keep the output for *Signal completion*. A line starting `push:` or `publish-docs:` is a refusal; print it as is and don't retry, force or work around it. `diverged on main` means main changed the same spec lines: the next session merges main, then publishes. On the default branch (a main checkout) both first sync with origin (`Synced: …`, `spec.ts sync-main`); a `sync-main:` line is a refusal like the others and nothing is pushed. Without Bun, run `git push -u origin "HEAD:refs/heads/$(git branch --show-current)"` and say that the docs were not published; the next publish covers everything since the last snapshot.
 
 Then take the frozen lines out of a spec on the board: `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts join <spec-name> --tidy` (SKILL.md → *Tools* → Join). It commits on the default branch only the files no tree or `feat/<spec>*` branch still changes, and names the tree or branch holding the rest (`left …`); a spec not on the board, or one already tidy, says so. Keep its line as is for *Signal completion*: a later handoff, once that work has merged, finishes the tidy. Without Bun, skip it.
@@ -181,7 +189,7 @@ Then, in this order:
   Crew: needs you <n> (a question on the board, or its in-flight note) · say if wrong <n> · PR group ready <group | no> · next <same phase | phase <id> | nothing> · servers stopped <list | none>
   Handed off.
   ```
-  Leave out *Say if wrong* when there are none. `PR group ready` means every code phase of the group is ticked and its pre-PR checks pass. End there: no §10 question, no *Next sessions*, no question of any kind. Questions for the user are already asked with `phase park`.
+  Leave out *Say if wrong* when there are none. `PR group ready` means every code phase of the group is ticked and its pre-PR checks pass. A lane's `Crew:` line is also in its `[handoff]` commit body (§3). End there: no §10 question, no *Next sessions*, no question of any kind. Questions for the user are already asked with `phase park`.
 - **This handoff answers "Babysit it"** or **"Hold for review"** (execute.md §10): run `bun ${CLAUDE_SKILL_DIR}/tools/spec.ts launch babysit <spec-name> <group>` (with `hold` for "Hold for review") as the very last act, after the push and the claim release above, and reply with §10's line for that answer. No *Next sessions* block.
 - **A PR group is ready and nobody asked**: every code phase of the group is ticked, its pre-PR checks are ticked, no answer was given in this conversation, and `pr status <spec-name> <group>` shows no ready PR (none yet, or a draft). The spec's `ship:`, else the project's `pr.ship`, answers for the user (execute.md §10 step 4): `ship: auto` acts as "Babysit it", `ship: hold-for-review` as "Hold for review", with no question. With neither, ask execute.md §10's question in place of *Next sessions* and act on the answer as §10 says; [babysit.md](babysit.md) is what the babysit session follows.
 - **Otherwise** print SKILL.md → *Next sessions*, with this spec's next ready phase at 1 when it has one.

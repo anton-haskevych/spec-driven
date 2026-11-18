@@ -1,7 +1,8 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import type { HeldClaim } from "../claims/rules";
 import { closeOutLine } from "../crew/close-out";
-import { closeOut, type CloseOutWorld } from "../crew/close-out-run";
+import { claimKey, closeOut, type CloseOutWorld } from "../crew/close-out-run";
+import { parseLaunchTitle } from "../launch/title";
 import type { LaunchedEntry } from "../crew/run-state";
 import type { RunResult } from "../core/run";
 import type { PhaseState } from "../core/spec-state";
@@ -158,3 +159,10 @@ describe("closeOut, a lane worker in spec-branch mode", () => {
 function lanePhase(id: string, pr: string): PhaseState {
   return phaseState({ id, edges: phaseEdges({ declared: true, pr }) });
 }
+
+describe("claimKey", () => {
+  test("the final PR's babysitter is found by its pr-default claim", () => {
+    const title = parseLaunchTitle("x babysit default");
+    expect(title && claimKey(title)).toBe("x#pr-default");
+  });
+});

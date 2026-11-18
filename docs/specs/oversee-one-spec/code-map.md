@@ -44,6 +44,12 @@ needs to know exist to navigate the code — not every file that's touched.
 | `skills/spec/tools/plan/pr-sync.ts` | `prSyncPlan` ends the mode: lane PR docs copied from the final PR | `decision-spec-branch-mode-starts-and-ends-in-one-record-write` |
 | `skills/spec/tools/trees/place.ts` | `wholeGroup` / tree names go through `branchOf` for `default` | `principle-one-spec-layout` |
 | `skills/spec/tools/plan/docs/pr-doc.ts` | `DEFAULT_PR_GROUP` = `feat/<spec>` = the final PR; its doc is created by `specBranchPlan` | |
+| `skills/spec/tools/pr/how-to-review.ts` | `reviewPhase`, `phaseSections`, `commitsOf`: *How to review* per phase for `pr hold` | `principle-close-out-reads-the-record` |
+| `skills/spec/tools/board/record-rows.ts` | `closedFinalPrs`: the closed final PR's Needs-you row | `gotcha-a-spec-with-every-lane-done-reads-finished` |
+| `skills/spec/tools/crew/tick-step.ts` | `finalPrMoment`: `PR moment: <spec> final PR` on the last lane close-out | `decision-a-spec-run-finishes-only-after-an-empty-tick` |
+| `skills/spec/tools/crew/brief.ts` | `renderBrief`: a lane's `Spec branch:` line; no ship mode in a lane reads hold-for-review | `decision-final-pr-holds-by-default` |
+| `skills/spec/tools/commands/crew/launch-session.ts` | `laneOfLaunch`: the record's layout (as the tick fetched it) + `laneSpecBranch` decide the brief's spec branch | 6 |
+| `skills/spec/oversee-crew.md` | §7 *One spec*: start, ticks, ship mode that never waits, lane close-out | 6 |
 
 ## External references
 

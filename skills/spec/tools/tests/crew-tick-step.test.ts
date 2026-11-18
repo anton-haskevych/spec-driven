@@ -4,7 +4,7 @@ import { findCrewLine } from "../crew/crew-line";
 import { INVALID_OWNER } from "../core/people";
 import { groupKey, pickRows, workKey } from "../crew/pick";
 import { specLayout, type SpecLayout } from "../pr/groups";
-import { actionLines, afterCloseOut, nextAction } from "../crew/tick-step";
+import { actionLines, afterCloseOut, finalPrMoment, nextAction } from "../crew/tick-step";
 import type { SpecState } from "../core/spec-state";
 import type { Agent } from "../sessions/agents";
 import { readyRow } from "./board-factories";
@@ -139,5 +139,34 @@ describe("lanes in spec-branch mode", () => {
   test("a row needing a phase whose lane worker hasn't closed out waits; once it has, it goes", () => {
     expect(pick(on, ["checkout#A"], [{ spec: "checkout", phase: "1" }])).toEqual(["4"]);
     expect(pick(on, [], [])).toContain("3");
+  });
+});
+
+describe("finalPrMoment", () => {
+  const crew = "Crew: needs you 0 (in-flight.md) · say if wrong 0 · PR group ready A · next nothing · servers stopped none";
+  const lane: CloseOut = { kind: "ok", report: crew, crewLine: findCrewLine(crew), lane: true };
+  const phases = (doneB: boolean): SpecState => ({
+    spec: { name: "checkout", dir: "/specs/checkout" },
+    hasProgress: true,
+    phases: [
+      phaseState({ id: "3", done: true, edges: { ...phaseState().edges, pr: "A" } }),
+      phaseState({ id: "4", done: doneB, edges: { ...phaseState().edges, pr: "B" } }),
+      phaseState({ id: "5", done: false, edges: { ...phaseState().edges, pr: "D" } }),
+    ],
+  });
+  const layout = (doneB: boolean) => specLayout(phases(doneB), { cutFrom: "c0ffee", shipAlone: ["D"] });
+
+  test("the lane close-out that leaves every phase outside the ship-alone groups done prints the final PR's moment", () => {
+    expect(finalPrMoment(worker, lane, layout(true))).toBe("PR moment: checkout final PR");
+  });
+
+  test("an open lane phase, an open ship-alone phase aside, prints nothing", () => {
+    expect(finalPrMoment(worker, lane, layout(false))).toBeUndefined();
+  });
+
+  test("a close-out that isn't a lane's, or outside the mode, prints nothing", () => {
+    expect(finalPrMoment(worker, { ...lane, lane: undefined }, layout(true))).toBeUndefined();
+    expect(finalPrMoment(worker, lane, specLayout(phases(true)))).toBeUndefined();
+    expect(finalPrMoment(worker, { kind: "waiting", claim: "x" }, layout(true))).toBeUndefined();
   });
 });

@@ -101,6 +101,8 @@ export type AttentionRow =
   | { kind: "merge"; spec: string; phase?: string; prGroup?: string; pr: number }
   // A PR group whose phases are built and whose PR nobody opened.
   | { kind: "open-pr"; spec: string; prGroup?: string; phases: string[] }
+  // Spec-branch mode stays on after its final PR closed: reopen it, or open a new one from feat/<spec>.
+  | { kind: "final-pr-closed"; spec: string; pr: number }
   | { kind: "fix"; spec: string; phase?: string; prGroup?: string; pr: number; failing: number }
   // A held PR: waiting for the user's review, approved (merge it), or sent back (relaunch execute).
   | { kind: "pr-review" | "pr-approved" | "pr-changes"; spec: string; phase?: string; prGroup?: string; pr: number }
