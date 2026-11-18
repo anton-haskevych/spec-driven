@@ -22,7 +22,7 @@ describe("pushBranch (real git)", () => {
 
   afterEach(() => repo.cleanup());
 
-  const push = () => pushResult(pushBranch(gitAt(repo.dir, isolatedRunner), "main"));
+  const push = () => pushResult(pushBranch(gitAt(repo.dir, isolatedRunner), { defaultBranch: "main" }));
   const onOrigin = (ref: string) => repo.git("--git-dir", repo.origin, "rev-parse", "--verify", "-q", ref);
 
   test("pushes a new branch to its own name, sets the upstream and counts the commits", () => {
@@ -109,9 +109,27 @@ describe("pushBranch (real git)", () => {
     other.git("push", "-q", "origin", "feat");
     const git = gitAt(repo.dir, isolatedRunner);
 
-    expect(pushBranch(git, "main", SAVE)).toMatchObject({ kind: "rejected", branch: "feat" });
+    expect(pushBranch(git, { defaultBranch: "main" }, SAVE)).toMatchObject({ kind: "rejected", branch: "feat" });
     repo.git("remote", "set-url", "origin", join(repo.root, "nowhere.git"));
-    expect(pushBranch(git, "main", SAVE)).toMatchObject({ kind: "offline", branch: "feat" });
+    expect(pushBranch(git, { defaultBranch: "main" }, SAVE)).toMatchObject({ kind: "offline", branch: "feat" });
+  });
+
+  test("a lane counts its commits and how far behind it is against its base, not the default branch", () => {
+    repo.git("checkout", "-q", "-b", "feat/s");
+    repo.write("src/spec.ts", "s\n");
+    repo.commitAll("on the spec branch");
+    repo.git("push", "-q", "origin", "feat/s");
+    repo.git("checkout", "-q", "-b", "feat/s-pr-a");
+    repo.write("src/lane.ts", "l\n");
+    repo.commitAll("lane work");
+    const other = repo.clone("other");
+    other.git("checkout", "-q", "feat/s");
+    other.write("src/other-lane.ts", "o\n");
+    other.commitAll("another lane merged back");
+    other.git("push", "-q", "origin", "feat/s");
+
+    const git = gitAt(repo.dir, isolatedRunner);
+    expect(pushBranch(git, { defaultBranch: "main", base: "feat/s" }, SAVE)).toEqual({ kind: "pushed", branch: "feat/s-pr-a", commits: 1, behind: 1 });
   });
 
   test("a save skips pre-push hooks; a plain push still runs them", () => {
@@ -122,11 +140,11 @@ describe("pushBranch (real git)", () => {
     repo.commitAll("mine");
     const git = gitAt(repo.dir, isolatedRunner);
 
-    expect(pushBranch(git, "main", SAVE)).toEqual({ kind: "pushed", branch: "feat", commits: 1, behind: 0 });
+    expect(pushBranch(git, { defaultBranch: "main" }, SAVE)).toEqual({ kind: "pushed", branch: "feat", commits: 1, behind: 0 });
     expect(existsSync(join(repo.dir, "hook-ran"))).toBe(false);
     repo.write("src/b.ts", "b\n");
     repo.commitAll("two");
-    expect(pushBranch(git, "main")).toMatchObject({ kind: "rejected", branch: "feat" });
+    expect(pushBranch(git, { defaultBranch: "main" })).toMatchObject({ kind: "rejected", branch: "feat" });
   });
 });
 

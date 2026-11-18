@@ -99,7 +99,7 @@ function createPr(projectDir: string, git: Git, branch: string, spec: SpecForPr,
   if (current.ok && current.value !== branch) return { ok: false, reason: `this tree is on ${current.value}, not ${branch} — run it in that branch's tree` };
   const base = defaultBranch(projectDir, runner);
   if (!base) return { ok: false, reason: "no default branch (origin/HEAD unset and gh repo view failed)" };
-  const pushed = pushResult(pushBranch(git, base));
+  const pushed = pushResult(pushBranch(git, { defaultBranch: base }));
   if (!pushed.ok) return { ok: false, reason: `push failed — ${pushed.reason}` };
   const head = git.out(["rev-parse", "HEAD"]);
   const created = ghWrites(projectDir, runner).create({ base, head: branch, title: prTitle(spec.name, spec.group), body: prBody(spec.path, spec.group), draft });

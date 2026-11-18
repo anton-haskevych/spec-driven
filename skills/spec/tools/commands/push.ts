@@ -13,6 +13,6 @@ export function pushReport(projectDir: string, _args: readonly string[], runner:
   const git = gitAt(projectDir, runner);
   const synced = syncBeforePush(git, branch, "push");
   if (synced.stop) return synced.lines.join("\n");
-  const pushed = pushResult(pushBranch(git, branch));
+  const pushed = pushResult(pushBranch(git, { defaultBranch: branch }));
   return [...synced.lines, pushed.ok ? remoteLine(pushed.value, branch) : `push: ${pushed.reason}`].join("\n");
 }

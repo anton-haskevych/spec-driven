@@ -16,6 +16,6 @@ export function pushAfterTake(projectDir: string, runner: Runner, line: string):
 function pushClaimedBranch(git: Git, base: string | undefined): string | undefined {
   const branch = git.out(["symbolic-ref", "--short", "-q", "HEAD"]);
   if (!base || !branch.ok || !branch.value || branch.value === base) return undefined;
-  const pushed = pushBranch(git, base, SAVE);
+  const pushed = pushBranch(git, { defaultBranch: base }, SAVE);
   return pushed.kind === "pushed" ? undefined : `claim: ${branch.value} is not on origin yet (${pushed.reason})`;
 }

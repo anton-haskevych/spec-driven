@@ -17,7 +17,7 @@ export function publishDocsReport(projectDir: string, args: readonly string[], r
   const git = gitAt(projectDir, runner);
   const synced = syncBeforePush(git, branch, "publish-docs");
   if (synced.stop) return synced.lines.join("\n");
-  const pushed = pushResult(pushBranch(git, branch));
+  const pushed = pushResult(pushBranch(git, { defaultBranch: branch }));
   if (!pushed.ok) return [...synced.lines, `publish-docs: ${pushed.reason}`].join("\n");
   if (pushed.value.branch === branch) return [...synced.lines, remoteLine(pushed.value, branch), `publish-docs: on ${branch} — the push published the docs`].join("\n");
 
@@ -25,7 +25,7 @@ export function publishDocsReport(projectDir: string, args: readonly string[], r
   if (!published.ok) return `${remoteLine(pushed.value, branch)}\npublish-docs: ${published.reason}`;
   if (published.value.kind === "nothing") return [remoteLine(pushed.value, branch), ...publishLines(published.value, branch)].join("\n");
 
-  const snapshotPushed = pushResult(pushBranch(git, branch));
+  const snapshotPushed = pushResult(pushBranch(git, { defaultBranch: branch }));
   const commits = pushed.value.commits + (snapshotPushed.ok ? snapshotPushed.value.commits : 0);
   return [
     remoteLine({ ...pushed.value, commits }, branch, published.value.sha),
