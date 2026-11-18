@@ -5,6 +5,7 @@ import { publishDocs } from "../publish/publish";
 import { pushBranch, pushResult } from "../publish/push";
 import { publishLines, remoteLine } from "../publish/render";
 import { NO_DEFAULT_BRANCH } from "./push";
+import { laneRefusal } from "../pr/load-layout";
 import { syncBeforePush } from "./sync-main";
 
 export const PUBLISH_DOCS_USAGE = "publish-docs [<spec-name>]";
@@ -13,6 +14,8 @@ export function publishDocsReport(projectDir: string, args: readonly string[], r
   if (loadSettings(projectDir).docs !== "main") return "publish-docs: docs: branch — spec docs ride the feature PR; use spec.ts push";
   const branch = defaultBranch(projectDir, runner);
   if (!branch) return `publish-docs: ${NO_DEFAULT_BRANCH}`;
+  const lane = laneRefusal(projectDir, runner, "publish-docs");
+  if (lane) return lane;
 
   const git = gitAt(projectDir, runner);
   const synced = syncBeforePush(git, branch, "publish-docs");
