@@ -12,6 +12,8 @@ import { freshTreeNotes, placeForLaunch, type PlaceFn } from "../../launch/place
 import { renderPlacement } from "../trees";
 import { renderBrief, type BriefRequest } from "../../crew/brief";
 import { loadSettings } from "../../playbook/settings";
+import { laneSpecBranch } from "../../pr/groups";
+import { loadSpecLayout } from "../../pr/load-layout";
 import type { CrewDeps, RunFileStore } from "../../crew/deps";
 import { MACHINE_WORKERS, machineFree, machineWorkers } from "../../crew/machine";
 import { parseRunFile, withLaunched, withLog, type LaunchedEntry } from "../../crew/run-state";
@@ -56,9 +58,10 @@ export async function launchCrewSession(request: CrewLaunchRequest, store: RunFi
 
   const target = request.subCommand === "babysit" ? { group: request.target } : { phase: normalizePhaseHint(request.target) };
   const ship: BriefRequest["ship"] = request.hold ? { mode: "hold-for-review", from: "spec" } : shipOf(tree, request.spec, deps);
+  const specBranch = request.subCommand === "execute" ? laneOfLaunch(tree, request.spec, placed.value.branch, deps) : undefined;
   const brief = briefPath(store.path, request);
   mkdirSync(dirname(brief), { recursive: true });
-  writeFileSync(brief, renderBrief({ overseer, spec: request.spec, target, tree, ...(ship ? { ship } : {}), notes: [...request.notes, ...freshTreeNotes(placement)] }));
+  writeFileSync(brief, renderBrief({ overseer, spec: request.spec, target, tree, ...(ship ? { ship } : {}), ...(specBranch ? { specBranch } : {}), notes: [...request.notes, ...freshTreeNotes(placement)] }));
 
   const session = launchInBackground(inTree.value, brief, [], deps.runner);
   const text = [placement, launchedLine(session, inTree.value.title)].join("\n");
@@ -81,6 +84,12 @@ function machineRefusal(request: CrewLaunchRequest, deps: CrewDeps): string | un
 
 function machineFullLine(busy: number): string {
   return `launch: ${busy} of ${MACHINE_WORKERS} machine workers busy; nothing launched`;
+}
+
+// The record as the overseer's tick last fetched it: a lane worker's brief names its spec branch.
+function laneOfLaunch(tree: string, spec: string, branch: string, deps: CrewDeps): string | undefined {
+  const layout = existsSync(tree) ? loadSpecLayout(tree, deps.runner, spec, { fetch: false, now: deps.now() }) : undefined;
+  return layout && laneSpecBranch(layout, branch);
 }
 
 function briefPath(runPath: string, request: CrewLaunchRequest): string {

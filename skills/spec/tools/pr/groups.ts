@@ -104,6 +104,11 @@ export function laneOf(layout: SpecLayout, branch: string): string | undefined {
   return [...layout.groups].find(([, group]) => group.branch === branch && group.base.kind === "spec-branch")?.[0];
 }
 
+// The spec branch a lane merges back into; undefined for a ship-alone group, a branch that isn't a lane, or no mode.
+export function laneSpecBranch(layout: SpecLayout, branch: string): string | undefined {
+  return laneOf(layout, branch) === undefined ? undefined : branchOf(layout, DEFAULT_PR_GROUP);
+}
+
 // The branch a group's new tree is cut from: feat/<spec> for a lane and for the final PR itself (whose tree only ever
 // takes over origin/feat/<spec>), else the default branch.
 export function baseBranchOf(layout: SpecLayout | undefined, group: string | undefined, defaultBranch: string): string {

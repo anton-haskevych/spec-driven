@@ -1,9 +1,8 @@
 import type { Git } from "../core/git";
 import type { LaunchTitle } from "../launch/title";
-import { DEFAULT_PR_GROUP } from "../plan/docs/pr-doc";
 import type { Task } from "../plan/docs/phase-doc";
 import { recordedCommit } from "../plan/docs/task-evidence";
-import { branchOf, laneOf, type SpecLayout } from "../pr/groups";
+import { laneSpecBranch, type SpecLayout } from "../pr/groups";
 import { findCrewLine, type CrewLine } from "./crew-line";
 
 // Spec-branch mode (crew tick): each spec's layout, and a phase's tasks as the record holds them.
@@ -28,9 +27,10 @@ export interface LaneFacts {
 
 export function laneTarget(title: LaunchTitle, branch: string, world: SpecBranchWorld): LaneTarget | undefined {
   const layout = world.layouts?.get(title.spec);
-  if (!layout || !title.phase || laneOf(layout, branch) === undefined) return undefined;
+  const specBranch = layout && laneSpecBranch(layout, branch);
+  if (!specBranch || !title.phase) return undefined;
   const recorded = recordedCommit(world.phaseTasks?.(title.spec, title.phase) ?? []);
-  return { spec: title.spec, lane: branch, specBranch: branchOf(layout, DEFAULT_PR_GROUP), ...(recorded ? { recorded } : {}) };
+  return { spec: title.spec, lane: branch, specBranch, ...(recorded ? { recorded } : {}) };
 }
 
 // Merged back means the recorded commit is in feat/<spec>, never HEAD == origin/<lane>: the docs snapshot merge
