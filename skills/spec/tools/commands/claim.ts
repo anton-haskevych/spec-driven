@@ -2,6 +2,7 @@ import { hostname } from "node:os";
 import { phaseActivity, type PhaseActivity } from "../board/activity";
 import { ago } from "../board/cells";
 import { loadBoardInputs } from "../board/load";
+import { specLayout, type SpecLayout } from "../pr/groups";
 import { claimStatus, holderName, isStale, takeRefusal, type ClaimContext } from "../claims/rules";
 import { claimsDir, loadClaims, pruneClaims, releaseClaims, takeClaim, type Claim, type TakeOutcome } from "../claims/store";
 import { claimContext } from "../claims/held";
@@ -39,6 +40,7 @@ interface ClaimWorld {
   activity: ReadonlyMap<string, PhaseActivity>;
   currentPath: string;
   ownStates?: ReadonlyMap<string, SpecState>;
+  layouts: ReadonlyMap<string, SpecLayout>;
   branch?: string;
   remote?: RemotePort;
   holder: Holder;
@@ -70,7 +72,7 @@ async function loadClaimWorld(projectDir: string, deps: ClaimDeps): Promise<Resu
   if (!worktrees.ok) return worktrees;
   const inputs = await loadBoardInputs(projectDir, { local: true }, deps);
   if (!inputs.ok) return inputs;
-  const { states, workspaces, currentPath, joinedActivity } = inputs.value;
+  const { states, nodes, workspaces, currentPath, joinedActivity } = inputs.value;
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
   return {
     ok: true,
@@ -80,6 +82,7 @@ async function loadClaimWorld(projectDir: string, deps: ClaimDeps): Promise<Resu
       activity: phaseActivity(states, workspaces, joinedActivity),
       currentPath,
       ownStates: workspaces.find((workspace) => workspace.path === currentPath)?.states,
+      layouts: new Map([...states].map(([name, state]) => [name, specLayout(state, nodes.get(name)?.specBranch)])),
       branch: worktrees.value.find((worktree) => worktree.path === currentPath)?.branch,
       ...remoteOf(git, deps.host),
       now: deps.now,
@@ -117,7 +120,7 @@ function take(world: ClaimWorld, spec: string, phase: string, sessionId: string 
 
 // A missing phase always refuses; work in progress elsewhere refuses unless the user said to take it over.
 function phaseRefusal(world: ClaimWorld, spec: string, phase: string, takeOver: boolean): string | undefined {
-  const view = { activity: world.activity, currentPath: world.currentPath, baseState: world.context.baseStates.get(spec), ownState: world.ownStates?.get(spec) };
+  const view = { activity: world.activity, currentPath: world.currentPath, baseState: world.context.baseStates.get(spec), ownState: world.ownStates?.get(spec), layout: world.layouts.get(spec) };
   const missing = takeRefusal(spec, phase, { ...view, activity: new Map() });
   if (missing) return `claim refused: ${missing}`;
   const busy = takeOver ? undefined : takeRefusal(spec, phase, view);

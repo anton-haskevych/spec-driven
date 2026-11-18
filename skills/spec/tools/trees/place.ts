@@ -4,7 +4,7 @@ import { prClaimGroup } from "../claims/pr-claim";
 import type { HeldClaim } from "../claims/rules";
 import type { Result } from "../core/result";
 import { DEFAULT_PR_GROUP, prTreeName } from "../plan/docs/pr-doc";
-import { baseBranchOf, type SpecLayout } from "../pr/groups";
+import { baseBranchOf, isFinalPrGroup, type SpecLayout } from "../pr/groups";
 import { INVALID_OWNER, isOffered } from "../core/people";
 import type { SpecState } from "../core/spec-state";
 import type { Env } from "../core/env";
@@ -71,7 +71,7 @@ export async function placeTree(request: PlaceRequest, deps: PlacementDeps): Pro
   const group = groupPhases(views, spec, phase, layout);
   if (!group.ok) return group;
   const name = prTreeName(spec, group.value.prGroup ?? DEFAULT_PR_GROUP);
-  const existingOnly = request.existingOnly && !isFinalPr(layout, group.value.prGroup);
+  const existingOnly = request.existingOnly && !isFinalPrGroup(layout, group.value.prGroup);
   const found = findTree(name, group.value, world.value);
   const refused = request.onlyFor === undefined ? undefined : ownerRefusal(spec, world.value.owner, request.onlyFor, found && { branch: found.branch ?? name.branch, path: found.path });
   if (refused) return { ok: false, reason: refused };
@@ -89,10 +89,6 @@ function ownerRefusal(spec: string, owner: string | undefined, onlyFor: string, 
   const whose = malformed ? `${spec}'s owner: is malformed` : `${spec} is ${owner}'s`;
   const refusal = `${whose}; this crew is ${onlyFor}'s. Open it in your own session instead`;
   return tree ? `${refusal}; its work so far is on ${tree.branch} in ${tree.path}. Push it or hand it to ${malformed ? "its owner" : owner}` : refusal;
-}
-
-function isFinalPr(layout: SpecLayout | undefined, group: string | undefined): boolean {
-  return layout?.finalPr !== undefined && group?.toLowerCase() === DEFAULT_PR_GROUP;
 }
 
 function groupPhases(views: readonly SpecState[], spec: string, phase: string, layout: SpecLayout | undefined): Result<GroupPhases & { prGroup?: string }> {

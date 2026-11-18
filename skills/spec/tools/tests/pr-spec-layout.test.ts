@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { PhaseState, SpecState } from "../core/spec-state";
-import { baseBranchOf, branchOf, groupBranch, laneOf, pickGroup, specLayout } from "../pr/groups";
+import { baseBranchOf, branchOf, groupBranch, isFinalPrGroup, laneOf, pickGroup, specLayout } from "../pr/groups";
 import { prTreeName } from "../plan/docs/pr-doc";
 import { phaseEdges, phaseState } from "./factories";
 
@@ -97,6 +97,11 @@ describe("laneOf", () => {
 describe("the final PR's group", () => {
   const phases = [grouped("1", "A"), grouped("2", "B", { done: true }), grouped("3", "D")];
   const on = specLayout(spec(phases), { cutFrom: "abc", shipAlone: ["D"] });
+
+  test("isFinalPrGroup: default, any case, in spec-branch mode only", () => {
+    expect([isFinalPrGroup(on, "default"), isFinalPrGroup(on, "Default"), isFinalPrGroup(on, "A"), isFinalPrGroup(on, undefined)]).toEqual([true, true, false, false]);
+    expect(isFinalPrGroup(specLayout(spec(phases)), "default")).toBe(false);
+  });
 
   test("its tree is cut from feat/<spec> itself, so a missing origin branch refuses instead of cutting from main", () => {
     expect(baseBranchOf(on, "default", "main")).toBe("feat/x");

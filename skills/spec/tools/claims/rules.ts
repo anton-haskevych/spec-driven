@@ -2,6 +2,7 @@ import type { PhaseActivity } from "../board/activity";
 import { rowKey } from "../board/phase-keys";
 import type { Result } from "../core/result";
 import type { SpecState } from "../core/spec-state";
+import { isFinalPrGroup, type SpecLayout } from "../pr/groups";
 import { sessionLabel } from "../sessions/label";
 import type { LiveSession } from "../sessions/live";
 import { prClaimGroup } from "./pr-claim";
@@ -30,6 +31,7 @@ export interface TakeView {
   ownState?: SpecState;
   activity: ReadonlyMap<string, PhaseActivity>;
   currentPath: string;
+  layout?: SpecLayout;
 }
 
 // Unknown comes first: if session files can't be read, no claim may look abandoned.
@@ -49,7 +51,7 @@ export function takeRefusal(spec: string, phase: string, view: TakeView): string
   const states = [view.baseState, view.ownState].filter((state) => state !== undefined);
   if (states.length === 0) return `no spec named ${spec}`;
   const group = prClaimGroup(phase);
-  if (group !== undefined) return states.some((state) => state.phases.some((candidate) => candidate.edges.pr === group)) ? undefined : `PR group ${group} is not in ${spec}`;
+  if (group !== undefined) return isFinalPrGroup(view.layout, group) || states.some((state) => state.phases.some((candidate) => candidate.edges.pr === group)) ? undefined : `PR group ${group} is not in ${spec}`;
   if (!states.some((state) => state.phases.some((candidate) => candidate.id === phase))) return `phase ${phase} is not in ${spec}`;
   const activity = view.activity.get(rowKey({ spec, phase }));
   const elsewhere = [...(activity?.wipIn ?? []), ...(activity?.tickedIn ?? [])].find((path) => path !== view.currentPath);
