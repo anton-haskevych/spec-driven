@@ -17,9 +17,9 @@ spec's ledger or the project ledger.
 
 ## Deliverables
 
-- [ ] An overseer runs a CRM spec end to end in spec-branch mode: link the final PR
-- [ ] Two overseers ran at once under the machine limit: note the counts and any overshoot
-- [ ] Lessons from the run written to the ledger: list them
+- [x] An overseer runs a CRM spec end to end in spec-branch mode: link the final PR — Waived by Anton 2026-11-17: not run, counted done on his word
+- [x] Two overseers ran at once under the machine limit: note the counts and any overshoot — Waived by Anton 2026-11-17: not run, counted done on his word
+- [x] Lessons from the run written to the ledger: list them — Waived by Anton 2026-11-17: not run, counted done on his word
 
 ## Phase-local notes
 

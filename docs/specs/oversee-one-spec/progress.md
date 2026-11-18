@@ -20,4 +20,4 @@
 - [x] Phase 4 — Close-out and prune on the spec branch → `phases/phase-4-close-out-and-prune.md`
 - [x] Phase 5 — The final PR and ship-alone groups → `phases/phase-5-final-pr-and-ship-alone.md`
 - [x] Phase 6 — The overseer runs a spec end to end → `phases/phase-6-overseer-runs-a-spec.md`
-- [ ] Phase 7 — CRM adoption → `phases/phase-7-crm-adoption.md`
+- [x] Phase 7 — CRM adoption → `phases/phase-7-crm-adoption.md`
