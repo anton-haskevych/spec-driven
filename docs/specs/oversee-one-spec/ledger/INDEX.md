@@ -6,6 +6,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 ## Gotchas
 - `docs/specs/_ledger/gotcha-snapshot-on-branch-not-on-main-becomes-the-base.md` — [general] — a snapshot on the branch but not on main becomes the publish base
 - `docs/specs/_ledger/gotcha-a-registered-plan-runner-is-queueable.md` — [general] — a registered plan runner is queueable; never-queued writes use writeRecord
+- `docs/specs/_ledger/gotcha-trees-place-reads-pr-group-from-base.md` — [general] — trees place reads pr: from main; a branch-only regroup is ignored
 
 ## Principles
 - `principle-one-spec-layout.md` — [phase 2+, load-bearing] — one pure specLayout + branchOf; never infer mode or bases

@@ -2,7 +2,7 @@
 kind: gotcha
 paths: [skills/spec/tools/trees/**, skills/spec/tools/launch/**]
 created: 2026-10-07T20:04:38-07:00
-seen-in: [active-work-view]
+seen-in: [active-work-view, oversee-one-spec]
 ---
 
 # `trees place` reads a phase's `pr:` from origin/<default>: a regroup only on a branch is ignored
