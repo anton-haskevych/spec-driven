@@ -17,6 +17,7 @@ export function crewDepsOn(runner: Runner, overrides: CrewDepsOverrides = {}): C
     env: {},
     now: () => CREW_NOW,
     liveSessions: () => ({ ok: true, value: sessions }),
+    agents: () => ({ ok: true, value: [] }),
     ...rest,
   };
 }

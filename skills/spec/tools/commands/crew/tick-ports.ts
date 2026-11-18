@@ -5,7 +5,6 @@ import { closeOut } from "../../crew/close-out-run";
 import type { CrewDeps, RunFileStore } from "../../crew/deps";
 import { questionRows } from "../../questions/list";
 import { recordViewOf } from "../../record/read";
-import { loadAgents } from "../../sessions/agents";
 import type { LiveSession } from "../../sessions/live";
 import { ownSessionId } from "../../sessions/own";
 import { placeTree } from "../../trees/place";
@@ -25,7 +24,7 @@ export function systemTickPorts(projectDir: string, store: RunFileStore, deps: C
       const questions = view ? questionRows(view) : [];
       return { ok: true, value: { sessions, claims: inputs.value.claims, ready: buildBoard(inputs.value, deps.now()).lanes.ready, states: inputs.value.states, questions } };
     },
-    agents: () => loadAgents(deps.runner),
+    agents: () => deps.agents(),
     closeOut: (entry, agents, claims) => closeOut(entry, { agents, claims, claudeHome: deps.claudeHome, runner: deps.runner }),
     stop(id) {
       deps.runner.run(["claude", "stop", id]);

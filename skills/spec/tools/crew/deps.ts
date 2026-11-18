@@ -5,6 +5,7 @@ import { readTextIfExists } from "../core/files";
 import { gitAt, stateDir } from "../core/git";
 import type { Result } from "../core/result";
 import { systemAsyncRunner, systemRunner, type AsyncRunner, type Runner } from "../core/run";
+import { loadAgents, type Agent } from "../sessions/agents";
 import { defaultClaudeHome, loadLiveSessions, type LiveSession } from "../sessions/live";
 import { psProcStarts } from "../sessions/proc-starts";
 
@@ -15,6 +16,8 @@ export interface CrewDeps {
   env: Env;
   now: () => Date;
   liveSessions: () => Result<LiveSession[]>;
+  // `claude agents --json --all`: every background session on this machine, in any repo.
+  agents: () => Result<Agent[]>;
 }
 
 export function systemCrewDeps(): CrewDeps {
@@ -26,6 +29,7 @@ export function systemCrewDeps(): CrewDeps {
     env: process.env,
     now: () => new Date(),
     liveSessions: () => loadLiveSessions(claudeHome, psProcStarts(systemRunner)),
+    agents: () => loadAgents(systemRunner),
   };
 }
 

@@ -7,6 +7,7 @@ import type { CloseOut } from "../../crew/close-out";
 import { claimFor, isClaimLive } from "../../crew/close-out-run";
 import { runFileStore, systemCrewDeps, type CrewDeps } from "../../crew/deps";
 import { overseerLine, whoseRun } from "../../crew/overseer";
+import { MACHINE_WORKERS, machineFree, machineWorkers } from "../../crew/machine";
 import { pickRows } from "../../crew/pick";
 import { parseRunFile, withLaunched, withLog, withOverseer, type LaunchedEntry, type RunFile } from "../../crew/run-state";
 import { actionLines, afterCloseOut, nextAction } from "../../crew/tick-step";
@@ -73,7 +74,7 @@ export async function crewTick(projectDir: string, args: readonly string[], deps
   const held = args.includes("--no-launch") || run.state === "stood-down" ? "pausing" : runner === undefined ? "no runner" : undefined;
   if (held === "no runner") report.forYou.push(NO_RUNNER);
   if (held) report.forYou.push(...passed.relaunches.map((relaunch) => `Relaunch held (${held}): ${relaunch.spec} ${relaunch.phase}`));
-  const launched = held || runner === undefined ? 0 : await fillSlots({ remaining, agents: agents.value, relaunches: passed.relaunches, world: world.value, run: { ...run, runner }, ports, report });
+  const launched = held || runner === undefined ? 0 : await fillSlots({ remaining, agents: agents.value, machineBusy: machineWorkers(agents.value), relaunches: passed.relaunches, world: world.value, run: { ...run, runner }, ports, report });
   const questions = world.value.questions ?? [];
   const asked = questions.map((row) => `Question: ${questionLine(row)} · answer: question answer ${row.spec} ${row.id} "<their words>"`);
   const open = questions.length === 0 ? "" : ` · ${questions.length} ${questions.length === 1 ? "question" : "questions"} open`;
@@ -112,6 +113,8 @@ function closeOutLaunched(launched: readonly LaunchedEntry[], agents: readonly A
 interface FillContext {
   remaining: readonly LaunchedEntry[];
   agents: readonly Agent[];
+  // Execute workers on the whole machine, any repo: new picks stop at MACHINE_WORKERS, relaunches don't.
+  machineBusy: number;
   relaunches: ReadonlyArray<{ spec: string; phase: string }>;
   world: TickWorld;
   run: RunFile & { runner: string };
@@ -119,7 +122,7 @@ interface FillContext {
   report: Report;
 }
 
-async function fillSlots({ remaining, agents, relaunches, world, run, ports, report }: FillContext): Promise<number> {
+async function fillSlots({ remaining, agents, machineBusy, relaunches, world, run, ports, report }: FillContext): Promise<number> {
   const workers = remaining.flatMap((entry) => {
     const title = parseLaunchTitle(entry.title);
     return title?.sub === "execute" ? [{ entry, spec: title.spec }] : [];
@@ -127,18 +130,24 @@ async function fillSlots({ remaining, agents, relaunches, world, run, ports, rep
   const occupied = workers.filter(({ entry }) => agents.some((agent) => agent.id === entry.id && agent.state !== "stopped")).length;
   let slots = run.caps.workers - occupied;
   const busy = new Set([...workers.map((worker) => worker.spec), ...relaunches.map((relaunch) => relaunch.spec)]);
-  const picks = [...relaunches, ...pickRows({ ready: world.ready, states: world.states, busy, unanswered: run.unanswered, slots: Math.max(0, slots - relaunches.length), me: run.runner })];
+  const wanted = pickRows({ ready: world.ready, states: world.states, busy, unanswered: run.unanswered, slots: Math.max(0, slots - relaunches.length), me: run.runner });
+  const fresh = wanted.slice(0, machineFree(machineBusy + relaunches.length));
+  if (fresh.length < wanted.length) report.done.push(`Machine full: ${machineBusy} of ${MACHINE_WORKERS}`);
+  const picks = [...relaunches.map((relaunch) => ({ ...relaunch, relaunch: true as const })), ...fresh];
   let launched = 0;
+  let machine = machineBusy;
   for (const pick of picks) {
     if (slots <= 0) {
       report.forYou.push(`Relaunch waits for a slot: ${pick.spec} ${pick.phase}`);
       continue;
     }
-    const result = await ports.launch({ subCommand: "execute", spec: pick.spec, target: pick.phase, hold: false, notes: [] });
+    const counted = "relaunch" in pick ? { relaunch: true as const } : { machineBusy: machine };
+    const result = await ports.launch({ subCommand: "execute", spec: pick.spec, target: pick.phase, hold: false, notes: [], ...counted });
     const last = result.text.split("\n").at(-1) ?? result.text;
     if (result.launched) {
       launched += 1;
       slots -= 1;
+      machine += 1;
       report.done.push(last);
     } else report.forYou.push(`${pick.spec} ${pick.phase} not launched: ${last}`);
   }
