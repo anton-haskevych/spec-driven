@@ -56,7 +56,7 @@ snapshot on the branch but not on main becomes `snapshotBase` and the next publi
 
 ## Deliverables
 
-- [ ] Refactor: `addTree(…, base, …)`; real-git case cutting from a non-default origin branch
+- [x] Refactor: `addTree(…, base, …)`; real-git case cutting from a non-default origin branch
 - [ ] `crew start --spec` turns the mode on through `crew/spec-branch-start.ts`: a pure refusal (off the record; an open code phase without `pr:`; a ship-alone group needing another group; a numbered `default` PR doc; `feat/<spec>` or `feat/<spec>-pr-*` on origin, as a local branch or tree), one `specBranchPlan` record write (`specBranch: { cutFrom, shipAlone }` + the `default` PR doc, never queued), then the create-only cut of `cutFrom`; mode already on → takeover: checks skipped, cut only if missing; `phase set` refuses changing a cut group's ship-alone membership; placement cuts each group from `branchOf`/its layout base
 - [ ] `merge-back <spec>`: lane check against the plan at base, fetch, merge `feat/<spec>` then the default branch (or "already holds"), prints the `spec.ts gates --name` lines to run, a conflict left in progress with paths and "then merge-back <spec> again"
 - [ ] `merge-back <spec> --push`: refuses unless HEAD holds the fetched `origin/feat/<spec>` tip; lane pushed; `leasePush` to `feat/<spec>` expecting that tip, a refusal mapped to "moved"; then, only with `docs: main`, `publishDocs` unchanged (the snapshot reaches `feat/<spec>` through main at the next merge-back; no off-checkout snapshot push); `publishDocs`' `mergeBack` field renamed `snapshotMerged`
