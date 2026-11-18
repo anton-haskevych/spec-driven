@@ -15,7 +15,7 @@ Warm cache for forward-propagating learnings. One row per ledger entry with its
 
 ## Decisions
 - `decision-spec-branch-needs-the-record.md` — [general, load-bearing] — spec-branch mode only for record-joined specs (unanswered)
-- `decision-lanes-ship-with-the-spec-branch.md` — [phase 1, phase 3] — parallel lanes + feat/<spec> cut move to phase 3 (unanswered)
+- `decision-lanes-ship-with-the-spec-branch.md` — [phase 1, phase 3] — phase 1 ships with phase 3 in PR C; lanes switch on with phase 3
 - `decision-final-pr-holds-by-default.md` — [phase 5, phase 6] — no ship:/pr.ship → hold-for-review (unanswered)
 - `decision-main-reaches-the-spec-branch-through-lanes.md` — [phase 3+] — lanes merge main, gated; no --main
 - `decision-spec-branch-mode-starts-and-ends-in-one-record-write.md` — [phase 3, phase 5, load-bearing] — specBranchPlan on; prSyncPlan off

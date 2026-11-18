@@ -4,9 +4,9 @@
 
 Spec written 2026-11-17 from prep (waves 1–2 + craft) and a persona council on the 8 open decisions.
 6 code phases + 1 task phase (CRM adoption, no PR here).
-Split: **PR A: phase 1** · **B: phase 2** · **C: phases 3, 4** · **D: phases 5, 6**. One minor version each,
+Split: **B: phase 2** · **C: phases 1, 3, 4** · **D: phases 5, 6** (phase 1 moved from PR A to C on 2026-11-17). One minor version each,
 picked at merge (main's minor + 1). Phases 1 and 2 start in parallel; 3 after 2 (it reads `specLayout`); 4 and 5 after 3; 6 last.
-PR A alone keeps one worker per spec; parallel lanes switch on with PR C (`decision-lanes-ship-with-the-spec-branch`).
+Phase 1 keeps one worker per spec; parallel lanes switch on with Phase 3 in the same PR C (`decision-lanes-ship-with-the-spec-branch`).
 PR #50 merged 2026-11-17 as 2b5573e (squash).
 
 ## Pre-PR checks
