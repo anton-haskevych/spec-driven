@@ -6,23 +6,30 @@ import { isoTimestamp } from "../../core/schedule";
 import { runFileStore, systemCrewDeps, type CrewDeps } from "../../crew/deps";
 import { overseerLine, whoseRun, type OverseerVerdict } from "../../crew/overseer";
 import { newRunFile, parseRunFile, withOverseer, withRunner, type Caps } from "../../crew/run-state";
+import { parseLaunchTitle } from "../../launch/title";
 import { loadSettings } from "../../playbook/settings";
 import { ownSessionId } from "../../sessions/own";
 
-export const CREW_OVERSEER_USAGE = "crew overseer";
-export const CREW_START_USAGE = "crew start [--workers <n>] [--babysitters <n>]";
+export const CREW_OVERSEER_USAGE = "crew overseer [--spec <spec>]";
+export const CREW_START_USAGE = "crew start [--spec <spec>] [--workers <n>] [--babysitters <n>]";
 
-export function crewOverseer(projectDir: string, _args: readonly string[], deps: CrewDeps = systemCrewDeps()): string {
-  const verdict = runVerdict(projectDir, deps);
+export function crewOverseer(projectDir: string, args: readonly string[], deps: CrewDeps = systemCrewDeps()): string {
+  const flags = parseFlags(args, {});
+  if (!flags) return `usage: ${CREW_OVERSEER_USAGE}`;
+  const verdict = runVerdict(projectDir, deps, flags.spec);
   return verdict.ok ? overseerLine(verdict.value) : `crew overseer: ${verdict.reason}`;
 }
 
 export function crewStart(projectDir: string, args: readonly string[], deps: CrewDeps = systemCrewDeps()): string {
-  const caps = parseCaps(args);
-  if (!caps.ok) return caps.reason;
-  const store = runFileStore(projectDir, deps.runner);
+  const flags = parseFlags(args, { workers: { type: "string" }, babysitters: { type: "string" } });
+  const caps = flags ? parseCaps(flags.values) : undefined;
+  if (!flags || !caps) return `usage: ${CREW_START_USAGE}`;
+  const { spec } = flags;
+  const store = runFileStore(projectDir, deps.runner, spec);
   if (!store.ok) return `crew start: ${store.reason}`;
-  const verdict = runVerdict(projectDir, deps);
+  const boardHolds = spec === undefined ? undefined : boardCrewOn(projectDir, deps, spec);
+  if (boardHolds) return boardHolds;
+  const verdict = runVerdict(projectDir, deps, spec);
   if (!verdict.ok) return `crew start: ${verdict.reason}`;
   if (verdict.value.kind === "other") return `crew start: ${overseerLine(verdict.value).replace("Overseer: ", "")}`;
   const own = ownSessionId(deps.env);
@@ -35,8 +42,8 @@ export function crewStart(projectDir: string, args: readonly string[], deps: Cre
   const previous = existing === undefined ? undefined : parseRunFile(existing).runner;
   const text =
     existing === undefined
-      ? newRunFile({ overseer: own, runner: runner.value, started: isoTimestamp(deps.now()), caps: { ...settingsCaps(projectDir), ...caps.value }, ...cliVersion(deps) })
-      : merged(withRunner(existing, runner.value), own, caps.value);
+      ? newRunFile({ ...(spec ? { spec } : {}), overseer: own, runner: runner.value, started: isoTimestamp(deps.now()), caps: { ...settingsCaps(projectDir), ...caps }, ...cliVersion(deps) })
+      : merged(withRunner(existing, runner.value), own, caps);
   store.value.write(text);
   const run = parseRunFile(text);
   const was = previous !== undefined && previous !== runner.value ? ` (was ${previous})` : "";
@@ -49,8 +56,16 @@ function settingsCaps(projectDir: string): Caps {
   return { workers, babysitters };
 }
 
-function runVerdict(projectDir: string, deps: CrewDeps): Result<OverseerVerdict> {
-  const store = runFileStore(projectDir, deps.runner);
+// A worker the board crew launched on the spec, live or not: a dead one would be relaunched under both crews.
+function boardCrewOn(projectDir: string, deps: CrewDeps, spec: string): string | undefined {
+  const board = runFileStore(projectDir, deps.runner);
+  const text = board.ok ? board.value.read() : undefined;
+  const held = text === undefined ? [] : parseRunFile(text).launched.filter((entry) => parseLaunchTitle(entry.title)?.spec === spec);
+  return held.length === 0 ? undefined : `crew start: the board crew has ${held.map((entry) => `${entry.title} · ${entry.id}`).join(", ")} on ${spec}; pause it first`;
+}
+
+function runVerdict(projectDir: string, deps: CrewDeps, spec: string | undefined): Result<OverseerVerdict> {
+  const store = runFileStore(projectDir, deps.runner, spec);
   if (!store.ok) return store;
   const text = store.value.read();
   const recorded = text === undefined ? undefined : parseRunFile(text).overseer;
@@ -78,20 +93,25 @@ function cliVersion(deps: CrewDeps): { cli?: string } {
   return version ? { cli: version } : {};
 }
 
-function parseCaps(args: readonly string[]): Result<Partial<Caps>> {
-  const usage = { ok: false as const, reason: `usage: ${CREW_START_USAGE}` };
-  let values;
+type FlagOptions = Record<string, { type: "string" }>;
+
+function parseFlags(args: readonly string[], options: FlagOptions): { spec?: string; values: Record<string, string | undefined> } | undefined {
   try {
-    values = parseArgs({ args: [...args], options: { workers: { type: "string" }, babysitters: { type: "string" } }, strict: true }).values;
+    const { values } = parseArgs({ args: [...args], options: { spec: { type: "string" }, ...options }, strict: true });
+    const { spec, ...rest } = values as Record<string, string | undefined>;
+    return { ...(spec ? { spec } : {}), values: rest };
   } catch {
-    return usage;
+    return undefined;
   }
+}
+
+function parseCaps(values: Record<string, string | undefined>): Partial<Caps> | undefined {
   const caps: Partial<Caps> = {};
   for (const key of ["workers", "babysitters"] as const) {
     const raw = values[key];
     if (raw === undefined) continue;
-    if (!/^\d+$/.test(raw)) return usage;
+    if (!/^\d+$/.test(raw)) return undefined;
     caps[key] = Number(raw);
   }
-  return { ok: true, value: caps };
+  return caps;
 }
