@@ -46,7 +46,7 @@ function tickGate(world: RecordWorld, joined: JoinedPlan, base: TickBase, task: 
 
 async function saveThenSend(world: RecordWorld, base: TickBase, note: string | undefined): Promise<PhaseOutcome> {
   if (!world.defaultBranch) return { kind: "refused", reason: "Can't tell the default branch (no origin/HEAD, no gh), so the branch wasn't pushed." };
-  const pushed = pushBranch(world.git, world.defaultBranch, SAVE);
+  const pushed = pushBranch(world.git, { defaultBranch: world.defaultBranch }, SAVE);
   if (pushed.kind === "refused") return { kind: "refused", reason: `Couldn't push: ${pushed.reason}. Push it, then tick again.` };
   if (pushed.kind === "rejected") return { kind: "refused", reason: `Couldn't push ${pushed.branch}: ${pushed.reason}. Push it, then tick again.` };
   const head = world.git.out(["rev-parse", "HEAD"]);

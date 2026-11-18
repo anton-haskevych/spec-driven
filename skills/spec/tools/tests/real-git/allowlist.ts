@@ -57,6 +57,7 @@ export const REAL_GIT_FILES: Record<string, string> = {
   "record-ref.git.test.ts": "record port and read-port contracts on gitRecordPort; blobs in one hash-object call, ref is not a branch",
   "record-tick-offline.git.test.ts": "moves to fakes in phase 6",
   "record-tick.git.test.ts": "moves to fakes in phase 6, keeping the Nov 11 two-machine lease race",
+  "publish-merge-back.git.test.ts": "merge-back: a lane merges the spec branch and main, then lease-pushes as a fast-forward",
   "record-upgrade.git.test.ts": "moves to fakes in phase 6",
   "runtime-legacy-readers.git.test.ts": "frozen 2.51.0 readers against a real workspace (no seams to fake)",
   "session-command.git.test.ts": "moves to fakes in phase 5",
@@ -77,7 +78,7 @@ export const REAL_GIT_FILES: Record<string, string> = {
   "workspaces-scan.git.test.ts": "scanWorkspaces: the main checkout and worktrees from git worktree list",
 };
 
-export const REAL_GIT_CAP = 74;
+export const REAL_GIT_CAP = 75;
 
 export const HELPER_EXCEPTIONS: Record<string, string> = {
   "crew-deps.ts": "drops git-repo in phase 8",

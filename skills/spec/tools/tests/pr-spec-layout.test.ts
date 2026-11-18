@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { PhaseState, SpecState } from "../core/spec-state";
-import { branchOf, specLayout } from "../pr/groups";
+import { baseBranchOf, branchOf, laneOf, specLayout } from "../pr/groups";
 import { phaseEdges, phaseState } from "./factories";
 
 function spec(phases: PhaseState[]): SpecState {
@@ -62,5 +62,33 @@ describe("branchOf", () => {
     expect(branchOf(on, "default")).toBe("feat/x");
     expect(branchOf(off, "default")).toBe("feat/x");
     expect(branchOf(on, "A")).toBe("feat/x-pr-a");
+  });
+});
+
+describe("baseBranchOf", () => {
+  const phases = [grouped("1", "A"), grouped("2", "D")];
+
+  test("a lane is cut from feat/<spec>, a ship-alone group from the default branch", () => {
+    const layout = specLayout(spec(phases), { cutFrom: "abc", shipAlone: ["D"] });
+    expect([baseBranchOf(layout, "A", "main"), baseBranchOf(layout, "D", "main")]).toEqual(["feat/x", "main"]);
+  });
+
+  test("outside the mode, an unknown group or no layout, the default branch", () => {
+    expect(baseBranchOf(specLayout(spec(phases)), "A", "main")).toBe("main");
+    expect(baseBranchOf(specLayout(spec(phases), { cutFrom: "abc", shipAlone: [] }), "Z", "main")).toBe("main");
+    expect(baseBranchOf(undefined, undefined, "trunk")).toBe("trunk");
+  });
+});
+
+describe("laneOf", () => {
+  const phases = [grouped("1", "A"), grouped("2", "D")];
+
+  test("a lane's branch names its group; a ship-alone group and the spec branch are not lanes", () => {
+    const layout = specLayout(spec(phases), { cutFrom: "abc", shipAlone: ["D"] });
+    expect(["feat/x-pr-a", "feat/x-pr-d", "feat/x", "feat/x-ph-10b"].map((branch) => laneOf(layout, branch))).toEqual(["A", undefined, undefined, undefined]);
+  });
+
+  test("outside spec-branch mode nothing is a lane", () => {
+    expect(laneOf(specLayout(spec(phases)), "feat/x-pr-a")).toBeUndefined();
   });
 });

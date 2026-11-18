@@ -21,7 +21,7 @@ describe("publishLines", () => {
     snapshot: "fedcba9876",
     files: ["docs/specs/a/progress.md", "docs/specs/a/ledger/INDEX.md"],
     deleted: ["docs/specs/a/old.md"],
-    mergeBack: { ok: true as const, value: undefined },
+    snapshotMerged: { ok: true as const, value: undefined },
   };
 
   test("names what landed and what was not published", () => {
@@ -31,9 +31,9 @@ describe("publishLines", () => {
     ]);
   });
 
-  test("a failed merge-back is reported after the publish, with the command to run", () => {
-    const lines = publishLines({ ...published, deleted: [], mergeBack: { ok: false, reason: "git merge failed: x; run git merge --no-edit fedcba9876" } }, "main");
-    expect(lines[1]).toBe("merge-back failed: git merge failed: x; run git merge --no-edit fedcba9876");
+  test("a failed snapshot merge is reported after the publish, with the command to run", () => {
+    const lines = publishLines({ ...published, deleted: [], snapshotMerged: { ok: false, reason: "git merge failed: x; run git merge --no-edit fedcba9876" } }, "main");
+    expect(lines[1]).toBe("snapshot merge failed: git merge failed: x; run git merge --no-edit fedcba9876");
   });
 
   test("nothing to publish", () => {

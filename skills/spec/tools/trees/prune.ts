@@ -4,7 +4,9 @@ import { gitAt, type Git } from "../core/git";
 import { isRecord, numberField, stringField } from "../core/frontmatter";
 import type { Result } from "../core/result";
 import { defaultBranch, runAll, type AsyncRunner } from "../core/run";
+import { loadMainline } from "../mainline/load";
 import { GH_TIMEOUT_MS } from "../pr/gh-lists";
+import { specLayout } from "../pr/groups";
 import { parseJson } from "../pr/gh-records";
 import { originTip, pinDefault } from "../publish/snapshot";
 import { loadLiveSessions, type LiveSession } from "../sessions/live";
@@ -16,7 +18,8 @@ import { ownerOf } from "../workspaces/owner";
 import { treeOccupant } from "./find";
 import type { PlaceDeps } from "./place";
 import { PLACE_FETCH_TIMEOUT_MS } from "./place";
-import { pruneCandidates, type MergedHead, type PruneCandidate, type TreeFacts } from "./prune-rules";
+import { laneTreeFacts } from "./lane-facts";
+import { laneBranches, pruneCandidates, type LaneInfo, type MergedHead, type PruneCandidate, type TreeFacts } from "./prune-rules";
 import { strayFolders } from "./strays";
 
 export type PruneDeps = Omit<PlaceDeps, "home">;
@@ -47,8 +50,10 @@ export async function findPrunable(projectDir: string, deps: PruneDeps): Promise
   const merged = mergedHeads(projectDir, deps.asyncRunner);
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner), procStartDirs());
   const facts = await treeFacts(git, worktrees.value, base.value, projectDir, { sessions, deps });
+  const lanes = await laneMap(git, branch);
+  const withLanes = facts.map((tree) => withLaneFacts(git, tree, lanes, branch));
   const prs = await merged;
-  const candidates = pruneCandidates(facts, prs.ok ? prs.value : undefined, branch);
+  const candidates = pruneCandidates(withLanes, prs.ok ? prs.value : undefined, branch);
   return { ok: true, value: { candidates, strays: strayFolders(worktrees.value), ...(prs.ok ? {} : { prsUnchecked: prs.reason }), ...(sessions.ok ? {} : { sessionsUnread: sessions.reason }) } };
 }
 
@@ -87,6 +92,21 @@ async function treeFacts(git: Git, worktrees: readonly Workspace[], baseSha: str
     const busy = treeOccupant(worktree.path, view) ?? pending.get(worktree.path);
     return { worktree, inBase: results[index]?.code === 0, ...(busy ? { busy } : {}) };
   });
+}
+
+// Specs as origin/<default> and this clone's copy of the record hold them; the pin above just fetched main.
+// An unreadable spec set leaves only today's rules: a lane tree is kept, never guessed at.
+async function laneMap(git: Git, defaultBranch: string): Promise<Map<string, LaneInfo>> {
+  const mainline = await loadMainline(git, defaultBranch, { local: true, timeoutMs: PLACE_FETCH_TIMEOUT_MS, now: new Date() });
+  if (!mainline.ok) return new Map();
+  const { states, nodes, plans } = mainline.value;
+  return laneBranches(new Map([...states].map(([name, state]) => [name, specLayout(state, nodes.get(name)?.specBranch)])), plans.prs);
+}
+
+function withLaneFacts(git: Git, tree: TreeFacts, lanes: ReadonlyMap<string, LaneInfo>, defaultBranch: string): TreeFacts {
+  const { branch, head } = tree.worktree;
+  const lane = branch && !tree.inBase && !tree.busy ? lanes.get(branch) : undefined;
+  return lane && branch ? { ...tree, lane: laneTreeFacts(git, { branch, head }, lane, defaultBranch) } : tree;
 }
 
 async function mergedHeads(cwd: string, runner: AsyncRunner): Promise<Result<Map<string, MergedHead[]>>> {

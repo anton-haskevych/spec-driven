@@ -45,6 +45,16 @@ describe("joinedActivity", () => {
       expect(joinedActivity([plan(built)], trees, docs({ ...open, state: "merged" })).size).toBe(0);
     });
 
+    test("in spec-branch mode a built lane phase stays in flight without asking for its own PR; a ship-alone group still asks", () => {
+      const mode = { specBranch: { cutFrom: SHA, shipAlone: ["D"] } };
+      const alone = phaseDoc({ id: "3", pr: "D", tasks: [task({ id: "3.1", done: true, evidence: `${SHA} on origin/feat/alpha-pr-d` })] });
+      const inMode = { spec: specDoc({ name: "alpha", phases: ["2", "3"], ...mode }), phases: [built, alone] };
+      const prDocs = () => [prDoc({ group: "A", branch: "feat/alpha-pr-a" }), prDoc({ group: "D", branch: "feat/alpha-pr-d" })];
+      const activity = joinedActivity([inMode], trees, prDocs);
+      expect(activity.get("alpha#2")?.built).toEqual({ prGroup: "A", prNotOpened: false });
+      expect(activity.get("alpha#3")?.built).toEqual({ prGroup: "D", prNotOpened: true });
+    });
+
     test("finished at join (bare sha, nothing opened) is history, not in flight", () => {
       const atJoin = phaseDoc({ id: "2", pr: "A", tasks: [task({ id: "2.1", done: true, evidence: SHA })] });
       expect(joinedActivity([plan(atJoin)], trees, docs(prDoc({ group: "A", branch: "feat/alpha-pr-a" }))).size).toBe(0);

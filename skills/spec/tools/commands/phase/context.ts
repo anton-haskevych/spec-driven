@@ -4,6 +4,7 @@ import { phaseWriterFor, type PhaseDeps, type PhaseWriter } from "../../plan/pha
 import { planMemoryFor } from "../../plan/plan-version";
 import { readPlansAt, type PlanSource } from "../../plan/read-plans";
 import { OLDER_PLUGIN } from "../../record/write";
+import { overseerNoticeFor, withOverseerNotice, type OverseerOf } from "./overseer-notice";
 import type { LocalPilot } from "../../runtime/workflow-capabilities";
 
 // What every action gets: the writer for its spec, picked once from one read of the record. A record on a
@@ -21,7 +22,7 @@ export function systemPhaseDeps(): PhaseDeps {
   return { runner: systemRunner, env: process.env, now: () => new Date(), ...(memory ? { memory } : {}) };
 }
 
-export function phaseContext(projectDir: string, deps: PhaseDeps, workflow?: LocalPilot): PhaseContext {
+export function phaseContext(projectDir: string, deps: PhaseDeps, workflow?: LocalPilot, overseerOf: OverseerOf = overseerNoticeFor(projectDir, deps)): PhaseContext {
   let plans: PlanSource | undefined;
   const read = () => (plans ??= readPlansAt(projectDir, deps, deps.now()));
   return {
@@ -31,7 +32,7 @@ export function phaseContext(projectDir: string, deps: PhaseDeps, workflow?: Loc
     writerFor(specName) {
       if (read().record.kind === "newer") return OLDER_PLUGIN;
       const spec = resolveSpec(projectDir, specName);
-      return typeof spec === "string" ? spec : phaseWriterFor(projectDir, spec, read(), deps, workflow);
+      return typeof spec === "string" ? spec : withOverseerNotice(phaseWriterFor(projectDir, spec, read(), deps, workflow), spec.name, overseerOf);
     },
     isJoined: (specName) => read().isJoined(specName),
   };

@@ -41,16 +41,23 @@ export function unsavedCodePaths(git: Git): string[] {
   return status.code === 0 ? pathsOutsideSpecDocs(parsePorcelainZ(status.stdout)) : [];
 }
 
+// `base` is the branch this one was cut from (a lane's is feat/<spec>): new commits and "behind" count against it.
+// The code-on-the-default-branch guard always reads `defaultBranch`.
+export interface PushBases {
+  defaultBranch: string;
+  base?: string;
+}
+
 // An explicit refspec: a bare `git push` from a worktree branch created off origin/main pushes to main.
-export function pushBranch(git: Git, defaultBranch: string, options: PushOptions = {}): BranchPush {
+export function pushBranch(git: Git, { defaultBranch, base = defaultBranch }: PushBases, options: PushOptions = {}): BranchPush {
   const branch = git.out(["symbolic-ref", "--short", "-q", "HEAD"]);
   if (!branch.ok || !branch.value) return { kind: "refused", reason: "detached HEAD — check out a branch before pushing" };
-  git.run(["fetch", "-q", "origin", defaultBranch], options.network);
+  git.run(["fetch", "-q", "origin", base], options.network);
 
-  const remoteDefault = `refs/remotes/origin/${defaultBranch}`;
+  const remoteBase = `refs/remotes/origin/${base}`;
   const remoteBranch = `refs/remotes/origin/${branch.value}`;
   const pushedBefore = git.run(["rev-parse", "--verify", "-q", remoteBranch]).code === 0;
-  const unpushed = `${pushedBefore ? remoteBranch : remoteDefault}..HEAD`;
+  const unpushed = `${pushedBefore ? remoteBranch : remoteBase}..HEAD`;
   if (branch.value === defaultBranch) {
     const refusal = codeOnDefaultBranch(git, defaultBranch, unpushed);
     if (refusal) return { kind: "refused", reason: refusal };
@@ -62,7 +69,7 @@ export function pushBranch(git: Git, defaultBranch: string, options: PushOptions
   const flags = [...(setUpstream ? ["-u"] : []), ...(options.verify === false ? ["--no-verify"] : [])];
   const ref = `refs/heads/${branch.value}`;
   const result = git.run(["push", "--porcelain", ...flags, "origin", `HEAD:${ref}`], options.network);
-  if (result.code === 0) return { kind: "pushed", branch: branch.value, commits, behind: countCommits(git, [`HEAD..${remoteDefault}`]) };
+  if (result.code === 0) return { kind: "pushed", branch: branch.value, commits, behind: countCommits(git, [`HEAD..${remoteBase}`]) };
   const reason = `git push failed: ${gitFailureReason(result.stderr) || `exit ${result.code}`}`;
   return { kind: answeredNo(result, ref) ? "rejected" : "offline", branch: branch.value, reason };
 }

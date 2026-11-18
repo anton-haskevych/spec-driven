@@ -13,6 +13,7 @@ import { loadLiveSessions } from "../sessions/live";
 import { ownSessionId } from "../sessions/own";
 import { psProcStarts } from "../sessions/proc-starts";
 import { loadWorkspaces } from "../workspaces/list";
+import { specLayout } from "../pr/groups";
 import { addTree } from "./acquire";
 import { treeRoot } from "./local-settings";
 import type { TreeName } from "./naming";
@@ -23,19 +24,19 @@ import { PLACE_FETCH_TIMEOUT_MS, type PlaceDeps, type Placement, type PlacementD
 export function placeDepsFor(projectDir: string, deps: PlaceDeps): PlacementDeps {
   return {
     loadWorld: (spec) => loadPlaceWorld(projectDir, spec, deps),
-    addTree: (name, world) => addPlacedTree(projectDir, name, world, deps),
+    addTree: (name, base, world) => addPlacedTree(projectDir, name, base, world, deps),
     hasUncommittedChanges: (path) => hasUncommittedChanges(path, deps.runner),
   };
 }
 
-async function addPlacedTree(projectDir: string, name: TreeName, world: PlaceWorld, deps: PlaceDeps): Promise<Result<Placement>> {
+async function addPlacedTree(projectDir: string, name: TreeName, base: string, world: PlaceWorld, deps: PlaceDeps): Promise<Result<Placement>> {
   const git = gitAt(projectDir, deps.runner);
   const commonDir = gitCommonDir(git);
   if (!commonDir.ok) return commonDir;
   const defaultRoot = join(deps.home, "claude-worktrees", repoName(commonDir.value));
   const root = treeRoot(commonDir.value, world.worktrees, { defaultRoot, home: deps.home });
   if (!root.ok) return root;
-  const added = addTree(git, name, root.value.root, world.defaultBranch, PLACE_FETCH_TIMEOUT_MS);
+  const added = addTree(git, name, root.value.root, base, PLACE_FETCH_TIMEOUT_MS);
   if (!added.ok) return added;
   const { kind: how, path, offline } = added.value;
   const main = world.worktrees.find((worktree) => worktree.isMain)?.path ?? projectDir;
@@ -71,9 +72,10 @@ async function loadPlaceWorld(projectDir: string, spec: string, deps: PlaceDeps)
   const baseMeta = nodes.get(spec)?.meta;
   const owner = baseMeta ? ownerOf(baseMeta) : typeof own === "string" ? undefined : ownerOf(readSpecFields(own.dir, plans.fields(spec)).meta);
   const sessions = loadLiveSessions(deps.claudeHome, psProcStarts(deps.runner));
+  const layout = views[0] && specLayout(views[0], nodes.get(spec)?.specBranch);
   return {
     ok: true,
-    value: { ownSessionId: ownSessionId(deps.env), defaultBranch: branch, worktrees: worktrees.value, sessions, claims: heldClaims(git, sessions, states), activity: phaseActivity(states, workspaces, joinedActivity), views, ...(owner === undefined ? {} : { owner }) },
+    value: { ownSessionId: ownSessionId(deps.env), defaultBranch: branch, worktrees: worktrees.value, sessions, claims: heldClaims(git, sessions, states), activity: phaseActivity(states, workspaces, joinedActivity), views, ...(layout ? { layout } : {}), ...(owner === undefined ? {} : { owner }) },
   };
 }
 

@@ -13,6 +13,7 @@ import { renderPlacement } from "../trees";
 import { renderBrief, type BriefRequest } from "../../crew/brief";
 import { loadSettings } from "../../playbook/settings";
 import type { CrewDeps, RunFileStore } from "../../crew/deps";
+import { MACHINE_WORKERS, machineFree, machineWorkers } from "../../crew/machine";
 import { parseRunFile, withLaunched, withLog, type LaunchedEntry } from "../../crew/run-state";
 
 export interface CrewLaunchRequest {
@@ -21,6 +22,10 @@ export interface CrewLaunchRequest {
   target: string;
   hold: boolean;
   notes: readonly string[];
+  // The tick counts the machine's workers once for all its picks; `crew launch` leaves it unset.
+  machineBusy?: number;
+  // A relaunch reuses the slot its closed-out worker freed.
+  relaunch?: true;
 }
 
 export interface CrewLaunchResult {
@@ -39,6 +44,8 @@ export async function launchCrewSession(request: CrewLaunchRequest, store: RunFi
   const positionals = [request.subCommand, request.spec, request.target, ...(request.hold ? ["hold"] : [])];
   const valid = sessionLaunch(".", positionals);
   if (!valid.ok) return { text: `crew launch: ${valid.reason}` };
+  const full = machineRefusal(request, deps);
+  if (full) return { text: full };
 
   const placed = await placeForLaunch({ subCommand: request.subCommand, spec: request.spec, target: request.target, onlyFor: run.runner }, place);
   if (!placed.ok) return { text: `launch: ${placed.reason}` };
@@ -61,6 +68,19 @@ export async function launchCrewSession(request: CrewLaunchRequest, store: RunFi
   const current = store.read() ?? runText;
   store.write(withLog(withLaunched(current, [...parseRunFile(current).launched, launched]), [`${at} launched ${launched.id} · ${launched.title}`]));
   return { text, launched };
+}
+
+function machineRefusal(request: CrewLaunchRequest, deps: CrewDeps): string | undefined {
+  if (request.subCommand !== "execute" || request.relaunch) return undefined;
+  if (request.machineBusy !== undefined) return machineFree(request.machineBusy) > 0 ? undefined : machineFullLine(request.machineBusy);
+  const agents = deps.agents();
+  if (!agents.ok) return `crew launch: ${agents.reason}`;
+  const busy = machineWorkers(agents.value);
+  return machineFree(busy) > 0 ? undefined : machineFullLine(busy);
+}
+
+function machineFullLine(busy: number): string {
+  return `launch: ${busy} of ${MACHINE_WORKERS} machine workers busy; nothing launched`;
 }
 
 function briefPath(runPath: string, request: CrewLaunchRequest): string {

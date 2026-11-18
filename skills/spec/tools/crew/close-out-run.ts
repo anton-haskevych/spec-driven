@@ -7,9 +7,10 @@ import type { Agent } from "../sessions/agents";
 import { lastTurnText } from "../sessions/transcript";
 import { babysitterVerdict, closeOutVerdict, type CloseOut } from "./close-out";
 import { findCrewLine } from "./crew-line";
+import { laneFacts, laneTarget, type SpecBranchWorld } from "./lane-close-out";
 import type { LaunchedEntry } from "./run-state";
 
-export interface CloseOutWorld {
+export interface CloseOutWorld extends SpecBranchWorld {
   agents: readonly Agent[];
   claims: readonly HeldClaim[];
   claudeHome: string;
@@ -39,12 +40,19 @@ export function closeOut(entry: LaunchedEntry, world: CloseOutWorld): CloseOut |
   if (!title) return undefined;
   const agent = world.agents.find((candidate) => candidate.id === entry.id);
   const held = claimFor(title, world.claims);
+  const claimLive = isClaimLive(held);
   const lastTurn = lastTurnText(world.claudeHome, agent?.sessionId ?? entry.id) ?? "";
-  if (title.sub === "babysit" && title.group) return babysitterVerdict(title.group, isClaimLive(held), lastTurn);
+  if (title.sub === "babysit" && title.group) return babysitterVerdict(title.group, claimLive, lastTurn);
   const tree = agent?.cwd ?? held?.claim.workspace;
-  if (tree === undefined) return closeOutVerdict({ dirty: false, pushed: false, handedOff: false, claimLive: isClaimLive(held) });
+  if (tree === undefined) return closeOutVerdict({ dirty: false, pushed: false, handedOff: false, claimLive });
   const git = gitAt(tree, world.runner);
   const branch = held?.claim.branch ?? currentBranch(git);
+  const lane = branch === undefined ? undefined : laneTarget(title, branch, world);
+  if (lane) {
+    const dirty = isDirty(git);
+    const { mergedBack, ...facts } = laneFacts(git, lane, entry.at, lastTurn);
+    return closeOutVerdict({ tree, dirty, pushed: mergedBack, ...facts, claimLive, lane: { spec: lane.spec } });
+  }
   const crewLine = findCrewLine(lastTurn);
   return closeOutVerdict({
     tree,
@@ -52,7 +60,7 @@ export function closeOut(entry: LaunchedEntry, world: CloseOutWorld): CloseOut |
     pushed: branch !== undefined && isPushed(git, branch),
     handedOff: branch !== undefined && hasHandoffSince(git, branch, entry.at),
     ...(crewLine ? { crewLine } : {}),
-    claimLive: isClaimLive(held),
+    claimLive,
   });
 }
 

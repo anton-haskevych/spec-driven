@@ -9,7 +9,7 @@ export interface PublishRequest {
 }
 
 export type Published =
-  | { kind: "published"; sha: string; main: string; snapshot: string; files: string[]; deleted: string[]; mergeBack: Result<void> }
+  | { kind: "published"; sha: string; main: string; snapshot: string; files: string[]; deleted: string[]; snapshotMerged: Result<void> }
   | { kind: "nothing"; main: string; deleted: string[] };
 
 type Attempt = Result<Published> | { retry: true };
@@ -52,8 +52,8 @@ function publishAttempt(git: Git, request: PublishRequest): Attempt {
   if (pushed.code !== 0 && NON_FAST_FORWARD.test(pushed.stderr)) return { retry: true };
   if (pushed.code !== 0) return { ok: false, reason: `push to ${request.defaultBranch} rejected: ${pushed.stderr.trim()}` };
 
-  const mergeBack = mergeSnapshotBack(git, commit);
-  return { ok: true, value: { kind: "published", sha: merged.value, main: main.value, snapshot: commit, files, deleted, mergeBack } };
+  const snapshotMerged = mergeSnapshotBack(git, commit);
+  return { ok: true, value: { kind: "published", sha: merged.value, main: main.value, snapshot: commit, files, deleted, snapshotMerged } };
 }
 
 function mergeSnapshotBack(git: Git, snapshot: string): Result<void> {

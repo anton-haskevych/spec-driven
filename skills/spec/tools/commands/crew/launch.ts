@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import type { Result } from "../../core/result";
 import { runFileStore, systemCrewDeps, type CrewDeps } from "../../crew/deps";
+import { specRun } from "../../crew/scope";
 import { launchCrewSession, type CrewLaunchRequest } from "./launch-session";
 import type { PlaceFn } from "../../launch/place-for-launch";
 import { placeTree } from "../../trees/place";
@@ -12,7 +13,10 @@ export const CREW_LAUNCH_USAGE = "crew launch execute <spec> <phase> | crew laun
 export async function crewLaunch(projectDir: string, args: readonly string[], deps: CrewDeps = systemCrewDeps(), place?: PlaceFn): Promise<string> {
   const request = parseLaunch(args);
   if (!request.ok) return request.reason;
-  const store = runFileStore(projectDir, deps.runner);
+  // A forgotten --spec or a dead overseer can't misfile a worker: an open spec run always takes it.
+  const run = specRun(projectDir, deps.runner, request.value.spec);
+  if (!run.ok) return `crew launch: ${run.reason}`;
+  const store = runFileStore(projectDir, deps.runner, run.value ? request.value.spec : undefined);
   if (!store.ok) return `crew launch: ${store.reason}`;
   const placeIt = place ?? ((spec, phase, options) => placeTree({ spec, phase, ...options }, placeDepsFor(projectDir, systemPlaceDeps())));
   return (await launchCrewSession(request.value, store.value, deps, placeIt)).text;

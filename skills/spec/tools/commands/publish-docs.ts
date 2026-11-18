@@ -5,6 +5,7 @@ import { publishDocs } from "../publish/publish";
 import { pushBranch, pushResult } from "../publish/push";
 import { publishLines, remoteLine } from "../publish/render";
 import { NO_DEFAULT_BRANCH } from "./push";
+import { laneRefusal } from "../pr/load-layout";
 import { syncBeforePush } from "./sync-main";
 
 export const PUBLISH_DOCS_USAGE = "publish-docs [<spec-name>]";
@@ -13,11 +14,13 @@ export function publishDocsReport(projectDir: string, args: readonly string[], r
   if (loadSettings(projectDir).docs !== "main") return "publish-docs: docs: branch — spec docs ride the feature PR; use spec.ts push";
   const branch = defaultBranch(projectDir, runner);
   if (!branch) return `publish-docs: ${NO_DEFAULT_BRANCH}`;
+  const lane = laneRefusal(projectDir, runner, "publish-docs");
+  if (lane) return lane;
 
   const git = gitAt(projectDir, runner);
   const synced = syncBeforePush(git, branch, "publish-docs");
   if (synced.stop) return synced.lines.join("\n");
-  const pushed = pushResult(pushBranch(git, branch));
+  const pushed = pushResult(pushBranch(git, { defaultBranch: branch }));
   if (!pushed.ok) return [...synced.lines, `publish-docs: ${pushed.reason}`].join("\n");
   if (pushed.value.branch === branch) return [...synced.lines, remoteLine(pushed.value, branch), `publish-docs: on ${branch} — the push published the docs`].join("\n");
 
@@ -25,11 +28,11 @@ export function publishDocsReport(projectDir: string, args: readonly string[], r
   if (!published.ok) return `${remoteLine(pushed.value, branch)}\npublish-docs: ${published.reason}`;
   if (published.value.kind === "nothing") return [remoteLine(pushed.value, branch), ...publishLines(published.value, branch)].join("\n");
 
-  const mergeBackPushed = pushResult(pushBranch(git, branch));
-  const commits = pushed.value.commits + (mergeBackPushed.ok ? mergeBackPushed.value.commits : 0);
+  const snapshotPushed = pushResult(pushBranch(git, { defaultBranch: branch }));
+  const commits = pushed.value.commits + (snapshotPushed.ok ? snapshotPushed.value.commits : 0);
   return [
     remoteLine({ ...pushed.value, commits }, branch, published.value.sha),
     ...publishLines(published.value, branch),
-    ...(mergeBackPushed.ok ? [] : [`push after merge-back failed: ${mergeBackPushed.reason}`]),
+    ...(snapshotPushed.ok ? [] : [`push after the snapshot merge failed: ${snapshotPushed.reason}`]),
   ].join("\n");
 }

@@ -44,7 +44,7 @@ Persona council (agent-harness engineer, context engineer, merge-queue engineer,
 | Cross-lane needs | A need on another lane's phase waits until that lane's worker closed out | Met on the tick, as today | The tick comes before `merge-back --push`; the dependent would code on a spec branch without it (review final-pr-and-mode-ends) |
 | Final PR review | The spec's ship mode decides; a held PR's *How to review* lists each phase with its commits from the record | Always hold; review each phase as it lands | Anton's call (2026-11-17) |
 | Ship mode with nothing set | `hold-for-review`: babysit to green and hold | Auto-merge unless the PR touches `deploy.paths` | Never idles, never merges to main without Anton's word; matches the house rule and CRM's settings (review fork 3, applied unanswered — say if wrong) |
-| Rollout | Phase 1 (PR A) keeps one worker per spec; parallel lanes and the spec-branch cut ship with Phase 3 (PR C) | Ship PR A and PR C together | Parallel lanes before merge-back republish the CRM docs conflict, and an early `feat/<spec>` would flip the mode later (review fork 2, applied unanswered — say if wrong) |
+| Rollout | Phase 1 and Phase 3 ship together in PR C; Phase 1 alone keeps one worker per spec, parallel lanes and the spec-branch cut come with Phase 3 | Phase 1 in its own PR A first | Phase 3's crew wiring sits on Phase 1's files, so two PRs would conflict or wait on a merge-main hop; parallel lanes before merge-back would republish the CRM docs conflict (Anton, 2026-11-17) |
 
 ## Flow
 

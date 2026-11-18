@@ -64,7 +64,7 @@ describe("publishDocs (real git)", () => {
     if (!outcome.ok || outcome.value.kind !== "published") throw new Error(JSON.stringify(outcome));
     expect(outcome.value.files).toEqual([INDEX, "docs/specs/a/progress.md"]);
     expect(outcome.value.main).toBe(before);
-    expect(outcome.value.mergeBack).toEqual({ ok: true, value: undefined });
+    expect(outcome.value.snapshotMerged).toEqual({ ok: true, value: undefined });
     expect(onOrigin(INDEX).split("\n").sort()).toEqual(["- a", "- b", "- c"]);
     expect(onOrigin("docs/specs/a/progress.md")).toBe("- [x] Phase 1");
     expect(() => onOrigin("src/app.ts")).toThrow();

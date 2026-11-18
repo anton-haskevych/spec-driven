@@ -1,12 +1,13 @@
 import { needsCycle } from "../../core/phase-edges";
 import type { PhaseDoc } from "./phase-doc";
+import { specBranchProblems } from "./spec-branch-rules";
 import type { SpecDoc } from "./spec-doc";
 
 // A ref to this spec's own phase: no `spec#`, and phase ids start with a digit (`3`, `2b-pre`, `9.10`).
 const LOCAL_PHASE_REF = /^\d[^#]*$/;
 
 // What no single document can check: the spec's phase list against its phase documents, local edges,
-// and task ids across phases.
+// task ids across phases, and in spec-branch mode the layout's invariants.
 export function specPlanProblems(spec: SpecDoc, phases: readonly PhaseDoc[]): string[] {
   const listed = new Set(spec.phases);
   const documented = new Set(phases.map((phase) => phase.id));
@@ -16,6 +17,7 @@ export function specPlanProblems(spec: SpecDoc, phases: readonly PhaseDoc[]): st
     ...phases.flatMap((phase) => unresolvedEdges(phase, listed, spec.name)),
     ...repeatedTaskIds(phases),
     ...needsCycles(phases),
+    ...specBranchProblems(spec, phases),
   ];
 }
 

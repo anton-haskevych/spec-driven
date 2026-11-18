@@ -9,7 +9,8 @@ import { babysitLogger, type BabysitLogger } from "../babysit/log";
 import type { PollClock } from "../babysit/poll";
 import type { PrView } from "../checks/types";
 import { ghClient } from "../gh";
-import { pickGroup, type PrGroup } from "../groups";
+import { pickGroup, specLayout, type PrGroup } from "../groups";
+import { laneHeadRefusal } from "./lane-head";
 import { ghWrites } from "./gh-writes";
 import { prBody, prTitle } from "./pr-text";
 import { markReadySafely, type ReadyOutcome } from "./ready-race";
@@ -42,10 +43,12 @@ export async function openPr(projectDir: string, request: OpenRequest, deps: Ope
   if (!group.ok) return `pr open: ${group.reason}`;
 
   const branch = treeName(spec.name, group.value.name).branch;
+  const joined = plans.joined(spec.name);
+  const laneHead = laneHeadRefusal(specLayout(plans.state(spec), joined?.spec.specBranch), branch);
+  if (laneHead) return laneHead;
   const git = gitAt(projectDir, deps.runner);
   const log = babysitLogger(git, deps.now);
   const existing = ghClient(projectDir, deps.runner).prView(branch);
-  const joined = plans.joined(spec.name);
   const recorded = async (line: string, seen: PrObserved) => (joined ? [...(await recordPr(projectDir, joined, seen, "pr open", recordDeps(deps))), line].join("\n") : line);
   if (existing.ok && existing.value.state === "OPEN") return reportOrMarkReady(existing.value, request.draft, projectDir, deps, log, recorded);
 
@@ -99,7 +102,7 @@ function createPr(projectDir: string, git: Git, branch: string, spec: SpecForPr,
   if (current.ok && current.value !== branch) return { ok: false, reason: `this tree is on ${current.value}, not ${branch} — run it in that branch's tree` };
   const base = defaultBranch(projectDir, runner);
   if (!base) return { ok: false, reason: "no default branch (origin/HEAD unset and gh repo view failed)" };
-  const pushed = pushResult(pushBranch(git, base));
+  const pushed = pushResult(pushBranch(git, { defaultBranch: base }));
   if (!pushed.ok) return { ok: false, reason: `push failed — ${pushed.reason}` };
   const head = git.out(["rev-parse", "HEAD"]);
   const created = ghWrites(projectDir, runner).create({ base, head: branch, title: prTitle(spec.name, spec.group), body: prBody(spec.path, spec.group), draft });

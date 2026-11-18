@@ -3,6 +3,7 @@ import type { BoardRunners } from "../board/load";
 import { prClaimGroup } from "../claims/pr-claim";
 import type { HeldClaim } from "../claims/rules";
 import type { Result } from "../core/result";
+import { baseBranchOf, type SpecLayout } from "../pr/groups";
 import { INVALID_OWNER, isOffered } from "../core/people";
 import type { SpecState } from "../core/spec-state";
 import type { Env } from "../core/env";
@@ -44,6 +45,8 @@ export interface PlaceWorld {
   views: SpecState[];
   // ownerOf the spec on base (where `spec.ts owner` lands), else of this checkout's copy.
   owner?: string;
+  // Built from base's state (record or main), where a regroup lands (gotcha-trees-place-reads-pr-group-from-base).
+  layout?: SpecLayout;
 }
 
 export interface PlaceRequest extends PlaceOptions {
@@ -53,7 +56,7 @@ export interface PlaceRequest extends PlaceOptions {
 
 export interface PlacementDeps {
   loadWorld(spec: string): Promise<Result<PlaceWorld>>;
-  addTree(name: TreeName, world: PlaceWorld): Promise<Result<Placement>>;
+  addTree(name: TreeName, base: string, world: PlaceWorld): Promise<Result<Placement>>;
   hasUncommittedChanges(path: string): boolean;
 }
 
@@ -68,7 +71,7 @@ export async function placeTree(request: PlaceRequest, deps: PlacementDeps): Pro
   const found = findTree(name, group.value, world.value);
   const refused = request.onlyFor === undefined ? undefined : ownerRefusal(spec, world.value.owner, request.onlyFor, found && { branch: found.branch ?? name.branch, path: found.path });
   if (refused) return { ok: false, reason: refused };
-  if (!found) return request.existingOnly ? { ok: false, reason: `no tree for ${name.branch}` } : deps.addTree(name, world.value);
+  if (!found) return request.existingOnly ? { ok: false, reason: `no tree for ${name.branch}` } : deps.addTree(name, baseBranchOf(world.value.layout, group.value.prGroup, world.value.defaultBranch), world.value);
   const view = { sessions, claims, worktreePaths: worktrees.map((worktree) => worktree.path), ownSessionId: world.value.ownSessionId };
   const holder = treeHolder(found.path, view, () => deps.hasUncommittedChanges(found.path));
   const branch = found.branch ?? name.branch;

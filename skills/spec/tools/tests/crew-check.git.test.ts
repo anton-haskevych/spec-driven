@@ -82,6 +82,6 @@ describe("crew check", () => {
 
   test("an id the overseer didn't launch is refused", () => {
     setUp("checkout execute 1", CREW);
-    expect(crewCheck(repo.dir, ["6c003866"], deps())).toBe("crew check: 6c003866 is not in ## Launched; the overseer closes out only its own sessions");
+    expect(crewCheck(repo.dir, ["6c003866"], deps())).toBe("crew check: 6c003866 is not in any run's ## Launched; the overseer closes out only its own sessions");
   });
 });

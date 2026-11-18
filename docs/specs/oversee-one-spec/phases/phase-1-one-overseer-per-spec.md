@@ -1,6 +1,6 @@
 ---
 needs: []
-pr: A
+pr: C
 ---
 
 # Phase 1 — One overseer per spec
@@ -38,13 +38,13 @@ hasn't landed, and drop `crew-deps.ts` from `HELPER_EXCEPTIONS` in the same comm
 
 ## Deliverables
 
-- [ ] `runFileStore(…, spec?)` → `run-<spec>.md`; `spec:` in `RunFile` / `newRunFile`; tests
-- [ ] `crew overseer|start|tick --spec <spec>`; one `specRun(spec)` resolver (`run-<spec>.md`, state neither `stood-down` nor `finished`) used by `crew launch`, the skip and the notice; `crew check <id>` searches every run file; `scopeWorld` keeps the spec's ready rows and questions; the tick prints the spec's plan change; `crew start --spec` refuses while `run.md`'s `## Launched` holds any entry on the spec; `crew tick --spec` writes `state: finished` once the spec has no open phase and no launched session
-- [ ] Whole-board tick skips specs with a `specRun` (pure `scopeWorld`, `overseen()` port), its relaunches included; one `Overseen: <spec> (no live overseer, N workers)` line when the overseer is gone. The `specBranch` half of the skip ships with Phase 3
-- [ ] Machine-wide limit: `crew/machine.ts` counts `working`/`blocked` execute workers from the agents the tick already loads (no new port), constant 6; `FillContext` carries the count, `CrewLaunchRequest.machineBusy` keeps the refusal in `launchCrewSession` (loaded once when unset); relaunches exempt; a blocked tick prints `Machine full: 6 of 6`
-- [ ] Plan-write notice built in `commands/phase/context.ts` (not `plan/`): the overseer is silent, every other writer gets it on plan-shape actions only (`add`, `split`, `move`, `set`, `task`); appended through `appendNotice` (also fixes the overwrite at `write-notice.ts:31`), never assigned
-- [ ] `/spec oversee-crew [<spec>]`: SKILL.md rows, launch refusal text and its test
-- [ ] Refactor first: `systemTickPorts` → `commands/crew/tick-ports.ts`, `runStoreFor(args)`; `fillSlots` inputs → one `FillContext`; existing crew tests green
+- [x] `runFileStore(…, spec?)` → `run-<spec>.md`; `spec:` in `RunFile` / `newRunFile`; tests
+- [x] `crew overseer|start|tick --spec <spec>`; one `specRun(spec)` resolver (`run-<spec>.md`, state neither `stood-down` nor `finished`) used by `crew launch`, the skip and the notice; `crew check <id>` searches every run file; `scopeWorld` keeps the spec's ready rows and questions; the tick prints the spec's plan change; `crew start --spec` refuses while `run.md`'s `## Launched` holds any entry on the spec; `crew tick --spec` writes `state: finished` once the spec has no open phase and no launched session
+- [x] Whole-board tick skips specs with a `specRun` (pure `scopeWorld`, `overseen()` port), its relaunches included; one `Overseen: <spec> (no live overseer, N workers)` line when the overseer is gone. The `specBranch` half of the skip ships with Phase 3
+- [x] Machine-wide limit: `crew/machine.ts` counts `working`/`blocked` execute workers from the agents the tick already loads (no new port), constant 6; `FillContext` carries the count, `CrewLaunchRequest.machineBusy` keeps the refusal in `launchCrewSession` (loaded once when unset); relaunches exempt; a blocked tick prints `Machine full: 6 of 6`
+- [x] Plan-write notice built in `commands/phase/context.ts` (not `plan/`): the overseer is silent, every other writer gets it on plan-shape actions only (`add`, `split`, `move`, `set`, `task`); appended through `appendNotice` (also fixes the overwrite at `write-notice.ts:31`), never assigned
+- [x] `/spec oversee-crew [<spec>]`: SKILL.md rows, launch refusal text and its test
+- [x] Refactor first: `systemTickPorts` → `commands/crew/tick-ports.ts`; `fillSlots` inputs → one `FillContext`; existing crew tests green (`--spec` parsed per command, no `runStoreFor`)
 
 ## Phase-local notes
 

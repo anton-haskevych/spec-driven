@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { specLayout } from "../pr/groups";
 import { placeTree, type PlacementDeps, type PlaceWorld } from "../trees/place";
 import { phaseEdges, phaseState, liveSession } from "./factories";
 
@@ -41,9 +42,10 @@ test("ownership refusal precedes the add port and permitted addition receives th
   const absent = { ...world, owner: "taras", worktrees: [] };
   const deps: PlacementDeps = {
     loadWorld: async () => ({ ok: true, value: absent }),
-    addTree: async (name, loaded) => {
+    addTree: async (name, base, loaded) => {
       expect(loaded).toBe(absent);
       expect(name.branch).toBe("feat/one-pr-a");
+      expect(base).toBe("main");
       additions++;
       return { ok: false, reason: "fixture addition result" };
     },
@@ -53,4 +55,21 @@ test("ownership refusal precedes the add port and permitted addition receives th
   expect(additions).toBe(0);
   expect(await placeTree({ spec: "one", phase: "1" }, deps)).toEqual({ ok: false, reason: "fixture addition result" });
   expect(additions).toBe(1);
+});
+
+test("in spec-branch mode a lane's new tree is cut from feat/<spec>, a ship-alone group's from the default branch", async () => {
+  const state = { spec: { name: "one", dir: "/missing" }, hasProgress: true, phases: [phaseState({ id: "1", edges: phaseEdges({ pr: "A" }) }), phaseState({ id: "2", edges: phaseEdges({ pr: "D" }) })] };
+  const layout = specLayout(state, { cutFrom: "abc", shipAlone: ["D"] });
+  const cut: string[] = [];
+  const deps: PlacementDeps = {
+    loadWorld: async () => ({ ok: true, value: { ...world, worktrees: [], views: [state], layout } }),
+    addTree: async (name, base) => {
+      cut.push(`${name.branch} from ${base}`);
+      return { ok: false, reason: "fixture" };
+    },
+    hasUncommittedChanges: () => false,
+  };
+  await placeTree({ spec: "one", phase: "1" }, deps);
+  await placeTree({ spec: "one", phase: "2" }, deps);
+  expect(cut).toEqual(["feat/one-pr-a from feat/one", "feat/one-pr-d from main"]);
 });

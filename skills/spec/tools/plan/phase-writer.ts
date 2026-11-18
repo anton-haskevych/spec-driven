@@ -29,7 +29,7 @@ export type PhaseOutcome = (
 ) & { notice?: string };
 
 // A spec in files answers at once; a joined spec waits on its record write.
-type Written = PhaseOutcome | Promise<PhaseOutcome>;
+export type Written = PhaseOutcome | Promise<PhaseOutcome>;
 
 export interface PhaseWriter {
   tick(request: TickRequest): Written;
@@ -63,6 +63,11 @@ export function phaseWriterFor(projectDir: string, spec: SpecFolder, plans: Plan
 export function refusingWriter(reason: string): PhaseWriter {
   const refuse = (): PhaseOutcome => ({ kind: "invalid", reason });
   return { tick: refuse, park: refuse, unpark: refuse, deployed: refuse, add: refuse, split: refuse, move: refuse, set: refuse, task: refuse, note: refuse };
+}
+
+// Notices stack: an upgrade line, the plan-changed line and the overseer's all reach the session.
+export function appendNotice(outcome: PhaseOutcome, line: string): PhaseOutcome {
+  return { ...outcome, notice: outcome.notice ? `${outcome.notice}\n${line}` : line };
 }
 
 // Keeps a file spec's answer synchronous; only a record write is awaited.

@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 import type { CloseOut } from "../crew/close-out";
 import { findCrewLine } from "../crew/crew-line";
 import { INVALID_OWNER } from "../core/people";
-import { pickRows } from "../crew/pick";
+import { groupKey, pickRows, workKey } from "../crew/pick";
+import { specLayout, type SpecLayout } from "../pr/groups";
 import { actionLines, afterCloseOut, nextAction } from "../crew/tick-step";
 import type { SpecState } from "../core/spec-state";
 import type { Agent } from "../sessions/agents";
@@ -53,6 +54,12 @@ describe("afterCloseOut", () => {
     ]);
   });
 
+  test("a lane's PR group ready starts no PR moment: its work ships in the final PR", () => {
+    const crew = "Crew: needs you 0 (in-flight.md) · say if wrong 0 · PR group ready A · next nothing · servers stopped none";
+    const lane: CloseOut = { kind: "ok", report: crew, crewLine: findCrewLine(crew), lane: true };
+    expect(afterCloseOut(entry, worker, lane, false, "T").lines.slice(1)).toEqual([]);
+  });
+
   test("missing on a live session: message it; on a gone one: needs you; neither is removed", () => {
     const missing: CloseOut = { kind: "missing", missing: ["claim still live"] };
     expect(afterCloseOut(entry, worker, missing, false, "T")).toEqual({ remove: false, lines: ['Close-out checkout execute 3 · a1: missing claim still live → SendMessage "checkout execute 3" once'] });
@@ -70,7 +77,7 @@ describe("pickRows", () => {
 
   test("takes execute rows in board order, one per spec, up to the free slots", () => {
     const ready = [readyRow({ spec: "a", phase: "1" }), readyRow({ spec: "a", phase: "2" }), readyRow({ spec: "b", phase: "4" }), readyRow({ spec: "c", phase: "1" })];
-    expect(pickRows({ ready, states, busy: new Set(), unanswered: [], slots: 2, me: "anton" })).toEqual([{ spec: "a", phase: "1" }, { spec: "b", phase: "4" }]);
+    expect(pickRows({ ready, states, busy: new Set(), unanswered: [], slots: 2, me: "anton", layouts: new Map(), launched: [] })).toEqual([{ spec: "a", phase: "1" }, { spec: "b", phase: "4" }]);
   });
 
   test("skips prep rows, busy trees, worktree-only rows, task phases, specs with a worker and unanswered questions", () => {
@@ -84,7 +91,7 @@ describe("pickRows", () => {
       readyRow({ spec: "asked", phase: "5" }),
       readyRow({ spec: "free", phase: "7" }),
     ];
-    expect(pickRows({ ready, states, busy: new Set(["running"]), unanswered: [{ id: "q1", spec: "asked", phase: "5" }], slots: 5, me: "anton" })).toEqual([{ spec: "free", phase: "7" }]);
+    expect(pickRows({ ready, states, busy: new Set(["running"]), unanswered: [{ id: "q1", spec: "asked", phase: "5" }], slots: 5, me: "anton", layouts: new Map(), launched: [] })).toEqual([{ spec: "free", phase: "7" }]);
   });
 
   test("takes only rows owned by the crew's runner or by nobody; a malformed owner goes to no one", () => {
@@ -94,6 +101,43 @@ describe("pickRows", () => {
       readyRow({ spec: "mine", phase: "2", owner: "anton" }),
       readyRow({ spec: "shared", phase: "3" }),
     ];
-    expect(pickRows({ ready, states, busy: new Set(), unanswered: [], slots: 5, me: "Anton Haskevych" })).toEqual([{ spec: "mine", phase: "2" }, { spec: "shared", phase: "3" }]);
+    expect(pickRows({ ready, states, busy: new Set(), unanswered: [], slots: 5, me: "Anton Haskevych", layouts: new Map(), launched: [] })).toEqual([{ spec: "mine", phase: "2" }, { spec: "shared", phase: "3" }]);
+  });
+});
+
+describe("lanes in spec-branch mode", () => {
+  const lanes: SpecState = {
+    spec: { name: "checkout", dir: "/s" },
+    hasProgress: true,
+    phases: [
+      phaseState({ id: "1", done: true, edges: { declared: true, needs: [], needsDeployed: [], sameFilesAs: [], pr: "A" } }),
+      phaseState({ id: "2", edges: { declared: true, needs: [], needsDeployed: [], sameFilesAs: [], pr: "A" } }),
+      phaseState({ id: "3", edges: { declared: true, needs: ["1"], needsDeployed: [], sameFilesAs: [], pr: "B" } }),
+      phaseState({ id: "4", edges: { declared: true, needs: [], needsDeployed: [], sameFilesAs: [], pr: "C" } }),
+    ],
+  };
+  const states = new Map([["checkout", lanes]]);
+  const on: ReadonlyMap<string, SpecLayout> = new Map([["checkout", specLayout(lanes, { cutFrom: "c0ffee", shipAlone: [] })]]);
+  const off: ReadonlyMap<string, SpecLayout> = new Map([["checkout", specLayout(lanes)]]);
+  const ready = ["2", "3", "4"].map((phase) => readyRow({ spec: "checkout", phase }));
+  const pick = (layouts: ReadonlyMap<string, SpecLayout>, busy: string[] = [], launched: Array<{ spec: string; phase: string }> = []) =>
+    pickRows({ ready, states, busy: new Set(busy), unanswered: [], slots: 5, me: "anton", layouts, launched }).map((row) => row.phase);
+
+  test("groupKey is one per lane in the mode and one per spec outside it", () => {
+    expect(groupKey("checkout", "B", on.get("checkout"))).toBe("checkout#B");
+    expect(groupKey("checkout", "B", off.get("checkout"))).toBe("checkout");
+    expect(groupKey("checkout", "B", undefined)).toBe("checkout");
+    expect(workKey({ spec: "checkout", phase: "3" }, states, on)).toBe("checkout#B");
+  });
+
+  test("one worker per lane, lanes side by side; outside the mode one per spec", () => {
+    expect(pick(on)).toEqual(["2", "3", "4"]);
+    expect(pick(on, ["checkout#A"])).toEqual(["3", "4"]);
+    expect(pick(off)).toEqual(["2"]);
+  });
+
+  test("a row needing a phase whose lane worker hasn't closed out waits; once it has, it goes", () => {
+    expect(pick(on, ["checkout#A"], [{ spec: "checkout", phase: "1" }])).toEqual(["4"]);
+    expect(pick(on, [], [])).toContain("3");
   });
 });

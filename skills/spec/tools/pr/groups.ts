@@ -1,6 +1,7 @@
 import type { Result } from "../core/result";
 import type { PhaseState, SpecState } from "../core/spec-state";
 import { DEFAULT_PR_GROUP, prBranch } from "../plan/docs/pr-doc";
+import { shipsAloneIn } from "../plan/docs/spec-branch-rules";
 import type { SpecBranch } from "../plan/docs/spec-doc";
 
 // `name` is the phases' `pr:` value; undefined for a spec whose phases declare none (branch feat/<spec>).
@@ -60,10 +61,9 @@ export function specLayout(state: SpecState, specBranch?: SpecBranch): SpecLayou
     return { spec, mode: "per-group", groups, ungrouped };
   }
   const head = prBranch(spec, DEFAULT_PR_GROUP);
-  const alone = new Set(specBranch.shipAlone.map((group) => group.toLowerCase()));
   const groups = new Map(
     named.map((group) => {
-      const shipsAlone = alone.has(group.name.toLowerCase());
+      const shipsAlone = shipsAloneIn(specBranch, group.name);
       const base: GroupBase = shipsAlone ? DEFAULT_BASE : { kind: "spec-branch", branch: head };
       return [group.name, layoutOf(spec, group.name, base, shipsAlone, group.phases)];
     }),
@@ -76,6 +76,18 @@ export function specLayout(state: SpecState, specBranch?: SpecBranch): SpecLayou
 // The one group-to-branch lookup: `default` is feat/<spec>, never treeName's feat/<spec>-pr-default.
 export function branchOf(layout: SpecLayout, group: string): string {
   return layout.groups.get(group)?.branch ?? prBranch(layout.spec, group);
+}
+
+// The group whose branch this is, when it is a lane: spec-branch mode, cut from feat/<spec>, not shipping alone.
+export function laneOf(layout: SpecLayout, branch: string): string | undefined {
+  if (layout.mode !== "spec-branch") return undefined;
+  return [...layout.groups].find(([, group]) => group.branch === branch && group.base.kind === "spec-branch")?.[0];
+}
+
+// The branch a group's new tree is cut from: feat/<spec> for a lane, else the default branch.
+export function baseBranchOf(layout: SpecLayout | undefined, group: string | undefined, defaultBranch: string): string {
+  const base = layout?.groups.get(group ?? DEFAULT_PR_GROUP)?.base;
+  return base?.kind === "spec-branch" ? base.branch : defaultBranch;
 }
 
 function layoutOf(spec: string, group: string, base: GroupBase, shipsAlone: boolean, phases: PhaseState[]): GroupLayout {

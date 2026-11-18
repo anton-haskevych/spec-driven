@@ -5,6 +5,7 @@ import type { RecordView } from "../../record/view";
 import type { RecordPlan } from "../../record/write";
 import type { PhaseDoc } from "../docs/phase-doc";
 import type { SpecDoc } from "../docs/spec-doc";
+import { shipAloneMoves } from "../docs/spec-branch-rules";
 import { specPlanProblems } from "../docs/spec-plan";
 import { missingPrDocs, prGroupOf } from "../docs/pr-doc";
 import { phaseDocPath, prDocPath, specDocPath } from "../kinds";
@@ -40,7 +41,7 @@ export function planChangePlan(spec: string, action: string, edit: (plan: Joined
     if ("unchanged" in change) return unchanged(see, change.unchanged);
     const version = plan.spec.planVersion + 1;
     const next: SpecDoc = { ...plan.spec, phases: change.phases.map((phase) => phase.id), planVersion: version };
-    const introduced = newProblems(specPlanProblems(plan.spec, plan.phases), specPlanProblems(next, change.phases));
+    const introduced = [...newProblems(specPlanProblems(plan.spec, plan.phases), specPlanProblems(next, change.phases)), ...shipAloneMoves(plan.spec, plan.phases, change.phases)];
     if (introduced.length > 0) return { refused: introduced.join("; ") };
     const ops = [specOp(plan.spec, next), ...phaseOps(spec, plan.phases, change.phases), ...newGroupOps(view, plan, change.phases)];
     see({ kind: "changed", line: change.line(version), added: change.phases.filter((phase) => !plan.phases.some((old) => old.id === phase.id)) });

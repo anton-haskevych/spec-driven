@@ -1,7 +1,7 @@
 import type { RecordView } from "../record/view";
 import { planShapeOf } from "./plan-diff";
 import { noticePlanChange } from "./plan-version";
-import type { PhaseDeps, PhaseOutcome } from "./phase-writer";
+import { appendNotice, type PhaseDeps, type PhaseOutcome } from "./phase-writer";
 import { readLocalPlans } from "./read-plans";
 import { recordWorld, type RecordWorld } from "./record-send";
 import { readJoinedPlan, type JoinedPlan } from "./state-source";
@@ -28,11 +28,11 @@ export async function withPlanNotice(
     const after = readLocalPlans(projectDir, deps, deps.now()).joined(spec);
     if (after) memory.show(spec, planShapeOf(after));
   }
-  return notice ? { ...outcome, notice } : outcome;
+  return notice ? appendNotice(outcome, notice) : outcome;
 }
 
 function withLines(outcome: PhaseOutcome, lines: readonly string[]): PhaseOutcome {
   if (lines.length === 0) return outcome;
-  const notice = [...lines, ...("notice" in outcome && outcome.notice ? [outcome.notice] : [])].join("\n");
+  const notice = [...lines, ...(outcome.notice ? [outcome.notice] : [])].join("\n");
   return { ...outcome, notice };
 }
