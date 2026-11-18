@@ -1,4 +1,5 @@
 import type { LaunchTitle } from "../launch/title";
+import type { SpecLayout } from "../pr/groups";
 import type { Agent } from "../sessions/agents";
 import type { CloseOut } from "./close-out";
 import type { LaunchedEntry } from "./run-state";
@@ -43,4 +44,11 @@ export function afterCloseOut(entry: LaunchedEntry, title: LaunchTitle, verdict:
   if (crew && crew.sayIfWrong > 0) lines.push(`Say if wrong: ${title.spec} ${title.phase} lists ${crew.sayIfWrong} in its handoff`);
   const relaunch = crew?.next === "same phase" && title.phase ? { spec: title.spec, phase: title.phase } : undefined;
   return { remove: true, lines, log: `${at} ${title.spec} ${title.phase} done · close-out ok · stopped ${entry.id}`, ...(relaunch ? { relaunch } : {}) };
+}
+
+// In spec-branch mode a lane's `PR group ready` starts nothing; the lane close-out that leaves every phase outside
+// the ship-alone groups done is the one PR moment, and the overseer launches the final PR's babysitter.
+export function finalPrMoment(title: LaunchTitle, verdict: CloseOut, layout: SpecLayout | undefined): string | undefined {
+  if (verdict.kind !== "ok" || !verdict.lane || !layout?.finalPr) return undefined;
+  return layout.finalPr.phases.every((phase) => phase.done) ? `PR moment: ${title.spec} final PR` : undefined;
 }

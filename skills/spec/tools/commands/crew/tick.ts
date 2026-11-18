@@ -12,7 +12,7 @@ import { MACHINE_WORKERS, machineFree, machineWorkers } from "../../crew/machine
 import { pickRows, workKey, type Pick } from "../../crew/pick";
 import { parseRunFile, withLaunched, withLog, withOverseer, withState, type LaunchedEntry, type RunFile } from "../../crew/run-state";
 import { boardScope, inScope, isRunOpen, overseenLines, scopeWorld, type CrewScope } from "../../crew/scope";
-import { actionLines, afterCloseOut, nextAction } from "../../crew/tick-step";
+import { actionLines, afterCloseOut, finalPrMoment, nextAction } from "../../crew/tick-step";
 import { parseLaunchTitle } from "../../launch/title";
 import type { Task } from "../../plan/docs/phase-doc";
 import type { SpecLayout } from "../../pr/groups";
@@ -140,6 +140,8 @@ function closeOutLaunched(launched: readonly LaunchedEntry[], agents: readonly A
     const checked = action.kind === "close-out" ? ports.closeOut(entry, agents, world) : undefined;
     if (!checked) continue;
     const outcome = afterCloseOut(entry, title, checked, agent === undefined, at);
+    const moment = finalPrMoment(title, checked, world.layouts.get(title.spec));
+    if (moment) report.forYou.push(moment);
     if (outcome.remove) {
       ports.stop(entry.id);
       passed.removed.add(entry.id);
