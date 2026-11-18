@@ -15,10 +15,10 @@ export function remoteLine(pushed: Pushed, defaultBranch: string, docsSha?: stri
 export function publishLines(published: Published, defaultBranch: string): string[] {
   const deleted = published.deleted.length > 0 ? [`not published (deleted on the branch): ${published.deleted.join(", ")}`] : [];
   if (published.kind === "nothing") return ["no spec doc changes since the last publish", ...deleted];
-  const { files, sha, mergeBack } = published;
+  const { files, sha, snapshotMerged } = published;
   return [
     `published ${files.length} file${files.length === 1 ? "" : "s"} to ${defaultBranch} (${sha.slice(0, SHORT_SHA)}): ${files.join(", ")}`,
-    ...(mergeBack.ok ? [] : [`merge-back failed: ${mergeBack.reason}`]),
+    ...(snapshotMerged.ok ? [] : [`snapshot merge failed: ${snapshotMerged.reason}`]),
     ...deleted,
   ];
 }

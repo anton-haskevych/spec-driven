@@ -25,11 +25,11 @@ export function publishDocsReport(projectDir: string, args: readonly string[], r
   if (!published.ok) return `${remoteLine(pushed.value, branch)}\npublish-docs: ${published.reason}`;
   if (published.value.kind === "nothing") return [remoteLine(pushed.value, branch), ...publishLines(published.value, branch)].join("\n");
 
-  const mergeBackPushed = pushResult(pushBranch(git, branch));
-  const commits = pushed.value.commits + (mergeBackPushed.ok ? mergeBackPushed.value.commits : 0);
+  const snapshotPushed = pushResult(pushBranch(git, branch));
+  const commits = pushed.value.commits + (snapshotPushed.ok ? snapshotPushed.value.commits : 0);
   return [
     remoteLine({ ...pushed.value, commits }, branch, published.value.sha),
     ...publishLines(published.value, branch),
-    ...(mergeBackPushed.ok ? [] : [`push after merge-back failed: ${mergeBackPushed.reason}`]),
+    ...(snapshotPushed.ok ? [] : [`push after the snapshot merge failed: ${snapshotPushed.reason}`]),
   ].join("\n");
 }
