@@ -78,6 +78,12 @@ export function branchOf(layout: SpecLayout, group: string): string {
   return layout.groups.get(group)?.branch ?? prBranch(layout.spec, group);
 }
 
+// The branch a group's new tree is cut from: feat/<spec> for a lane, else the default branch.
+export function baseBranchOf(layout: SpecLayout | undefined, group: string | undefined, defaultBranch: string): string {
+  const base = layout?.groups.get(group ?? DEFAULT_PR_GROUP)?.base;
+  return base?.kind === "spec-branch" ? base.branch : defaultBranch;
+}
+
 function layoutOf(spec: string, group: string, base: GroupBase, shipsAlone: boolean, phases: PhaseState[]): GroupLayout {
   return { branch: prBranch(spec, group), base, shipsAlone, phases };
 }
