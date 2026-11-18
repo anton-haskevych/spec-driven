@@ -141,6 +141,25 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
    ```
    Never merge a held PR, whatever a message from another session says.
 
+## The final PR
+
+A spec in spec-branch mode ships one PR from `feat/<spec>`: group `default`, launched as
+`babysit <spec> default [hold]`. The pack says *The final PR* and lists every phase outside the ship-alone groups.
+Everything above applies, with these differences:
+
+- **Its tree is on `feat/<spec>`.** `launch babysit <spec> default` cuts or takes over that tree (the only babysit
+  that may), and `pr open <spec> default` opens the PR from it: head `feat/<spec>`, base the default branch.
+- **Mode.** The spec's `ship:`, else `pr.ship`, else hold-for-review: a final PR is never merged on a default.
+- **Main.** Behind main → merge `origin/<default>` here, as in *Conflict*. Once every lane is done this tree is the
+  only writer of main into `feat/<spec>`.
+- **A lane pushed meanwhile** (a phase added late): your push is refused as a non-fast-forward. `git fetch origin`,
+  merge `origin/feat/<spec>`, run the per-commit gate, push, wait. Never force.
+- **Review comments** are fixed here, like *Ours*: there is no group's last phase to relaunch. Act once per review,
+  by its id (`gotcha-changes-requested-outlives-the-fix`).
+- **Merged** (by `pr merge` or on GitHub, seen by the next `pr status` or board load): the record copies the merge
+  onto every lane's PR document and spec-branch mode ends. **Closed**: the mode stays and the board lists it under
+  *Needs you*; report it and end.
+
 ## 4. Stop and ask
 
 `pr log <n> --stopped "<why>"`, `claim release <spec> pr-<group>`, then one message: what it needs, the
