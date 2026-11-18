@@ -3,7 +3,11 @@ import type { Runner } from "../../core/run";
 import { ghClient } from "../gh";
 import { resolvePr } from "../resolve";
 import { ghWrites } from "./gh-writes";
-import { plansOnDemandAt } from "../../plan/read-plans";
+import { plansOnDemandAt, type SpecPlans } from "../../plan/read-plans";
+import { resolveSpec } from "../../core/spec-folders";
+import { specOfBranch } from "../../trees/naming";
+import { phasesOnBranch, specLayout } from "../groups";
+import { reviewPhase, withPhaseSections, type ReviewPhase } from "../how-to-review";
 
 export const HOLD_LABEL = "hold-for-review";
 const HOLD_LABEL_DESCRIPTION = "Green; waiting for a human review before merge";
@@ -19,20 +23,31 @@ export interface HoldDeps {
 }
 
 export function holdPr(projectDir: string, request: HoldRequest, deps: HoldDeps): string {
-  const resolved = resolvePr(ghClient(projectDir, deps.runner), projectDir, request.target, plansOnDemandAt(projectDir, deps, new Date()));
+  const plans = plansOnDemandAt(projectDir, deps, new Date());
+  const resolved = resolvePr(ghClient(projectDir, deps.runner), projectDir, request.target, plans);
   if (!resolved.ok) return `pr hold: ${resolved.reason}`;
-  const { number, state } = resolved.value.view;
+  const { number, state, headRefName } = resolved.value.view;
   if (state !== "OPEN") return `pr hold: #${number} is ${state.toLowerCase()}`;
 
   const writes = ghWrites(projectDir, deps.runner);
   const body = writes.body(number);
   if (!body.ok) return `pr hold: ${body.reason}`;
-  const section = withHeading(readFileSync(request.howToReview, "utf8"));
+  const section = withHeading(withPhaseSections(readFileSync(request.howToReview, "utf8"), branchPhases(projectDir, plans, headRefName)));
   const written = writes.setBody(number, withHowToReview(body.value, section));
   if (!written.ok) return `pr hold: ${written.reason}`;
   const labelled = writes.label(number, HOLD_LABEL, HOLD_LABEL_DESCRIPTION);
   if (!labelled.ok) return `pr hold: ${labelled.reason}`;
   return `Held: #${number} · label ${HOLD_LABEL} · How to review in the PR`;
+}
+
+// One section per phase the PR ships: its Outcome, files to touch and, on the record, its commits.
+function branchPhases(projectDir: string, plans: SpecPlans, branch: string): ReviewPhase[] {
+  const name = specOfBranch(branch);
+  const spec = name === undefined ? undefined : resolveSpec(projectDir, name);
+  if (spec === undefined || typeof spec === "string") return [];
+  const joined = plans.joined(spec.name);
+  const state = plans.state(spec);
+  return phasesOnBranch(specLayout(state, joined?.spec.specBranch), branch).map((phase) => reviewPhase(phase, joined?.phases.find((doc) => doc.id === phase.id)?.tasks ?? []));
 }
 
 // A rerun replaces the section instead of adding a second one.

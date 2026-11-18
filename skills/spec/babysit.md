@@ -128,7 +128,8 @@ the two sides want behaviour the code, spec and tests can't reconcile, and name 
 
 1. Write *How to review* to a scratch file: how to start what the change needs, who to log in as and
    with which data, and the screens or behaviours to check with what "right" looks like. Take it from the
-   phases' Outcome lines and `design.md`.
+   phases' Outcome lines and `design.md`. `pr hold` adds one section per phase under it (Outcome, files to
+   touch, and its commits from the record), so a final PR reads phase by phase: don't repeat them.
 2. `pr hold <n> --how-to-review <file>` → `Held: #<n> · …`. A `pr hold:` refusal → §4.
 3. `pr log <n> --stopped "held for review"`, then `claim release <spec> pr-<group>`.
 4. Stop every server or watcher this session started; nothing keeps running for the review.

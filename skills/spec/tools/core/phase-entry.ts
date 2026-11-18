@@ -49,6 +49,23 @@ export function summarizePhaseEntry(text: string): PhaseEntrySummary {
   };
 }
 
+const FILES_LABEL = /^\*\*Files to touch:?\*\*:?\s*$/i;
+const BULLET = /^[-*]\s+(.*)$/;
+
+// The bullets right under the template's `**Files to touch:**` label (phases/template.ts).
+export function filesToTouch(entry: string): string[] {
+  const lines = entry.split("\n");
+  const start = lines.findIndex((line) => FILES_LABEL.test(line.trim()));
+  if (start === -1) return [];
+  const files: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    const bullet = BULLET.exec(line.trim())?.[1];
+    if (bullet === undefined) break;
+    files.push(bullet.trim());
+  }
+  return files;
+}
+
 export function firstSentence(text: string): string | undefined {
   return text.split(SENTENCE_END)[0]?.replace(/[.\s]+$/, "");
 }

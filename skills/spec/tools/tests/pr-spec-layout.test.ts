@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { PhaseState, SpecState } from "../core/spec-state";
-import { baseBranchOf, branchOf, groupBranch, isFinalPrGroup, laneOf, pickGroup, specLayout } from "../pr/groups";
+import { baseBranchOf, branchOf, groupBranch, isFinalPrGroup, laneOf, phasesOnBranch, pickGroup, specLayout } from "../pr/groups";
 import { prTreeName } from "../plan/docs/pr-doc";
 import { phaseEdges, phaseState } from "./factories";
 
@@ -130,6 +130,16 @@ describe("the final PR's group", () => {
   test("outside the mode, several groups and none named still asks for one", () => {
     const off = specLayout(spec(phases));
     expect(pickGroup(spec(phases), undefined, off)).toMatchObject({ ok: false });
+  });
+});
+
+describe("phasesOnBranch", () => {
+  const phases = [grouped("1", "A"), grouped("2", "B"), grouped("3", "D")];
+
+  test("feat/<spec> ships every lane phase in the mode; a group's branch ships its own; anything else nothing", () => {
+    const on = specLayout(spec(phases), { cutFrom: "abc", shipAlone: ["D"] });
+    expect([ids(phasesOnBranch(on, "feat/x")), ids(phasesOnBranch(on, "feat/x-pr-d")), ids(phasesOnBranch(on, "feat/y"))]).toEqual([["1", "2"], ["3"], []]);
+    expect(ids(phasesOnBranch(specLayout(spec(phases)), "feat/x-pr-b"))).toEqual(["2"]);
   });
 });
 

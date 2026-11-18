@@ -92,6 +92,12 @@ export function groupBranch(layout: SpecLayout, group: PrGroup): string {
   return branchOf(layout, group.name ?? DEFAULT_PR_GROUP);
 }
 
+// What a PR from this branch ships: the final PR's lane phases on feat/<spec>, else the group's on its branch.
+export function phasesOnBranch(layout: SpecLayout, branch: string): PhaseState[] {
+  if (layout.finalPr?.head === branch) return layout.finalPr.phases;
+  return [...layout.groups.values()].find((group) => group.branch === branch)?.phases ?? [];
+}
+
 // The group whose branch this is, when it is a lane: spec-branch mode, cut from feat/<spec>, not shipping alone.
 export function laneOf(layout: SpecLayout, branch: string): string | undefined {
   if (layout.mode !== "spec-branch") return undefined;
