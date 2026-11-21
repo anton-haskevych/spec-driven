@@ -29,6 +29,7 @@ export interface PrReport {
 
 export interface ReportOptions {
   externalPatterns: readonly string[];
+  infraSignatures?: readonly string[];
   defaultBranch: string | undefined;
   otherPrs?: readonly number[];
   jobLogs?: JobLogs;
@@ -48,7 +49,7 @@ export function buildReport(gh: GhClient, firstView: PrView, options: ReportOpti
 
   const summary = summarizeChecks(view.checks, options.externalPatterns);
   const jobLogs = options.jobLogs ?? savedJobLogs(gh.jobLog, undefined);
-  const failures = failedOrCancelled(view.checks, externalMatcher(options.externalPatterns)).map((check) => failedCheck(gh, jobLogs, check, options.defaultBranch));
+  const failures = failedOrCancelled(view.checks, externalMatcher(options.externalPatterns)).map((check) => failedCheck(gh, jobLogs, check, options));
   return { ...base, state: prState(view, summary), summary, failures };
 }
 
@@ -59,7 +60,7 @@ function settledView(gh: GhClient, view: PrView): PrView {
   return again.ok ? again.value : view;
 }
 
-function failedCheck(gh: GhClient, jobLogs: JobLogs, check: Check, defaultBranch: string | undefined): FailedCheckReport {
+function failedCheck(gh: GhClient, jobLogs: JobLogs, check: Check, { defaultBranch, infraSignatures }: ReportOptions): FailedCheckReport {
   const job = check.runId !== undefined && check.jobId !== undefined ? { runId: check.runId, jobId: check.jobId } : undefined;
   if (!job) return { check, job };
   const log = jobLogs(job.jobId);
@@ -71,7 +72,7 @@ function failedCheck(gh: GhClient, jobLogs: JobLogs, check: Check, defaultBranch
     check,
     job,
     main,
-    infra: run.ok ? infraFromLog(job.jobId, run.value, log.ok ? { ok: true, value: log.value.text } : log) : run,
+    infra: run.ok ? infraFromLog(job.jobId, run.value, log.ok ? { ok: true, value: log.value.text } : log, infraSignatures) : run,
     tail: log.ok ? { ok: true, value: failureTail(log.value.text) } : log,
     ...(log.ok && log.value.path ? { logPath: log.value.path } : {}),
   };

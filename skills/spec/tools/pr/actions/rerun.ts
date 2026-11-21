@@ -1,7 +1,7 @@
 import { gitAt } from "../../core/git";
 import type { Result } from "../../core/result";
 import type { Runner } from "../../core/run";
-import { loadSettings } from "../../playbook/settings";
+import { loadSettings, type ProjectSettings } from "../../playbook/settings";
 import { babysitLogger } from "../babysit/log";
 import { failedOrCancelled } from "../checks/checks";
 import type { PrView } from "../checks/types";
@@ -28,7 +28,8 @@ export function rerunPr(projectDir: string, target: readonly string[], deps: Rer
   if (view.state !== "OPEN") return `pr rerun: #${view.number} is ${view.state.toLowerCase()}`;
 
   const git = gitAt(projectDir, deps.runner);
-  const candidates = rerunCandidates(gh, view, loadSettings(projectDir).checks.external, savedJobLogs(gh.jobLog, jobLogDir(git, view.number)));
+  const { checks } = loadSettings(projectDir);
+  const candidates = rerunCandidates(gh, view, checks, savedJobLogs(gh.jobLog, jobLogDir(git, view.number)));
   if (!candidates.ok) return `pr rerun: ${candidates.reason}`;
   const plan = planRerun(candidates.value);
   if (plan.kind === "refuse") return plan.reason;
@@ -46,14 +47,14 @@ export function rerunPr(projectDir: string, target: readonly string[], deps: Rer
   return `Rerun: ${lines.join("; ")}`;
 }
 
-function rerunCandidates(gh: GhClient, view: PrView, externalPatterns: readonly string[], jobLogs: JobLogs): Result<RerunCandidate[]> {
+function rerunCandidates(gh: GhClient, view: PrView, checks: ProjectSettings["checks"], jobLogs: JobLogs): Result<RerunCandidate[]> {
   const candidates: RerunCandidate[] = [];
-  for (const check of failedOrCancelled(view.checks, externalMatcher(externalPatterns))) {
+  for (const check of failedOrCancelled(view.checks, externalMatcher(checks.external))) {
     if (check.runId === undefined || check.jobId === undefined) return { ok: false, reason: `${check.name} is not an Actions job — it can't be re-run` };
     const run = gh.run(check.runId);
     if (!run.ok) return run;
     const log = jobLogs(check.jobId);
-    candidates.push({ check, jobId: check.jobId, run: run.value, fact: infraFromLog(check.jobId, run.value, log.ok ? { ok: true, value: log.value.text } : log) });
+    candidates.push({ check, jobId: check.jobId, run: run.value, fact: infraFromLog(check.jobId, run.value, log.ok ? { ok: true, value: log.value.text } : log, checks.infraSignatures) });
   }
   return { ok: true, value: candidates };
 }

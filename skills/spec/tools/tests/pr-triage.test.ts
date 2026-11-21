@@ -36,6 +36,19 @@ describe("infraFact", () => {
     expect(infraFromLog(JOB, run([job("failure")]), { ok: true, value: RUNNER_LOST_LOG })).toEqual({ ok: true, value: { infra: true, reason: "runner lost" } });
   });
 
+  test("a project's own signature names its infra failure, quoted in the reason", () => {
+    const log = "Stripe sandbox unavailable: account=acct_1 status=503\n##[error]Process completed with exit code 1.";
+    expect(infraFact(JOB, run([job("failure")]), log, ["Stripe sandbox unavailable:"])).toEqual({
+      infra: true,
+      reason: 'project signature "Stripe sandbox unavailable:"',
+    });
+    expect(infraFact(JOB, run([job("failure")]), log)).toEqual({ infra: false });
+    expect(infraFromLog(JOB, run([job("failure")]), { ok: true, value: log }, ["Stripe sandbox unavailable:"])).toEqual({
+      ok: true,
+      value: { infra: true, reason: 'project signature "Stripe sandbox unavailable:"' },
+    });
+  });
+
   test("signatures are found anywhere in the log, not only in the tail", () => {
     const log = `The hosted runner: GitHub Actions 7 lost communication with the server.\n${"noise\n".repeat(500)}##[error]Process completed with exit code 1.`;
     expect(infraFact(JOB, run([job("failure")]), log)).toEqual({ infra: true, reason: "runner lost" });

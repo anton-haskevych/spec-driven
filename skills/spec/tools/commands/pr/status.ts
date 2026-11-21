@@ -23,6 +23,7 @@ export async function prStatus(projectDir: string, args: readonly string[], runn
   const settings = loadSettings(projectDir);
   const report = buildReport(gh, view, {
     externalPatterns: settings.checks.external,
+    infraSignatures: settings.checks.infraSignatures,
     defaultBranch: defaultBranch(projectDir, runner),
     otherPrs,
     jobLogs: savedJobLogs(gh.jobLog, jobLogDir(gitAt(projectDir, runner), view.number)),
