@@ -51,6 +51,16 @@ describe("spec.ts join (real git)", () => {
     expect(repo.git("status", "--porcelain")).toBe("");
   });
 
+  test("a spec with more phases than one edit takes still joins whole", async () => {
+    const phases: PhaseSpec[] = Array.from({ length: 60 }, (_, index) => ({ id: String(index + 1), edges: "needs: []", tasks: ["Task"] }));
+    writeSpec(repo, BOARD_ON, phases);
+    repo.commitAll("big spec");
+    repo.git("push", "-q", "origin", "main");
+    const output = await joinIn(repo);
+    expect(output).toMatch(new RegExp(`^join: ${SPEC} is on the board \\(60 phases, 60 tasks, 0 worktrees read\\)`));
+    expect(onRecord(`specs/${SPEC}/phases/60.json`)).toMatchObject({ tasks: [{ id: "60.1", text: "Task" }] });
+  });
+
   test("the spec's fields and its merged PR come over from main's files", async () => {
     repo.write(`${SPEC_DIR}/CLAUDE.md`, "---\nstatus: active\nowner: Taras\nfocus: must\nship: auto\npriority: p1\ndue: 2026-12-01\n---\n# Spec\n");
     repo.write(`${SPEC_DIR}/pr-opening.md`, "# PR\n\n## Spec state\n\nPR #37 merged 2026-11-10 as 9392c3f (squash).\n");

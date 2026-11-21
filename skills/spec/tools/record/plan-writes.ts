@@ -23,7 +23,7 @@ const RECORD_PATH = /^(?:[A-Za-z0-9][A-Za-z0-9._-]*\/)*[A-Za-z0-9][A-Za-z0-9._-]
 
 // `alongside` ops ride in the batch outside the op limit and yield to an op the batch already has for their
 // path. They are written only when the batch itself changes something. `limit` is raised only by a write
-// that must land whole (a board loaded from a file).
+// that must land whole (a board loaded from a file, a spec joining the board).
 export function planWrites(view: RecordView, ops: readonly RecordOp[], validate: Validate, alongside: readonly RecordOp[] = [], limit = MAX_OPS): PlannedWrites {
   const shapeProblems = [...batchProblems(ops, limit), ...pathProblems(alongside)];
   if (shapeProblems.length > 0) return { kind: "invalid", problems: shapeProblems };

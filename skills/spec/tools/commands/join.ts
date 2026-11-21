@@ -68,10 +68,13 @@ export async function joinCommand(projectDir: string, args: readonly string[], d
   if ("refused" in planned) return `join: refused, nothing written. ${planned.refused}`;
   let existing: unknown;
   const stamp = stampedBy(git, deps.env, projectDir, deps.now());
-  const written = await writeRecord(port, stamp(newSpecPlan(planned, "join", (doc) => (existing = doc))), { validate: validateRecordDoc });
+  const written = await writeRecord(port, stamp(newSpecPlan(planned, "join", (doc) => (existing = doc))), { validate: validateRecordDoc, maxOps: JOIN_MAX_OPS });
   const lines = [...planned.recorded, ...planned.left].map((line) => `join: ${line}`);
   return [...lines, await resultLine(joining, planned, written, existing, copies.value.trees.length)].join("\n");
 }
+
+// A join must land whole (a half-joined spec would read as half its plan), so it takes a load's limit, not an edit's.
+export const JOIN_MAX_OPS = 2000;
 
 type Copies = Pick<JoinInput, "base" | "trees" | "onBase" | "copy">;
 
