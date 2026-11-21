@@ -15,17 +15,27 @@ const FAILED = new Set(["failure", "timed_out"]);
 
 // Only infrastructure failures may be re-run (ledger decision-flaky-tests-strict): a timeout or a
 // job cancelled because a sibling failed is the code's problem, not the runner's.
-export function infraFact(jobId: number, run: RunDetail, log: string | undefined): InfraFact {
+// `infraSignatures` (settings `checks.infra-signatures`): lines a project's own tests print when a service
+// they depend on is down, so a rerun is the answer. Like the runner's own, one anywhere in the log wins over
+// any other failure in that job; the attempt cap bounds the reruns.
+export function infraFact(jobId: number, run: RunDetail, log: string | undefined, infraSignatures: readonly string[]): InfraFact {
   const job = run.jobs.find((candidate) => candidate.id === jobId);
   if (run.conclusion === STARTUP_FAILURE || job?.conclusion === STARTUP_FAILURE) return { infra: true, reason: "never started" };
-  const signature = log === undefined ? undefined : INFRA_LOG_SIGNATURES.find(([text]) => log.includes(text));
-  if (signature) return { infra: true, reason: signature[1] };
+  const signature = log === undefined ? undefined : signatureIn(log, infraSignatures);
+  if (signature) return { infra: true, reason: signature };
   return job?.conclusion === "cancelled" ? cancelledFact(jobId, run, log) : { infra: false };
 }
 
+function signatureIn(log: string, infraSignatures: readonly string[]): string | undefined {
+  const runner = INFRA_LOG_SIGNATURES.find(([text]) => log.includes(text));
+  if (runner) return runner[1];
+  const project = infraSignatures.find((text) => log.includes(text));
+  return project === undefined ? undefined : `checks.infra-signatures "${project}"`;
+}
+
 // A job that never started has no log to read; for anything else, no log means no answer.
-export function infraFromLog(jobId: number, run: RunDetail, log: Result<string>): Result<InfraFact> {
-  const fact = infraFact(jobId, run, log.ok ? log.value : undefined);
+export function infraFromLog(jobId: number, run: RunDetail, log: Result<string>, infraSignatures: readonly string[]): Result<InfraFact> {
+  const fact = infraFact(jobId, run, log.ok ? log.value : undefined, infraSignatures);
   return log.ok || fact.infra ? { ok: true, value: fact } : { ok: false, reason: `no log (${log.reason})` };
 }
 

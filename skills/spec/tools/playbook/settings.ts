@@ -15,7 +15,7 @@ export interface ProjectSettings {
   file?: string;
   docs: (typeof DOCS_HOMES)[number];
   pr: { draft: boolean; merge?: MergeMethod; ship?: ShipMode };
-  checks: { external: string[] };
+  checks: { external: string[]; infraSignatures: string[] };
   gates: { afterMergeMain?: string; bootstrap?: string; perCommit?: string; ciTriage?: string };
   deploy?: DeploySetting;
   crew: CrewSetting;
@@ -50,7 +50,7 @@ export interface ParsedSettings {
 export const DEFAULT_SETTINGS: ProjectSettings = {
   docs: "branch",
   pr: { draft: true },
-  checks: { external: [] },
+  checks: { external: [], infraSignatures: [] },
   gates: {},
   crew: { workers: 3, babysitters: 2, selfApprove: [] },
   board: { record: false, people: [] },
@@ -60,7 +60,7 @@ const SWITCH = ["on", "off"] as const;
 
 const SECTION_KEYS: Record<string, readonly string[]> = {
   pr: ["draft", "merge", "ship"],
-  checks: ["external"],
+  checks: ["external", "infra-signatures"],
   gates: ["after-merge-main", "bootstrap", "per-commit", "ci-triage"],
   deploy: ["paths", "gate"],
   crew: ["workers", "babysitters", "self-approve"],
@@ -93,7 +93,10 @@ export function parseSettings(text: string): ParsedSettings {
       ...optional("merge", oneOf(pr.merge, MERGE_METHODS, "pr.merge", problems)),
       ...optional("ship", oneOf(pr.ship, SHIP_MODES, "pr.ship", problems)),
     },
-    checks: { external: stringArray(checks.external, "checks.external", problems) },
+    checks: {
+      external: stringArray(checks.external, "checks.external", problems),
+      infraSignatures: infraSignatures(checks["infra-signatures"], problems),
+    },
     gates: {
       ...optional("afterMergeMain", gateName(gates["after-merge-main"], "gates.after-merge-main", problems)),
       ...optional("bootstrap", gateName(gates.bootstrap, "gates.bootstrap", problems)),
@@ -119,6 +122,7 @@ export function describeSettings(settings: ProjectSettings): string {
     ...(defaultCaps ? [] : [`crew ${crew.workers} workers, ${crew.babysitters} babysitters`]),
     ...(crew.selfApprove.length > 0 ? [`self-approve gates ${crew.selfApprove.join(", ")}`] : []),
     ...(checks.external.length > 0 ? [`external checks ${checks.external.join(", ")}`] : []),
+    ...(checks.infraSignatures.length > 0 ? [`${checks.infraSignatures.length} infra ${checks.infraSignatures.length === 1 ? "signature" : "signatures"}`] : []),
     ...(gates.perCommit ? [`each commit: gate ${gates.perCommit}`] : []),
     ...(gates.afterMergeMain ? [`after merging main: gate ${gates.afterMergeMain}`] : []),
     ...(gates.bootstrap ? [`fresh worktree: gate ${gates.bootstrap}`] : []),
@@ -127,6 +131,14 @@ export function describeSettings(settings: ProjectSettings): string {
     ...(settings.board.record ? ["board record on"] : []),
     ...(settings.board.people.length > 0 ? [`people ${settings.board.people.join(", ")}`] : []),
   ].join(" · ");
+}
+
+function infraSignatures(value: unknown, problems: string[]): string[] {
+  const key = "checks.infra-signatures";
+  const signatures = stringArray(value, key, problems, "Stripe sandbox unavailable:");
+  const unusable = signatures.filter((text) => text.trim() === "" || text.includes("*"));
+  if (unusable.length > 0) problems.push(`${key} takes plain text a log line contains, not blank or a * pattern: ${unusable.map((text) => JSON.stringify(text)).join(", ")}`);
+  return signatures.filter((text) => !unusable.includes(text));
 }
 
 function deploySetting(section: FrontmatterData, present: boolean, problems: string[]): DeploySetting | undefined {

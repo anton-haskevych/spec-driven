@@ -11,6 +11,7 @@ pr:
   merge: squash
 checks:
   external: ["Vercel*"]
+  infra-signatures: ["Stripe sandbox unavailable:"]
 gates:
   after-merge-main: merge-main
   bootstrap: bootstrap
@@ -27,7 +28,7 @@ describe("parseSettings", () => {
       settings: {
         docs: "main",
         pr: { draft: false, merge: "squash" },
-        checks: { external: ["Vercel*"] },
+        checks: { external: ["Vercel*"], infraSignatures: ["Stripe sandbox unavailable:"] },
         gates: { afterMergeMain: "merge-main", bootstrap: "bootstrap", perCommit: "quick", ciTriage: "ci-triage" },
         crew: DEFAULT_SETTINGS.crew,
         board: { record: false, people: [] },
@@ -38,7 +39,7 @@ describe("parseSettings", () => {
 
   test("missing keys take the defaults", () => {
     expect(parseSettings("---\ndocs: branch\n---\n")).toEqual({ settings: DEFAULT_SETTINGS, problems: [] });
-    expect(DEFAULT_SETTINGS).toEqual({ docs: "branch", pr: { draft: true }, checks: { external: [] }, gates: {}, crew: { workers: 3, babysitters: 2, selfApprove: [] }, board: { record: false, people: [] } });
+    expect(DEFAULT_SETTINGS).toEqual({ docs: "branch", pr: { draft: true }, checks: { external: [], infraSignatures: [] }, gates: {}, crew: { workers: 3, babysitters: 2, selfApprove: [] }, board: { record: false, people: [] } });
   });
 
   test("wrong types and unknown keys become problems and fall back to defaults", () => {
@@ -54,6 +55,12 @@ describe("parseSettings", () => {
       "unknown key: nudge-at",
       "unknown key: color",
     ].toSorted());
+  });
+
+  test("infra signatures drop blank and * entries, which would match every log or nothing", () => {
+    const { settings, problems } = parseSettings('---\nchecks:\n  infra-signatures: ["Stripe sandbox unavailable:", " ", "Stripe*"]\n---\n');
+    expect(settings.checks.infraSignatures).toEqual(["Stripe sandbox unavailable:"]);
+    expect(problems).toEqual(['checks.infra-signatures takes plain text a log line contains, not blank or a * pattern: " ", "Stripe*"']);
   });
 
   test("a file without frontmatter is a problem, not a crash", () => {
@@ -78,7 +85,7 @@ describe("loadSettings", () => {
 describe("describeSettings", () => {
   test("one line, unset parts left out", () => {
     expect(describeSettings(parseSettings(CRM).settings)).toBe(
-      "docs on main · PRs ready · merge squash · external checks Vercel* · each commit: gate quick · after merging main: gate merge-main · fresh worktree: gate bootstrap · CI triage: gate ci-triage",
+      "docs on main · PRs ready · merge squash · external checks Vercel* · 1 infra signature · each commit: gate quick · after merging main: gate merge-main · fresh worktree: gate bootstrap · CI triage: gate ci-triage",
     );
     expect(describeSettings(DEFAULT_SETTINGS)).toBe("docs on branch · PRs draft · merge: ask the user");
   });
