@@ -26,31 +26,31 @@ describe("infraFact", () => {
     ["cancelled by fail-fast after a sibling failed", run([job("cancelled"), job("failure", 2, "E2E Tests (2/2)")]), "##[error]The operation was canceled.", { infra: false, reason: "cancelled after E2E Tests (2/2) failed" }],
     ["cancelled with no log to rule out a timeout", run([job("cancelled")], "cancelled"), undefined, { infra: false, reason: "cancelled; no log to rule out a timeout" }],
   ] as const)("%s", (_name, detail, log, expected) => {
-    expect(infraFact(JOB, detail, log)).toEqual(expected);
+    expect(infraFact(JOB, detail, log, [])).toEqual(expected);
   });
 
   test("without the log, only a job that never started can be told apart; anything else is unknown", () => {
     const noLog = { ok: false as const, reason: "gh call budget (30) spent" };
-    expect(infraFromLog(JOB, run([job("failure")]), noLog)).toEqual({ ok: false, reason: "no log (gh call budget (30) spent)" });
-    expect(infraFromLog(JOB, run([job("startup_failure")]), noLog)).toEqual({ ok: true, value: { infra: true, reason: "never started" } });
-    expect(infraFromLog(JOB, run([job("failure")]), { ok: true, value: RUNNER_LOST_LOG })).toEqual({ ok: true, value: { infra: true, reason: "runner lost" } });
+    expect(infraFromLog(JOB, run([job("failure")]), noLog, [])).toEqual({ ok: false, reason: "no log (gh call budget (30) spent)" });
+    expect(infraFromLog(JOB, run([job("startup_failure")]), noLog, [])).toEqual({ ok: true, value: { infra: true, reason: "never started" } });
+    expect(infraFromLog(JOB, run([job("failure")]), { ok: true, value: RUNNER_LOST_LOG }, [])).toEqual({ ok: true, value: { infra: true, reason: "runner lost" } });
   });
 
-  test("a project's own signature names its infra failure, quoted in the reason", () => {
+  test("a project's own signature names its infra failure, quoted with its settings key", () => {
     const log = "Stripe sandbox unavailable: account=acct_1 status=503\n##[error]Process completed with exit code 1.";
     expect(infraFact(JOB, run([job("failure")]), log, ["Stripe sandbox unavailable:"])).toEqual({
       infra: true,
-      reason: 'project signature "Stripe sandbox unavailable:"',
+      reason: 'checks.infra-signatures "Stripe sandbox unavailable:"',
     });
-    expect(infraFact(JOB, run([job("failure")]), log)).toEqual({ infra: false });
+    expect(infraFact(JOB, run([job("failure")]), log, [])).toEqual({ infra: false });
     expect(infraFromLog(JOB, run([job("failure")]), { ok: true, value: log }, ["Stripe sandbox unavailable:"])).toEqual({
       ok: true,
-      value: { infra: true, reason: 'project signature "Stripe sandbox unavailable:"' },
+      value: { infra: true, reason: 'checks.infra-signatures "Stripe sandbox unavailable:"' },
     });
   });
 
   test("signatures are found anywhere in the log, not only in the tail", () => {
     const log = `The hosted runner: GitHub Actions 7 lost communication with the server.\n${"noise\n".repeat(500)}##[error]Process completed with exit code 1.`;
-    expect(infraFact(JOB, run([job("failure")]), log)).toEqual({ infra: true, reason: "runner lost" });
+    expect(infraFact(JOB, run([job("failure")]), log, [])).toEqual({ infra: true, reason: "runner lost" });
   });
 });

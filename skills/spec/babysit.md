@@ -63,6 +63,8 @@ After every action, wait again (background `pr wait <n>`).
 - `infra: yes` → `pr rerun <n>`. `still running — wait` → wait, then re-run. The attempt cap
   (2 re-runs per run, GitHub's `attempt` ≤ 3) refusing → §4. Never re-run a test failure, even a flaky
   one: it gets fixed in this PR.
+- The same "service is down" line (e.g. `Stripe sandbox unavailable:`) fails runs again and again but
+  reads `infra: no` → §4, naming the line as a candidate for settings `checks.infra-signatures`.
 - `fails on main too: yes` → §4, naming main's failing run. Merging main fixes nothing.
 - Otherwise a test or code failure: run `gates.ci-triage` first when settings name it
   (`gates --name <gate>`; the pack's `Settings:` line). Read the saved job log (`log <path>` under the

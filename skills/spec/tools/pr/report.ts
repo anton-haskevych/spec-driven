@@ -29,7 +29,7 @@ export interface PrReport {
 
 export interface ReportOptions {
   externalPatterns: readonly string[];
-  infraSignatures?: readonly string[];
+  infraSignatures: readonly string[];
   defaultBranch: string | undefined;
   otherPrs?: readonly number[];
   jobLogs?: JobLogs;

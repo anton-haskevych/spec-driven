@@ -27,7 +27,7 @@ describe("buildReport", () => {
       [["gh", "run", "view"], [{ stdout: RUN_JOBS }]],
       [["gh", "run", "list"], [{ stdout: RUN_LIST }]],
     ]);
-    const report = buildReport(ghClient("/repo", runner), UNKNOWN, { externalPatterns: ["Vercel*"], defaultBranch: "main" });
+    const report = buildReport(ghClient("/repo", runner), UNKNOWN, { externalPatterns: ["Vercel*"], infraSignatures: [], defaultBranch: "main" });
 
     expect(report.view.mergeStateStatus).toBe("UNSTABLE");
     expect(report.state).toBe("red");
@@ -43,7 +43,7 @@ describe("buildReport", () => {
 
   test("a merged PR costs no checks call", () => {
     const runner = sequencedRunner([]);
-    const report = buildReport(ghClient("/repo", runner), { ...UNKNOWN, state: "MERGED" }, { externalPatterns: [], defaultBranch: "main" });
+    const report = buildReport(ghClient("/repo", runner), { ...UNKNOWN, state: "MERGED" }, { externalPatterns: [], infraSignatures: [], defaultBranch: "main" });
     expect(report.state).toBe("merged");
     expect(runner.calls).toEqual([]);
   });
@@ -62,7 +62,7 @@ describe("buildReport", () => {
       [RUN_DETAIL, [{ stdout: RUN_VIEW }]],
     ]);
     const gh = ghClient("/repo", runner);
-    const report = buildReport(gh, prView({ checks: failing }), { externalPatterns: [], defaultBranch: undefined, jobLogs: savedJobLogs(gh.jobLog, dir) });
+    const report = buildReport(gh, prView({ checks: failing }), { externalPatterns: [], infraSignatures: [], defaultBranch: undefined, jobLogs: savedJobLogs(gh.jobLog, dir) });
 
     expect(runner.calls.filter((call) => call[1] === "api")).toHaveLength(failing.length);
     expect(runner.calls.filter((call) => call[1] === "run")).toHaveLength(1);
@@ -74,7 +74,7 @@ describe("buildReport", () => {
   });
 
   test("the triage gate is carried for the render", () => {
-    const report = buildReport(ghClient("/repo", sequencedRunner([])), prView(), { externalPatterns: [], defaultBranch: undefined, triageGate: "ci-triage" });
+    const report = buildReport(ghClient("/repo", sequencedRunner([])), prView(), { externalPatterns: [], infraSignatures: [], defaultBranch: undefined, triageGate: "ci-triage" });
     expect(report.triageGate).toBe("ci-triage");
   });
 });

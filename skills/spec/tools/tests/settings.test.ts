@@ -57,6 +57,12 @@ describe("parseSettings", () => {
     ].toSorted());
   });
 
+  test("infra signatures drop blank and * entries, which would match every log or nothing", () => {
+    const { settings, problems } = parseSettings('---\nchecks:\n  infra-signatures: ["Stripe sandbox unavailable:", " ", "Stripe*"]\n---\n');
+    expect(settings.checks.infraSignatures).toEqual(["Stripe sandbox unavailable:"]);
+    expect(problems).toEqual(['checks.infra-signatures takes plain text a log line contains, not blank or a * pattern: " ", "Stripe*"']);
+  });
+
   test("a file without frontmatter is a problem, not a crash", () => {
     expect(parseSettings("just prose\n").problems).toEqual(["settings.md has no frontmatter; put the settings between --- lines"]);
     expect(parseSettings("---\n: [\n---\n").problems[0]).toStartWith("frontmatter is not valid YAML");

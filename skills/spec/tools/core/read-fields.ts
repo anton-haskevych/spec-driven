@@ -8,10 +8,10 @@ export function oneOf<T extends string>(value: unknown, allowed: readonly T[], k
   return undefined;
 }
 
-export function stringArray(value: unknown, key: string, problems: string[]): string[] {
+export function stringArray(value: unknown, key: string, problems: string[], example = "Vercel*"): string[] {
   if (value === undefined) return [];
   if (Array.isArray(value) && value.every((item) => typeof item === "string")) return value;
-  problems.push(`${key} must be a list of strings, e.g. ${key}: ["Vercel*"]`);
+  problems.push(`${key} must be a list of strings, e.g. ${key}: ["${example}"]`);
   return [];
 }
 

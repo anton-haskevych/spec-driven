@@ -95,7 +95,7 @@ export function parseSettings(text: string): ParsedSettings {
     },
     checks: {
       external: stringArray(checks.external, "checks.external", problems),
-      infraSignatures: stringArray(checks["infra-signatures"], "checks.infra-signatures", problems),
+      infraSignatures: infraSignatures(checks["infra-signatures"], problems),
     },
     gates: {
       ...optional("afterMergeMain", gateName(gates["after-merge-main"], "gates.after-merge-main", problems)),
@@ -131,6 +131,14 @@ export function describeSettings(settings: ProjectSettings): string {
     ...(settings.board.record ? ["board record on"] : []),
     ...(settings.board.people.length > 0 ? [`people ${settings.board.people.join(", ")}`] : []),
   ].join(" · ");
+}
+
+function infraSignatures(value: unknown, problems: string[]): string[] {
+  const key = "checks.infra-signatures";
+  const signatures = stringArray(value, key, problems, "Stripe sandbox unavailable:");
+  const unusable = signatures.filter((text) => text.trim() === "" || text.includes("*"));
+  if (unusable.length > 0) problems.push(`${key} takes plain text a log line contains, not blank or a * pattern: ${unusable.map((text) => JSON.stringify(text)).join(", ")}`);
+  return signatures.filter((text) => !unusable.includes(text));
 }
 
 function deploySetting(section: FrontmatterData, present: boolean, problems: string[]): DeploySetting | undefined {
