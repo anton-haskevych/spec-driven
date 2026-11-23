@@ -32,6 +32,11 @@ describe("launchReport", () => {
     );
   });
 
+  test("in kitty it names the terminal only, never the window id kitten prints as a tab", () => {
+    const runner = stubRunner([[["kitten"], { stdout: "12\n" }]]);
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], { KITTY_WINDOW_ID: "3", KITTY_LISTEN_ON: "unix:@kitty-9" }, runner)).toBe("Launched: kitty — gift-cards prep");
+  });
+
   test("bad arguments come back as one launch line", () => {
     expect(launchReport("/w", ["prep"], iTerm, stubRunner([]))).toBe("launch: usage: launch <sub-command> <spec-name> [<phase> | <group> [hold]] [--bg --brief <file>]");
   });
@@ -46,10 +51,12 @@ const giftCards: SessionLaunch = {
 };
 
 describe("pickTerminal", () => {
-  test("tmux first, then iTerm, then Terminal.app, else none", () => {
+  test("tmux first, then iTerm, then Terminal.app, then kitty, else none", () => {
     expect(pickTerminal({ TMUX: "/tmp/tmux-501/default,1,0", TERM_PROGRAM: "iTerm.app" })).toBe("tmux");
+    expect(pickTerminal({ TMUX: "/tmp/tmux-1000/default,1,0", KITTY_WINDOW_ID: "3" })).toBe("tmux");
     expect(pickTerminal({ TERM_PROGRAM: "iTerm.app" })).toBe("iTerm");
     expect(pickTerminal({ TERM_PROGRAM: "Apple_Terminal" })).toBe("Terminal");
+    expect(pickTerminal({ KITTY_WINDOW_ID: "3", TERM: "xterm-kitty" })).toBe("kitty");
     expect(pickTerminal({ TERM_PROGRAM: "vscode" })).toBeUndefined();
     expect(pickTerminal({})).toBeUndefined();
   });
@@ -80,6 +87,20 @@ describe("launchArgv", () => {
     const script = launchArgv("iTerm", giftCards)[2] ?? "";
     expect(script).toContain("create window with default profile");
     expect(script).toContain("current session of current tab of newWindow");
+  });
+
+  test("kitty with remote control opens a tab beside yours in the project directory, keeping your tab in front", () => {
+    expect(launchArgv("kitty", giftCards, { KITTY_WINDOW_ID: "3", KITTY_LISTEN_ON: "unix:@kitty-9", SHELL: "/usr/bin/zsh" })).toEqual([
+      "kitten", "@", "--to", "unix:@kitty-9", "launch", "--type=tab", "--keep-focus",
+      "--cwd", "/work/crm", "--tab-title", "gift-cards prep", "/usr/bin/zsh", "-ic", giftCards.command,
+    ]);
+  });
+
+  test("kitty without remote control opens a new kitty window in the project directory", () => {
+    expect(launchArgv("kitty", giftCards, { KITTY_WINDOW_ID: "3", SHELL: "/usr/bin/zsh" })).toEqual([
+      "kitty", "--detach", "--directory", "/work/crm", "--title", "gift-cards prep", "/usr/bin/zsh", "-ic", giftCards.command,
+    ]);
+    expect(launchArgv("kitty", giftCards, { KITTY_WINDOW_ID: "3" }).slice(-3)).toEqual(["/bin/sh", "-ic", giftCards.command]);
   });
 
   test("Terminal.app runs the line in a new window, then puts the window you were in back in front", () => {

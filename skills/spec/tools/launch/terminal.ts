@@ -1,16 +1,17 @@
 import type { Env } from "../core/env";
 import type { SessionLaunch } from "./command-line";
 
-export type Terminal = "tmux" | "iTerm" | "Terminal";
+export type Terminal = "tmux" | "iTerm" | "Terminal" | "kitty";
 
 export function pickTerminal(env: Env): Terminal | undefined {
   if (env.TMUX) return "tmux";
   if (env.TERM_PROGRAM === "iTerm.app") return "iTerm";
   if (env.TERM_PROGRAM === "Apple_Terminal") return "Terminal";
+  if (env.KITTY_WINDOW_ID) return "kitty";
   return undefined;
 }
 
-export function launchArgv(terminal: Terminal, launch: SessionLaunch): string[] {
+export function launchArgv(terminal: Terminal, launch: SessionLaunch, env: Env = {}): string[] {
   switch (terminal) {
     case "tmux":
       return ["tmux", "new-window", "-d", "-n", launch.title, "-c", launch.projectDir, launch.command];
@@ -18,7 +19,21 @@ export function launchArgv(terminal: Terminal, launch: SessionLaunch): string[] 
       return ["osascript", "-e", iTermScript(launch.shellLine)];
     case "Terminal":
       return ["osascript", "-e", terminalScript(launch.shellLine)];
+    case "kitty":
+      return kittyArgv(launch, env);
   }
+}
+
+// With kitty's remote control on (`listen_on`, which puts KITTY_LISTEN_ON in every child's
+// environment) the session opens as a tab beside yours and your tab keeps the focus; without it,
+// as a new kitty window. The command runs in an interactive login of the user's shell, so the PATH
+// that finds `claude` is the one their terminal has.
+function kittyArgv(launch: SessionLaunch, env: Env): string[] {
+  const run = [env.SHELL || "/bin/sh", "-ic", launch.command];
+  if (env.KITTY_LISTEN_ON) {
+    return ["kitten", "@", "--to", env.KITTY_LISTEN_ON, "launch", "--type=tab", "--keep-focus", "--cwd", launch.projectDir, "--tab-title", launch.title, ...run];
+  }
+  return ["kitty", "--detach", "--directory", launch.projectDir, "--title", launch.title, ...run];
 }
 
 // Writes into the session the script created, never `current session`: whatever is in front at that
