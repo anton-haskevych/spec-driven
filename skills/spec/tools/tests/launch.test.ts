@@ -89,10 +89,10 @@ describe("launchArgv", () => {
     expect(script).toContain("current session of current tab of newWindow");
   });
 
-  test("kitty with remote control opens a tab beside yours in the project directory, keeping your tab in front", () => {
+  test("kitty with remote control opens a split in your tab, in the project directory, keeping your focus", () => {
     expect(launchArgv("kitty", giftCards, { KITTY_WINDOW_ID: "3", KITTY_LISTEN_ON: "unix:@kitty-9", SHELL: "/usr/bin/zsh" })).toEqual([
-      "kitten", "@", "--to", "unix:@kitty-9", "launch", "--type=tab", "--keep-focus",
-      "--cwd", "/work/crm", "--tab-title", "gift-cards prep", "/usr/bin/zsh", "-ic", giftCards.command,
+      "kitten", "@", "--to", "unix:@kitty-9", "launch", "--type=window", "--match", "window_id:3", "--keep-focus",
+      "--cwd", "/work/crm", "--title", "gift-cards prep", "/usr/bin/zsh", "-ic", giftCards.command,
     ]);
   });
 

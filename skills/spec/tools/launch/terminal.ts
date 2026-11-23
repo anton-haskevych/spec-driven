@@ -25,13 +25,14 @@ export function launchArgv(terminal: Terminal, launch: SessionLaunch, env: Env =
 }
 
 // With kitty's remote control on (`listen_on`, which puts KITTY_LISTEN_ON in every child's
-// environment) the session opens as a tab beside yours and your tab keeps the focus; without it,
-// as a new kitty window. The command runs in an interactive login of the user's shell, so the PATH
-// that finds `claude` is the one their terminal has.
+// environment) the session opens as a split in the tab of the window that ran launch, placed by
+// that tab's layout, and your window keeps the focus; without it, as a new kitty window. The
+// command runs in an interactive shell of the user's, so `claude` resolves from their PATH.
 function kittyArgv(launch: SessionLaunch, env: Env): string[] {
   const run = [env.SHELL || "/bin/sh", "-ic", launch.command];
   if (env.KITTY_LISTEN_ON) {
-    return ["kitten", "@", "--to", env.KITTY_LISTEN_ON, "launch", "--type=tab", "--keep-focus", "--cwd", launch.projectDir, "--tab-title", launch.title, ...run];
+    const here = env.KITTY_WINDOW_ID ? ["--match", `window_id:${env.KITTY_WINDOW_ID}`] : [];
+    return ["kitten", "@", "--to", env.KITTY_LISTEN_ON, "launch", "--type=window", ...here, "--keep-focus", "--cwd", launch.projectDir, "--title", launch.title, ...run];
   }
   return ["kitty", "--detach", "--directory", launch.projectDir, "--title", launch.title, ...run];
 }
