@@ -65,8 +65,8 @@ export function launchReport(projectDir: string, args: readonly string[], env: E
 
   const terminal = pickTerminal(env);
   if (!terminal) return runYourself;
-  const result = runner.run(launchArgv(terminal, launch.value));
-  if (result.code === 0) return `Launched: ${terminal}${tabNote(result.stdout)} — ${launch.value.title}`;
+  const result = runner.run(launchArgv(terminal, launch.value, env));
+  if (result.code === 0) return `Launched: ${terminal}${terminal === "iTerm" ? tabNote(result.stdout) : ""} — ${launch.value.title}`;
   return `${runYourself} (${terminal}: ${result.stderr.trim().split("\n")[0] ?? `exit ${result.code}`})`;
 }
 
