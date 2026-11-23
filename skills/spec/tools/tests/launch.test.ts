@@ -32,6 +32,12 @@ describe("launchReport", () => {
     );
   });
 
+  test("in Orca it names Orca, never the JSON the CLI prints", () => {
+    const cli = "/home/u/.config/orca/linux-orca-cli-shim/orca";
+    const runner = stubRunner([[[cli, "agent", "launch"], { stdout: '{"ok":true}\n' }]]);
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], { ORCA_CLI_COMMAND: cli }, runner)).toBe("Launched: orca — gift-cards prep");
+  });
+
   test("in kitty it names the terminal only, never the window id kitten prints as a tab", () => {
     const runner = stubRunner([[["kitten"], { stdout: "12\n" }]]);
     expect(launchReport("/work/crm", ["prep", "gift-cards"], { KITTY_WINDOW_ID: "3", KITTY_LISTEN_ON: "unix:@kitty-9" }, runner)).toBe("Launched: kitty — gift-cards prep");
@@ -60,9 +66,21 @@ describe("pickTerminal", () => {
     expect(pickTerminal({ TERM_PROGRAM: "vscode" })).toBeUndefined();
     expect(pickTerminal({})).toBeUndefined();
   });
+
+  test("Orca before everything, even with tmux or kitty variables inherited from the shell that started it", () => {
+    const orca = { ORCA_CLI_COMMAND: "/home/u/.config/orca/linux-orca-cli-shim/orca" };
+    expect(pickTerminal(orca)).toBe("orca");
+    expect(pickTerminal({ ...orca, TMUX: "/tmp/tmux-1000/default,1,0", KITTY_WINDOW_ID: "3" })).toBe("orca");
+  });
 });
 
 describe("launchArgv", () => {
+  test("Orca starts the agent in the workspace that holds the project directory, through the CLI it exported", () => {
+    expect(launchArgv("orca", giftCards, { ORCA_CLI_COMMAND: "/home/u/.config/orca/linux-orca-cli-shim/orca" })).toEqual([
+      "/home/u/.config/orca/linux-orca-cli-shim/orca", "agent", "launch", "--agent", "claude", "--worktree", "path:/work/crm", "--prompt", giftCards.prompt,
+    ]);
+  });
+
   test("tmux opens a named window in the project directory without switching to it", () => {
     expect(launchArgv("tmux", giftCards)).toEqual(["tmux", "new-window", "-d", "-n", "gift-cards prep", "-c", "/work/crm", giftCards.command]);
   });
