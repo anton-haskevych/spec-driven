@@ -44,7 +44,7 @@ export async function launchCrewSession(request: CrewLaunchRequest, store: RunFi
   if (run.runner === undefined) return { text: "crew launch: can't tell who runs this crew; run crew start again" };
   const overseer = run.overseer ?? "unknown";
   const positionals = [request.subCommand, request.spec, request.target, ...(request.hold ? ["hold"] : [])];
-  const valid = sessionLaunch(".", positionals);
+  const valid = sessionLaunch(".", positionals, deps.env);
   if (!valid.ok) return { text: `crew launch: ${valid.reason}` };
   const full = machineRefusal(request, deps);
   if (full) return { text: full };
@@ -53,7 +53,7 @@ export async function launchCrewSession(request: CrewLaunchRequest, store: RunFi
   if (!placed.ok) return { text: `launch: ${placed.reason}` };
   const placement = renderPlacement(placed);
   const tree = placed.value.path;
-  const inTree = sessionLaunch(tree, positionals);
+  const inTree = sessionLaunch(tree, positionals, deps.env);
   if (!inTree.ok) return { text: `crew launch: ${inTree.reason}` };
 
   const target = request.subCommand === "babysit" ? { group: request.target } : { phase: normalizePhaseHint(request.target) };

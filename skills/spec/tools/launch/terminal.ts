@@ -1,9 +1,12 @@
 import type { Env } from "../core/env";
-import type { SessionLaunch } from "./command-line";
+import { claudeFlags, type SessionLaunch } from "./command-line";
 
-export type Terminal = "tmux" | "iTerm" | "Terminal" | "kitty";
+export type Terminal = "orca" | "tmux" | "iTerm" | "Terminal" | "kitty";
 
+// Orca first: a session it hosts can inherit TMUX or KITTY_* from the shell that started Orca,
+// but Orca is where the user is looking. Orca exports its CLI shim to every session it starts.
 export function pickTerminal(env: Env): Terminal | undefined {
+  if (env.ORCA_CLI_COMMAND) return "orca";
   if (env.TMUX) return "tmux";
   if (env.TERM_PROGRAM === "iTerm.app") return "iTerm";
   if (env.TERM_PROGRAM === "Apple_Terminal") return "Terminal";
@@ -21,7 +24,16 @@ export function launchArgv(terminal: Terminal, launch: SessionLaunch, env: Env =
       return ["osascript", "-e", terminalScript(launch.shellLine)];
     case "kitty":
       return kittyArgv(launch, env);
+    case "orca":
+      return orcaArgv(launch, env);
   }
+}
+
+// Chat or terminal follows the user's Chat | CLI choice, and Orca titles the tab itself.
+// Never a bare `orca` on Linux: that is the GNOME screen reader.
+function orcaArgv(launch: SessionLaunch, env: Env): string[] {
+  const orca = env.ORCA_CLI_COMMAND || "orca";
+  return [orca, "agent", "launch", "--agent", "claude", "--worktree", `path:${launch.projectDir}`, ...claudeFlags(launch), "--prompt", launch.prompt];
 }
 
 // With kitty's remote control on (`listen_on`, which puts KITTY_LISTEN_ON in every child's

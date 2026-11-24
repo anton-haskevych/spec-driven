@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { sessionLaunch, type SessionLaunch } from "../launch/command-line";
 import { launchArgv, pickTerminal } from "../launch/terminal";
+import { launchInBackground } from "../launch/background";
 import { launchCommand, launchReport } from "../commands/launch";
 import type { Placement } from "../trees/place";
 import { stubRunner } from "./stub-runner";
@@ -32,6 +33,12 @@ describe("launchReport", () => {
     );
   });
 
+  test("in Orca it names Orca, never the JSON the CLI prints", () => {
+    const cli = "/home/u/.config/orca/linux-orca-cli-shim/orca";
+    const runner = stubRunner([[[cli, "agent", "launch"], { stdout: '{"ok":true}\n' }]]);
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], { ORCA_CLI_COMMAND: cli }, runner)).toBe("Launched: orca — gift-cards prep");
+  });
+
   test("in kitty it names the terminal only, never the window id kitten prints as a tab", () => {
     const runner = stubRunner([[["kitten"], { stdout: "12\n" }]]);
     expect(launchReport("/work/crm", ["prep", "gift-cards"], { KITTY_WINDOW_ID: "3", KITTY_LISTEN_ON: "unix:@kitty-9" }, runner)).toBe("Launched: kitty — gift-cards prep");
@@ -60,9 +67,21 @@ describe("pickTerminal", () => {
     expect(pickTerminal({ TERM_PROGRAM: "vscode" })).toBeUndefined();
     expect(pickTerminal({})).toBeUndefined();
   });
+
+  test("Orca before everything, even with tmux or kitty variables inherited from the shell that started it", () => {
+    const orca = { ORCA_CLI_COMMAND: "/home/u/.config/orca/linux-orca-cli-shim/orca" };
+    expect(pickTerminal(orca)).toBe("orca");
+    expect(pickTerminal({ ...orca, TMUX: "/tmp/tmux-1000/default,1,0", KITTY_WINDOW_ID: "3" })).toBe("orca");
+  });
 });
 
 describe("launchArgv", () => {
+  test("Orca starts the agent in the workspace that holds the project directory, through the CLI it exported", () => {
+    expect(launchArgv("orca", giftCards, { ORCA_CLI_COMMAND: "/home/u/.config/orca/linux-orca-cli-shim/orca" })).toEqual([
+      "/home/u/.config/orca/linux-orca-cli-shim/orca", "agent", "launch", "--agent", "claude", "--worktree", "path:/work/crm", "--prompt", giftCards.prompt,
+    ]);
+  });
+
   test("tmux opens a named window in the project directory without switching to it", () => {
     expect(launchArgv("tmux", giftCards)).toEqual(["tmux", "new-window", "-d", "-n", "gift-cards prep", "-c", "/work/crm", giftCards.command]);
   });
@@ -234,5 +253,43 @@ describe("launchCommand", () => {
     const place = async () => { throw new Error("must not place"); };
     expect(await launchCommand("/w", ["execute", "spec-board", "six"], place, {}, stubRunner([]))).toBe("launch: not a phase id: six");
     expect(await launchCommand("/w", ["prep", "gift-cards"], place, {}, stubRunner([]))).toStartWith("launch: run this in a new terminal: cd '/w' && ");
+  });
+});
+
+describe("launch model and effort", () => {
+  const cli = "/home/u/.config/orca/linux-orca-cli-shim/orca";
+  const pinned: SessionLaunch = { ...giftCards, model: "opus", effort: "max" };
+
+  test("SPEC_LAUNCH_MODEL and SPEC_LAUNCH_EFFORT start the session on that model and effort", () => {
+    const launch = sessionLaunch("/work/crm", ["prep", "gift-cards"], { SPEC_LAUNCH_MODEL: "opus[1m]", SPEC_LAUNCH_EFFORT: "MAX" });
+    expect(launch.ok && launch.value).toEqual({
+      ...giftCards,
+      command: "claude -n 'gift-cards prep' --model 'opus[1m]' --effort 'max' '/spec-driven:spec prep gift-cards'",
+      shellLine: "cd '/work/crm' && claude -n 'gift-cards prep' --model 'opus[1m]' --effort 'max' '/spec-driven:spec prep gift-cards'",
+      model: "opus[1m]",
+      effort: "max",
+    });
+  });
+
+  test("an effort claude doesn't know is refused, and blank variables change nothing", () => {
+    expect(sessionLaunch("/w", ["prep", "gift-cards"], { SPEC_LAUNCH_EFFORT: "ultra" })).toEqual({ ok: false, reason: "SPEC_LAUNCH_EFFORT must be one of low, medium, high, xhigh, max, not ultra" });
+    expect(sessionLaunch("/work/crm", ["prep", "gift-cards"], { SPEC_LAUNCH_MODEL: " ", SPEC_LAUNCH_EFFORT: "" })).toEqual({ ok: true, value: giftCards });
+  });
+
+  test("Orca and background workers get the same flags", () => {
+    expect(launchArgv("orca", pinned, { ORCA_CLI_COMMAND: cli })).toEqual([
+      cli, "agent", "launch", "--agent", "claude", "--worktree", "path:/work/crm", "--model", "opus", "--effort", "max", "--prompt", giftCards.prompt,
+    ]);
+    const runner = stubRunner([[["claude", "--bg"], { stdout: "backgrounded · 8b25966f · gift-cards prep\n" }]]);
+    launchInBackground(pinned, "/w/brief.md", [], runner);
+    expect(runner.calls[0]?.slice(0, 8)).toEqual(["claude", "--bg", "-n", "gift-cards prep", "--model", "opus", "--effort", "max"]);
+  });
+
+  test("in Orca an effort without a model hands over the line before anything runs: orca takes --effort only with --model", () => {
+    const runner = stubRunner([]);
+    expect(launchReport("/work/crm", ["prep", "gift-cards"], { ORCA_CLI_COMMAND: cli, SPEC_LAUNCH_EFFORT: "max" }, runner)).toBe(
+      "launch: run this in a new terminal: cd '/work/crm' && claude -n 'gift-cards prep' --effort 'max' '/spec-driven:spec prep gift-cards' (orca: --effort needs --model: set SPEC_LAUNCH_MODEL too)",
+    );
+    expect(runner.calls).toEqual([]);
   });
 });

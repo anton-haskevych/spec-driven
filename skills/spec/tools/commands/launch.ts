@@ -27,7 +27,7 @@ export async function launchCommand(projectDir: string, args: readonly string[],
   const request = parseLaunchArgs(projectDir, args);
   if (!request.ok) return `launch: ${request.reason}`;
   const { positionals, brief } = request.value;
-  const launch = sessionLaunch(projectDir, positionals);
+  const launch = sessionLaunch(projectDir, positionals, env);
   if (!launch.ok) return `launch: ${launch.reason}`;
   const [subCommand, spec, target] = positionals;
   if (!spec || target === undefined) return launchReport(projectDir, positionals, env, runner);
@@ -37,7 +37,7 @@ export async function launchCommand(projectDir: string, args: readonly string[],
   if (!placed.ok) return `launch: ${placed.reason}`;
   const placement = renderPlacement(placed);
   if (brief === undefined) return [placement, launchReport(placed.value.path, positionals, env, runner)].join("\n");
-  const inTree = sessionLaunch(placed.value.path, positionals);
+  const inTree = sessionLaunch(placed.value.path, positionals, env);
   if (!inTree.ok) return `launch: ${inTree.reason}`;
   return [placement, launchedLine(launchInBackground(inTree.value, brief, freshTreeNotes(placement), runner), inTree.value.title)].join("\n");
 }
@@ -59,12 +59,13 @@ function parseLaunchArgs(projectDir: string, args: readonly string[]): Result<La
 }
 
 export function launchReport(projectDir: string, args: readonly string[], env: Env = process.env, runner: Runner = systemRunner): string {
-  const launch = sessionLaunch(projectDir, args);
+  const launch = sessionLaunch(projectDir, args, env);
   if (!launch.ok) return `launch: ${launch.reason}`;
   const runYourself = `launch: run this in a new terminal: ${launch.value.shellLine}`;
 
   const terminal = pickTerminal(env);
   if (!terminal) return runYourself;
+  if (terminal === "orca" && launch.value.effort && !launch.value.model) return `${runYourself} (orca: --effort needs --model: set SPEC_LAUNCH_MODEL too)`;
   const result = runner.run(launchArgv(terminal, launch.value, env));
   if (result.code === 0) return `Launched: ${terminal}${terminal === "iTerm" ? tabNote(result.stdout) : ""} — ${launch.value.title}`;
   return `${runYourself} (${terminal}: ${result.stderr.trim().split("\n")[0] ?? `exit ${result.code}`})`;

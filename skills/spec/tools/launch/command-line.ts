@@ -1,5 +1,6 @@
 import { isPrGroup } from "../claims/pr-claim";
 import { isPhaseId, normalizePhaseHint, SUB_COMMANDS } from "../context/request";
+import type { Env } from "../core/env";
 import type { Result } from "../core/result";
 import { launchTitle, SPEC_NAME } from "./title";
 
@@ -11,12 +12,16 @@ export interface SessionLaunch {
   prompt: string;
   command: string;
   shellLine: string;
+  model?: string;
+  effort?: string;
 }
 
 // The plugin's qualified skill name: bare `/spec` can be shadowed by another skill of that name.
 const SKILL_COMMAND = "/spec-driven:spec";
 
-export function sessionLaunch(projectDir: string, args: readonly string[]): Result<SessionLaunch> {
+const EFFORTS = ["low", "medium", "high", "xhigh", "max"];
+
+export function sessionLaunch(projectDir: string, args: readonly string[], env: Env = {}): Result<SessionLaunch> {
   const [subCommand, specName, targetArg, ...extra] = args;
   const hold = subCommand === "babysit" && extra.length === 1 && extra[0] === "hold";
   if (!subCommand || !specName || (extra.length > 0 && !hold)) return { ok: false, reason: `usage: ${LAUNCH_USAGE}` };
@@ -24,11 +29,28 @@ export function sessionLaunch(projectDir: string, args: readonly string[]): Resu
   if (!SPEC_NAME.test(specName)) return { ok: false, reason: `spec name must be kebab-case: ${specName}` };
   const target = launchTarget(subCommand, targetArg);
   if (!target.ok) return target;
+  const settings = launchSettings(env);
+  if (!settings.ok) return settings;
 
   const title = launchTitle(specName, subCommand, target.value);
   const prompt = [SKILL_COMMAND, subCommand, specName, target.value, hold ? "hold" : undefined].filter(Boolean).join(" ");
-  const command = `claude -n ${shellQuote(title)} ${shellQuote(prompt)}`;
-  return { ok: true, value: { title, projectDir, prompt, command, shellLine: `cd ${shellQuote(projectDir)} && ${command}` } };
+  const flags = claudeFlags(settings.value).map((word) => (word.startsWith("--") ? word : shellQuote(word)));
+  const command = ["claude", "-n", shellQuote(title), ...flags, shellQuote(prompt)].join(" ");
+  return { ok: true, value: { title, projectDir, prompt, command, shellLine: `cd ${shellQuote(projectDir)} && ${command}`, ...settings.value } };
+}
+
+// Whoever wants every launched session on one model or effort sets SPEC_LAUNCH_MODEL / SPEC_LAUNCH_EFFORT
+// (Claude Code's `env` setting will do); unset, the new session starts on the user's own defaults.
+function launchSettings(env: Env): Result<Pick<SessionLaunch, "model" | "effort">> {
+  const model = env.SPEC_LAUNCH_MODEL?.trim();
+  const effort = env.SPEC_LAUNCH_EFFORT?.trim().toLowerCase();
+  if (effort && !EFFORTS.includes(effort)) return { ok: false, reason: `SPEC_LAUNCH_EFFORT must be one of ${EFFORTS.join(", ")}, not ${effort}` };
+  return { ok: true, value: { ...(model ? { model } : {}), ...(effort ? { effort } : {}) } };
+}
+
+// `claude` and `orca agent launch` take these flags by the same names.
+export function claudeFlags(launch: Pick<SessionLaunch, "model" | "effort">): string[] {
+  return [...(launch.model ? ["--model", launch.model] : []), ...(launch.effort ? ["--effort", launch.effort] : [])];
 }
 
 // execute may name a phase; babysit must name a PR group; nothing else takes a third word.
