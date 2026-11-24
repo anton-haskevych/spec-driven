@@ -1,5 +1,5 @@
 import type { Env } from "../core/env";
-import type { SessionLaunch } from "./command-line";
+import { claudeFlags, type SessionLaunch } from "./command-line";
 
 export type Terminal = "orca" | "tmux" | "iTerm" | "Terminal" | "kitty";
 
@@ -33,7 +33,7 @@ export function launchArgv(terminal: Terminal, launch: SessionLaunch, env: Env =
 // Never a bare `orca` on Linux: that is the GNOME screen reader.
 function orcaArgv(launch: SessionLaunch, env: Env): string[] {
   const orca = env.ORCA_CLI_COMMAND || "orca";
-  return [orca, "agent", "launch", "--agent", "claude", "--worktree", `path:${launch.projectDir}`, "--prompt", launch.prompt];
+  return [orca, "agent", "launch", "--agent", "claude", "--worktree", `path:${launch.projectDir}`, ...claudeFlags(launch), "--prompt", launch.prompt];
 }
 
 // With kitty's remote control on (`listen_on`, which puts KITTY_LISTEN_ON in every child's

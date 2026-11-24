@@ -1,7 +1,7 @@
 import { appendFileSync } from "node:fs";
 import type { Result } from "../core/result";
 import type { Runner } from "../core/run";
-import type { SessionLaunch } from "./command-line";
+import { claudeFlags, type SessionLaunch } from "./command-line";
 
 export interface BackgroundSession {
   id: string;
@@ -24,7 +24,7 @@ export function launchedLine(launched: Result<BackgroundSession>, title: string)
 }
 
 function backgroundArgv(launch: SessionLaunch, brief: string): string[] {
-  return ["claude", "--bg", "-n", launch.title, "--permission-mode", "bypassPermissions", "--append-system-prompt-file", brief, launch.prompt];
+  return ["claude", "--bg", "-n", launch.title, ...claudeFlags(launch), "--permission-mode", "bypassPermissions", "--append-system-prompt-file", brief, launch.prompt];
 }
 
 // `--session-id` is ignored with `--bg`, so the id is read back from `backgrounded · <id> · <name>`;
