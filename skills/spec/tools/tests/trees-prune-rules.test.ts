@@ -9,6 +9,8 @@ import { phaseEdges, phaseState } from "./factories";
 const facts = (path: string, head: string, branch: string | undefined, extra: Partial<Omit<TreeFacts, "worktree">> = {}): TreeFacts => ({
   worktree: { path, head, ...(branch ? { branch } : {}), detached: !branch, locked: false, prunable: false, isMain: false } satisfies Workspace,
   inBase: false,
+  placed: true,
+  carriesWork: true,
   ...extra,
 });
 const merged = new Map([["feat/squashed", [{ number: 8, head: "s1" }]]]);
@@ -33,6 +35,15 @@ describe("pruneCandidates", () => {
 
   test("without PR data only base ancestry counts", () => {
     expect(pruneCandidates([facts("/t/s", "s1", "feat/squashed")], undefined, "main")).toEqual([]);
+  });
+
+  test("a folder outside the tree root is another tool's (an Orca chat, a Codex task): kept, merged or not", () => {
+    const outside = { placed: false };
+    expect(pruneCandidates([facts("/orca/scup", "m1", "me/scup", { ...outside, inBase: true }), facts("/codex/t", "c1", undefined, { ...outside, inBase: true }), facts("/orca/s", "s1", "feat/squashed", outside)], merged, "main")).toEqual([]);
+  });
+
+  test("a branch in base that never held work of its own is fresh, not merged: kept", () => {
+    expect(pruneCandidates([facts("/t/fresh", "m1", "feat/fresh", { inBase: true, carriesWork: false })], merged, "main")).toEqual([]);
   });
 });
 

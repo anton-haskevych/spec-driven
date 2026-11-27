@@ -1,6 +1,8 @@
 import { existsSync } from "node:fs";
+import { join, sep } from "node:path";
+import { repoName } from "../board/load";
 import { heldClaims } from "../claims/held";
-import { gitAt, type Git } from "../core/git";
+import { gitAt, gitCommonDir, type Git } from "../core/git";
 import { isRecord, numberField, stringField } from "../core/frontmatter";
 import type { Result } from "../core/result";
 import { defaultBranch, runAll, type AsyncRunner } from "../core/run";
@@ -19,10 +21,13 @@ import { treeOccupant } from "./find";
 import type { PlaceDeps } from "./place";
 import { PLACE_FETCH_TIMEOUT_MS } from "./place";
 import { laneTreeFacts } from "./lane-facts";
+import { recordedTreeRoot } from "./local-settings";
 import { laneBranches, pruneCandidates, type LaneInfo, type MergedHead, type PruneCandidate, type TreeFacts } from "./prune-rules";
 import { strayFolders } from "./strays";
 
-export type PruneDeps = Omit<PlaceDeps, "home">;
+export type PruneDeps = PlaceDeps;
+
+const OWN_COMMIT = /^(commit|cherry-pick|revert)\b|^merge .*: Merge made/;
 
 export interface PruneReport {
   candidates: PruneCandidate[];
@@ -84,14 +89,42 @@ async function treeFacts(git: Git, worktrees: readonly Workspace[], baseSha: str
   const eligible = worktrees.filter((worktree) => !worktree.isMain && !worktree.prunable && worktree.path !== here && existsSync(worktree.path));
   const jobs = eligible.map((worktree) => ({ argv: ["git", "merge-base", "--is-ancestor", worktree.head, baseSha], options: { cwd: projectDir } }));
   const results = await runAll(deps.asyncRunner, jobs, SCAN_CONCURRENCY);
+  const root = placementRoot(git, deps.home);
+  const upstreams = branchUpstreams(git);
   const claims = heldClaims(git, sessions, new Map());
   const view = { sessions, claims, worktreePaths: paths, ownSessionId: ownSessionId(deps.env) };
   // A closed claim's phase is still pending in that tree; placement would hand it to the next session.
   const pending = new Map(claims.filter(({ status }) => status === "closed").map(({ claim }) => [claim.workspace, `pending ${claim.spec} ${claim.phase}`]));
   return eligible.map((worktree, index) => {
     const busy = treeOccupant(worktree.path, view) ?? pending.get(worktree.path);
-    return { worktree, inBase: results[index]?.code === 0, ...(busy ? { busy } : {}) };
+    const inBase = results[index]?.code === 0;
+    const placed = root !== undefined && isInside(canonicalPath(worktree.path), root);
+    const carriesWork = inBase && placed && carriesOwnWork(gitAt(worktree.path, deps.runner), worktree, upstreams);
+    return { worktree, inBase, placed, carriesWork, ...(busy ? { busy } : {}) };
   });
+}
+
+function placementRoot(git: Git, home: string): string | undefined {
+  const commonDir = gitCommonDir(git);
+  if (!commonDir.ok) return undefined;
+  return canonicalPath(recordedTreeRoot(commonDir.value, home) ?? join(home, "claude-worktrees", repoName(commonDir.value)));
+}
+
+function isInside(path: string, root: string): boolean {
+  return path === root || path.startsWith(root + sep);
+}
+
+function branchUpstreams(git: Git): Map<string, string> {
+  const listed = git.out(["for-each-ref", "--format=%(refname:short)%09%(upstream:short)", "refs/heads/"]);
+  const pairs = listed.ok ? listed.value.split("\n").map((line) => line.split("\t")) : [];
+  return new Map(pairs.filter(([branch, upstream]) => branch && upstream).map(([branch, upstream]) => [branch as string, upstream as string]));
+}
+
+function carriesOwnWork(tree: Git, worktree: Workspace, upstreams: ReadonlyMap<string, string>): boolean {
+  const { branch } = worktree;
+  if (branch && upstreams.get(branch)?.endsWith(`/${branch}`)) return true;
+  const reflog = tree.out(["reflog", "show", "--format=%gs", branch ? `refs/heads/${branch}` : "HEAD"]);
+  return reflog.ok && reflog.value.split("\n").some((subject) => OWN_COMMIT.test(subject));
 }
 
 // Specs as origin/<default> and this clone's copy of the record hold them; the pin above just fetched main.
