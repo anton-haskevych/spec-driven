@@ -37,6 +37,12 @@ export function treeRoot(commonDir: string, worktrees: readonly Workspace[], def
   return { ok: true, value: { root: detected.root, notice: `Trees: ${detected.root} (${source}; ${CHANGE_HINT})` } };
 }
 
+// Read only: prune neither writes settings nor guesses a root from where other tools keep their folders.
+export function recordedTreeRoot(commonDir: string, home: string): string | undefined {
+  const text = readTextIfExists(localSettingsFile(commonDir));
+  return text === undefined ? undefined : recordedRoot(text, home);
+}
+
 // The parent folder holding the most of this person's trees is where they keep them.
 export function detectTreeRoot(worktrees: readonly Workspace[], defaultRoot: string): { root: string; trees: number } {
   const counts = new Map<string, number>();

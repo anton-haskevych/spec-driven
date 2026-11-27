@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, realpathSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { treesCommand } from "../commands/trees";
 import type { RunOptions } from "../core/run";
@@ -9,10 +10,13 @@ import { isolatedAsyncRunner, isolatedRunner, repoWithOrigin, type TestRepo } fr
 import { cannedGh } from "./stub-runner";
 import { createTree, type Tree } from "./tree";
 
+const recordTreeRoot = (repo: TestRepo, root: string) => repo.write(".git/spec-driven/local.md", `---\nworktrees:\n  root: ${JSON.stringify(root)}\n---\n`);
+
 describe("trees prune (real git, gh stubbed)", () => {
   let repo: TestRepo;
   let claude: Tree;
   let squashedHead: string;
+  let elsewhere: string;
   const runner = { run: (argv: readonly string[], options?: RunOptions) => (argv[0] === "ps" ? { code: 0, stdout: `${process.pid} start\n`, stderr: "" } : isolatedRunner.run(argv, options)) };
   const deps = (gh: string): PlaceDeps => ({
     runner,
@@ -26,6 +30,8 @@ describe("trees prune (real git, gh stubbed)", () => {
   beforeAll(() => {
     repo = repoWithOrigin("spec-trees-prune-");
     claude = createTree("spec-trees-prune-claude-");
+    elsewhere = realpathSync(mkdtempSync(join(tmpdir(), "spec-trees-prune-elsewhere-")));
+    recordTreeRoot(repo, realpathSync(repo.root));
     repo.write("README.md", "tracked");
     repo.commitAll("a tracked file to edit");
     repo.git("push", "-q", "origin", "main");
@@ -42,7 +48,13 @@ describe("trees prune (real git, gh stubbed)", () => {
     unpushed.commitAll("never pushed");
     const dirty = repo.addWorktree("dirty", "feat/dirty");
     dirty.write("README.md", "edited, not committed");
-    repo.addWorktree("scratch", "feat/scratch").write("notes.md", "untracked");
+    dirty.git("push", "-q", "-u", "origin", "feat/dirty");
+    const scratch = repo.addWorktree("scratch", "feat/scratch");
+    scratch.write("notes.md", "untracked");
+    scratch.git("push", "-q", "-u", "origin", "feat/scratch");
+    repo.addWorktree("fresh", "feat/fresh");
+    repo.git("worktree", "add", "-q", "-b", "me/chat", join(elsewhere, "chat"));
+    repo.git("push", "-q", "-u", "origin", "me/chat");
     repo.addWorktree("busy", "feat/busy");
     const claimed = repo.addWorktree("claimed", "feat/claimed");
     repo.write(".git/spec-board/claims/x#2.json", JSON.stringify({ spec: "x", phase: "2", sessionId: "gone-session", workspace: realpathSync(claimed.dir), claimedAt: new Date().toISOString() }));
@@ -51,11 +63,12 @@ describe("trees prune (real git, gh stubbed)", () => {
   afterAll(() => {
     repo.cleanup();
     claude.cleanup();
+    rmSync(elsewhere, { recursive: true, force: true });
   });
 
   const merged = () => JSON.stringify([{ number: 8, headRefName: "feat/squashed", headRefOid: squashedHead }]);
 
-  test("lists merged trees nobody is in, with their evidence; leaves out unpushed ones, claimed ones, and one an idle tab is open in", async () => {
+  test("lists merged trees nobody is in, with their evidence; leaves out unpushed, claimed, open, fresh and other tools' ones", async () => {
     expect((await treesCommand(repo.dir, ["prune"], deps(merged()))).split("\n")).toEqual([
       "prune 4 merged trees (idle, nothing unpushed; trees with edits are kept):",
       `  ${at("dirty")} · feat/dirty · in origin/main`,
@@ -88,7 +101,8 @@ describe("trees prune (real git, gh stubbed)", () => {
     expect(lines[2]).toStartWith(`kept ${at("scratch")}: git worktree failed: fatal: `);
     expect(lines[3]).toBe(`removed ${at("squashed")} and branch feat/squashed`);
     expect(["ff", "squashed"].map((name) => existsSync(at(name)))).toEqual([false, false]);
-    expect(["unpushed", "dirty", "scratch", "busy", "claimed"].map((name) => existsSync(at(name)))).toEqual([true, true, true, true, true]);
+    expect(["unpushed", "dirty", "scratch", "fresh", "busy", "claimed"].map((name) => existsSync(at(name)))).toEqual([true, true, true, true, true, true]);
+    expect(existsSync(join(elsewhere, "chat"))).toBe(true);
     expect(repo.git("branch", "--list", "feat/ff", "feat/squashed")).toBe("");
   });
 });
@@ -110,6 +124,7 @@ describe("trees prune --auto --wait (the background run)", () => {
   beforeAll(() => {
     repo = repoWithOrigin("spec-trees-prune-auto-");
     claude = createTree("spec-trees-prune-auto-claude-");
+    recordTreeRoot(repo, join(realpathSync(repo.root), "trees"));
     repo.write("README.md", "tracked");
     repo.commitAll("a tracked file to edit");
     repo.git("push", "-q", "origin", "main");
@@ -124,7 +139,10 @@ describe("trees prune --auto --wait (the background run)", () => {
     const unpushed = repo.addWorktree("trees/unpushed", "feat/unpushed");
     unpushed.write("u.md", "x");
     unpushed.commitAll("never pushed");
-    repo.addWorktree("trees/dirty", "feat/dirty").write("README.md", "edited, not committed");
+    const dirty = repo.addWorktree("trees/dirty", "feat/dirty");
+    dirty.write("README.md", "edited, not committed");
+    dirty.git("push", "-q", "-u", "origin", "feat/dirty");
+    repo.addWorktree("trees/fresh", "feat/fresh");
     repo.addWorktree("trees/busy", "feat/busy");
     mkdirSync(join(repo.root, "trees", "leftover", "node_modules"), { recursive: true });
     claude.write(`sessions/${process.pid}.json`, JSON.stringify({ pid: process.pid, sessionId: "other", cwd: at("busy"), procStart: "start", status: "idle", name: "x execute 1", updatedAt: Date.now() }));
@@ -142,7 +160,7 @@ describe("trees prune --auto --wait (the background run)", () => {
   test("removes merged, pushed, idle trees without asking and says so in one line; keeps everything else", async () => {
     expect(await treesCommand(repo.dir, ["prune", "--auto", "--wait"], deps())).toBe("Pruned 2 merged trees (ff, squashed) · kept 1, git refused (dirty) · 1 folder not a worktree, left alone (leftover)");
     expect(["ff", "squashed"].map((name) => existsSync(at(name)))).toEqual([false, false]);
-    expect(["unpushed", "dirty", "busy", "leftover"].map((name) => existsSync(at(name)))).toEqual([true, true, true, true]);
+    expect(["unpushed", "dirty", "fresh", "busy", "leftover"].map((name) => existsSync(at(name)))).toEqual([true, true, true, true, true]);
     expect(repo.git("branch", "--list", "feat/ff", "feat/squashed")).toBe("");
   });
 
