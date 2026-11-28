@@ -30,10 +30,12 @@ export function launchArgv(terminal: Terminal, launch: SessionLaunch, env: Env =
 }
 
 // Chat or terminal follows the user's Chat | CLI choice, and Orca titles the tab itself.
+// `--focus` because Orca (seen on 1.4.279) leaves a chat launched in the background out of the
+// sidebar until it is opened from session history: it runs, but nobody can see it.
 // Never a bare `orca` on Linux: that is the GNOME screen reader.
 function orcaArgv(launch: SessionLaunch, env: Env): string[] {
   const orca = env.ORCA_CLI_COMMAND || "orca";
-  return [orca, "agent", "launch", "--agent", "claude", "--worktree", `path:${launch.projectDir}`, ...claudeFlags(launch), "--prompt", launch.prompt];
+  return [orca, "agent", "launch", "--agent", "claude", "--worktree", `path:${launch.projectDir}`, "--focus", ...claudeFlags(launch), "--prompt", launch.prompt];
 }
 
 // With kitty's remote control on (`listen_on`, which puts KITTY_LISTEN_ON in every child's

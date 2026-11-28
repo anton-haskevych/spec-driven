@@ -76,9 +76,9 @@ describe("pickTerminal", () => {
 });
 
 describe("launchArgv", () => {
-  test("Orca starts the agent in the workspace that holds the project directory, through the CLI it exported", () => {
+  test("Orca starts the agent in front, in the workspace that holds the project directory, through the CLI it exported", () => {
     expect(launchArgv("orca", giftCards, { ORCA_CLI_COMMAND: "/home/u/.config/orca/linux-orca-cli-shim/orca" })).toEqual([
-      "/home/u/.config/orca/linux-orca-cli-shim/orca", "agent", "launch", "--agent", "claude", "--worktree", "path:/work/crm", "--prompt", giftCards.prompt,
+      "/home/u/.config/orca/linux-orca-cli-shim/orca", "agent", "launch", "--agent", "claude", "--worktree", "path:/work/crm", "--focus", "--prompt", giftCards.prompt,
     ]);
   });
 
@@ -278,7 +278,7 @@ describe("launch model and effort", () => {
 
   test("Orca and background workers get the same flags", () => {
     expect(launchArgv("orca", pinned, { ORCA_CLI_COMMAND: cli })).toEqual([
-      cli, "agent", "launch", "--agent", "claude", "--worktree", "path:/work/crm", "--model", "opus", "--effort", "max", "--prompt", giftCards.prompt,
+      cli, "agent", "launch", "--agent", "claude", "--worktree", "path:/work/crm", "--focus", "--model", "opus", "--effort", "max", "--prompt", giftCards.prompt,
     ]);
     const runner = stubRunner([[["claude", "--bg"], { stdout: "backgrounded · 8b25966f · gift-cards prep\n" }]]);
     launchInBackground(pinned, "/w/brief.md", [], runner);
